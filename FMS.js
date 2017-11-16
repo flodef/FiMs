@@ -244,7 +244,7 @@
                      var data = [];
                      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header
                        var index = indexOf(GLOBAL.histo, contents[i][7], 7);
-                       debugger;
+                       
                        if (!index) {
                          if (!indexOf(contents[i], "#N/A")) {
                            data.push(contents[i]);
@@ -270,7 +270,7 @@
 				     var index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
 				     while (index)
 					 {
-					   validateDeleteForm();
+					   validateDeleteForm(index);
 					   index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0, index+1);
 					 }
 				   
