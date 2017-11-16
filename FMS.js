@@ -233,7 +233,7 @@
       displayError("No file had been selected.", true);
     }
   }
-  toto
+
   function compareResultData()
   {
     google.script.run
@@ -266,6 +266,14 @@
                        }
                      }
                    
+				     debugger;
+				     var index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
+				     while (index)
+					 {
+					   validateDeleteForm();
+					   index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0, index+1);
+					 }
+				   
                      if (dupCnt + errCnt != contents.length - 1) {
                        insertHistoricRow(data);
                        debugger;
@@ -752,13 +760,13 @@
          : null;
   }
   
-  function indexOf(array, value, index)
+  function indexOf(array, value, index, start)
   {
     var index = index >= 0 ? index : null;
+	var x = Number.isInteger(start) ? start : 0;
   
     var i;
     if (Array.isArray(array)) {
-      var x = 0;
       while(x < array.length 
          && ((index == null && array[x] != value)
           || (index != null && array[x][index] != value))) { ++x; }
