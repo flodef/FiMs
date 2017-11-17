@@ -6,22 +6,22 @@
   GLOBAL.invest = [];
   GLOBAL.dummy = "XXXXXX";
   GLOBAL.error = {msg:null,isWarning:false};
-  
+
   /**
    * Run initializations on web app load.
    */
-  $(function() 
+  $(function()
   {
     jQuery.fx.off = false;
     updateAllValues(false);
-    
+
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
   });
 
   function updateAllValues(shouldRefresh)
   {
     showLoader(shouldRefresh);
-    
+
     google.script.run
                  .withSuccessHandler(function(contents) {
                    if (shouldRefresh)
@@ -31,9 +31,9 @@
                      updateValue(1, true, contents);
                      updateValue(4, false, contents);
                    }
-                   
+
                    updateDashboardTable(contents);
-                   
+
                    updateInvestmentValues();
                  })
                  .withFailureHandler(displayError)
@@ -45,7 +45,7 @@
     google.script.run
                  .withSuccessHandler(function(contents) {
                    updateInvestmentTable(contents);
-                   
+
                    updateHistoricValues();
                  })
                  .withFailureHandler(displayError)
@@ -58,7 +58,7 @@
                  .withSuccessHandler(function(contents) {
                    updateHistoricTable(contents);
 
-                   $("input").each(function() 
+                   $("input").each(function()
                    {
                      if ($(this).hasClass("auto"))
                      {
@@ -67,7 +67,7 @@
                    });
 
                    hideLoader();
-                   
+
                    if (GLOBAL.error.msg) {
                      displayError(GLOBAL.error.msg, GLOBAL.error.isWarning);
                      GLOBAL.error.msg = null;
@@ -77,29 +77,29 @@
                  .withFailureHandler(displayError)
                  .getSheetValues("Historic!A:H");
   }
-  
+
   function addTransaction()
   {
-    $('#actionButton').hide("fade", null, 500, function() 
+    $('#actionButton').hide("fade", null, 500, function()
     { $('#addTransactionForm').show("fade", null, 500, function()
     { $('#transactionName').focus(); }); });
   }
 
   function deleteTransaction()
   {
-    $('#actionButton').hide("fade", null, 500, function() 
+    $('#actionButton').hide("fade", null, 500, function()
     { $('#deleteTransactionForm').show("fade", null, 500); });
   }
-  
+
   function uploadAccountFile()
   {
-    $('#actionButton').hide("fade", null, 500, function() 
+    $('#actionButton').hide("fade", null, 500, function()
     { $('#uploadFileForm').show("fade", null, 500, function()
     { $('#fileUpload').focus(); }); });
   }
-  
+
   function validateAddForm()
-  {    
+  {
 //    var today = new Date();
 //    var dd = today.getDate();
 //    var mm = today.getMonth()+1; //January is 0!
@@ -113,7 +113,7 @@
 
     var type = $("#transactionName").prop("value")
     var tType = tName ? type : "";
-    
+
     var qty = parseInt($("#transactionQuantity").val(), 10);
     var tQty = tName && !isNaN(qty) && qty != 0 ? qty : "";
 
@@ -121,7 +121,7 @@
              : tQty<0 ? "SELL"
              : tQty>0 ? "BUY"
              : "DIVIDEND";
-    
+
     var val = parseFloat($("#transactionValue").val());
     var tVal = !isNaN(val) && val != 0 ? val : "";
 
@@ -149,12 +149,12 @@
   {
     var index = 1;
     var rowCnt = data.length;
-    
+
     if (rowCnt > 0) {
       $("#snackbar").text((rowCnt == 1 ? "Transaction" : rowCnt + " Transactions") + " added");
-    
+
       showLoader(true);
-      
+
       google.script.run
                    //.withSuccessHandler(function(contents) { setValue("Historic!A2", data, sortTransactionValues) })
                    .withSuccessHandler(function(contents) { setValue("Historic!A2", data, executionSuccess) })
@@ -164,7 +164,7 @@
       displayError("No transaction added.", true);
     }
   }
-  
+
   function sortTransactionValues()
   {
     google.script.run
@@ -177,12 +177,12 @@
   {
     var index = index ? index : indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
     var rowCnt = rowCnt ? rowCnt : 1;
-    
+
     if (index*rowCnt > 0) {
       $("#snackbar").text((rowCnt == 1 ? "Transaction" : rowCnt + " Transactions") + " deleted");
-    
+
       showLoader(true);
-    
+
       google.script.run
                    .withSuccessHandler(function(contents) { executionSuccess(); })
                    .withFailureHandler(displayError)
@@ -191,11 +191,11 @@
       displayError("No transaction deleted.", true);
     }
   }
-  
+
   function validateUploadForm()
   {
     showLoader(true);
-    
+
     var data = null;
     var file = $("#fileUpload").prop("files")[0];
     if (file)
@@ -206,16 +206,16 @@
         var csvData = event.target.result;
         try {
           data = $.csv.toArrays(csvData);
-      
-          if (data && data.length > 1) 
+
+          if (data && data.length > 1)
           {
             google.script.run
                   .withSuccessHandler(function(contents) {
                     setValue("Account!A1", data);
-                    
+
                     $("#snackbar").text(data.length-1 + " rows imported from csv file");  // Don't count the header
                     showSnackBar();
-                    
+
                     compareResultData();
                   })
                   .withFailureHandler(displayError)
@@ -244,7 +244,7 @@
                      var data = [];
                      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header
                        var index = indexOf(GLOBAL.histo, contents[i][7], 7);
-                       
+
                        if (!index) {
                          if (!indexOf(contents[i], "#N/A")) {
                            data.push(contents[i]);
@@ -265,15 +265,26 @@
                          }
                        }
                      }
-                   
-				     debugger;
-				     var index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
-				     while (index)
-					 {
-					   validateDeleteForm(index);
-					   index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0, index+1);
-					 }
-				   
+
+                     debugger;
+                     var prevIndex;
+                     var index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
+                     var dai = [];
+                     while (index) {
+                       if (index-1 == prevIndex) {
+                         dai[dai.length-1][1] += 1;
+                       } else {
+                         dai.push([index, 1]);
+                       }
+                       prevIndex = index;
+
+                       index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0, index+1);
+                     }
+
+                     for (var i = 0; i < dai.length; i++) {
+                       validateDeleteForm(dai[i][0], dai[i][1]);
+                     }
+
                      if (dupCnt + errCnt != contents.length - 1) {
                        insertHistoricRow(data);
                        debugger;
@@ -287,7 +298,7 @@
                          displayError(msg, errCnt == 0);
                        }
                      } else {
-                       var msg = errCnt == 0 
+                       var msg = errCnt == 0
                            ? "The imported file contains only duplicates (" + dupCnt + " found)."
                            : dupCnt + " duplicate(s) found and " + errCnt + " row(s) in error.";
                        displayError(msg, errCnt == 0);
@@ -299,26 +310,26 @@
                  .withFailureHandler(displayError)
                  .getSheetValues("Result!A:H");
   }
-  
+
   function cancelForm()
   {
     if ($('#addTransactionForm').is(":visible"))
     {
-      $('#addTransactionForm').hide("fade", null, 500, function() 
-      { $('#actionButton').show("fade", null, 500); 
+      $('#addTransactionForm').hide("fade", null, 500, function()
+      { $('#actionButton').show("fade", null, 500);
         selectName($('#transactionName').get(0), 0);
         $('#transactionQuantity').val("");
         $('#transactionValue').val(""); });
     }
     else if ($('#deleteTransactionForm').is(":visible"))
     {
-      $('#deleteTransactionForm').hide("fade", null, 500, function() 
+      $('#deleteTransactionForm').hide("fade", null, 500, function()
       { $('#actionButton').show("fade", null, 500); });
     }
     else if ($('#uploadFileForm').is(":visible"))
     {
-      $('#uploadFileForm').hide("fade", null, 500, function() 
-      { $('#actionButton').show("fade", null, 500); 
+      $('#uploadFileForm').hide("fade", null, 500, function()
+      { $('#actionButton').show("fade", null, 500);
         $('#fileUpload').val("")});
     }
 
@@ -327,12 +338,12 @@
 
   function onKeyUp(e)
   {
-    if (!$('#addTransactionForm').is(":animated") 
-     && !$('#deleteTransactionForm').is(":animated") 
-     && !$('#uploadFileForm').is(":animated") 
+    if (!$('#addTransactionForm').is(":animated")
+     && !$('#deleteTransactionForm').is(":animated")
+     && !$('#uploadFileForm').is(":animated")
      && !$('#actionButton').is(":animated")
      && !$('#loaderOverlay').is(':visible'))
-    {    
+    {
       if ($('#alertOverlay').is(':visible'))
       {
         $('#alertOverlay').fadeOut(1000);
@@ -359,7 +370,7 @@
           cancelForm();
         }
       }
-      else 
+      else
       {
         if (!$('input[type="number"]').is(':focus') && !$('input[type="text"]').is(':focus'))// && $('#actionButton').is(':visible'))
         {
@@ -402,10 +413,10 @@
     }
   }
 
-  function updateDashboardTable(contents) 
+  function updateDashboardTable(contents)
   {
     GLOBAL.dashb = contents;
-    
+
     google.script.run
                  .withSuccessHandler(function(contents) {
                      var dashboardTableHTML = "";
@@ -414,58 +425,58 @@
                      dashboardTableHTML += '<tr>';
                      for(var item of contents[1])
                      {
-                       dashboardTableHTML+= item != 21 
+                       dashboardTableHTML+= item != 21
                                           ? getTableEditableCell(GLOBAL.dashb, item, "Dashboard!B" + item, item == 18 ? 200000 : 2000)
                                           : getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      dashboardTableHTML += '</tr>';
-                     
+
                      dashboardTableHTML += getTableTitle(contents[0][1], "Settings!B1");
                      dashboardTableHTML += '<tr>';
                      for(var item of contents[2])
                      {
-                       dashboardTableHTML += item == 16 
+                       dashboardTableHTML += item == 16
                                            ? getTableEditableCell(GLOBAL.dashb, item, "Expenses!C2", 2000)
-                                           : getTableReadOnlyCell(GLOBAL.dashb, item);    
+                                           : getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      dashboardTableHTML += '</tr>';
-                     
+
                      dashboardTableHTML += getTableTitle(contents[0][2], "Settings!C1");
                      dashboardTableHTML += '<tr>';
                      for(var item of contents[3])
                      {
-                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);    
+                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      dashboardTableHTML += '</tr>';
-                     
+
                      dashboardTableHTML += getTableTitle(contents[0][3], "Settings!D1");
                      dashboardTableHTML += '<tr>';
                      for(var item of contents[4])
                      {
-                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);    
+                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      dashboardTableHTML += '</tr>';
-                     
+
                      dashboardTableHTML += getTableTitle(contents[0][4], "Settings!E1");
                      dashboardTableHTML += '<tr>';
                      for(var item of contents[5])
                      {
-                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);    
+                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      dashboardTableHTML += '</tr>';
-                     
+
                      dashboardTableHTML += '</table>';
-                     
+
                      $("#dashboardDiv").prop("innerHTML", dashboardTableHTML);
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Settings!A:E");
   }
-  
-  function updateInvestmentTable(contents) 
+
+  function updateInvestmentTable(contents)
   {
     GLOBAL.invest = contents;
-  
+
     clearTransactionName();
 
     var investmentTableHTML = "";
@@ -474,12 +485,12 @@
                          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
                          + '<input type="checkbox" onclick="filterRebalance(this.checked)">'
                          + '<div class="slider round"></div></label><span class="tooltiptext">Rebalance</span></div></td></tr></table>'
-                         + '<td colspan="' + (contents[0].length-1) + '" align="right">' 
+                         + '<td colspan="' + (contents[0].length-1) + '" align="right">'
                          + '<input id="searchInput" type="text" placeholder="Search"'
                          + 'onkeyup="searchTable(this, \'investmentTable\', 0)" ></tr></table>';
     investmentTableHTML += '<table id="investmentTable" class="sortable">';
 
-    for (var i = 0; i < contents.length; ++i) 
+    for (var i = 0; i < contents.length; ++i)
     {
       investmentTableHTML += i==0 ? '<thead>' : '';
       investmentTableHTML += '<tr>';
@@ -489,10 +500,10 @@
         investmentTableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
       investmentTableHTML += '</tr>';
-      investmentTableHTML += i==0 ? '</thead><tbody>' 
+      investmentTableHTML += i==0 ? '</thead><tbody>'
       : i==contents.length-2 ? '</tbody><tfoot>'
       : i==contents.length-1 ? '</tfoot>' : '';
-      
+
       if (i != 0 && i != contents.length-1)
       {
         addTransactionName(contents[i][0], contents[i][1]);
@@ -504,11 +515,11 @@
     sorttable.makeSortable($("#investmentTable").get(0));
 
     addTransactionName("", GLOBAL.cost);
-    addTransactionName("", GLOBAL.approv); 
+    addTransactionName("", GLOBAL.approv);
   }
 
-  function updateHistoricTable(contents) 
-  {  
+  function updateHistoricTable(contents)
+  {
     GLOBAL.histo = contents;
 
     var historicTableHTML = "";
@@ -518,11 +529,11 @@
                          + '<input type="checkbox" onclick="showAllHistoric(this.checked)">'
                          + '<div class="slider round"></div></label><span class="tooltiptext">Show all</span></div></td></tr></table>'
                          + '<div id="historicLimit" class="hidden"></div>'
-                         + '<td colspan="' + (contents[0].length-1) + '" align="right">' 
+                         + '<td colspan="' + (contents[0].length-1) + '" align="right">'
                          + '<input id="searchInput" type="text" placeholder="Search"'
                          + 'onkeyup="searchTable(this, \'historicTable\', 1, $(\'#historicLimit\').val())"></tr></table>';
     historicTableHTML += '<table id="historicTable" class="sortable">';
-    for (var i = 0; i < contents.length; ++i) 
+    for (var i = 0; i < contents.length; ++i)
     {
       historicTableHTML += i==0 ? '<thead>' : '';
       historicTableHTML += '<tr>';
@@ -531,26 +542,26 @@
         historicTableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
       historicTableHTML += '</tr>';
-      historicTableHTML += i==0 ? '</thead><tbody>' 
+      historicTableHTML += i==0 ? '</thead><tbody>'
       : i==contents.length-1 ? '</tbody>' : '';
     }
     historicTableHTML += '</table>';
 
     $("#historicDiv").prop("innerHTML", historicTableHTML);
     sorttable.makeSortable($("#historicTable").get(0));
-    
+
     showAllHistoric(false);
   }
 
   function getTableEditableCell(contents, index, rangeName, limit)
   {
-    return getTableReadOnlyContent(contents[index-1][0], false) + 
+    return getTableReadOnlyContent(contents[index-1][0], false) +
            getTableEditableContent(contents[index-1][1], rangeName, limit);
   }
 
   function getTableReadOnlyCell(contents, index)
   {
-    return getTableReadOnlyContent(contents[index-1][0], false) + 
+    return getTableReadOnlyContent(contents[index-1][0], false) +
            getTableReadOnlyContent(contents[index-1][1], false);
   }
 
@@ -582,7 +593,7 @@
     var index = 10;
     var precision = 2;
     var maxLength = Math.max(String(e.min).length, String(e.max).length) + precision;
-      
+
     var val = parseFloat(e.value);
     if (!isNaN(val))
     {
@@ -605,11 +616,11 @@
     else
     {
       e.style = !e.placeholder || e.value != ""
-              ? "border-color:red" 
+              ? "border-color:red"
               : "border-color:transparent";
     }
   }
-  
+
   function selectName(e, index)
   {
     if (index !== undefined)
@@ -617,10 +628,10 @@
       $('#transactionName').prop("selectedIndex", index);
     }
     else
-    {    
+    {
       index = e.selectedIndex;
     }
-      
+
     if (e.options[index].id)
     {
       $("#transactionQuantityLabel").fadeIn();
@@ -642,18 +653,18 @@
     setValue("Dashboard!B" + row, [[ar]]);
   }
 
-  function setValue(name, value, func) 
+  function setValue(name, value, func)
   {
     google.script.run
                  .withSuccessHandler(function(contents) { if (func) { func(); } })
                  .withFailureHandler(displayError)
                  .setSheetValues(name, value);
   }
-    
+
   function filterRebalance(isChecked)
   {
     // Loop through all table rows, and hide those who don't match the search query
-    $("#investmentTable tbody tr").each(function(i) 
+    $("#investmentTable tbody tr").each(function(i)
     {
       var td = $(this).children("td")[4];
       if (!isChecked || (td && td.innerHTML != 0))
@@ -670,9 +681,9 @@
   function showAllHistoric(isChecked)
   {
     $("#historicLimit").val(isChecked ? null : "10");
-          
+
     // Loop through all table rows, and hide those who don't match the search query
-    $("#historicTable tr").each(function(i) 
+    $("#historicTable tr").each(function(i)
     {
       if (isChecked || i <= $("#historicLimit").val())
       {
@@ -685,12 +696,12 @@
     });
   }
 
-  function searchTable(searchElement, tableName, index, limit) 
+  function searchTable(searchElement, tableName, index, limit)
   {
     var filter = searchElement.value.toUpperCase();
     var max = limit ? parseInt(limit) : null;
 
-    $("#" + tableName + " tbody tr").each(function(i) 
+    $("#" + tableName + " tbody tr").each(function(i)
     {
       var td = $(this).children("td")[index];
       if ((!max || i < max) && td && td.innerHTML.toUpperCase().indexOf(filter) > -1)
@@ -703,8 +714,8 @@
       }
     });
   }
-  
-  function showSnackBar() 
+
+  function showSnackBar()
   {
     if ($("#snackbar").text())
     {
@@ -714,7 +725,7 @@
       setTimeout(function(){ $("#snackbar").removeClass("show"); $("#snackbar").text(""); }, 3000);
     }
   }
-   
+
   function showLoader(isRefreshing)
   {
     $('#loaderOverlay').fadeIn(1000);
@@ -728,7 +739,7 @@
     $('#content').fadeTo(1000, 1);
     $('#menu').fadeTo(1000, 1);
   }
-  
+
   function executionSuccess()
   {
     updateAllValues(true);
@@ -737,7 +748,7 @@
   }
 
   function displayError(msg, isWarning)
-  {    
+  {
     hideLoader();
 
     $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
@@ -745,12 +756,12 @@
                                 + '<strong>' + (isWarning ? "WARNING" : "ALERT") + ':</strong> ' + msg);
     $('#alertOverlay').fadeIn(1000);
   }
-  
+
   function toValue(content)
   {
     return parseFloat(String(content).replace(",", "").replace(" ", ""));
   }
-  
+
   function toDate(content)
   {
     return content && content.split("/").length == 3
@@ -759,20 +770,20 @@
          + content.split("/")[2]
          : null;
   }
-  
+
   function indexOf(array, value, index, start)
   {
     var index = index >= 0 ? index : null;
 	var x = Number.isInteger(start) ? start : 0;
-  
+
     var i;
     if (Array.isArray(array)) {
-      while(x < array.length 
+      while(x < array.length
          && ((index == null && array[x] != value)
           || (index != null && array[x][index] != value))) { ++x; }
-         
+
       i = x < array.length ? x : null;
     }
-    
+
     return i;
   }
