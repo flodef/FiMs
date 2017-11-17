@@ -266,7 +266,6 @@
                        }
                      }
 
-                     debugger;
                      var prevIndex;
                      var index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
                      var dai = [];
