@@ -281,7 +281,7 @@
                        index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0, index+1);
                      }
 
-                     for (var i = 0; i < dai.length; i++) {
+                     for (var i = dai.length-1; i >= 0; --i) {
                        validateDeleteForm(dai[i][0], dai[i][1]);
                      }
 
