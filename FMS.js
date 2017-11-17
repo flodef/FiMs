@@ -78,15 +78,17 @@
                  .getSheetValues("Historic!A:H");
   }
 
-  function addTransaction()
-  {
+  function rebalanceStocks() {
+    //TODO
+  }
+
+  function addTransaction() {
     $('#actionButton').hide("fade", null, 500, function()
     { $('#addTransactionForm').show("fade", null, 500, function()
     { $('#transactionName').focus(); }); });
   }
 
-  function deleteTransaction()
-  {
+  function deleteTransaction() {
     $('#actionButton').hide("fade", null, 500, function()
     { $('#deleteTransactionForm').show("fade", null, 500); });
   }
@@ -364,7 +366,7 @@
             validateUploadForm();
           }
         }
-        else if(e.keyCode === 27) // Esc
+        else if (e.keyCode === 27) // Esc
         {
           cancelForm();
         }
@@ -373,19 +375,23 @@
       {
         if (!$('input[type="number"]').is(':focus') && !$('input[type="text"]').is(':focus'))// && $('#actionButton').is(':visible'))
         {
-          if(e.keyCode === 107 || e.keyCode === 187) // +
+          if (e.keyCode === 186) // $
+          {
+            rebalanceStocks();
+          }
+          if (e.keyCode === 107 || e.keyCode === 187) // +
           {
             addTransaction();
           }
-          else if(e.keyCode === 109 || e.keyCode === 189) // -
+          else if (e.keyCode === 109 || e.keyCode === 189) // -
           {
             deleteTransaction();
           }
-          else if(e.keyCode === 85) // U
+          else if (e.keyCode === 85) // U
           {
             uploadAccountFile();
           }
-          else if(e.keyCode === 82) // R
+          else if (e.keyCode === 82) // R
           {
             updateAllValues(true);
           }
