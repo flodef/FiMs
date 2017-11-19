@@ -20,7 +20,9 @@
 
   function updateAllValues(shouldRefresh)
   {
-    showLoader(shouldRefresh);
+    if (shouldRefresh) {
+      showLoader(shouldRefresh);
+    }
 
     $("#loading").text("Loading ...");
     google.script.run
