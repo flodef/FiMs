@@ -18,9 +18,9 @@
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
   });
 
-  function updateAllValues(shouldRefresh)
+  function updateAllValues(shouldRefresh, isSmallUpdate)
   {
-    if (shouldRefresh) {
+    if (!isSmallUpdate) {
       showLoader(shouldRefresh);
     }
 
@@ -84,25 +84,25 @@
   }
 
   function rebalanceStocks() {
-    updateAllValues(false);
+    updateAllValues(false, true);
     //TODO : implement
   }
 
   function addTransaction() {
-    updateAllValues(false);
+    updateAllValues(false, true);
     $('#actionButton').hide("fade", null, 500, function()
     { $('#addTransactionForm').show("fade", null, 500, function()
     { $('#transactionName').focus(); }); });
   }
 
   function deleteTransaction() {
-    updateAllValues(false);
+    updateAllValues(false, true);
     $('#actionButton').hide("fade", null, 500, function()
     { $('#deleteTransactionForm').show("fade", null, 500); });
   }
 
   function uploadAccountFile() {
-    updateAllValues(false);
+    updateAllValues(false, true);
     $('#actionButton').hide("fade", null, 500, function()
     { $('#uploadFileForm').show("fade", null, 500, function()
     { $('#fileUpload').focus(); }); });
