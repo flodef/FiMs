@@ -20,30 +20,31 @@
 
   function updateAllValues(shouldRefresh, isSmallUpdate)
   {
-    if (!isSmallUpdate) {
-      showLoader(shouldRefresh);
+    if ($("#loading").text() == "") {
+      if (!isSmallUpdate) {
+        showLoader(shouldRefresh);
+      }
+
+      $("#loading").text("Loading ...");
+      $("#validateButton").prop('disabled', true);
+
+      google.script.run
+                   .withSuccessHandler(function(contents) {
+                     if (shouldRefresh)
+                     {
+                       updateValue(3, false, contents);
+                       updateValue(2, false, contents);
+                       updateValue(1, true, contents);
+                       updateValue(4, false, contents);
+                     }
+
+                     updateDashboardTable(contents);
+
+                     updateInvestmentValues();
+                   })
+                   .withFailureHandler(displayError)
+                   .getSheetValues("Dashboard!A:B");
     }
-
-    $("#loading").text("Loading ...");
-    $("#validateButton").prop('disabled',true).css('opacity',0.5);
-    $("#cancelButton").prop('disabled',true).css('opacity',0.5);
-
-    google.script.run
-                 .withSuccessHandler(function(contents) {
-                   if (shouldRefresh)
-                   {
-                     updateValue(3, false, contents);
-                     updateValue(2, false, contents);
-                     updateValue(1, true, contents);
-                     updateValue(4, false, contents);
-                   }
-
-                   updateDashboardTable(contents);
-
-                   updateInvestmentValues();
-                 })
-                 .withFailureHandler(displayError)
-                 .getSheetValues("Dashboard!A:B");
   }
 
   function updateInvestmentValues()
@@ -81,8 +82,7 @@
                    }
 
                    $("#loading").text("");
-                   $("#validateButton").prop('disabled',false).css('opacity',0.5);
-                   $("#cancelButton").prop('disabled',false).css('opacity',0.5);
+                   $("#validateButton").prop('disabled', false);
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Historic!A:H");
