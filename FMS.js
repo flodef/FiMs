@@ -22,6 +22,7 @@
   {
     showLoader(shouldRefresh);
 
+    $("#loading").text("Loading ...");
     google.script.run
                  .withSuccessHandler(function(contents) {
                    if (shouldRefresh)
@@ -73,35 +74,39 @@
                      GLOBAL.error.msg = null;
                      GLOBAL.error.isWarning = false;
                    }
+
+                   $("#loading").text("");
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Historic!A:H");
   }
 
   function rebalanceStocks() {
+    updateAllValues(false);
     //TODO : implement
   }
 
   function addTransaction() {
+    updateAllValues(false);
     $('#actionButton').hide("fade", null, 500, function()
     { $('#addTransactionForm').show("fade", null, 500, function()
     { $('#transactionName').focus(); }); });
   }
 
   function deleteTransaction() {
+    updateAllValues(false);
     $('#actionButton').hide("fade", null, 500, function()
     { $('#deleteTransactionForm').show("fade", null, 500); });
   }
 
-  function uploadAccountFile()
-  {
+  function uploadAccountFile() {
+    updateAllValues(false);
     $('#actionButton').hide("fade", null, 500, function()
     { $('#uploadFileForm').show("fade", null, 500, function()
     { $('#fileUpload').focus(); }); });
   }
 
-  function validateAddForm()
-  {
+  function validateAddForm() {
 //    var today = new Date();
 //    var dd = today.getDate();
 //    var mm = today.getMonth()+1; //January is 0!
