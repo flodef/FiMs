@@ -26,7 +26,7 @@
       }
 
       $("#loading").text("Loading ...");
-      $("#validateButton").prop('disabled', true);
+      $(".validateButton").prop('disabled', true);
 
       google.script.run
                    .withSuccessHandler(function(contents) {
@@ -82,7 +82,7 @@
                    }
 
                    $("#loading").text("");
-                   $("#validateButton").prop('disabled', false);
+                   $(".validateButton").prop('disabled', false);
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Historic!A:H");
