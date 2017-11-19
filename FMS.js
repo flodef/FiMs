@@ -25,6 +25,9 @@
     }
 
     $("#loading").text("Loading ...");
+    $("#validateButton").prop('disabled',true).css('opacity',0.5);
+    $("#cancelButton").prop('disabled',true).css('opacity',0.5);
+
     google.script.run
                  .withSuccessHandler(function(contents) {
                    if (shouldRefresh)
@@ -78,6 +81,8 @@
                    }
 
                    $("#loading").text("");
+                   $("#validateButton").prop('disabled',false).css('opacity',0.5);
+                   $("#cancelButton").prop('disabled',false).css('opacity',0.5);
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Historic!A:H");
