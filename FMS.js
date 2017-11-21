@@ -18,14 +18,10 @@
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
   });
 
-  function updateAllValues(shouldRefresh, isSmallUpdate)
+  function updateAllValues(shouldRefresh)
   {
     if ($("#loading").text() == "") {
-      if (!isSmallUpdate) {
-        showLoader(shouldRefresh);
-      } else {
-        $(".validateButton").prop('disabled', true);
-      }
+      showLoader(shouldRefresh);
 
       $("#loading").text("Loading Dashboard ... (1/3)");
 
@@ -64,6 +60,8 @@
 
   function updateHistoricValues()
   {
+    $(".validateButton").prop('disabled', true);
+
     $("#loading").text("Loading Historic ... (3/3)");
 
     google.script.run
@@ -93,27 +91,27 @@
   }
 
   function rebalanceStocks() {
-    updateAllValues(false, true);
+    updateInvestmentValues();
     //TODO : implement
 
     //$('#popupOverlay').fadeIn(1000);
   }
 
   function addTransaction() {
-    updateAllValues(false, true);
+    updateHistoricValues();
     $('#actionButton').hide("fade", null, 500, function()
     { $('#addTransactionForm').show("fade", null, 500, function()
     { $('#transactionName').focus(); }); });
   }
 
   function deleteTransaction() {
-    updateAllValues(false, true);
+    updateHistoricValues();
     $('#actionButton').hide("fade", null, 500, function()
     { $('#deleteTransactionForm').show("fade", null, 500); });
   }
 
   function uploadAccountFile() {
-    updateAllValues(false, true);
+    updateHistoricValues();
     $('#actionButton').hide("fade", null, 500, function()
     { $('#uploadFileForm').show("fade", null, 500, function()
     { $('#fileUpload').focus(); }); });
