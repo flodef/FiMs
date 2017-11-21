@@ -664,7 +664,7 @@
   function updateValue(row, isPercent, contents)
   {
     var col = 1;
-    var index = contents.length - 4;
+    var index = contents.length - 5;
     var a = toValue(contents[row-1][col]);
     var ax = toValue(contents[row-1 + index][col]);
     var ar = isPercent ? (a + ax) / 100 : a + ax;
