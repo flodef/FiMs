@@ -14,7 +14,7 @@
   {
     jQuery.fx.off = false;
     updateAllValues(false);
-    setInterval(updateAllValues(true), 60 * 1000); // run every minute
+    setInterval(function(){ updateAllValues(true); }, 60 * 1000); // run update every minute
 
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
   });
