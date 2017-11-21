@@ -13,16 +13,18 @@
   $(function()
   {
     jQuery.fx.off = false;
-    updateAllValues(false);
-    setInterval(function(){ updateAllValues(true); }, 60 * 1000); // run update every minute
+    updateAllValues(false, true);
+    setInterval(function(){ updateAllValues(false); }, 60 * 1000); // run update every minute
 
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
   });
 
-  function updateAllValues(shouldRefresh)
+  function updateAllValues(shouldRefresh, isBackgroundUpdate)
   {
     if ($("#loading").text() == "") {
-      showLoader(shouldRefresh);
+      if (!isBackgroundUpdate) {
+        showLoader(shouldRefresh);
+      }
 
       $("#loading").text("Loading Dashboard ... (1/3)");
 
