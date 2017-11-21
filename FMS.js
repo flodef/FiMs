@@ -91,6 +91,8 @@
   function rebalanceStocks() {
     updateAllValues(false, true);
     //TODO : implement
+
+    //$('#popupOverlay').fadeIn(1000);
   }
 
   function addTransaction() {
@@ -442,9 +444,7 @@
                      dashboardTableHTML += '<tr>';
                      for(var item of contents[1])
                      {
-                       dashboardTableHTML+= item != 21
-                                          ? getTableEditableCell(GLOBAL.dashb, item, "Dashboard!B" + item, item == 18 ? 200000 : 2000)
-                                          : getTableReadOnlyCell(GLOBAL.dashb, item);
+                       dashboardTableHTML+= getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      dashboardTableHTML += '</tr>';
 
