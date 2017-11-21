@@ -23,10 +23,11 @@
     if ($("#loading").text() == "") {
       if (!isSmallUpdate) {
         showLoader(shouldRefresh);
+      } else {
+        $(".validateButton").prop('disabled', true);
       }
 
-      $("#loading").text("Loading ...");
-      $(".validateButton").prop('disabled', true);
+      $("#loading").text("Loading Dashboard ... (1/3)");
 
       google.script.run
                    .withSuccessHandler(function(contents) {
@@ -49,6 +50,8 @@
 
   function updateInvestmentValues()
   {
+    $("#loading").text("Loading Investment ... (2/3)");
+
     google.script.run
                  .withSuccessHandler(function(contents) {
                    updateInvestmentTable(contents);
@@ -61,6 +64,8 @@
 
   function updateHistoricValues()
   {
+    $("#loading").text("Loading Historic ... (3/3)");
+
     google.script.run
                  .withSuccessHandler(function(contents) {
                    updateHistoricTable(contents);
@@ -74,15 +79,14 @@
                    });
 
                    hideLoader();
+                   $("#loading").text("");
+                   $(".validateButton").prop('disabled', false);
 
                    if (GLOBAL.error.msg) {
                      displayError(GLOBAL.error.msg, GLOBAL.error.isWarning);
                      GLOBAL.error.msg = null;
                      GLOBAL.error.isWarning = false;
                    }
-
-                   $("#loading").text("");
-                   $(".validateButton").prop('disabled', false);
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Historic!A:H");
