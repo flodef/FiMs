@@ -457,9 +457,7 @@
                      dashboardTableHTML += '<tr>';
                      for(var item of contents[2])
                      {
-                       dashboardTableHTML += item == 16
-                                           ? getTableEditableCell(GLOBAL.dashb, item, "Expenses!C2", 2000)
-                                           : getTableReadOnlyCell(GLOBAL.dashb, item);
+                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      dashboardTableHTML += '</tr>';
 
