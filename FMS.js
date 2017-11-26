@@ -45,8 +45,7 @@
                    .withFailureHandler(displayError)
                    .getSheetValues("Dashboard!A:B");
     }
-  }
-  
+  }  
 
   function updateInvestmentValues()
   {
