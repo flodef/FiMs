@@ -46,6 +46,7 @@
                    .getSheetValues("Dashboard!A:B");
     }
   }
+  
 
   function updateInvestmentValues()
   {
