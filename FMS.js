@@ -115,7 +115,7 @@
       var rebal = content[index][13];
       var prov = content[index][14];
 
-      if (value <> 0 && value/total < 1) {
+      if (value != 0 && value/total < 1) {
         var action = value > 0 ? "buy" : "sell";
 
         //total -= value;
