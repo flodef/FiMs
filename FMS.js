@@ -147,15 +147,14 @@
       // tableHTML += '<tr><td colspan="10"'
       //         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
       //         + title + '</td></tr>';
-      for (var item in row) {
-        if (row.hasOwnProperty(item)) {
+      Object.entries(row).forEach(([key, value]) => {
           tableHTML += '<tr>';
-          tableHTML += getTableReadOnlyContent(item, true)
-                     + getTableReadOnlyContent(item, false);
+          tableHTML += getTableReadOnlyContent(key, true)
+                     + getTableReadOnlyContent(value, false);
           tableHTML += '</tr>';
-        }
+        });
       }
-        
+
       tableHTML += '</table>';
       tableHTML += '</div>';
     }
