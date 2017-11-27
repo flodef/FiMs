@@ -97,7 +97,7 @@
     updateInvestmentValues();
 
     var total = toValue(GLOBAL.invest[6][14]);
-    var content = [];
+    var contents = [];
     var rank = 0;
     for (var i = 1; i < GLOBAL.invest.length-1; i++) {
       var index = indexOf(GLOBAL.invest, rank.toString(), 12);
@@ -111,20 +111,52 @@
 
       if (toValue(GLOBAL.invest[index][13]) != 0
        && toValue(GLOBAL.invest[index][14]) < total) {
-        var name = GLOBAL.invest[index][0];
-        var price = toValue(GLOBAL.invest[index][6])
-          ? toValue(GLOBAL.invest[index][6])
-          : toValue(GLOBAL.invest[index][7]);
-        var rebal = toValue(GLOBAL.invest[index][13]);
+        // var name = GLOBAL.invest[index][0];
+        // var price = toValue(GLOBAL.invest[index][6])
+        //   ? toValue(GLOBAL.invest[index][6])
+        //   : toValue(GLOBAL.invest[index][7]);
+        // var rebal = toValue(GLOBAL.invest[index][13]);
         var prov = toValue(GLOBAL.invest[index][14]);
-        var action = prov > 0 ? "buy" : "sell";
+        var action = prov > 0;
 
-        var array = [name, price, rebal, prov, action];
-        content.push(array);
+        var array = [];
+        for(var j of [0, toValue(GLOBAL.invest[index][6]) ? 6 : 7, 13, 14]) {
+          array[GLOBAL.invest[0][j]] = GLOBAL.invest[index][j];
+        }
+        array["Action"] = action;
+
+        contents.push(array);
 
         total -= prov;
       }
     };
+
+    if (contents.length) {
+      updateRebalanceTable(contents);
+    } else {
+      displayError("No stock to rebalance", true);
+    }
+  }
+
+  function updateRebalanceTable(contents) {
+    var tableHTML = '<span class="closebtn" onclick="$(\'#popupOverlay\').fadeOut(1000);$(\'#mainFocus\').focus();">&times;</span>';
+    for (var i = 0; i < content.length; i++) {
+      tableHTML += '<div>';
+      tableHTML += '<table>';
+      // tableHTML += '<tr><td colspan="10"'
+      //         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
+      //         + title + '</td></tr>';
+      foreach(var item of content) {
+        tableHTML += '<tr>';
+        tableHTML += getTableReadOnlyContent(item, true)
+                   + getTableReadOnlyContent(item, false);
+        tableHTML += '</tr>';
+      }
+      tableHTML += '</table>';
+      tableHTML += '</div>';
+    }
+
+    $("#popup").prop("innerHTML", tableHTML);
 
     $('#popupOverlay').fadeIn(1000);
   }
@@ -460,8 +492,7 @@
   function clearTransactionName()
   {
     var e = document.getElementById("transactionName");
-    while (e.options.length != 0)
-    {
+    while (e.options.length != 0) {
       e.remove(0);
     }
   }
@@ -472,51 +503,46 @@
 
     google.script.run
                  .withSuccessHandler(function(contents) {
-                     var dashboardTableHTML = "";
-                     dashboardTableHTML += '<table>';
-                     dashboardTableHTML += getTableTitle(contents[0][0], "Settings!A1");
-                     dashboardTableHTML += '<tr>';
-                     for(var item of contents[1])
-                     {
-                       dashboardTableHTML+= getTableReadOnlyCell(GLOBAL.dashb, item);
+                     var tableHTML = "";
+                     tableHTML += '<table>';
+                     tableHTML += getTableTitle(contents[0][0], "Settings!A1");
+                     tableHTML += '<tr>';
+                     for(var item of contents[1]) {
+                       tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
-                     dashboardTableHTML += '</tr>';
+                     tableHTML += '</tr>';
 
-                     dashboardTableHTML += getTableTitle(contents[0][1], "Settings!B1");
-                     dashboardTableHTML += '<tr>';
-                     for(var item of contents[2])
-                     {
-                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
+                     tableHTML += getTableTitle(contents[0][1], "Settings!B1");
+                     tableHTML += '<tr>';
+                     for(var item of contents[2]) {
+                       tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
-                     dashboardTableHTML += '</tr>';
+                     tableHTML += '</tr>';
 
-                     dashboardTableHTML += getTableTitle(contents[0][2], "Settings!C1");
-                     dashboardTableHTML += '<tr>';
-                     for(var item of contents[3])
-                     {
-                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
+                     tableHTML += getTableTitle(contents[0][2], "Settings!C1");
+                     tableHTML += '<tr>';
+                     for(var item of contents[3]) {
+                       tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
-                     dashboardTableHTML += '</tr>';
+                     tableHTML += '</tr>';
 
-                     dashboardTableHTML += getTableTitle(contents[0][3], "Settings!D1");
-                     dashboardTableHTML += '<tr>';
-                     for(var item of contents[4])
-                     {
-                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
+                     tableHTML += getTableTitle(contents[0][3], "Settings!D1");
+                     tableHTML += '<tr>';
+                     for(var item of contents[4]) {
+                       tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
-                     dashboardTableHTML += '</tr>';
+                     tableHTML += '</tr>';
 
-                     dashboardTableHTML += getTableTitle(contents[0][4], "Settings!E1");
-                     dashboardTableHTML += '<tr>';
-                     for(var item of contents[5])
-                     {
-                       dashboardTableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
+                     tableHTML += getTableTitle(contents[0][4], "Settings!E1");
+                     tableHTML += '<tr>';
+                     for(var item of contents[5]) {
+                       tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
-                     dashboardTableHTML += '</tr>';
+                     tableHTML += '</tr>';
 
-                     dashboardTableHTML += '</table>';
+                     tableHTML += '</table>';
 
-                     $("#dashboardDiv").prop("innerHTML", dashboardTableHTML);
+                     $("#dashboardDiv").prop("innerHTML", tableHTML);
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Settings!A:E");
@@ -528,171 +554,146 @@
 
     clearTransactionName();
 
-    var investmentTableHTML = "";
-    investmentTableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-                         + '<tr style="background-color:white;"><td><h2>Investment</h2></td>'
-                         + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-                         + '<input type="checkbox" onclick="filterRebalance(this.checked)">'
-                         + '<div class="slider round"></div></label><span class="tooltiptext">Rebalance</span></div></td></tr></table>'
-                         + '<td colspan="' + (contents[0].length-1) + '" align="right">'
-                         + '<input id="searchInput" type="text" placeholder="Search"'
-                         + 'onkeyup="searchTable(this, \'investmentTable\', 0)" ></tr></table>';
-    investmentTableHTML += '<table id="investmentTable" class="sortable">';
+    var tableHTML = "";
+    tableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
+               + '<tr style="background-color:white;"><td><h2>Investment</h2></td>'
+               + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
+               + '<input type="checkbox" onclick="filterRebalance(this.checked)">'
+               + '<div class="slider round"></div></label><span class="tooltiptext">Rebalance</span></div></td></tr></table>'
+               + '<td colspan="' + (contents[0].length-1) + '" align="right">'
+               + '<input id="searchInput" type="text" placeholder="Search"'
+               + 'onkeyup="searchTable(this, \'investmentTable\', 0)" ></tr></table>';
+    tableHTML += '<table id="investmentTable" class="sortable">';
 
-    for (var i = 0; i < contents.length; ++i)
-    {
-      investmentTableHTML += i==0 ? '<thead>' : '';
-      investmentTableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '">';
+    for (var i = 0; i < contents.length; ++i) {
+      tableHTML += i==0 ? '<thead>' : '';
+      tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
-      for(var j of [1, 5, 8, 9, 10, 11, 15, 16, 17, 18, 19, 20])   // Select only the interesting columns
-      {
-        investmentTableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+      for(var j of [1, 5, 8, 9, 10, 11, 15, 16, 17, 18, 19, 20]) {   // Select only the interesting columns
+        tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
-      investmentTableHTML += '</tr>';
-      investmentTableHTML += i==0 ? '</thead><tbody>'
+      tableHTML += '</tr>';
+      tableHTML += i==0 ? '</thead><tbody>'
       : i==contents.length-2 ? '</tbody><tfoot>'
       : i==contents.length-1 ? '</tfoot>' : '';
 
-      if (i != 0 && i != contents.length-1)
-      {
+      if (i != 0 && i != contents.length-1) {
         addTransactionName(contents[i][0], contents[i][1]);
       }
     }
-    investmentTableHTML += '</table>';
+    tableHTML += '</table>';
 
-    $("#investmentDiv").prop("innerHTML", investmentTableHTML);
+    $("#investmentDiv").prop("innerHTML", tableHTML);
     sorttable.makeSortable($("#investmentTable").get(0));
 
     addTransactionName("", GLOBAL.cost);
     addTransactionName("", GLOBAL.approv);
+
+    $("#rebalanceButton").prop('disabled', toValue(GLOBAL.invest[6][14]) == 0);
   }
 
   function updateHistoricTable(contents)
   {
     GLOBAL.histo = contents;
 
-    var historicTableHTML = "";
-    historicTableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-                         + '<tr style="background-color:white;"><td><h2>Historic</h2></td>'
-                         + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-                         + '<input type="checkbox" onclick="showAllHistoric(this.checked)">'
-                         + '<div class="slider round"></div></label><span class="tooltiptext">Show all</span></div></td></tr></table>'
-                         + '<div id="historicLimit" class="hidden"></div>'
-                         + '<td colspan="' + (contents[0].length-1) + '" align="right">'
-                         + '<input id="searchInput" type="text" placeholder="Search"'
-                         + 'onkeyup="searchTable(this, \'historicTable\', 1, $(\'#historicLimit\').val())"></tr></table>';
-    historicTableHTML += '<table id="historicTable" class="sortable">';
-    for (var i = 0; i < contents.length; ++i)
-    {
-      historicTableHTML += i==0 ? '<thead>' : '';
-      historicTableHTML += '<tr>';
-      for (var j = 0; j < contents[i].length - 1; ++j)   // Don't display the ID
-      {
-        historicTableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+    var tableHTML = "";
+    tableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
+               + '<tr style="background-color:white;"><td><h2>Historic</h2></td>'
+               + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
+               + '<input type="checkbox" onclick="showAllHistoric(this.checked)">'
+               + '<div class="slider round"></div></label><span class="tooltiptext">Show all</span></div></td></tr></table>'
+               + '<div id="historicLimit" class="hidden"></div>'
+               + '<td colspan="' + (contents[0].length-1) + '" align="right">'
+               + '<input id="searchInput" type="text" placeholder="Search"'
+               + 'onkeyup="searchTable(this, \'historicTable\', 1, $(\'#historicLimit\').val())"></tr></table>';
+    tableHTML += '<table id="historicTable" class="sortable">';
+    for (var i = 0; i < contents.length; ++i) {
+      tableHTML += i==0 ? '<thead>' : '';
+      tableHTML += '<tr>';
+      for (var j = 0; j < contents[i].length - 1; ++j) {   // Don't display the ID
+        tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
-      historicTableHTML += '</tr>';
-      historicTableHTML += i==0 ? '</thead><tbody>'
+      tableHTML += '</tr>';
+      tableHTML += i==0 ? '</thead><tbody>'
       : i==contents.length-1 ? '</tbody>' : '';
     }
-    historicTableHTML += '</table>';
+    tableHTML += '</table>';
 
-    $("#historicDiv").prop("innerHTML", historicTableHTML);
+    $("#historicDiv").prop("innerHTML", tableHTML);
     sorttable.makeSortable($("#historicTable").get(0));
 
     showAllHistoric(false);
   }
 
-  function getTableEditableCell(contents, index, rangeName, limit)
-  {
+  function getTableEditableCell(contents, index, rangeName, limit) {
     return getTableReadOnlyContent(contents[index-1][0], false) +
            getTableEditableContent(contents[index-1][1], rangeName, limit);
   }
 
-  function getTableReadOnlyCell(contents, index)
-  {
+  function getTableReadOnlyCell(contents, index) {
     return getTableReadOnlyContent(contents[index-1][0], false) +
            getTableReadOnlyContent(contents[index-1][1], false);
   }
 
-  function getTableReadOnlyContent(content, isHeader)
-  {
+  function getTableReadOnlyContent(content, isHeader) {
     return isHeader ? '<th align="center">' + content + '</th>'
                     : '<td align="center">' + content + '</td>';
   }
 
-  function getTableEditableContent(content, rangeName, limit)
-  {
+  function getTableEditableContent(content, rangeName, limit) {
     return '<td align="center"><input class="auto" min="-' + limit + '" max="' + limit + '"'
             + ' oninput="autoAdaptWidth(this);setValue(\'' + rangeName + '\', [[this.value]])"'
             + ' style="border:0px;width:100px;min-width:15px;" type="number" value="'
             + this.toValue(content) + '">€</input></td>';
   }
 
-  function getTableTitle(title, rangeName)
-  {
+  function getTableTitle(title, rangeName) {
     return '<tr><td colspan="10"><input type="text"'
             + ' oninput=";setValue(\'' + rangeName + '\', [[this.value]])"'
             + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
             + ' value="' + title + '"></input></td></tr>';
   }
 
-  function autoAdaptWidth(e)
-  {
+  function autoAdaptWidth(e) {
     var step = 7.23;
     var index = 10;
     var precision = 2;
     var maxLength = Math.max(String(e.min).length, String(e.max).length) + precision;
 
     var val = parseFloat(e.value);
-    if (!isNaN(val))
-    {
-      if (val > e.max)
-      {
+    if (!isNaN(val)) {
+      if (val > e.max) {
         e.value = e.max;
-      }
-      else if (val < e.min)
-      {
+      } else if (val < e.min) {
         e.value = e.min;
-      }
-      else if (val * 100 % 1 !== 0 || String(e.value).length > maxLength)
-      {
+      } else if (val * 100 % 1 !== 0 || String(e.value).length > maxLength) {
         e.value = val.toFixed(precision);
       }
 
       e.style = "border-color:transparent";
       e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
-     }
-    else
-    {
+    } else {
       e.style = !e.placeholder || e.value != ""
               ? "border-color:red"
               : "border-color:transparent";
     }
   }
 
-  function selectName(e, index)
-  {
-    if (index !== undefined)
-    {
+  function selectName(e, index) {
+    if (index !== undefined) {
       $('#transactionName').prop("selectedIndex", index);
-    }
-    else
-    {
+    } else {
       index = e.selectedIndex;
     }
 
-    if (e.options[index].id)
-    {
+    if (e.options[index].id) {
       $("#transactionQuantityLabel").fadeIn();
-    }
-    else
-    {
+    } else {
       $("#transactionQuantityLabel").fadeOut();
     }
   }
 
-  function updateValue(row, isPercent, contents)
-  {
+  function updateValue(row, isPercent, contents) {
     var col = 1;
     var index = contents.length - 5;
     var a = toValue(contents[row-1][col]);
@@ -702,72 +703,55 @@
     setValue("Dashboard!B" + row, [[ar]]);
   }
 
-  function setValue(name, value, func)
-  {
+  function setValue(name, value, func) {
     google.script.run
                  .withSuccessHandler(function(contents) { if (func) { func(); } })
                  .withFailureHandler(displayError)
                  .setSheetValues(name, value);
   }
 
-  function filterRebalance(isChecked)
-  {
+  function filterRebalance(isChecked) {
     // Loop through all table rows, and hide those who don't match the search query
-    $("#investmentTable tbody tr").each(function(i)
-    {
+    $("#investmentTable tbody tr").each(function(i) {
       var td = $(this).children("td")[4];
-      if (!isChecked || (td && td.innerHTML != 0))
-      {
+      if (!isChecked || (td && td.innerHTML != 0)) {
         $(this).show();
-      }
-      else
-      {
+      } else {
         $(this).hide();
       }
     });
   }
 
-  function showAllHistoric(isChecked)
-  {
+  function showAllHistoric(isChecked) {
     $("#historicLimit").val(isChecked ? null : "10");
 
     // Loop through all table rows, and hide those who don't match the search query
-    $("#historicTable tr").each(function(i)
-    {
-      if (isChecked || i <= $("#historicLimit").val())
-      {
+    $("#historicTable tr").each(function(i) {
+      if (isChecked || i <= $("#historicLimit").val()) {
         $(this).show();
-      }
-      else
-      {
+      } else {
         $(this).hide();
       }
     });
   }
 
-  function searchTable(searchElement, tableName, index, limit)
-  {
+  function searchTable(searchElement, tableName, index, limit) {
     var filter = searchElement.value.toUpperCase();
     var max = limit ? parseInt(limit) : null;
 
-    $("#" + tableName + " tbody tr").each(function(i)
-    {
+    $("#" + tableName + " tbody tr").each(function(i) {
       var td = $(this).children("td")[index];
-      if ((!max || i < max) && td && td.innerHTML.toUpperCase().indexOf(filter) > -1)
-      {
+      if ((!max || i < max) && td
+      && td.innerHTML.toUpperCase().indexOf(filter) > -1) {
         $(this).show();
-      }
-      else
-      {
+      } else {
         $(this).hide();
       }
     });
   }
 
-  function showSnackBar()
-  {
-    if ($("#snackbar").text())
-    {
+  function showSnackBar() {
+    if ($("#snackbar").text()) {
       $("#snackbar").addClass("show");
 
       // After 3 seconds, remove the show class from DIV
@@ -775,29 +759,25 @@
     }
   }
 
-  function showLoader(isRefreshing)
-  {
+  function showLoader(isRefreshing) {
     $('#loaderOverlay').fadeIn(1000);
     $('#content').fadeTo(1000, isRefreshing ? 0.3 : 0);
     $('#menu').fadeTo(1000, isRefreshing ? 0.3 : 0);
   }
 
-  function hideLoader()
-  {
+  function hideLoader() {
     $('#loaderOverlay').fadeOut(1000);
     $('#content').fadeTo(1000, 1);
     $('#menu').fadeTo(1000, 1);
   }
 
-  function executionSuccess()
-  {
+  function executionSuccess() {
     updateAllValues(true);
     cancelForm();
     showSnackBar();
   }
 
-  function displayError(msg, isWarning)
-  {
+  function displayError(msg, isWarning) {
     hideLoader();
 
     $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
@@ -806,13 +786,11 @@
     $('#alertOverlay').fadeIn(1000);
   }
 
-  function toValue(content)
-  {
+  function toValue(content) {
     return parseFloat(String(content).replace(",", "").replace(" ", ""));
   }
 
-  function toDate(content)
-  {
+  function toDate(content) {
     return content && content.split("/").length == 3
          ? content.replace(/(^|\/)0+/g, "$1").split("/")[1] + "/"
          + content.replace(/(^|\/)0+/g, "$1").split("/")[0] + "/"
@@ -820,8 +798,7 @@
          : null;
   }
 
-  function indexOf(array, value, index, start)
-  {
+  function indexOf(array, value, index, start) {
     var index = index >= 0 ? index : null;
     var x = Number.isInteger(start) ? start : 0;
 
