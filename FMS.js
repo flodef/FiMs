@@ -154,7 +154,7 @@
           style = i == 0 || i == 2 || i == 4
             ? 'font-weight:900;' : '';
 
-          style += i == 4 ? 'background-color:' + value ? "#a2c642" : "#da4a4a" + ';color:white;"'
+          style += i == 4 ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
                           : '';
           tableHTML += '<th align="center">' + key + '</th>'
                      + '<td align="center" style="' + style + '" padding="10px">' + value + '</td>'
