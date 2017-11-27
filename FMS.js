@@ -515,7 +515,7 @@
     for (var i = 0; i < contents.length; ++i)
     {
       investmentTableHTML += i==0 ? '<thead>' : '';
-      investmentTableHTML += '<tr title="' + contents[i][0] + '">';
+      investmentTableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
       for(var j of [1, 5, 8, 9, 10, 11, 15, 16, 17, 18, 19, 20])   // Select only the interesting columns
       {
