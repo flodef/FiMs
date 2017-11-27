@@ -153,7 +153,7 @@
           tableHTML += getTableReadOnlyContent(key, true)
                      + getTableReadOnlyContent(value, false);
           tableHTML += '</tr>';
-        }
+        });
       }
 
       tableHTML += '</table>';
