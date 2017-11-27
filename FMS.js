@@ -154,7 +154,6 @@
                      + getTableReadOnlyContent(value, false);
           tableHTML += '</tr>';
         });
-      }
 
       tableHTML += '</table>';
       tableHTML += '</div>';
