@@ -96,7 +96,8 @@
   function rebalanceStocks() {
     updateInvestmentValues();
 
-    var total = Number(toValue(GLOBAL.invest[6][10]) - toValue(GLOBAL.invest[6][9])).toFixed(2);
+    var total = parseFloat((toValue(GLOBAL.invest[6][10])
+                          - toValue(GLOBAL.invest[6][9])).toFixed(2));
     var contents = [];
     var rank = 0;
     for (var i = 1; i < GLOBAL.invest.length-1; i++) {
