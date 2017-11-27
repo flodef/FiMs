@@ -96,31 +96,30 @@
   function rebalanceStocks() {
     updateInvestmentValues();
 
-    var content;
-    for (var i = 1; i < GLOBAL.invest.length-1; i++) {
-      content.push(GLOBAL.invest[i]);
-    };
-
     var total = GLOBAL.invest[6][14];
-    for (var i = 0; i < content.length; i++) {
-      var index = indexOf(content, i, 12);
+    var content = [];
+    var rank = 0;
+    for (var i = 1; i < GLOBAL.invest.length-1; i++) {
+      if (GLOBAL.invest[i][13] != 0 && GLOBAL.invest[i][14] > total) {
+        var index = indexOf(content, rank, 12);
 
-      var ni = i;
-      while (!index) {
-        index = indexOf(content, --ni, 12);
+        var nr = rank;
+        while (!index) {
+          index = indexOf(content, --nr, 12);
+        }
+
+        var name = content[index][0];
+        var price = content[index][6] ? content[index][6] : content[index][7];
+        var rebal = content[index][13];
+        var prov = content[index][14];
+        var action = prov > 0 ? "buy" : "sell";
+
+        var array = [name, price, rebal, prov, action];
+        content.push(array);
+
+        total -= prov;
       }
-
-      var name = content[index][0];
-      var price = content[index][6] ? content[index][6] : content[index][7];
-      var rebal = content[index][13];
-      var prov = content[index][14];
-
-      if (value != 0 && value/total < 1) {
-        var action = value > 0 ? "buy" : "sell";
-
-        //total -= value;
-      }
-    }
+    };
 
     $('#popupOverlay').fadeIn(1000);
   }
