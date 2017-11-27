@@ -110,7 +110,7 @@
       ++rank;
 
       if (toValue(GLOBAL.invest[index][13]) != 0
-       && toValue(GLOBAL.invest[index][14]) > total) {
+       && toValue(GLOBAL.invest[index][14]) < total) {
         var name = GLOBAL.invest[index][0];
         var price = toValue(GLOBAL.invest[index][6])
           ? toValue(GLOBAL.invest[index][6])
