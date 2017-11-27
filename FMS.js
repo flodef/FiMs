@@ -100,15 +100,17 @@
     var content = [];
     var rank = 0;
     for (var i = 1; i < GLOBAL.invest.length-1; i++) {
+      var index = indexOf(GLOBAL.invest, rank.toString(), 12);
+
+      var nr = rank;
+      while (!index) {
+        index = indexOf(GLOBAL.invest, (--nr).toString(), 12);
+      }
+
+      ++rank;
+
       if (toValue(GLOBAL.invest[i][13]) != 0
        && toValue(GLOBAL.invest[i][14]) > total) {
-        var index = indexOf(GLOBAL.invest, rank.toString(), 12);
-
-        var nr = rank;
-        while (!index) {
-          index = indexOf(GLOBAL.invest, (--nr).toString(), 12);
-        }
-
         var name = GLOBAL.invest[index][0];
         var price = toValue(GLOBAL.invest[index][6])
           ? toValue(GLOBAL.invest[index][6])
