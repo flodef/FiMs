@@ -58,7 +58,7 @@
                    updateHistoricValues();
                  })
                  .withFailureHandler(displayError)
-                 .getSheetValues("Investment!D:V");
+                 .getSheetValues("Investment!D:X");
   }
 
   function updateHistoricValues()
@@ -515,7 +515,7 @@
       investmentTableHTML += i==0 ? '<thead>' : '';
       investmentTableHTML += '<tr>';
       //for (var j = 0; j < contents[i].length; ++j)
-      for(var j of [1, 5, 8, 9, 10, 11, 14, 15, 16, 17, 18, 19, 20])   // Select only the interesting columns
+      for(var j of [1, 5, 8, 9, 10, 11, 15, 16, 17, 18, 19, 20])   // Select only the interesting columns
       {
         investmentTableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
