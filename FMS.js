@@ -146,7 +146,7 @@
       // tableHTML += '<tr><td colspan="10"'
       //         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
       //         + title + '</td></tr>';
-      foreach(var item of content) {
+      for(item of content) {
         tableHTML += '<tr>';
         tableHTML += getTableReadOnlyContent(item, true)
                    + getTableReadOnlyContent(item, false);
