@@ -147,12 +147,15 @@
       // tableHTML += '<tr><td colspan="10"'
       //         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
       //         + title + '</td></tr>';
-      for(item of row) {
-        tableHTML += '<tr>';
-        tableHTML += getTableReadOnlyContent(item, true)
-                   + getTableReadOnlyContent(item, false);
-        tableHTML += '</tr>';
+      for (var item in row) {
+        if (row.hasOwnProperty(item)) {
+          tableHTML += '<tr>';
+          tableHTML += getTableReadOnlyContent(item, true)
+                     + getTableReadOnlyContent(item, false);
+          tableHTML += '</tr>';
+        }
       }
+        
       tableHTML += '</table>';
       tableHTML += '</div>';
     }
