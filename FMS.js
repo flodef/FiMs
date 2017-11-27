@@ -147,7 +147,7 @@
       // tableHTML += '<tr><td colspan="10"'
       //         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
       //         + title + '</td></tr>';
-      Object.entries(row).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(row)) {
           tableHTML += '<tr>';
           tableHTML += getTableReadOnlyContent(key, true)
                      + getTableReadOnlyContent(value, false);
