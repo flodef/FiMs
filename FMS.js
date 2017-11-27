@@ -168,7 +168,7 @@
       tableHTML += '</div>';
     }
 
-    tableHTML += '<div><button>NEXT ORDER</button></div>';
+    tableHTML += '<div align="center"><button>NEXT ORDER</button></div>';
 
 
     $("#popup").prop("innerHTML", tableHTML);
