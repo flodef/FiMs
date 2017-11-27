@@ -141,13 +141,13 @@
 
   function updateRebalanceTable(contents) {
     var tableHTML = '<span class="closebtn" onclick="$(\'#popupOverlay\').fadeOut(1000);$(\'#mainFocus\').focus();">&times;</span>';
-    for (var i = 0; i < contents.length; i++) {
+    for (row of contents) {
       tableHTML += '<div>';
       tableHTML += '<table>';
       // tableHTML += '<tr><td colspan="10"'
       //         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
       //         + title + '</td></tr>';
-      for(item of contents) {
+      for(item of row) {
         tableHTML += '<tr>';
         tableHTML += getTableReadOnlyContent(item, true)
                    + getTableReadOnlyContent(item, false);
