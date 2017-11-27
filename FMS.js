@@ -151,13 +151,13 @@
       for (const [key, value] of Object.entries(row)) {
           tableHTML += '<tr>';
 
-          style = i == 0 || i == 2 || i == 4
-            ? 'font-weight:900;' : '';
+          var style = i == 0 || i == 2 ? 'font-weight:900;' : '';
 
           style += i == 4 ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
                           : '';
+          var val = i == 4 ? (value ? "Buy" : "Sell") : value
           tableHTML += '<th align="center">' + key + '</th>'
-                     + '<td align="center" style="' + style + '" padding="10px">' + value + '</td>'
+                     + '<td align="center" style="' + style + '" padding="10px">' + val + '</td>'
 
           tableHTML += '</tr>';
 
