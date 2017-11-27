@@ -140,7 +140,7 @@
   }
 
   function updateRebalanceTable(contents) {
-    var tableHTML = '<span class="closebtn" onclick="$(\'#popupOverlay\').fadeOut(1000);$(\'#content\').removeClass("blur-filter");$(\'#mainFocus\').focus();">&times;</span>';
+    var tableHTML = '<span class="closebtn" onclick="$(\'#popupOverlay\').fadeOut(1000);$(\'#content\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();">&times;</span>';
     for (row of contents) {
       tableHTML += '<div>';
       tableHTML += '<table>';
@@ -168,7 +168,7 @@
       tableHTML += '</div>';
     }
 
-    tableHTML += '<div align="center" margin="15px 0px 0px 0px;"><button>NEXT ORDER</button></div>';
+    tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button>NEXT ORDER</button></div>';
 
 
     $("#popup").prop("innerHTML", tableHTML);
