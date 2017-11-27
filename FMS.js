@@ -132,7 +132,7 @@
       }
     };
 
-    if (contents.length) {
+    if (contents.length > 0) {
       updateRebalanceTable(contents);
     } else {
       displayError("No stock to rebalance", true);
@@ -141,13 +141,13 @@
 
   function updateRebalanceTable(contents) {
     var tableHTML = '<span class="closebtn" onclick="$(\'#popupOverlay\').fadeOut(1000);$(\'#mainFocus\').focus();">&times;</span>';
-    for (var i = 0; i < content.length; i++) {
+    for (var i = 0; i < contents.length; i++) {
       tableHTML += '<div>';
       tableHTML += '<table>';
       // tableHTML += '<tr><td colspan="10"'
       //         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
       //         + title + '</td></tr>';
-      for(item of content) {
+      for(item of contents) {
         tableHTML += '<tr>';
         tableHTML += getTableReadOnlyContent(item, true)
                    + getTableReadOnlyContent(item, false);
