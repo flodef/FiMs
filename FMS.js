@@ -115,7 +115,8 @@
       if (toValue(GLOBAL.invest[index][13]) != 0
        && toValue(GLOBAL.invest[index][14]) < tRebal) {
         var price = toValue(GLOBAL.invest[index][7]);
-        var bonus = Math.round(rest/price);
+        var num = rest/price;
+        var bonus = num > 0 ? Math.floor(num) : Math.ceil(num);
         var rebal = toValue(GLOBAL.invest[index][13]) + bonus;
         var prov = rebal * price;
         var action = prov > 0;
