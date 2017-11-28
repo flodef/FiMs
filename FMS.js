@@ -356,30 +356,21 @@
     google.script.run
                  .withSuccessHandler(function(contents) {
                    if (contents.length > 1) {
+                     // Preparing data
                      var dupCnt = 0;
                      var errCnt = 0;
                      var data = [];
                      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header
                        var index = indexOf(GLOBAL.histo, contents[i][7], 7);
 
-                       if (!index) {
+                       if (!index || (index && contents[i][0] != toDate(GLOBAL.histo[index][0])) {
                          if (!indexOf(contents[i], "#N/A")) {
                            data.push(contents[i]);
                          } else {
                            ++errCnt;
                          }
                        } else {
-                         //if (contents[i][0] != toDate(GLOBAL.histo[index][0])) {
-                         if (!toDate(GLOBAL.histo[index][0])) {
-                           if (!indexOf(contents[i], "#N/A")) {
-                             data.push(contents[i]);      // Add the new value instead
-                             validateDeleteForm(index);   // Remove duplicate
-                           } else {
-                             ++errCnt;
-                           }
-                         } else {
-                           ++dupCnt;
-                         }
+                         ++dupCnt;
                        }
                      }
 
