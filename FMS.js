@@ -692,7 +692,7 @@
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
          + 'onkeyup="searchTable(this, \'' + id + 'Table\', 1, $(\'#' + id + 'Limit\').val())"></tr></table>'
-         + '<table id="' + id + 'Table" class="sortable">';
+         + '<table id="' + id + 'Table" class="sortable hidden">';
   }
 
   function autoAdaptWidth(e) {
