@@ -5,7 +5,6 @@
   GLOBAL.histo = [];
   GLOBAL.invest = [];
   GLOBAL.dummy = "XXXXXX";
-  GLOBAL.error = {msg:null,isWarning:false};
 
   /**
    * Run initializations on web app load.
@@ -82,12 +81,6 @@
                    hideLoader();
                    $("#loading").text("");
                    $(".validateButton").prop('disabled', false);
-
-                   if (GLOBAL.error.msg) {
-                     displayError(GLOBAL.error.msg, GLOBAL.error.isWarning);
-                     GLOBAL.error.msg = null;
-                     GLOBAL.error.isWarning = false;
-                   }
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Historic!A:H");
@@ -390,6 +383,7 @@
                        }
                      }
 
+                     // Removing dummy data
                      var prevIndex;
                      var index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
                      var dai = [];
@@ -408,13 +402,11 @@
                        validateDeleteForm(dai[i][0], dai[i][1]);
                      }
 
+                     // Adding data
                      if (dupCnt + errCnt != contents.length - 1) {
                        insertHistoricRow(data);
                        debugger;
                        if (dupCnt > 0) {
-// TODO
-//                         GLOBAL.error.msg = dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt) + " row(s) added.";
-//                         GLOBAL.error.isWarning = true;
                          var msg = errCnt == 0
                              ? dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt) + " row(s) added."
                              : dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt - errCnt) + " row(s) added and " + errCnt + " row(s) in error.";
