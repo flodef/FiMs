@@ -124,7 +124,7 @@
         var array = [];
         for(var j of [0, 1, GLOBAL.invest[index][6] != "" ? 6 : 7, 13, 14]) {
           array[GLOBAL.invest[0][j]] = j == 13 ? rebal
-                                     : j == 14 ? prov
+                                     : j == 14 ? prov + " €"
                                      : GLOBAL.invest[index][j];
         }
         array["Action"] = action;
