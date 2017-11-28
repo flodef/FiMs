@@ -116,7 +116,7 @@
         var action = prov > 0;
 
         var array = [];
-        for(var j of [0, toValue(GLOBAL.invest[index][6]) ? 6 : 7, 13, 14]) {
+        for(var j of [0, toValue(GLOBAL.invest[index][6]) != 0 ? 6 : 7, 13, 14]) {
           array[GLOBAL.invest[0][j]] = GLOBAL.invest[index][j];
         }
         array["Action"] = action;
