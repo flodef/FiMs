@@ -138,13 +138,8 @@
     var closing = '$(\'#popupOverlay\').fadeOut(1000);$(\'#menu\').removeClass(\'blur-filter\');$(\'#content\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();'
     var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
     for (var i = 0; i < contents.length; i++) {
-      // tableHTML += '<div style="position:absolute;width:80%;padding:5px;background:white;z-index:'
-      //            + (contents.length-i) + ';" id="rebal' + i + '">';
       tableHTML += '<div ' + (i != 0 ? 'class="hidden"' : '') + 'id="rebal' + i + '">';
       tableHTML += '<table>';
-      // tableHTML += '<tr><td colspan="10"'
-      //         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
-      //         + title + '</td></tr>';
       var j = 0;
       for (const [key, value] of Object.entries(contents[i])) {
           tableHTML += '<tr>';
@@ -806,7 +801,10 @@
   }
 
   function toValue(content) {
-    return parseFloat(String(content).replace(",", "").replace(" ", ""));
+    return parseFloat(String(content).replace(",", "")
+                                     .replace(" ", "")
+                                     .replace("$", "")
+                                     .replace("€", ""));
   }
 
   function toDate(content) {
