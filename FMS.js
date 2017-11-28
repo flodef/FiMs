@@ -676,9 +676,8 @@
   }
 
   function getSingleTableTitle(title, rangeName) {
-
-    return '<tr><td colspan="10"><input type="text"'
-         + ' oninput=";setValue(\'' + rangeName + '\', [[this.value]])"'
+    return '<tr><td colspan="10"><input onclick="$(this).next().slideToggle(\'slow\');"'
+         + ' type="text" oninput=";setValue(\'' + rangeName + '\', [[this.value]])"'
          + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
          + ' value="' + title + '"></input></td></tr>';
   }
