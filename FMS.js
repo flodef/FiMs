@@ -676,15 +676,15 @@
   }
 
   function getSingleTableTitle(title, rangeName) {
-    return '<tr><td colspan="10"><input onclick="$(this).next().slideToggle(\'slow\');"'
-         + ' type="text" oninput=";setValue(\'' + rangeName + '\', [[this.value]])"'
+    return '<tr><td colspan="10"><input class="tableTitle" type="text"'
+         + ' oninput=";setValue(\'' + rangeName + '\', [[this.value]])"'
          + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
          + ' value="' + title + '"></input></td></tr>';
   }
 
   function getTableTitle(id, tooltip, colspan, func) {
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-         + '<tr style="background-color:white;"><td><h2 onclick="$(\'#' + id + 'Table\').slideToggle(\'slow\');">' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2></td>'
+         + '<tr style="background-color:white;"><td><h2 onclick="$(\'#' + id + 'Table\').fadeToggle(\'slow\');">' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2></td>'
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
          + '<input type="checkbox" onclick="' + func + '">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
