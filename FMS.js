@@ -116,7 +116,7 @@
         var action = prov > 0;
 
         var array = [];
-        for(var j of [0, GLOBAL.invest[index][6] != "" ? 6 : 7, 13, 14]) {
+        for(var j of [0, 1, GLOBAL.invest[index][6] != "" ? 6 : 7, 13, 14]) {
           array[GLOBAL.invest[0][j]] = GLOBAL.invest[index][j];
         }
         array["Action"] = action;
@@ -140,15 +140,17 @@
     for (var i = 0; i < contents.length; i++) {
       tableHTML += '<div ' + (i != 0 ? 'class="hidden"' : '') + 'id="rebal' + i + '">';
       tableHTML += '<table>';
+
+      var row = Object.entries(contents[i]);
       var j = 0;
-      for (const [key, value] of Object.entries(contents[i])) {
+      for (const [key, value] of row) {
           tableHTML += '<tr>';
 
-          var style = j == 0 || j == 2 ? 'font-weight:900;' : '';
+          var style = j == 0 || j == 3 ? 'font-weight:900;' : '';
 
-          style += j == 4 ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
+          style += j == 5 ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
                           : '';
-          var val = j == 4 ? (value ? "Buy" : "Sell") : value
+          var val = j == 5 ? (value ? "Buy" : "Sell") : value
           tableHTML += '<th align="center">' + key + '</th>'
                      + '<td align="center" style="' + style + '" padding="10px">' + val + '</td>'
 
@@ -159,9 +161,17 @@
 
       tableHTML += '</table>';
 
+
+      var tName = row[0][1];
+      var tQty = row[3][1];
+      var tVal = row[4][1];
+      var tOpe = row[5][1] ? "BUY" : "SELL";
+      var tUnit = tQty && tVal && tName ? -tVal/tQty : "";
+
       var isLast = i == contents.length-1;
       var label = isLast ? "CLOSE" : "NEXT ORDER";
       var action = isLast ? closing : '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000)';
+      action += 'insertHistoricRow([[GLOBAL.dummy, row[1][1], tName, tOpe, tQty, tUnit, tVal, tName + "@" + tOpe + "@" + tQty + "@" + tVal]]);';
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button onclick="'
                  + action + '">' + label + '</button></div>';
 
