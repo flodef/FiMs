@@ -530,35 +530,35 @@
                  .withSuccessHandler(function(contents) {
                      var tableHTML = "";
                      tableHTML += '<table>';
-                     tableHTML += getTableTitle(contents[0][0], "Settings!A1");
+                     tableHTML += getSingleTableTitle(contents[0][0], "Settings!A1");
                      tableHTML += '<tr>';
                      for(var item of contents[1]) {
                        tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      tableHTML += '</tr>';
 
-                     tableHTML += getTableTitle(contents[0][1], "Settings!B1");
+                     tableHTML += getSingleTableTitle(contents[0][1], "Settings!B1");
                      tableHTML += '<tr>';
                      for(var item of contents[2]) {
                        tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      tableHTML += '</tr>';
 
-                     tableHTML += getTableTitle(contents[0][2], "Settings!C1");
+                     tableHTML += getSingleTableTitle(contents[0][2], "Settings!C1");
                      tableHTML += '<tr>';
                      for(var item of contents[3]) {
                        tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      tableHTML += '</tr>';
 
-                     tableHTML += getTableTitle(contents[0][3], "Settings!D1");
+                     tableHTML += getSingleTableTitle(contents[0][3], "Settings!D1");
                      tableHTML += '<tr>';
                      for(var item of contents[4]) {
                        tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      tableHTML += '</tr>';
 
-                     tableHTML += getTableTitle(contents[0][4], "Settings!E1");
+                     tableHTML += getSingleTableTitle(contents[0][4], "Settings!E1");
                      tableHTML += '<tr>';
                      for(var item of contents[5]) {
                        tableHTML += item != 44
@@ -584,16 +584,16 @@
 
     clearTransactionName();
 
-    var tableHTML = "";
-    tableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-               + '<tr style="background-color:white;"><td><h2>Investment</h2></td>'
-               + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-               + '<input type="checkbox" onclick="filterRebalance(this.checked)">'
-               + '<div class="slider round"></div></label><span class="tooltiptext">Rebalance</span></div></td></tr></table>'
-               + '<td colspan="' + (contents[0].length-1) + '" align="right">'
-               + '<input id="searchInput" type="text" placeholder="Search"'
-               + 'onkeyup="searchTable(this, \'investmentTable\', 0)" ></tr></table>';
-    tableHTML += '<table id="investmentTable" class="sortable">';
+    var tableHTML = getTableTitle("investment", "Rebalance", contents[0].length-1, "filterRebalance(this.checked)");
+    // tableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
+    //            + '<tr style="background-color:white;"><td><h2>Investment</h2></td>'
+    //            + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
+    //            + '<input type="checkbox" onclick="filterRebalance(this.checked)">'
+    //            + '<div class="slider round"></div></label><span class="tooltiptext">Rebalance</span></div></td></tr></table>'
+    //            + '<td colspan="' + (contents[0].length-1) + '" align="right">'
+    //            + '<input id="searchInput" type="text" placeholder="Search"'
+    //            + 'onkeyup="searchTable(this, \'investmentTable\', 0)" ></tr></table>';
+    // tableHTML += '<table id="investmentTable" class="sortable">';
 
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
@@ -624,17 +624,17 @@
   {
     GLOBAL.histo = contents;
 
-    var tableHTML = "";
-    tableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-               + '<tr style="background-color:white;"><td><h2>Historic</h2></td>'
-               + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-               + '<input type="checkbox" onclick="showAllHistoric(this.checked)">'
-               + '<div class="slider round"></div></label><span class="tooltiptext">Show all</span></div></td></tr></table>'
-               + '<div id="historicLimit" class="hidden"></div>'
-               + '<td colspan="' + (contents[0].length-1) + '" align="right">'
-               + '<input id="searchInput" type="text" placeholder="Search"'
-               + 'onkeyup="searchTable(this, \'historicTable\', 1, $(\'#historicLimit\').val())"></tr></table>';
-    tableHTML += '<table id="historicTable" class="sortable">';
+    var tableHTML = getTableTitle("historic", "Show all", contents[0].length-1, "showAllHistoric(this.checked)");
+    // tableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
+    //            + '<tr style="background-color:white;"><td><h2>Historic</h2></td>'
+    //            + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
+    //            + '<input type="checkbox" onclick="showAllHistoric(this.checked)">'
+    //            + '<div class="slider round"></div></label><span class="tooltiptext">Show all</span></div></td></tr></table>'
+    //            + '<div id="historicLimit" class="hidden"></div>'
+    //            + '<td colspan="' + (contents[0].length-1) + '" align="right">'
+    //            + '<input id="searchInput" type="text" placeholder="Search"'
+    //            + 'onkeyup="searchTable(this, \'historicTable\', 1, $(\'#historicLimit\').val())"></tr></table>';
+    // tableHTML += '<table id="historicTable" class="sortable">';
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
@@ -670,16 +670,30 @@
 
   function getTableEditableContent(content, rangeName, limit) {
     return '<td align="center"><input class="auto" min="-' + limit + '" max="' + limit + '"'
-            + ' oninput="autoAdaptWidth(this);setValue(\'' + rangeName + '\', [[this.value]])"'
-            + ' style="border:0px;width:100px;min-width:15px;" type="number" value="'
-            + this.toValue(content) + '">€</input></td>';
+         + ' oninput="autoAdaptWidth(this);setValue(\'' + rangeName + '\', [[this.value]])"'
+         + ' style="border:0px;width:100px;min-width:15px;" type="number" value="'
+         + this.toValue(content) + '">€</input></td>';
   }
 
-  function getTableTitle(title, rangeName) {
+  function getSingleTableTitle(title, rangeName) {
+
     return '<tr><td colspan="10"><input type="text"'
-            + ' oninput=";setValue(\'' + rangeName + '\', [[this.value]])"'
-            + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
-            + ' value="' + title + '"></input></td></tr>';
+         + ' oninput=";setValue(\'' + rangeName + '\', [[this.value]])"'
+         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
+         + ' value="' + title + '"></input></td></tr>';
+  }
+
+  function getTableTitle(id, tooltip, colspan, func) {
+    return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
+         + '<tr style="background-color:white;"><td><h2 onclick="$(\'#' + id + 'Table\').slideToggle(\'slow\');">' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2></td>'
+         + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
+         + '<input type="checkbox" onclick="' + func + '">'
+         + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
+         + '<div id="' + id + 'Limit" class="hidden"></div>'
+         + '<td colspan="' + colspan + '" align="right">'
+         + '<input id="searchInput" type="text" placeholder="Search"'
+         + 'onkeyup="searchTable(this, \'' + id + 'Table\', 1, $(\'#' + id + 'Limit\').val())"></tr></table>'
+         + '<table id="' + id + 'Table" class="sortable">';
   }
 
   function autoAdaptWidth(e) {
