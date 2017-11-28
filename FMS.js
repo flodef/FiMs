@@ -741,7 +741,7 @@
   function filterRebalance(isChecked) {
     // Loop through all table rows, and hide those who don't match the search query
     $("#investmentTable tbody tr").each(function(i) {
-      var td = $(this).children("td")[4];
+      var td = $(this).children("td")[7];
       if (!isChecked || (td && td.innerHTML != 0)) {
         $(this).show();
       } else {
