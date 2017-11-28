@@ -96,9 +96,10 @@
   function rebalanceStocks() {
     updateInvestmentValues();
 
-    var total = parseFloat((toValue(GLOBAL.invest[6][10])
+    var tRebal = parseFloat((toValue(GLOBAL.invest[6][10])
                           - toValue(GLOBAL.invest[6][9])).toFixed(2));
-    var rest = total / toValue(GLOBAL.invest[6][14]);
+    var tProv = toValue(GLOBAL.invest[6][14]);
+    var rest = tRebal/tProv >=1 ? tRebal - toValue(GLOBAL.invest[6][14]) : 0;
     var contents = [];
     var rank = 0;
     for (var i = 1; i < GLOBAL.invest.length-1; i++) {
@@ -112,7 +113,7 @@
       ++rank;
 
       if (toValue(GLOBAL.invest[index][13]) != 0
-       && toValue(GLOBAL.invest[index][14]) < total) {
+       && toValue(GLOBAL.invest[index][14]) < tRebal) {
         var price = toValue(GLOBAL.invest[index][7]);
         var bonus = Math.round(rest/price);
         var rebal = toValue(GLOBAL.invest[index][13]) + bonus;
@@ -129,7 +130,7 @@
 
         contents.push(array);
 
-        total -= prov;
+        tRebal -= prov;
         rest -= price * bonus;
       }
     };
