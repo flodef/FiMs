@@ -161,7 +161,6 @@
 
       tableHTML += '</table>';
 
-
       var tName = row[0][1];
       var tQty = row[3][1];
       var tVal = row[4][1];
@@ -170,7 +169,7 @@
 
       var isLast = i == contents.length-1;
       var label = isLast ? "CLOSE" : "NEXT ORDER";
-      var action = isLast ? closing : '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000)';
+      var action = isLast ? closing : '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000);';
       action += 'insertHistoricRow([[GLOBAL.dummy, row[1][1], tName, tOpe, tQty, tUnit, tVal, tName + "@" + tOpe + "@" + tQty + "@" + tVal]]);';
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button onclick="'
                  + action + '">' + label + '</button></div>';
