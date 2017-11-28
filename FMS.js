@@ -98,6 +98,7 @@
 
     var total = parseFloat((toValue(GLOBAL.invest[6][10])
                           - toValue(GLOBAL.invest[6][9])).toFixed(2));
+    var rest = total / toValue(GLOBAL.invest[6][14]);
     var contents = [];
     var rank = 0;
     for (var i = 1; i < GLOBAL.invest.length-1; i++) {
@@ -112,18 +113,24 @@
 
       if (toValue(GLOBAL.invest[index][13]) != 0
        && toValue(GLOBAL.invest[index][14]) < total) {
-        var prov = toValue(GLOBAL.invest[index][14]);
+        var price = toValue(GLOBAL.invest[index][7]);
+        var bonus = Math.round(rest/price);
+        var rebal = toValue(GLOBAL.invest[index][13]) + bonus;
+        var prov = rebal * price;
         var action = prov > 0;
 
         var array = [];
         for(var j of [0, 1, GLOBAL.invest[index][6] != "" ? 6 : 7, 13, 14]) {
-          array[GLOBAL.invest[0][j]] = GLOBAL.invest[index][j];
+          array[GLOBAL.invest[0][j]] = j == 13 ? rebal
+                                     : j == 14 ? prov
+                                     : GLOBAL.invest[index][j];
         }
         array["Action"] = action;
 
         contents.push(array);
 
         total -= prov;
+        rest -= price * bonus;
       }
     };
 
@@ -178,7 +185,7 @@
                                        + tQty + '\', \''
                                        + tUnit + '\', \''
                                        + tVal + '\', \''
-                                       + tId + '\']]);';
+                                       + tId + '\']], true);';
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button onclick="'
                  + action + '">' + label + '</button></div>';
 
@@ -258,7 +265,7 @@
     }
   }
 
-  function insertHistoricRow(data)
+  function insertHistoricRow(data, isBackgroundUpdate)
   {
     var index = 1;
     var rowCnt = data.length;
@@ -266,7 +273,9 @@
     if (rowCnt > 0) {
       $("#snackbar").text((rowCnt == 1 ? "Transaction" : rowCnt + " Transactions") + " added");
 
-      showLoader(true);
+      if (!isBackgroundUpdate) {
+        showLoader(true);
+      }
 
       google.script.run
                    //.withSuccessHandler(function(contents) { setValue("Historic!A2", data, sortTransactionValues) })
@@ -603,7 +612,7 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
-      for(var j of [1, 5, 8, 9, 10, 11, 15, 16, 17, 18, 19, 20]) {   // Select only the interesting columns
+      for(var j of [1, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]) {   // Select only the interesting columns
         tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
       tableHTML += '</tr>';
