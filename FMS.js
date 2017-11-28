@@ -363,7 +363,7 @@
                      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header
                        var index = indexOf(GLOBAL.histo, contents[i][7], 7);
 
-                       if (!index || (index && contents[i][0] != toDate(GLOBAL.histo[index][0])) {
+                       if (!index || (index && contents[i][0] != toDate(GLOBAL.histo[index][0]))) {
                          if (!indexOf(contents[i], "#N/A")) {
                            data.push(contents[i]);
                          } else {
