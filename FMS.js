@@ -135,7 +135,7 @@
   }
 
   function updateRebalanceTable(contents) {
-    var closing = '$(\'#popupOverlay\').fadeOut(1000);$(\'#menu\').fadeIn(1000);$(\'#content\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();'
+    var closing = '$(\'#popupOverlay\').fadeOut(1000);$(\'#menu\').removeClass(\'blur-filter\');$(\'#content\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();'
     var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
     for (var i = 0; i < contents.length; i++) {
       tableHTML += '<div id="rebal' + i + '">';
@@ -173,8 +173,8 @@
 
     $("#popup").prop("innerHTML", tableHTML);
 
-    $('#menu').fadeOut(1000);
     $('#popupOverlay').fadeIn(1000);
+    $('#menu').addClass("blur-filter");
     $('#content').addClass("blur-filter");
   }
 
