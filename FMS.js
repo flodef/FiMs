@@ -579,7 +579,7 @@
                  .getSheetValues("Settings!A:E");
 
     // Rebalance is not available if rebalance is not needed
-    $("#rebalanceButton").prop('disabled', GLOBAL.dashb[50][1]);
+    $("#rebalanceButton").prop('disabled', GLOBAL.dashb[50][1] == "FALSE");
   }
 
   function updateInvestmentTable(contents)
