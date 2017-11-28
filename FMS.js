@@ -562,9 +562,8 @@
                      tableHTML += '<tr>';
                      for(var item of contents[5]) {
                        tableHTML += item != 44
-                                  ? getTableReadOnlyCell(GLOBAL.dashb, item);
+                                  ? getTableReadOnlyCell(GLOBAL.dashb, item)
                                   : getTableEditableCell(GLOBAL.dashb, item, "Allocation!B14")
-                       //TODO
                      }
                      tableHTML += '</tr>';
 
