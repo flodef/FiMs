@@ -138,8 +138,9 @@
     var closing = '$(\'#popupOverlay\').fadeOut(1000);$(\'#menu\').removeClass(\'blur-filter\');$(\'#content\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();'
     var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
     for (var i = 0; i < contents.length; i++) {
-      tableHTML += '<div style="position:absolute;width:80%;padding:5px;background:white;z-index:'
-                 + (contents.length-i) + ';" id="rebal' + i + '">';
+      // tableHTML += '<div style="position:absolute;width:80%;padding:5px;background:white;z-index:'
+      //            + (contents.length-i) + ';" id="rebal' + i + '">';
+      tableHTML += '<div class="hidden" id="rebal' + i + '">';
       tableHTML += '<table>';
       // tableHTML += '<tr><td colspan="10"'
       //         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
@@ -165,7 +166,7 @@
 
       var isLast = i == contents.length-1;
       var label = isLast ? "CLOSE" : "NEXT ORDER";
-      var action = isLast ? closing : '$(\'#rebal' + i + '\').fadeOut(1000)';
+      var action = isLast ? closing : '$(\'#rebal' + i + '\').fadeOut(1000);$(\'#rebal' + (i+1) + '\').show()';
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button onclick="'
                  + action + '">' + label + '</button></div>';
 
