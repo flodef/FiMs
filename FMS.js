@@ -40,7 +40,7 @@
 
                      updateDashboardTable(contents);
 
-                     updateInvestmentValues();
+                     updateInvestmentValues();  // Next step
                    })
                    .withFailureHandler(displayError)
                    .getSheetValues("Dashboard!A:B");
@@ -55,7 +55,7 @@
                  .withSuccessHandler(function(contents) {
                    updateInvestmentTable(contents);
 
-                   updateHistoricValues();
+                   updateHistoricValues();  // Next step
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Investment!D:X");
@@ -577,6 +577,9 @@
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Settings!A:E");
+
+    // Rebalance is not available if rebalance is not needed
+    $("#rebalanceButton").prop('disabled', GLOBAL.dashb[50][1]);
   }
 
   function updateInvestmentTable(contents)
@@ -619,8 +622,6 @@
 
     addTransactionName("", GLOBAL.cost);
     addTransactionName("", GLOBAL.approv);
-
-    $("#rebalanceButton").prop('disabled', toValue(GLOBAL.invest[6][14]) == 0);
   }
 
   function updateHistoricTable(contents)
