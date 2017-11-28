@@ -112,11 +112,6 @@
 
       if (toValue(GLOBAL.invest[index][13]) != 0
        && toValue(GLOBAL.invest[index][14]) < total) {
-        // var name = GLOBAL.invest[index][0];
-        // var price = toValue(GLOBAL.invest[index][6])
-        //   ? toValue(GLOBAL.invest[index][6])
-        //   : toValue(GLOBAL.invest[index][7]);
-        // var rebal = toValue(GLOBAL.invest[index][13]);
         var prov = toValue(GLOBAL.invest[index][14]);
         var action = prov > 0;
 
@@ -140,36 +135,41 @@
   }
 
   function updateRebalanceTable(contents) {
-    var tableHTML = '<span class="closebtn" onclick="$(\'#popupOverlay\').fadeOut(1000);$(\'#menu\').fadeIn(1000);$(\'#content\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();">&times;</span>';
-    for (row of contents) {
-      tableHTML += '<div>';
+    var closing = '$(\'#popupOverlay\').fadeOut(1000);$(\'#menu\').fadeIn(1000);$(\'#content\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();'
+    var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
+    for (var i = 0; i < contents.length; i++) {
+      tableHTML += '<div id="rebal' + i + '">';
       tableHTML += '<table>';
       // tableHTML += '<tr><td colspan="10"'
       //         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
       //         + title + '</td></tr>';
-      var i = 0;
-      for (const [key, value] of Object.entries(row)) {
+      var j = 0;
+      for (const [key, value] of Object.entries(contents[i])) {
           tableHTML += '<tr>';
 
-          var style = i == 0 || i == 2 ? 'font-weight:900;' : '';
+          var style = j == 0 || j == 2 ? 'font-weight:900;' : '';
 
-          style += i == 4 ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
+          style += j == 4 ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
                           : '';
-          var val = i == 4 ? (value ? "Buy" : "Sell") : value
+          var val = j == 4 ? (value ? "Buy" : "Sell") : value
           tableHTML += '<th align="center">' + key + '</th>'
                      + '<td align="center" style="' + style + '" padding="10px">' + val + '</td>'
 
           tableHTML += '</tr>';
 
-          ++i;
+          ++j;
       }
 
       tableHTML += '</table>';
+
+      var isLast = i == contents.length-1;
+      var label = isLast ? "CLOSE" : "NEXT ORDER";
+      var action = isLast ? closing : '$(\'#rebal' + i + '\').fadeOut(1000)';
+      tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button onclick="'
+                 + action + '">' + label + '</button></div>';
+
       tableHTML += '</div>';
     }
-
-    tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button>NEXT ORDER</button></div>';
-
 
     $("#popup").prop("innerHTML", tableHTML);
 
