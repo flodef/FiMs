@@ -815,7 +815,7 @@
   }
 
   function executionSuccess() {
-    updateAllValues(true);
+    updateAllValues(false, true);
     cancelForm();
     showSnackBar();
   }
