@@ -584,7 +584,7 @@
 
     clearTransactionName();
 
-    var tableHTML = getTableTitle("investment", "Rebalance", contents[0].length-1, "filterRebalance(this.checked)");
+    var tableHTML = getTableTitle("investment", "Rebalance", contents[0].length-1, "filterRebalance(this.checked)", 0);
     // tableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
     //            + '<tr style="background-color:white;"><td><h2>Investment</h2></td>'
     //            + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
@@ -624,7 +624,7 @@
   {
     GLOBAL.histo = contents;
 
-    var tableHTML = getTableTitle("historic", "Show all", contents[0].length-1, "showAllHistoric(this.checked)");
+    var tableHTML = getTableTitle("historic", "Show all", contents[0].length-1, "showAllHistoric(this.checked)", 1);
     // tableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
     //            + '<tr style="background-color:white;"><td><h2>Historic</h2></td>'
     //            + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
@@ -682,7 +682,7 @@
          + ' value="' + title + '"></input></td></tr>';
   }
 
-  function getTableTitle(id, tooltip, colspan, func) {
+  function getTableTitle(id, tooltip, colspan, func, searchIndex) {
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td><h2 onclick="$(\'#' + id + 'Table\').fadeToggle(\'slow\');">' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2></td>'
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
@@ -691,7 +691,7 @@
          + '<div id="' + id + 'Limit" class="hidden"></div>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
-         + 'onkeyup="searchTable(this, \'' + id + 'Table\', 1, $(\'#' + id + 'Limit\').val())"></tr></table>'
+         + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', $(\'#' + id + 'Limit\').val())"></tr></table>'
          + '<table id="' + id + 'Table" class="sortable hidden">';
   }
 
