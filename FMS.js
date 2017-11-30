@@ -585,16 +585,6 @@
     clearTransactionName();
 
     var tableHTML = getTableTitle("investment", "Rebalance", contents[0].length-1, "filterRebalance(this.checked)", 0);
-    // tableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-    //            + '<tr style="background-color:white;"><td><h2>Investment</h2></td>'
-    //            + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-    //            + '<input type="checkbox" onclick="filterRebalance(this.checked)">'
-    //            + '<div class="slider round"></div></label><span class="tooltiptext">Rebalance</span></div></td></tr></table>'
-    //            + '<td colspan="' + (contents[0].length-1) + '" align="right">'
-    //            + '<input id="searchInput" type="text" placeholder="Search"'
-    //            + 'onkeyup="searchTable(this, \'investmentTable\', 0)" ></tr></table>';
-    // tableHTML += '<table id="investmentTable" class="sortable">';
-
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '">';
@@ -625,16 +615,6 @@
     GLOBAL.histo = contents;
 
     var tableHTML = getTableTitle("historic", "Show all", contents[0].length-1, "showAllHistoric(this.checked)", 1);
-    // tableHTML += '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-    //            + '<tr style="background-color:white;"><td><h2>Historic</h2></td>'
-    //            + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-    //            + '<input type="checkbox" onclick="showAllHistoric(this.checked)">'
-    //            + '<div class="slider round"></div></label><span class="tooltiptext">Show all</span></div></td></tr></table>'
-    //            + '<div id="historicLimit" class="hidden"></div>'
-    //            + '<td colspan="' + (contents[0].length-1) + '" align="right">'
-    //            + '<input id="searchInput" type="text" placeholder="Search"'
-    //            + 'onkeyup="searchTable(this, \'historicTable\', 1, $(\'#historicLimit\').val())"></tr></table>';
-    // tableHTML += '<table id="historicTable" class="sortable">';
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
@@ -686,13 +666,14 @@
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td><h2 onclick="$(\'#' + id + 'Table\').fadeToggle(\'slow\');">' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2></td>'
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-         + '<input type="checkbox" onclick="' + func + '">'
+         + '<input type="checkbox" checked="this.checked" onclick="' + func + '">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<div id="' + id + 'Limit" class="hidden"></div>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
          + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', $(\'#' + id + 'Limit\').val())"></tr></table>'
-         + '<table id="' + id + 'Table" class="sortable hidden">';
+         // + '<table id="' + id + 'Table" class="sortable hidden">';
+         + '<table id="' + id + 'Table" class="sortable ' + $(this).is(":visible") ? '' : 'hidden' + '">';
   }
 
   function autoAdaptWidth(e) {
