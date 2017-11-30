@@ -91,8 +91,7 @@
 
     var tRebal = parseFloat((toValue(GLOBAL.invest[6][10])
                           - toValue(GLOBAL.invest[6][9])).toFixed(2));
-    var tProv = toValue(GLOBAL.invest[6][14]);
-    var rest = tRebal/tProv >=1 ? tRebal - toValue(GLOBAL.invest[6][14]) : 0;
+    var tRest = toValue(GLOBAL.invest[6][13]);
     var contents = [];
     var rank = 0;
     for (var i = 1; i < GLOBAL.invest.length-1; i++) {
@@ -108,7 +107,7 @@
       if (toValue(GLOBAL.invest[index][13]) != 0
        && toValue(GLOBAL.invest[index][14]) < tRebal) {
         var price = toValue(GLOBAL.invest[index][7]);
-        var num = rest/price;
+        var num = tRest/price;
         var bonus = num >= 0 ? Math.floor(num) : Math.ceil(num);
         var rebal = toValue(GLOBAL.invest[index][13]) + bonus;
         var prov = (rebal * price).toFixed(2);
@@ -125,7 +124,7 @@
         contents.push(array);
 
         tRebal -= prov;
-        rest -= price * bonus;
+        tRest -= price * bonus;
       }
     };
 
