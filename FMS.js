@@ -666,9 +666,9 @@
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td><h2 onclick="$(\'#' + id + 'Table\').fadeToggle(\'slow\');">' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2></td>'
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-         + '<input type="checkbox" checked="this.checked" onclick="' + func + '">'
-         + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<div id="' + id + 'Limit" class="hidden"></div>'
+         + '<input type="checkbox" ' + ($("#historicLimit").val() ? 'checked' : '') + '" onclick="' + func + '">'
+         + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
          + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', $(\'#' + id + 'Limit\').val())"></tr></table>'
@@ -734,6 +734,7 @@
 
   function filterRebalance(isChecked) {
     // Loop through all table rows, and hide those who don't match the search query
+    $("#investmentLimit").val(isChecked ? null : "10");
     $("#investmentTable tbody tr").each(function(i) {
       var td = $(this).children("td")[7];
       if (!isChecked || (td && td.innerHTML != 0)) {
