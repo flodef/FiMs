@@ -666,7 +666,7 @@
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td><h2 onclick="$(\'#' + id + 'Table\').fadeToggle(\'slow\');">' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2></td>'
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-         + '<input type="checkbox" ' + ($("#historicLimit").val() ? 'checked' : '') + ' onclick="' + func + '">'
+         + '<input type="checkbox" ' + ($('#' + id + 'Limit').val() ? 'checked' : '') + ' onclick="' + func + '">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<div id="' + id + 'Limit" class="hidden"></div>'
          + '<td colspan="' + colspan + '" align="right">'
