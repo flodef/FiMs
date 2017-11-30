@@ -673,7 +673,7 @@
          + '<input id="searchInput" type="text" placeholder="Search"'
          + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', $(\'#' + id + 'Limit\').val())"></tr></table>'
          // + '<table id="' + id + 'Table" class="sortable hidden">';
-         + '<table id="' + id + 'Table" class="sortable ' + $(this).is(":visible") ? '' : 'hidden' + '">';
+         + '<table id="' + id + 'Table" class="sortable ' + ($(this).is(":visible") ? '' : 'hidden') + '">';
   }
 
   function autoAdaptWidth(e) {
