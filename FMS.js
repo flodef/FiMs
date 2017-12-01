@@ -179,7 +179,7 @@
                                        + tQty + '\', \''
                                        + tUnit + '\', \''
                                        + tVal + '\', \''
-                                       + tId + '\']], true);';
+                                       + tId + '\']], \'Historic\', true);';
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button onclick="'
                  + action + '">' + label + '</button></div>';
 
@@ -251,7 +251,8 @@
 
     if (!errorMsg)
     {
-      insertHistoricRow([[tDate, tType, tName, tOpe, tQty, tUnit, tVal, tName + "@" + tOpe + "@" + tQty + "@" + tVal]]);
+      insertHistoricRow([[tDate, tType, tName, tOpe, tQty, tUnit, tVal,
+        tName + "@" + tOpe + "@" + tQty + "@" + tVal]], "Historic");
     }
     else
     {
@@ -259,7 +260,7 @@
     }
   }
 
-  function insertHistoricRow(data, isBackgroundUpdate)
+  function insertHistoricRow(data, id, isBackgroundUpdate)
   {
     var index = 1;
     var rowCnt = data.length;
@@ -271,11 +272,22 @@
         showLoader(true);
       }
 
-      google.script.run
-                   //.withSuccessHandler(function(contents) { setValue("Historic!A2", data, sortTransactionValues) })
-                   .withSuccessHandler(function(contents) { setValue("Historic!A2", data, executionSuccess) })
-                   .withFailureHandler(displayError)
-                   .insertRows(9, data, {startRow:index, endCol:11});
+      gid = id == "Historic" ? 9
+          : id == "ExpensesHistoric" ? 298395308
+          : null;
+      endCol = id == "Historic" ? 11
+             : id == "ExpensesHistoric" ? 4
+             : null;
+
+      if (gid && endCol) {
+        google.script.run
+                    //.withSuccessHandler(function(contents) { setValue("Historic!A2", data, sortTransactionValues) })
+                     .withSuccessHandler(function(contents) { setValue(id + "!A2", data, executionSuccess) })
+                     .withFailureHandler(displayError)
+                     .insertRows(gid, data, {startRow:index, endCol:endCol});
+      } else {
+        displayError("Unknow spreadsheet: " + id);
+      }
     } else {
       displayError("No transaction added.", true);
     }
@@ -401,21 +413,22 @@
                      }
 
                      // Adding data
-                     if (dupCnt + errCnt != contents.length - 1) {
-                       insertHistoricRow(data);
-
-                       if (dupCnt > 0) {
-                         var msg = errCnt == 0
-                             ? dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt) + " row(s) added."
-                             : dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt - errCnt) + " row(s) added and " + errCnt + " row(s) in error.";
-                         displayError(msg, errCnt == 0);
-                       }
-                     } else {
-                       var msg = errCnt == 0
-                           ? "The imported file contains only duplicates (" + dupCnt + " found)."
-                           : dupCnt + " duplicate(s) found and " + errCnt + " row(s) in error.";
-                       displayError(msg, errCnt == 0);
-                     }
+                     insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
+                     // if (dupCnt + errCnt != contents.length - 1) {
+                     //   insertHistoricRow(data, "Historic");
+                     //
+                     //   if (dupCnt > 0) {
+                     //     var msg = errCnt == 0
+                     //         ? dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt) + " row(s) added."
+                     //         : dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt - errCnt) + " row(s) added and " + errCnt + " row(s) in error.";
+                     //     displayError(msg, errCnt == 0);
+                     //   }
+                     // } else {
+                     //   var msg = errCnt == 0
+                     //       ? "The imported file contains only duplicates (" + dupCnt + " found)."
+                     //       : dupCnt + " duplicate(s) found and " + errCnt + " row(s) in error.";
+                     //   displayError(msg, errCnt == 0);
+                     // }
                    } else {
                      compareResultData();
                    }
@@ -446,13 +459,17 @@
     }
 
     // Adding data
-    if (dupCnt + errCnt != contents.length - 1) {
-      setValue("ExpensesHistoric!A:C", data);
+    insertRows(data, "ExpensesHistoric", dupCnt, errCnt, contents.length - 1);
+  }
+
+  function insertRows(data, id, dupCnt, errCnt, total) {
+    if (dupCnt + errCnt != total) {
+      insertHistoricRow(data, id);
 
       if (dupCnt > 0) {
         var msg = errCnt == 0
-            ? dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt) + " row(s) added."
-            : dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt - errCnt) + " row(s) added and " + errCnt + " row(s) in error.";
+            ? dupCnt + " duplicate(s) found, " + (total - dupCnt) + " row(s) added."
+            : dupCnt + " duplicate(s) found, " + (total - dupCnt - errCnt) + " row(s) added and " + errCnt + " row(s) in error.";
         displayError(msg, errCnt == 0);
       }
     } else {
