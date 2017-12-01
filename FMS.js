@@ -430,9 +430,9 @@
 
     for (var i = 1; i < contents.length; i++) { // Don't insert the header
       var row = contents[i];
-      var date = toDate(row[0]);
-      var label = row[3];
-      var val = toCurrency(row[7], "€");
+      var date = row[0];
+      var label = row[2];
+      var val = toCurrency(row[6], "€");
 
       if (!indexOf(contents, date, 0) ||
           !indexOf(contents, label, 1) ||
@@ -861,9 +861,11 @@
   }
 
   function toCurrency(content, symbol) {
-    return (content ? String(content).replace(",", ".")
-                                     .replace(" ", ",")
-                    : "0") + " " + symbol;
+    return (content
+      ? String(content).includes(",")
+        ? String(content) + ".00"
+        : String(content).replace(",", ".")
+      : "0").replace(" ", ",") + " " + symbol;
   }
 
   function toDate(content) {
