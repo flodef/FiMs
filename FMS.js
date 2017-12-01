@@ -864,7 +864,7 @@
 
   function toCurrency(content, symbol) {
     return (content
-      ? String(content).includes(",")
+      ? String(content).includes(",") || String(content).includes(".")
         ? String(content).replace(",", ".")
         : String(content) + ".00"
       : "0").replace(" ", ",") + " " + symbol;
