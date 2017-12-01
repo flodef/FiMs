@@ -532,7 +532,7 @@
 
     google.script.run
                  .withSuccessHandler(function(contents) {
-                     var tableHTML = getMainTableTitle("dashboard");
+                     var tableHTML = getTitle("dashboard");
                      tableHTML += '<table id="dashboardTable">';
                      tableHTML += getSubTableTitle(contents[0][0], "Settings!A1");
                      tableHTML += '<tr>';
@@ -666,7 +666,7 @@
          + ' value="' + title + '"></input></td></tr>';
   }
 
-  function getMainTableTitle(id) {
+  function getTitle(id) {
     return '<h2 onclick="$(\'#' + id + 'Table\').fadeToggle(\'slow\');">'
           + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
   }
