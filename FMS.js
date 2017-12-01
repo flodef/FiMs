@@ -322,7 +322,7 @@
         var csvData = event.target.result;
         try {
           data = $.csv.toArrays(csvData.includes(";")
-            ? csvData.replace(",", ".").replace(";", ".")
+            ? csvData.replace(new RegExp(',', 'g'), '.').replace(new RegExp(';', 'g'), ',')
             : csvData);
 
           if (data && data.length > 1)
