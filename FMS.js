@@ -523,7 +523,7 @@
     // while (e.options.length != 0) {
     //   e.remove(0);
     // }
-    $('transactionName').children('option').remove();
+    $('#transactionName').children('option').remove();
   }
 
   function updateDashboardTable(contents)
