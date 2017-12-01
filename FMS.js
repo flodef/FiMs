@@ -325,7 +325,7 @@
 
           if (data && data.length > 1)
           {
-            if (data[0][0] == "Date" && data[0][0] == "Heure") {
+            if (data[0][0] == "Date" && data[0][1] == "Heure") {
               google.script.run
                     .withSuccessHandler(function(contents) {
                       setValue("Account!A1", data);
