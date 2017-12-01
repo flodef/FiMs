@@ -325,17 +325,23 @@
 
           if (data && data.length > 1)
           {
-            google.script.run
-                  .withSuccessHandler(function(contents) {
-                    setValue("Account!A1", data);
+            if (data[0][0] == "Date" && data[0][0] == "Heure") {
+              google.script.run
+                    .withSuccessHandler(function(contents) {
+                      setValue("Account!A1", data);
 
-                    $("#snackbar").text(data.length-1 + " rows imported from csv file");  // Don't count the header
-                    showSnackBar();
-
-                    compareResultData();
-                  })
-                  .withFailureHandler(displayError)
-                  .clearSheetValues("Account!A:J");
+                      compareResultData();
+                    })
+                    .withFailureHandler(displayError)
+                    .clearSheetValues("Account!A:J");
+            } else {
+              google.script.run
+                    .withSuccessHandler(function(contents) {
+                      insertExpensesRow(data, contents);
+                    })
+                    .withFailureHandler(displayError)
+                    .getSheetValues("ExpensesHistoric!A:C");
+            }
           } else {
             displayError("No data to import: the file is empty.", true);
           }
@@ -416,8 +422,46 @@
                  .getSheetValues("Result!A:H");
   }
 
-  function cancelForm()
-  {
+  function insertExpensesRow(contents, expenses) {
+    // Preparing data
+    var dupCnt = 0;
+    var errCnt = 0;
+    var data = [];
+
+    for (var i = 1; i < contents.length; i++) { // Don't insert the header
+      var row = contents[i];
+      var date = toDate(row[0]);
+      var label = row[3];
+      var val = toCurrency(row[7], "€");
+
+      if (!indexOf(contents, date, 0) ||
+          !indexOf(contents, label, 1) ||
+          !indexOf(contents, val, 2)) {
+        data.push(date, label, val);
+      } else {
+        ++dupCnt;
+      }
+    }
+
+    // Adding data
+    if (dupCnt + errCnt != contents.length - 1) {
+      setValue("ExpensesHistoric!A:C", data);
+
+      if (dupCnt > 0) {
+        var msg = errCnt == 0
+            ? dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt) + " row(s) added."
+            : dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt - errCnt) + " row(s) added and " + errCnt + " row(s) in error.";
+        displayError(msg, errCnt == 0);
+      }
+    } else {
+      var msg = errCnt == 0
+          ? "The imported file contains only duplicates (" + dupCnt + " found)."
+          : dupCnt + " duplicate(s) found and " + errCnt + " row(s) in error.";
+      displayError(msg, errCnt == 0);
+    }
+  }
+
+  function cancelForm() {
     if ($('#addTransactionForm').is(":visible"))
     {
       $('#addTransactionForm').hide("fade", null, 500, function()
@@ -814,6 +858,12 @@
                                                .replace("$", "")
                                                .replace("€", ""))
                    : 0;
+  }
+
+  function toCurrency(content, symbol) {
+    return (content ? String(content).replace(",", ".")
+                                     .replace(" ", ",")
+                    : "0") + " " + symbol;
   }
 
   function toDate(content) {
