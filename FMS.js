@@ -223,10 +223,10 @@
 //    var tDate = mm + '/' + dd + '/' + yyyy;
     var tDate = GLOBAL.dummy;
 
-    var tName = $("#transactionName").prop("value");
+    var tType = $("#transactionName").children(":selected").attr("title");
 
-    var type = $("#transactionName").children(":selected").attr("title");
-    var tType = tName ? type : "";
+    var name = $("#transactionName").prop("value");
+    var tName = tType ? name : "";
 
     var qty = parseInt($("#transactionQuantity").val(), 10);
     var tQty = tName && !isNaN(qty) && qty != 0 ? qty : "";
