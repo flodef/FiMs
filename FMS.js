@@ -414,21 +414,6 @@
 
                      // Adding data
                      insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
-                     // if (dupCnt + errCnt != contents.length - 1) {
-                     //   insertHistoricRow(data, "Historic");
-                     //
-                     //   if (dupCnt > 0) {
-                     //     var msg = errCnt == 0
-                     //         ? dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt) + " row(s) added."
-                     //         : dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt - errCnt) + " row(s) added and " + errCnt + " row(s) in error.";
-                     //     displayError(msg, errCnt == 0);
-                     //   }
-                     // } else {
-                     //   var msg = errCnt == 0
-                     //       ? "The imported file contains only duplicates (" + dupCnt + " found)."
-                     //       : dupCnt + " duplicate(s) found and " + errCnt + " row(s) in error.";
-                     //   displayError(msg, errCnt == 0);
-                     // }
                    } else {
                      compareResultData();
                    }
@@ -586,7 +571,7 @@
 
     google.script.run
                  .withSuccessHandler(function(contents) {
-                     var tableHTML = getTitle("dashboard");
+                     var tableHTML = '<div style="margin:20px 0px 0px 25px">' + getTitle("dashboard") + '</div>';
                      tableHTML += '<table id="dashboardTable">';
                      tableHTML += getSubTableTitle(contents[0][0], "Settings!A1");
                      tableHTML += '<tr>';
