@@ -437,7 +437,7 @@
       if (!indexOf(expenses, date, 0) ||
           !indexOf(expenses, label, 1) ||
           !indexOf(expenses, val, 2)) {
-        data.push(date, label, val);
+        data.push([date, label, val]);
       } else {
         ++dupCnt;
       }
