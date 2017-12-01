@@ -223,9 +223,9 @@
 //    var tDate = mm + '/' + dd + '/' + yyyy;
     var tDate = GLOBAL.dummy;
 
-    var tName = $("#transactionName").children(":selected").attr("id");
+    var tName = $("#transactionName").prop("value");
 
-    var type = $("#transactionName").prop("value")
+    var type = $("#transactionName").children(":selected").attr("title");
     var tType = tName ? type : "";
 
     var qty = parseInt($("#transactionQuantity").val(), 10);
@@ -395,7 +395,7 @@
                      // Adding data
                      if (dupCnt + errCnt != contents.length - 1) {
                        insertHistoricRow(data);
-                       debugger;
+
                        if (dupCnt > 0) {
                          var msg = errCnt == 0
                              ? dupCnt + " duplicate(s) found, " + (contents.length - 1 - dupCnt) + " row(s) added."
@@ -504,21 +504,26 @@
     }
   }
 
-  function addTransactionName(id, name)
+  function addTransactionName(title, text)
   {
-    var e = document.getElementById("transactionName");
-    var option = document.createElement("option");
-    option.id = id;
-    option.text = name;
-    e.add(option);
+    // var e = document.getElementById("transactionName");
+    // var option = document.createElement("option");
+    // option.id = id;
+    // option.text = name;
+    // e.add(option);
+    $('#transactionName').append($('<option>', {
+      title: title,
+      text: text
+    }));
   }
 
   function clearTransactionName()
   {
-    var e = document.getElementById("transactionName");
-    while (e.options.length != 0) {
-      e.remove(0);
-    }
+    // var e = document.getElementById("transactionName");
+    // while (e.options.length != 0) {
+    //   e.remove(0);
+    // }
+    $('transactionName').children('option').remove();
   }
 
   function updateDashboardTable(contents)
@@ -586,9 +591,9 @@
     var tableHTML = getTableTitle("investment", "Rebalance", contents[0].length-1, "filterRebalance(this.checked)", 0);
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
-      tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '">';
+      tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
-      for(var j of [1, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]) {   // Select only the interesting columns
+      for(var j of [0, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]) {   // Select only the interesting columns
         tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
       tableHTML += '</tr>';
@@ -597,7 +602,7 @@
       : i==contents.length-1 ? '</tfoot>' : '';
 
       if (i != 0 && i != contents.length-1) {
-        addTransactionName(contents[i][0], contents[i][1]);
+        addTransactionName(contents[i][1], contents[i][0]);
       }
     }
     tableHTML += '</table>';
@@ -707,7 +712,7 @@
       index = e.selectedIndex;
     }
 
-    if (e.options[index].id) {
+    if (e.options[index].title) {
       $("#transactionQuantityLabel").fadeIn();
     } else {
       $("#transactionQuantityLabel").fadeOut();
