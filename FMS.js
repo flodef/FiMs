@@ -506,11 +506,6 @@
 
   function addTransactionName(title, text)
   {
-    // var e = document.getElementById("transactionName");
-    // var option = document.createElement("option");
-    // option.id = id;
-    // option.text = name;
-    // e.add(option);
     $('#transactionName').append($('<option>', {
       title: title,
       text: text
@@ -519,10 +514,6 @@
 
   function clearTransactionName()
   {
-    // var e = document.getElementById("transactionName");
-    // while (e.options.length != 0) {
-    //   e.remove(0);
-    // }
     $('#transactionName').children('option').remove();
   }
 
@@ -673,7 +664,7 @@
 
   function getTableTitle(id, tooltip, colspan, func, searchIndex) {
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-         + '<tr style="background-color:white;"><td>' + getTitle(id) + '</td>';
+         + '<tr style="background-color:white;"><td>' + getTitle(id) + '</td>'
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
          + '<input type="checkbox" ' + ($('#' + id + 'Limit').val() == "" ? 'checked' : '') + ' onclick="' + func + '">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
