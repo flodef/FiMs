@@ -231,7 +231,7 @@
     var qty = parseInt($("#transactionQuantity").val(), 10);
     var tQty = tName && !isNaN(qty) && qty != 0 ? qty : "";
 
-    var tOpe = !tName ? type
+    var tOpe = !tName ? tType
              : tQty<0 ? "SELL"
              : tQty>0 ? "BUY"
              : "DIVIDEND";
