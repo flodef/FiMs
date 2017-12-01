@@ -701,7 +701,7 @@
   function getSubTableTitle(title, rangeName) {
     return '<tr><td colspan="10"><input class="tableTitle" type="text"'
          + ' oninput=";setValue(\'' + rangeName + '\', [[this.value]])"'
-         + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
+         + ' style="border:0px;min-width:55px;min-width:200px;font-size:16px;line-height:33px;color:#b1b1b1;margin:6px;"'
          + ' value="' + title + '"></input></td></tr>';
   }
 
