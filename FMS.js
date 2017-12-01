@@ -321,7 +321,9 @@
       reader.onload = function(event) {
         var csvData = event.target.result;
         try {
-          data = $.csv.toArrays(csvData);
+          data = $.csv.toArrays(csvData.includes(";")
+            ? csvData.replace(",", ".").replace(";", ".")
+            : csvData);
 
           if (data && data.length > 1)
           {
@@ -347,7 +349,7 @@
           }
         }
         catch (err) {
-          displayError("The file has an incorrect data type (should be csv).");
+          displayError(err.message);
         }
       };
       reader.onerror = function() { displayError("Unable to read the file."); };
