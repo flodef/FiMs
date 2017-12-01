@@ -434,9 +434,9 @@
       var label = row[2];
       var val = toCurrency(row[6], "€");
 
-      if (!indexOf(contents, date, 0) ||
-          !indexOf(contents, label, 1) ||
-          !indexOf(contents, val, 2)) {
+      if (!indexOf(expenses, date, 0) ||
+          !indexOf(expenses, label, 1) ||
+          !indexOf(expenses, val, 2)) {
         data.push(date, label, val);
       } else {
         ++dupCnt;
