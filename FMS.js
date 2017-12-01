@@ -532,37 +532,37 @@
 
     google.script.run
                  .withSuccessHandler(function(contents) {
-                     var tableHTML = "";
-                     tableHTML += '<table>';
-                     tableHTML += getSingleTableTitle(contents[0][0], "Settings!A1");
+                     var tableHTML = getMainTableTitle("dashboard");
+                     tableHTML += '<table id="dashboardTable">';
+                     tableHTML += getSubTableTitle(contents[0][0], "Settings!A1");
                      tableHTML += '<tr>';
                      for(var item of contents[1]) {
                        tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      tableHTML += '</tr>';
 
-                     tableHTML += getSingleTableTitle(contents[0][1], "Settings!B1");
+                     tableHTML += getSubTableTitle(contents[0][1], "Settings!B1");
                      tableHTML += '<tr>';
                      for(var item of contents[2]) {
                        tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      tableHTML += '</tr>';
 
-                     tableHTML += getSingleTableTitle(contents[0][2], "Settings!C1");
+                     tableHTML += getSubTableTitle(contents[0][2], "Settings!C1");
                      tableHTML += '<tr>';
                      for(var item of contents[3]) {
                        tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      tableHTML += '</tr>';
 
-                     tableHTML += getSingleTableTitle(contents[0][3], "Settings!D1");
+                     tableHTML += getSubTableTitle(contents[0][3], "Settings!D1");
                      tableHTML += '<tr>';
                      for(var item of contents[4]) {
                        tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
                      }
                      tableHTML += '</tr>';
 
-                     tableHTML += getSingleTableTitle(contents[0][4], "Settings!E1");
+                     tableHTML += getSubTableTitle(contents[0][4], "Settings!E1");
                      tableHTML += '<tr>';
                      for(var item of contents[5]) {
                        tableHTML += item != 44
@@ -659,16 +659,21 @@
          + this.toValue(content) + '">€</input></td>';
   }
 
-  function getSingleTableTitle(title, rangeName) {
+  function getSubTableTitle(title, rangeName) {
     return '<tr><td colspan="10"><input class="tableTitle" type="text"'
          + ' oninput=";setValue(\'' + rangeName + '\', [[this.value]])"'
          + ' style="border:0px;min-width:55px;font-size:21px;line-height:33px;color:#b1b1b1;margin:6px;"'
          + ' value="' + title + '"></input></td></tr>';
   }
 
+  function getMainTableTitle(id) {
+    return '<h2 onclick="$(\'#' + id + 'Table\').fadeToggle(\'slow\');">'
+          + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
+  }
+
   function getTableTitle(id, tooltip, colspan, func, searchIndex) {
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-         + '<tr style="background-color:white;"><td><h2 onclick="$(\'#' + id + 'Table\').fadeToggle(\'slow\');">' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2></td>'
+         + '<tr style="background-color:white;"><td>' + getTitle(id) + '</td>';
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
          + '<input type="checkbox" ' + ($('#' + id + 'Limit').val() == "" ? 'checked' : '') + ' onclick="' + func + '">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
@@ -676,7 +681,6 @@
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
          + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', $(\'#' + id + 'Limit\').val())"></tr></table>'
-         // + '<table id="' + id + 'Table" class="sortable hidden">';
          + '<table id="' + id + 'Table" class="sortable ' + ($("#" + id + "Table").is(":visible") ? '' : 'hidden') + '">';
   }
 
