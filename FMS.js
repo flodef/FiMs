@@ -5,6 +5,7 @@
   GLOBAL.histo = [];
   GLOBAL.invest = [];
   GLOBAL.dummy = "XXXXXX";
+  GLOBAL.limit = 10;
 
   /**
    * Run initializations on web app load.
@@ -723,7 +724,7 @@
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
-         + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', ' + ($('#' + id + 'Filter').is(':checked') ? 10 : null + '"></tr></table>'
+         + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', ' + ($('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null) + '"></tr></table>'
          + getMainTableHead(id);
   }
 
