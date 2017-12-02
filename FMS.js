@@ -669,17 +669,25 @@
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
-      : i==contents.length-1 ? '</tbody>' : '';
+      : i==contents.length-1 ? '</tbody><tfoot>' : '';
     }
+    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
     tableHTML += '</table>';
 
     applyFilter(id, tableHTML);
+
+    var total = 0;
+    $("#" + id + "Table tbody tr").each(i => {
+      total += toValue($(this).children("td")[6].innerHTML);
+    });
+    $("#" + id + "Footer").prop("innerHTML",
+      "<td>TOTAL</td><td colspan="5"></td><td>" + total + "</td>");
   }
 
   function applyFilter(id, tableHTML) {
     $("#" + id + "Div").prop("innerHTML", tableHTML);
     sorttable.makeSortable($("#" + id + "Table").get(0));
-    filter(id);
+    filterTable(id);
   }
 
   function getTableEditableCell(contents, index, rangeName, limit) {
@@ -720,7 +728,7 @@
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td>' + getTitle(id) + '</td>'
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-         + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="filter(\'' + id + '\')">'
+         + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="filterTable(\'' + id + '\')">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="' + id + 'Search" class="searchInput" type="text" placeholder="Search"'
@@ -789,7 +797,7 @@
                  .setSheetValues(name, value);
   }
 
-  function filter(id) {
+  function filterTable(id) {
     // Loop through all table rows, and hide those who don't match the search query
     var isChecked = $("#" + id + "Filter").is(':checked');
     var func = id == "investment" ? (item, i) => !isChecked || ($(item).children("td")[7] && $(item).children("td")[7].innerHTML != 0)
@@ -814,7 +822,7 @@
     $("#" + id + "Table tbody tr").each(function(i) {
       var td = $(this).children("td")[index];
       if ((!max || i < max) && td
-      && td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+      && td.innerHTML.toUpperCase().includes(filter)) {
         $(this).show();
       } else {
         $(this).hide();
