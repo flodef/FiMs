@@ -677,8 +677,8 @@
     applyFilter(id, tableHTML);
 
     var total = 0;
-    $("#" + id + "Table tbody tr:visible").each(i => {
-      total += toValue($(this).children("td")[6].innerHTML);
+    $("#" + id + "Table tbody tr:visible").each(i, item => {
+      total += toValue($(item).children("td")[6].innerHTML);
     });
     $("#" + id + "Footer").prop("innerHTML",
       '<td>TOTAL</td><td colspan="5"></td><td>' + total + '</td>');
