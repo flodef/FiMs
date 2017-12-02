@@ -678,7 +678,7 @@
   function applyFilter(id, tableHTML, func) {
     $("#" + id + "Div").prop("innerHTML", tableHTML);
     sorttable.makeSortable($("#" + id + "Table").get(0));
-    func($('#' + id + 'Limit').val() == "");
+    func(!$('#' + id + 'Limit').val());
   }
 
   function getTableEditableCell(contents, index, rangeName, limit) {
