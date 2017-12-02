@@ -723,8 +723,8 @@
          + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="' + func + '">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
-         + '<input id="searchInput" type="text" placeholder="Search"'
-         + 'onkeyup="searchTable(this, \'' + id + '\', ' + searchIndex + ');"></tr></table>'
+         + '<input id="' + id + 'Search" type="text" placeholder="Search"'
+         + 'onkeyup="searchTable(\'' + id + '\', ' + searchIndex + ');"></tr></table>'
          + getMainTableHead(id);
   }
 
@@ -791,8 +791,9 @@
 
   function filterRebalance() {
     // Loop through all table rows, and hide those who don't match the search query
-    var isChecked = $("#investmentFilter").is(':checked');
-    $("#investmentTable tbody tr").each(function(i) {
+    var id = "investment";
+    var isChecked = $("#" + id + "Filter").is(':checked');
+    $("#" + id + "Table tbody tr").each(function(i) {
       var td = $(this).children("td")[7];
       if (!isChecked || (td && td.innerHTML != 0)) {
         $(this).show();
@@ -800,23 +801,28 @@
         $(this).hide();
       }
     });
+
+    searchTable(id, 0);
   }
 
   function showAllHistoric() {
     // Loop through all table rows, and hide those who don't match the search query
-    var isChecked = $("#historicFilter").is(':checked');
-    $("#historicTable tbody tr").each(function(i) {
+    var id = "historic";
+    var isChecked = $("#" + id + "Filter").is(':checked');
+    $("#" + id + "Table tbody tr").each(function(i) {
       if (isChecked || i < GLOBAL.limit) {
         $(this).show();
       } else {
         $(this).hide();
       }
     });
+
+    searchTable(id, 1);
   }
 
-  function searchTable(searchElement, id, index) {
-    var filter = searchElement.value.toUpperCase();
+  function searchTable(id, index) {
     var max = !$('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null;
+    var filter = $('#' + id + 'Search').val().toUpperCase();
 
     $("#" + id + "Table tbody tr").each(function(i) {
       var td = $(this).children("td")[index];
