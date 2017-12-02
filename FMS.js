@@ -571,7 +571,7 @@
     google.script.run
                  .withSuccessHandler(function(contents) {
                    var id = "dashboard";
-                   var tableHTML = '<div style="margin:20px 0px 0px 25px">' + getTitle(id) + '</div>';
+                   var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
                    tableHTML += getMainTableHead(id);
                    tableHTML += getSubTableTitle(contents[0][0], "Settings!A1");
                    tableHTML += '<tr>';
@@ -680,15 +680,15 @@
     var rows = 0;
     var ner = 0
     $("#" + id + "Table tbody tr:visible").each((i, item) => {
-      qty += toValue($(item).children("td")[6].innerHTML);
-      price += toValue($(item).children("td")[6].innerHTML);
+      qty += toValue($(item).children("td")[4].innerHTML);
+      price += toValue($(item).children("td")[5].innerHTML);
       total += toValue($(item).children("td")[6].innerHTML);
       ner = ner + (qty ? 1 : 0);
       ++rows;
     });
     $("#" + id + "Footer").prop("innerHTML",
       '<td>TOTAL</td><td>' + rows + ' rows</td><td colspan="2"></td>'
-      + '<td>' + qty + '</td><td>' + toCurrency(price/ner, "€") + '</td>'
+      + '<td>' + qty.toFixed(2) + '</td><td>' + toCurrency(price/ner, "€") + '</td>'
       + '<td>' + toCurrency(total, "€") + '</td>');
   }
 
