@@ -676,8 +676,6 @@
     tableHTML += '</table>';
 
     applyFilter(id, tableHTML);
-
-    $( "#" + id + "Table" ).ready(() => refreshTotal(id));  // Handler for .load() called.
   }
 
   function applyFilter(id, tableHTML) {
@@ -832,8 +830,14 @@
       var price = 0;
       var total = 0;
       var rows = 0;
-      var ner = 0
-      $("#" + id + "Table tbody tr:visible").each((i, item) => {
+      var ner = 0;
+      var max = !$('#' + id + 'Filter').is(':checked')
+        ? GLOBAL.limit : $("#" + id + "Table tbody tr").length;
+      var elem = $("#" + id + "Table tbody tr:visible").length == 0
+              && $('#loaderOverlay').is(':visible')
+              ? $("#" + id + "Table tbody tr:lt(" + max + ")")
+              : $("#" + id + "Table tbody tr:visible");
+      elem.each((i, item) => {
         qty += toValue($(item).children("td")[4].innerHTML);
         price += toValue($(item).children("td")[5].innerHTML);
         total += toValue($(item).children("td")[6].innerHTML);
