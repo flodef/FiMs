@@ -724,7 +724,7 @@
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="' + id + 'Search" class="searchInput" type="text" placeholder="Search"'
-         + 'onkeyup="searchTable(\'' + id + '\');" value="' + $('#' + id + 'Search').val() + '"></tr></table>'
+         + 'onkeyup="searchTable(\'' + id + '\');" value="' + ($('#' + id + 'Search').val() || "") + '"></tr></table>'
          + getMainTableHead(id);
   }
 
