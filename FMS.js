@@ -817,7 +817,7 @@
       }
     });
 
-    searchTable(id, 1);
+    searchTable(id, 2);
   }
 
   function searchTable(id, index) {
