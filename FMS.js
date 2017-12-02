@@ -724,7 +724,7 @@
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
-         + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', ' + ($('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null) + ');"></tr></table>'
+         + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ');"></tr></table>'
          + getMainTableHead(id);
   }
 
@@ -806,7 +806,7 @@
     // Loop through all table rows, and hide those who don't match the search query
     var isChecked = $("#historicFilter").is(':checked');
     $("#historicTable tbody tr").each(function(i) {
-      if (isChecked || i <= GLOBAL.limit) {
+      if (isChecked || i < GLOBAL.limit) {
         $(this).show();
       } else {
         $(this).hide();
@@ -814,14 +814,12 @@
     });
   }
 
-  function searchTable(searchElement, tableName, index, limit) {
+  function searchTable(searchElement, tableName, index) {
     var filter = searchElement.value.toUpperCase();
-    var max = limit ? parseInt(limit) : null;
 
-    $("#" + tableName + " tbody tr").each(function(i) {
+    $("#" + tableName + " tbody tr:visible").each(function(i) {
       var td = $(this).children("td")[index];
-      if ((!max || i < max) && td
-      && td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+      if (td && td.innerHTML.toUpperCase().indexOf(filter) > -1) {
         $(this).show();
       } else {
         $(this).hide();
