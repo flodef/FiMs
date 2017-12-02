@@ -875,7 +875,7 @@
   }
 
   function toCurrency(content, symbol) {
-    var str = content
+    var str = (content
       ? String(content).includes(",") || String(content).includes(".")
         ? String(content).replace(",", ".")
         : String(content) + "."
