@@ -816,7 +816,7 @@
 
   function searchTable(searchElement, id, index) {
     var filter = searchElement.value.toUpperCase();
-    var max = $('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null;
+    var max = !$('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null;
 
     $("#" + id + "Table tbody tr").each(function(i) {
       var td = $(this).children("td")[index];
