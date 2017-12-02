@@ -20,7 +20,6 @@
     setInterval(() => updateAllValues(false, true), 60 * 1000); // run update every minute
 
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
-    $( "#" + GLOBAL.historic + "Table" ).load(() => refreshTotal(GLOBAL.historic));  // Handler for .load() called.
   });
 
   function updateAllValues(shouldRefresh, isBackgroundUpdate)
@@ -677,6 +676,8 @@
     tableHTML += '</table>';
 
     applyFilter(id, tableHTML);
+
+    $( "#" + id + "Table" ).load(() => refreshTotal(id));  // Handler for .load() called.
   }
 
   function applyFilter(id, tableHTML) {
