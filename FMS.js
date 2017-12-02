@@ -723,7 +723,7 @@
          + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="filter(\'' + id + '\')">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
-         + '<input id="' + id + 'Search" type="text" placeholder="Search"'
+         + '<input id="' + id + 'Search" class="searchInput" type="text" placeholder="Search"'
          + 'onkeyup="searchTable(\'' + id + '\');"></tr></table>'
          + getMainTableHead(id);
   }
