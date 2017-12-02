@@ -835,12 +835,12 @@
         qty += toValue($(item).children("td")[4].innerHTML);
         price += toValue($(item).children("td")[5].innerHTML);
         total += toValue($(item).children("td")[6].innerHTML);
-        ner = ner + (qty ? 1 : 0);
+        ner = ner + ($(item).children("td")[4].innerHTML ? 1 : 0);
         ++rows;
       });
       $("#" + id + "Footer").prop("innerHTML",
         '<td>TOTAL</td><td>' + rows + ' rows</td><td colspan="2"></td>'
-        + '<td>' + qty.toFixed(2) + '</td><td>' + toCurrency(price/ner, "€") + '</td>'
+        + '<td>' + qty.toFixed(0) + '</td><td>' + toCurrency(price/ner, "€") + '</td>'
         + '<td>' + toCurrency(total, "€") + '</td>');
     }
   }
