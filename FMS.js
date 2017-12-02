@@ -724,7 +724,7 @@
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
-         + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ');"></tr></table>'
+         + 'onkeyup="searchTable(this, \'' + id + '\', ' + searchIndex + ');"></tr></table>'
          + getMainTableHead(id);
   }
 
@@ -814,12 +814,14 @@
     });
   }
 
-  function searchTable(searchElement, tableName, index) {
+  function searchTable(searchElement, id, index) {
     var filter = searchElement.value.toUpperCase();
+    var max = $('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null;
 
-    $("#" + tableName + " tbody tr:visible").each(function(i) {
+    $("#" + id + "Table tbody tr").each(function(i) {
       var td = $(this).children("td")[index];
-      if (td && td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+      if ((!max || i < max) && td
+      && td.innerHTML.toUpperCase().indexOf(filter) > -1) {
         $(this).show();
       } else {
         $(this).hide();
