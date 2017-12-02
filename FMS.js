@@ -880,8 +880,8 @@
     var i = str.indexOf(".");
     str = str.slice(0, i+3) + " " + symbol;
     return
-      i > 6 ? str.substr(0, i-6) + "," + str.substr(i-6, i-3) + "," + str.substr(i)
-      : i > 3 ? str.substr(0, i-3) + "," + str.substr(i)
+      i > 6 ? str.substr(0, i-6) + "," + str.substr(i-6, i-3) + "," + str.substr(i-3)
+      : i > 3 ? str.substr(0, i-3) + "," + str.substr(i-3)
       : str;
   }
 
