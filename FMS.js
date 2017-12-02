@@ -6,6 +6,9 @@
   GLOBAL.invest = [];
   GLOBAL.dummy = "XXXXXX";
   GLOBAL.limit = 10;
+  GLOBAL.dashboard = "dashboard";
+  GLOBAL.investment = "investment";
+  GLOBAL.historic = "historic";
 
   /**
    * Run initializations on web app load.
@@ -570,7 +573,7 @@
 
     google.script.run
                  .withSuccessHandler(function(contents) {
-                   var id = "dashboard";
+                   var id = GLOBAL.dashboard;
                    var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
                    tableHTML += getMainTableHead(id);
                    tableHTML += getSubTableTitle(contents[0][0], "Settings!A1");
@@ -627,7 +630,7 @@
 
     clearTransactionName();
 
-    var id = "investment";
+    var id = GLOBAL.investment;
     var tableHTML = getTableTitle(id, "Rebalance", contents[0].length-1);
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
@@ -657,7 +660,7 @@
   {
     GLOBAL.histo = contents;
 
-    var id = "historic";
+    var id = GLOBAL.historic;
     var tableHTML = getTableTitle(id, "Show all", contents[0].length-1);
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
@@ -673,23 +676,6 @@
     tableHTML += '</table>';
 
     applyFilter(id, tableHTML);
-
-    var qty = 0;
-    var price = 0;
-    var total = 0;
-    var rows = 0;
-    var ner = 0
-    $("#" + id + "Table tbody tr:visible").each((i, item) => {
-      qty += toValue($(item).children("td")[4].innerHTML);
-      price += toValue($(item).children("td")[5].innerHTML);
-      total += toValue($(item).children("td")[6].innerHTML);
-      ner = ner + (qty ? 1 : 0);
-      ++rows;
-    });
-    $("#" + id + "Footer").prop("innerHTML",
-      '<td>TOTAL</td><td>' + rows + ' rows</td><td colspan="2"></td>'
-      + '<td>' + qty.toFixed(2) + '</td><td>' + toCurrency(price/ner, "€") + '</td>'
-      + '<td>' + toCurrency(total, "€") + '</td>');
   }
 
   function applyFilter(id, tableHTML) {
@@ -808,8 +794,8 @@
   function filterTable(id) {
     // Loop through all table rows, and hide those who don't match the search query
     var isChecked = $("#" + id + "Filter").is(':checked');
-    var func = id == "investment" ? (i, item) => !isChecked || $(item).children("td")[7].innerHTML != 0
-             : id == "historic" ? (i, item) => isChecked || i < GLOBAL.limit
+    var func = id == GLOBAL.investment ? (i, item) => !isChecked || $(item).children("td")[7].innerHTML != 0
+             : id == GLOBAL.historic ? (i, item) => isChecked || i < GLOBAL.limit
              : (item, i) => true;
     toggleItem(id, func);
 
@@ -819,11 +805,13 @@
   function searchTable(id) {
     var max = !$('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null;
     var filter = $('#' + id + 'Search').val().toUpperCase();
-    var index = id == "historic" ? 2 : 0;
+    var index = id == GLOBAL.historic ? 2 : 0;
     var func = (i, item) => (!max || i < max)
       && $(item).children("td")[index].innerHTML.toUpperCase().includes(filter);
 
     toggleItem(id, func);
+
+    refreshTotal(id);
   }
 
   function toggleItem(id, func) {
@@ -834,6 +822,27 @@
         $(item).hide();
       }
     });
+  }
+
+  function refreshTotal(id) {
+    if (id == GLOBAL.historic) {
+      var qty = 0;
+      var price = 0;
+      var total = 0;
+      var rows = 0;
+      var ner = 0
+      $("#" + id + "Table tbody tr:visible").each((i, item) => {
+        qty += toValue($(item).children("td")[4].innerHTML);
+        price += toValue($(item).children("td")[5].innerHTML);
+        total += toValue($(item).children("td")[6].innerHTML);
+        ner = ner + (qty ? 1 : 0);
+        ++rows;
+      });
+      $("#" + id + "Footer").prop("innerHTML",
+        '<td>TOTAL</td><td>' + rows + ' rows</td><td colspan="2"></td>'
+        + '<td>' + qty.toFixed(2) + '</td><td>' + toCurrency(price/ner, "€") + '</td>'
+        + '<td>' + toCurrency(total, "€") + '</td>');
+    }
   }
 
   function showSnackBar() {
