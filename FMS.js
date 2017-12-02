@@ -681,7 +681,7 @@
       total += toValue($(item).children("td")[6].innerHTML);
     });
     $("#" + id + "Footer").prop("innerHTML",
-      '<td>TOTAL</td><td colspan="5"></td><td>' + total + '</td>');
+      '<td>TOTAL</td><td colspan="5"></td><td>' + toCurrency(total, "€") + '</td>');
   }
 
   function applyFilter(id, tableHTML) {
@@ -879,7 +879,7 @@
       ? String(content).includes(",") || String(content).includes(".")
         ? String(content).replace(",", ".")
         : String(content) + ".00"
-      : "0").replace(" ", ",") + " " + symbol;
+      : "0").replace(" ", ",").slice(0, str.indexOf(".")+3) + " " + symbol;
   }
 
   function toDate(content) {
