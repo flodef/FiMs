@@ -872,11 +872,17 @@
 
   function toCurrency(content, symbol) {
     var str = (content
-      ? String(content).includes(",") || String(content).includes(".")
+      ? String(content).includes(".") ? String(content)
+      : String(content).includes(",")
         ? String(content).replace(",", ".")
         : String(content) + "."
-      : "0.").replace(" ", ",") + "00";
-    return str.slice(0, str.indexOf(".")+3) + " " + symbol;
+      : "0.").replace(new RegExp(' ', 'g'), '') + "00";
+    var i = str.indexOf(".");
+    str = str.slice(0, i+3) + " " + symbol;
+    return
+      i > 6 ? str.substr(0, i-6) + "," + str.substr(i-6, i-3) + "," + str.substr(i)
+      : i > 3 ? str.substr(0, i-3) + "," + str.substr(i)
+      : str;
   }
 
   function toDate(content) {
