@@ -94,7 +94,7 @@
     var tRest = toValue(GLOBAL.invest[6][13]);
     var contents = [];
     var rank = 0;
-    for (var i = 1; i < GLOBAL.invest.length-1; i++) {
+    for (var i = 1; i < GLOBAL.invest.length-1; i++) { // Take only the value (no header, footer)
       var index = indexOf(GLOBAL.invest, rank.toString(), 12);
 
       var nr = rank;
@@ -114,7 +114,7 @@
         var action = prov > 0;
 
         var array = [];
-        for(var j of [0, 1, GLOBAL.invest[index][6] != "" ? 6 : 7, 13, 14]) {
+        for (var j of [0, 1, GLOBAL.invest[index][6] != "" ? 6 : 7, 13, 14]) {
           array[GLOBAL.invest[0][j]] = j == 13 ? rebal
                                      : j == 14 ? prov + " €"
                                      : GLOBAL.invest[index][j];
@@ -408,7 +408,7 @@
                        index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0, index+1);
                      }
 
-                     for (var i = dai.length-1; i >= 0; --i) {
+                     for (var i = dai.length-1; i >= 0; --i) { // Reverse loop
                        validateDeleteForm(dai[i][0], dai[i][1]);
                      }
 
@@ -571,48 +571,49 @@
 
     google.script.run
                  .withSuccessHandler(function(contents) {
-                     var tableHTML = '<div style="margin:20px 0px 0px 25px">' + getTitle("dashboard") + '</div>';
-                     tableHTML += '<table id="dashboardTable">';
-                     tableHTML += getSubTableTitle(contents[0][0], "Settings!A1");
-                     tableHTML += '<tr>';
-                     for(var item of contents[1]) {
-                       tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, item);
-                     }
-                     tableHTML += '</tr>';
+                   var id = "dashboard";
+                   var tableHTML = '<div style="margin:20px 0px 0px 25px">' + getTitle(id) + '</div>';
+                   tableHTML += getMainTableHead(id);
+                   tableHTML += getSubTableTitle(contents[0][0], "Settings!A1");
+                   tableHTML += '<tr>';
+                   for (var item of contents[1]) {
+                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, item);
+                   }
+                   tableHTML += '</tr>';
 
-                     tableHTML += getSubTableTitle(contents[0][1], "Settings!B1");
-                     tableHTML += '<tr>';
-                     for(var item of contents[2]) {
-                       tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
-                     }
-                     tableHTML += '</tr>';
+                   tableHTML += getSubTableTitle(contents[0][1], "Settings!B1");
+                   tableHTML += '<tr>';
+                   for (var item of contents[2]) {
+                     tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
+                   }
+                   tableHTML += '</tr>';
 
-                     tableHTML += getSubTableTitle(contents[0][2], "Settings!C1");
-                     tableHTML += '<tr>';
-                     for(var item of contents[3]) {
-                       tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
-                     }
-                     tableHTML += '</tr>';
+                   tableHTML += getSubTableTitle(contents[0][2], "Settings!C1");
+                   tableHTML += '<tr>';
+                   for (var item of contents[3]) {
+                     tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
+                   }
+                   tableHTML += '</tr>';
 
-                     tableHTML += getSubTableTitle(contents[0][3], "Settings!D1");
-                     tableHTML += '<tr>';
-                     for(var item of contents[4]) {
-                       tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
-                     }
-                     tableHTML += '</tr>';
+                   tableHTML += getSubTableTitle(contents[0][3], "Settings!D1");
+                   tableHTML += '<tr>';
+                   for (var item of contents[4]) {
+                     tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
+                   }
+                   tableHTML += '</tr>';
 
-                     tableHTML += getSubTableTitle(contents[0][4], "Settings!E1");
-                     tableHTML += '<tr>';
-                     for(var item of contents[5]) {
-                       tableHTML += item != 44
-                                  ? getTableReadOnlyCell(GLOBAL.dashb, item)
-                                  : getTableEditableCell(GLOBAL.dashb, item, "Allocation!B14")
-                     }
-                     tableHTML += '</tr>';
+                   tableHTML += getSubTableTitle(contents[0][4], "Settings!E1");
+                   tableHTML += '<tr>';
+                   for (var item of contents[5]) {
+                     tableHTML += item != 44
+                                ? getTableReadOnlyCell(GLOBAL.dashb, item)
+                                : getTableEditableCell(GLOBAL.dashb, item, "Allocation!B14")
+                   }
+                   tableHTML += '</tr>';
 
-                     tableHTML += '</table>';
+                   tableHTML += '</table>';
 
-                     $("#dashboardDiv").prop("innerHTML", tableHTML);
+                   $("#dashboardDiv").prop("innerHTML", tableHTML);
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Settings!A:E");
@@ -632,7 +633,7 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
-      for(var j of [0, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]) {   // Select only the interesting columns
+      for (var j of [0, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]) {   // Select only the interesting columns
         tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
       tableHTML += '</tr>';
@@ -661,7 +662,7 @@
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
-      for (var j = 0; j < contents[i].length - 1; ++j) {   // Don't display the ID
+      for (var j = 0; j < contents[i].length - 1; ++j) {   // Don't display the ID at the end
         tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
       tableHTML += '</tr>';
@@ -720,7 +721,12 @@
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
          + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', $(\'#' + id + 'Limit\').val())"></tr></table>'
-         + '<table id="' + id + 'Table" class="sortable ' + ($("#" + id + "Table").is(":visible") ? '' : 'hidden') + '">';
+         + getMainTableHead(id);
+  }
+
+  function getMainTableHead(id) {
+    return '<table id="' + id + 'Table" class="sortable '
+         + ($("#" + id + "Table").is(":visible") ? '' : 'hidden') + '">';
   }
 
   function autoAdaptWidth(e) {
