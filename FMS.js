@@ -71,10 +71,8 @@
                  .withSuccessHandler(function(contents) {
                    updateHistoricTable(contents);
 
-                   $("input").each(function()
-                   {
-                     if ($(this).hasClass("auto"))
-                     {
+                   $("input").each((i, item) => {
+                     if ($(item).hasClass("auto")) {
                        autoAdaptWidth(this);
                      }
                    });
@@ -800,16 +798,10 @@
   function filterTable(id) {
     // Loop through all table rows, and hide those who don't match the search query
     var isChecked = $("#" + id + "Filter").is(':checked');
-    var func = id == "investment" ? (item, i) => !isChecked || ($(item).children("td")[7] && $(item).children("td")[7].innerHTML != 0)
-             : id == "historic" ? (item, i) => isChecked || i < GLOBAL.limit
+    var func = id == "investment" ? (i, item) => !isChecked || $(item).children("td")[7].innerHTML != 0
+             : id == "historic" ? (i, item) => isChecked || i < GLOBAL.limit
              : (item, i) => true;
-    $("#" + id + "Table tbody tr").each(function(i) {
-      if (func(this, i)) {
-        $(this).show();
-      } else {
-        $(this).hide();
-      }
-    });
+    toggleItem(id, func);
 
     searchTable(id);
   }
@@ -818,14 +810,18 @@
     var max = !$('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null;
     var filter = $('#' + id + 'Search').val().toUpperCase();
     var index = id == "historic" ? 2 : 0;
+    var func = (i, item) => (!max || i < max)
+      && $(item).children("td")[index].innerHTML.toUpperCase().includes(filter);
 
-    $("#" + id + "Table tbody tr").each(function(i) {
-      var td = $(this).children("td")[index];
-      if ((!max || i < max) && td
-      && td.innerHTML.toUpperCase().includes(filter)) {
-        $(this).show();
+    toggleItem(id, func);
+  }
+
+  function toggleItem(id, func) {
+    $("#" + id + "Table tbody tr").each((i, item) => {
+      if (func(i, item)) {
+        $(item).show();
       } else {
-        $(this).hide();
+        $(item).hide();
       }
     });
   }
