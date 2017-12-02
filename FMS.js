@@ -18,8 +18,9 @@
     jQuery.fx.off = false;
     updateAllValues(false);
     setInterval(() => updateAllValues(false, true), 60 * 1000); // run update every minute
+    refreshTotal(GLOBAL.historic);
+
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
-    $(document).onload(() => refreshTotal(GLOBAL.historic));
   });
 
   function updateAllValues(shouldRefresh, isBackgroundUpdate)
