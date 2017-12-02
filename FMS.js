@@ -724,7 +724,7 @@
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
-         + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', ' + ($('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null) + '"></tr></table>'
+         + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', ' + ($('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null) + ');"></tr></table>'
          + getMainTableHead(id);
   }
 
@@ -806,7 +806,7 @@
     // Loop through all table rows, and hide those who don't match the search query
     var isChecked = $("#historicFilter").is(':checked');
     $("#historicTable tbody tr").each(function(i) {
-      if (isChecked || i <= 10) {
+      if (isChecked || i <= GLOBAL.limit) {
         $(this).show();
       } else {
         $(this).hide();
