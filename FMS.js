@@ -675,10 +675,10 @@
     applyFilter(id, tableHTML, showAllHistoric);
   }
 
-  function applyFilter(id, tableHTML, func) {
+  function applyFilter(id, tableHTML, filterFunc) {
     $("#" + id + "Div").prop("innerHTML", tableHTML);
     sorttable.makeSortable($("#" + id + "Table").get(0));
-    func();
+    filterFunc();
   }
 
   function getTableEditableCell(contents, index, rangeName, limit) {
@@ -719,11 +719,11 @@
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td>' + getTitle(id) + '</td>'
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-         + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Limit').val() == "" ? 'checked' : '') + ' onclick="' + func + '">'
+         + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="' + func + '">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
-         + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', $(\'#' + id + 'Limit\').val())"></tr></table>'
+         + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', ' + ($('#' + id + 'Filter').is(':checked') ? 10 : null + '"></tr></table>'
          + getMainTableHead(id);
   }
 
