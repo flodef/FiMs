@@ -678,7 +678,7 @@
   function applyFilter(id, tableHTML, func) {
     $("#" + id + "Div").prop("innerHTML", tableHTML);
     sorttable.makeSortable($("#" + id + "Table").get(0));
-    func($('#' + id + 'Limit').val() == null);
+    func();
   }
 
   function getTableEditableCell(contents, index, rangeName, limit) {
@@ -719,9 +719,8 @@
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td>' + getTitle(id) + '</td>'
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-         + '<input type="checkbox" ' + ($('#' + id + 'Limit').val() == "" ? 'checked' : '') + ' onclick="' + func + '">'
+         + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Limit').val() == "" ? 'checked' : '') + ' onclick="' + func + '">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
-         + '<div id="' + id + 'Limit" class="hidden"></div>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="searchInput" type="text" placeholder="Search"'
          + 'onkeyup="searchTable(this, \'' + id + 'Table\', ' + searchIndex + ', $(\'#' + id + 'Limit\').val())"></tr></table>'
@@ -789,9 +788,9 @@
                  .setSheetValues(name, value);
   }
 
-  function filterRebalance(isChecked) {
+  function filterRebalance() {
     // Loop through all table rows, and hide those who don't match the search query
-    $("#investmentLimit").val(isChecked ? null : "10");
+    var isChecked = $("#investmentFilter").is(':checked');
     $("#investmentTable tbody tr").each(function(i) {
       var td = $(this).children("td")[7];
       if (!isChecked || (td && td.innerHTML != 0)) {
@@ -802,11 +801,11 @@
     });
   }
 
-  function showAllHistoric(isChecked) {
+  function showAllHistoric() {
     // Loop through all table rows, and hide those who don't match the search query
-    $("#historicLimit").val(isChecked ? null : "10");
+    var isChecked = $("#historicFilter").is(':checked');
     $("#historicTable tbody tr").each(function(i) {
-      if (isChecked || i <= $("#historicLimit").val()) {
+      if (isChecked || i <= 10) {
         $(this).show();
       } else {
         $(this).hide();
