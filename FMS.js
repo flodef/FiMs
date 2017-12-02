@@ -845,7 +845,7 @@
         ++rows;
       });
       $("#" + id + "Footer").prop("innerHTML",
-        '<td>TOTAL</td><td>' + rows + ' rows</td><td colspan="2"></td>'
+        '<td>TOTAL</td><td colspan="3" align="center">' + rows + ' rows</td>'
         + '<td>' + qty.toFixed(0) + '</td><td>' + toCurrency(price/ner, "€") + '</td>'
         + '<td>' + toCurrency(total, "€") + '</td>');
     }
