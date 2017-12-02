@@ -18,8 +18,8 @@
     jQuery.fx.off = false;
     updateAllValues(false);
     setInterval(function(){ updateAllValues(false, true); }, 60 * 1000); // run update every minute
-
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
+    refreshTotal(GLOBAL.historic);
   });
 
   function updateAllValues(shouldRefresh, isBackgroundUpdate)
