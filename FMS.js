@@ -677,7 +677,7 @@
 
     applyFilter(id, tableHTML);
 
-    $( "#" + id + "Table" ).load(() => refreshTotal(id));  // Handler for .load() called.
+    $( "#" + id + "Table" ).ready(() => refreshTotal(id));  // Handler for .load() called.
   }
 
   function applyFilter(id, tableHTML) {
