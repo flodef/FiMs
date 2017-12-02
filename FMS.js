@@ -875,11 +875,12 @@
   }
 
   function toCurrency(content, symbol) {
-    return (content
+    var str = content
       ? String(content).includes(",") || String(content).includes(".")
         ? String(content).replace(",", ".")
-        : String(content) + ".00"
-      : "0").replace(" ", ",").slice(0, str.indexOf(".")+3) + " " + symbol;
+        : String(content) + "."
+      : "0.").replace(" ", ",") + "00";
+    return str.slice(0, str.indexOf(".")+3) + " " + symbol;
   }
 
   function toDate(content) {
