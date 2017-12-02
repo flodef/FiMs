@@ -630,7 +630,7 @@
     clearTransactionName();
 
     var id = "investment";
-    var tableHTML = getTableTitle(id, "Rebalance", contents[0].length-1, "filterRebalance(this.checked)", 0);
+    var tableHTML = getTableTitle(id, "Rebalance", contents[0].length-1);
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
@@ -652,7 +652,7 @@
     addTransactionName("", GLOBAL.cost);
     addTransactionName("", GLOBAL.approv);
 
-    applyFilter(id, tableHTML, filterRebalance);
+    applyFilter(id, tableHTML);
   }
 
   function updateHistoricTable(contents)
@@ -660,7 +660,7 @@
     GLOBAL.histo = contents;
 
     var id = "historic";
-    var tableHTML = getTableTitle(id, "Show all", contents[0].length-1, "showAllHistoric(this.checked)", 1);
+    var tableHTML = getTableTitle(id, "Show all", contents[0].length-1);
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
@@ -673,13 +673,13 @@
     }
     tableHTML += '</table>';
 
-    applyFilter(id, tableHTML, showAllHistoric);
+    applyFilter(id, tableHTML);
   }
 
-  function applyFilter(id, tableHTML, filterFunc) {
+  function applyFilter(id, tableHTML) {
     $("#" + id + "Div").prop("innerHTML", tableHTML);
     sorttable.makeSortable($("#" + id + "Table").get(0));
-    filterFunc();
+    filter(id);
   }
 
   function getTableEditableCell(contents, index, rangeName, limit) {
@@ -716,15 +716,15 @@
           + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
   }
 
-  function getTableTitle(id, tooltip, colspan, func, searchIndex) {
+  function getTableTitle(id, tooltip, colspan) {
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td>' + getTitle(id) + '</td>'
          + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-         + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="' + func + '">'
+         + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="filter(\'' + id + '\')">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="' + id + 'Search" type="text" placeholder="Search"'
-         + 'onkeyup="searchTable(\'' + id + '\', ' + searchIndex + ');"></tr></table>'
+         + 'onkeyup="searchTable(\'' + id + '\');"></tr></table>'
          + getMainTableHead(id);
   }
 
@@ -789,40 +789,27 @@
                  .setSheetValues(name, value);
   }
 
-  function filterRebalance() {
+  function filter(id) {
     // Loop through all table rows, and hide those who don't match the search query
-    var id = "investment";
     var isChecked = $("#" + id + "Filter").is(':checked');
+    var func = id == "investment" ? (item, i) => !isChecked || ($(item).children("td")[7] && $(item).children("td")[7].innerHTML != 0)
+             : id == "historic" ? (item, i) => isChecked || i < GLOBAL.limit
+             : (item, i) => true;
     $("#" + id + "Table tbody tr").each(function(i) {
-      var td = $(this).children("td")[7];
-      if (!isChecked || (td && td.innerHTML != 0)) {
+      if (func(this, i)) {
         $(this).show();
       } else {
         $(this).hide();
       }
     });
 
-    searchTable(id, 0);
+    searchTable(id);
   }
 
-  function showAllHistoric() {
-    // Loop through all table rows, and hide those who don't match the search query
-    var id = "historic";
-    var isChecked = $("#" + id + "Filter").is(':checked');
-    $("#" + id + "Table tbody tr").each(function(i) {
-      if (isChecked || i < GLOBAL.limit) {
-        $(this).show();
-      } else {
-        $(this).hide();
-      }
-    });
-
-    searchTable(id, 2);
-  }
-
-  function searchTable(id, index) {
+  function searchTable(id) {
     var max = !$('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null;
     var filter = $('#' + id + 'Search').val().toUpperCase();
+    var index = id == "historic" ? 2 : 0;
 
     $("#" + id + "Table tbody tr").each(function(i) {
       var td = $(this).children("td")[index];
