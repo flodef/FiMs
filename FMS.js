@@ -681,7 +681,7 @@
       total += toValue($(this).children("td")[6].innerHTML);
     });
     $("#" + id + "Footer").prop("innerHTML",
-      "<td>TOTAL</td><td colspan="5"></td><td>" + total + "</td>");
+      '<td>TOTAL</td><td colspan="5"></td><td>' + total + '</td>');
   }
 
   function applyFilter(id, tableHTML) {
