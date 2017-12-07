@@ -611,9 +611,6 @@
                                 ? getTableReadOnlyCell(GLOBAL.dashb, content[4][i])
                                 : getTableEditableCell(GLOBAL.dashb, content[4][i], "Allocation!B14", 1000000)
                    }
-
-                   for (var item of contents[5]) {
-                   }
                    tableHTML += '</tr>';
 
                    tableHTML += getSubTableTitle(contents[5][0], "Settings!A6");
