@@ -578,38 +578,48 @@
                    tableHTML += getMainTableHead(id);
                    tableHTML += getSubTableTitle(contents[0][0], "Settings!A1");
                    tableHTML += '<tr>';
-                   for (var item of contents[1]) {
-                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, item);
+                   for (var i = 1; i < content[0].length; i++) {
+                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, content[0][i]);
                    }
                    tableHTML += '</tr>';
 
-                   tableHTML += getSubTableTitle(contents[0][1], "Settings!B1");
+                   tableHTML += getSubTableTitle(contents[1][0], "Settings!A2");
                    tableHTML += '<tr>';
-                   for (var item of contents[2]) {
-                     tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
+                   for (var i = 1; i < content[1].length; i++) {
+                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, content[1][i]);
                    }
                    tableHTML += '</tr>';
 
-                   tableHTML += getSubTableTitle(contents[0][2], "Settings!C1");
+                   tableHTML += getSubTableTitle(contents[2][0], "Settings!A3");
                    tableHTML += '<tr>';
-                   for (var item of contents[3]) {
-                     tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
+                   for (var i = 1; i < content[2].length; i++) {
+                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, content[2][i]);
                    }
                    tableHTML += '</tr>';
 
-                   tableHTML += getSubTableTitle(contents[0][3], "Settings!D1");
+                   tableHTML += getSubTableTitle(contents[3][0], "Settings!A4");
                    tableHTML += '<tr>';
-                   for (var item of contents[4]) {
-                     tableHTML += getTableReadOnlyCell(GLOBAL.dashb, item);
+                   for (var i = 1; i < content[3].length; i++) {
+                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, content[3][i]);
                    }
                    tableHTML += '</tr>';
 
-                   tableHTML += getSubTableTitle(contents[0][4], "Settings!E1");
+                   tableHTML += getSubTableTitle(contents[4][0], "Settings!A5");
                    tableHTML += '<tr>';
+                   for (var i = 1; i < content[4].length; i++) {
+                     tableHTML += i != 3
+                                ? getTableReadOnlyCell(GLOBAL.dashb, content[4][i])
+                                : getTableEditableCell(GLOBAL.dashb, content[4][i], "Allocation!B14", 1000000)
+                   }
+
                    for (var item of contents[5]) {
-                     tableHTML += item != 44
-                                ? getTableReadOnlyCell(GLOBAL.dashb, item)
-                                : getTableEditableCell(GLOBAL.dashb, item, "Allocation!B14")
+                   }
+                   tableHTML += '</tr>';
+
+                   tableHTML += getSubTableTitle(contents[5][0], "Settings!A6");
+                   tableHTML += '<tr>';
+                   for (var i = 1; i < content[5].length; i++) {
+                     tableHTML+= getTableEditableCell(GLOBAL.dashb, content[5][i], "Dashboard!B" + content[5][i], 1000000);
                    }
                    tableHTML += '</tr>';
 
