@@ -625,7 +625,7 @@
                    $("#dashboardDiv").prop("innerHTML", tableHTML);
                  })
                  .withFailureHandler(displayError)
-                 .getSheetValues("Settings!A:E");
+                 .getSheetValues("Settings!A:F");
 
     // Rebalance is not available if rebalance is not needed
     $("#rebalanceButton").prop('disabled', GLOBAL.dashb[50][1] == "FALSE");
