@@ -709,7 +709,7 @@
   function getTableEditableContent(content, rangeName, limit) {
     return '<td align="center"><input class="auto" min="-' + limit + '" max="' + limit + '"'
          + ' oninput="autoAdaptWidth(this);setValue(\'' + rangeName + '\', [[this.value]])"'
-         + ' style="border:0px;width:100px;min-width:15px;" type="number" value="'
+         + ' style="border:0px;width:100px;min-width:15px;font-style:italic;" type="number" value="'
          + this.toValue(content) + '">€</input></td>';
   }
 
