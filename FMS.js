@@ -6,7 +6,7 @@
   GLOBAL.invest = [];
   GLOBAL.dummy = "XXXXXX";
   GLOBAL.limit = 10;
-  GLOBAL.tendRow = 58;
+  GLOBAL.rebalRow = 57;
   GLOBAL.dashboard = "dashboard";
   GLOBAL.investment = "investment";
   GLOBAL.historic = "historic";
@@ -627,7 +627,7 @@
                  .getSheetValues("Settings!A:F");
 
     // Rebalance is not available if rebalance is not needed
-    $("#rebalanceButton").prop('disabled', GLOBAL.dashb[GLOBAL.tendRow][1] == "FALSE");
+    $("#rebalanceButton").prop('disabled', GLOBAL.dashb[GLOBAL.rebalRow][1] == "FALSE");
   }
 
   function updateInvestmentTable(contents)
