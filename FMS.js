@@ -174,7 +174,7 @@
 
       var isLast = i == contents.length-1;
       var label = isLast ? "CLOSE" : "NEXT ORDER";
-      var action = '$(\'.rebalButton\').prop(\'disabled\', false);'
+      var action = '$(\'.rebalButton\').prop(\'disabled\', true);'
       action += 'insertHistoricRow([[\'' + GLOBAL.dummy + '\', \''
                                        + row[1][1] + '\', \''
                                        + tName + '\', \''
