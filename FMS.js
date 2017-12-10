@@ -143,7 +143,7 @@
     var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
     for (var i = 0; i < contents.length; i++) {
       tableHTML += '<div ' + (i != 0 ? 'class="hidden"' : '') + 'id="rebal' + i + '">';
-      tableHTML += '<table id="rebalTable">';
+      tableHTML += '<table>';
 
       var row = Object.entries(contents[i]);
       var j = 0;
@@ -185,7 +185,7 @@
                                        + tId + '\']], \'Historic\', true);';
       action += isLast ? closing : '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000);';
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button onclick="'
-                 + action + '">' + label + '</button></div>';
+                 + action + '" class="rebalButton">' + label + '</button></div>';
 
       tableHTML += '</div>';
     }
