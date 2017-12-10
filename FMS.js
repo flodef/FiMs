@@ -143,7 +143,7 @@
     var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
     for (var i = 0; i < contents.length; i++) {
       tableHTML += '<div ' + (i != 0 ? 'class="hidden"' : '') + 'id="rebal' + i + '">';
-      tableHTML += '<table>';
+      tableHTML += '<table id="rebalTable">';
 
       var row = Object.entries(contents[i]);
       var j = 0;
@@ -174,7 +174,7 @@
 
       var isLast = i == contents.length-1;
       var label = isLast ? "CLOSE" : "NEXT ORDER";
-      var action = isLast ? closing : '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000);';
+      var action = '$(\'.rebalButton\').prop(\'disabled\', false);'
       action += 'insertHistoricRow([[\'' + GLOBAL.dummy + '\', \''
                                        + row[1][1] + '\', \''
                                        + tName + '\', \''
@@ -183,6 +183,7 @@
                                        + tUnit + '\', \''
                                        + tVal + '\', \''
                                        + tId + '\']], \'Historic\', true);';
+      action += isLast ? closing : '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000);';
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button onclick="'
                  + action + '">' + label + '</button></div>';
 
@@ -284,7 +285,7 @@
 
       if (gid && endCol) {
         google.script.run
-                    //.withSuccessHandler(function(contents) { setValue("Historic!A2", data, sortTransactionValues) })
+                    //.withSuccessHandler(function(contents) { setValue(id + "!A2", data, sortTransactionValues) })
                      .withSuccessHandler(function(contents) { setValue(id + "!A2", data, executionSuccess) })
                      .withFailureHandler(displayError)
                      .insertRows(gid, data, {startRow:index, endCol:endCol});
@@ -469,24 +470,21 @@
   }
 
   function cancelForm() {
-    if ($('#addTransactionForm').is(":visible"))
-    {
+    if ($('#addTransactionForm').is(":visible")) {
       $('#addTransactionForm').hide("fade", null, 500, function()
       { $('#actionButton').show("fade", null, 500);
         selectName($('#transactionName').get(0), 0);
         $('#transactionQuantity').val("");
         $('#transactionValue').val(""); });
-    }
-    else if ($('#deleteTransactionForm').is(":visible"))
-    {
+    } else if ($('#deleteTransactionForm').is(":visible")) {
       $('#deleteTransactionForm').hide("fade", null, 500, function()
       { $('#actionButton').show("fade", null, 500); });
-    }
-    else if ($('#uploadFileForm').is(":visible"))
-    {
+    } else if ($('#uploadFileForm').is(":visible")) {
       $('#uploadFileForm').hide("fade", null, 500, function()
       { $('#actionButton').show("fade", null, 500);
         $('#fileUpload').val("")});
+    } else if ($('#popupOverlay').is(":visible")) {
+      $(".rebalButton").prop('disabled', false);
     }
 
     $('#mainFocus').focus();
