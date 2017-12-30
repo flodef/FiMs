@@ -77,7 +77,7 @@
 
                    $("input").each((i, item) => {
                      if ($(item).hasClass("auto")) {
-                       autoAdaptWidth(this);
+                       autoAdaptWidth(item);
                      }
                    });
 
