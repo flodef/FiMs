@@ -467,13 +467,13 @@
       var row = contents[i];
       var type;
       var label;
-      if (row[1].includes(EXT)) {
+      if (row[1].includes("EXT")) {
         type = "Long term US bonds (20-25 year)";
         label = "Vanguard Extended Duration ETF";
-      } else if (row[1].includes(INT)) {
+      } else if (row[1].includes("INT")) {
         type = "Intermediate US bonds (7-10 year)";
         label = "Vanguard Intmdte Tm Govt Bd ETF";
-      } else if (row[1].includes(S&P)) {
+      } else if (row[1].includes("S&P")) {
         type = "Stocks";
         label = "VANGUARD S&P500"
       } else {
