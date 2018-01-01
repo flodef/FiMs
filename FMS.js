@@ -757,12 +757,12 @@
         e.value = val.toFixed(precision);
       }
 
-      e.style = "border-color:transparent";
+      e.style.borderColor = "transparent";
       e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
     } else {
-      e.style = !e.placeholder || e.value != ""
-              ? "border-color:red"
-              : "border-color:transparent";
+      e.style.borderColor = !e.placeholder || e.value != ""
+              ? "red"
+              : "transparent";
     }
   }
 
