@@ -482,12 +482,12 @@
 
       var transaction = "DIVIDEND";
       var value = toCurrency(row[5], "€");
+      var id = label + "@" + transaction + "@@" + row[5].replace(",", ".");
 
       if (!isError) {
         var index = indexOf(GLOBAL.histo, value, 6);
 
-        if (!index || (index && row[0] != GLOBAL.dummy
-            && row[1] != type && row[2] != label && row[3] != transaction)) {
+        if (!index || (index && row[0] != GLOBAL.dummy && row[7] != id)) {
             data.push([GLOBAL.dummy, type, label, transaction, "", "", value]);
         } else {
             ++dupCnt;
