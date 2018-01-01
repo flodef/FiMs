@@ -352,13 +352,17 @@
                     })
                     .withFailureHandler(displayError)
                     .clearSheetValues("Account!A:J");
-            } else {
+            } else if (data[0][0] == "dateOp" && data[0][1] == "dateVal") {
               google.script.run
                     .withSuccessHandler(function(contents) {
                       insertExpensesRow(data, contents);
                     })
                     .withFailureHandler(displayError)
                     .getSheetValues("ExpensesHistoric!A:C");
+            } else if (data[0][0] == "CA ID" && data[0][1] == "Produit") {
+              insertDividendRow(data);
+            } else {
+              displayError("File type not recognised.");
             }
           } else {
             displayError("No data to import: the file is empty.", true);
@@ -383,12 +387,13 @@
                      var dupCnt = 0;
                      var errCnt = 0;
                      var data = [];
-                     for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header
-                       var index = indexOf(GLOBAL.histo, contents[i][7], 7);
+                     for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
+                       var row = contents[i];
+                       var index = indexOf(GLOBAL.histo, row[7], 7);
 
-                       if (!index || (index && contents[i][0] != toDate(GLOBAL.histo[index][0]))) {
-                         if (!indexOf(contents[i], "#N/A")) {
-                           data.push(contents[i]);
+                       if (!index || (index && row[0] != toDate(GLOBAL.histo[index][0]))) {
+                         if (!indexOf(row, "#N/A")) {
+                           data.push(row);
                          } else {
                            ++errCnt;
                          }
@@ -449,6 +454,53 @@
 
     // Adding data
     insertRows(data, "ExpensesHistoric", dupCnt, errCnt, contents.length - 1);
+  }
+
+  function insertDividendRow(contents) {
+    // Preparing data
+    var dupCnt = 0;
+    var errCnt = 0;
+    var data = [];
+    var isError;
+
+    for (var i = 1; i < contents.length; i++) { // Don't insert the header
+      var row = contents[i];
+      var type;
+      var label;
+      if (row[1].includes(EXT)) {
+        type = "Long term US bonds (20-25 year)";
+        label = "Vanguard Extended Duration ETF";
+      } else if (row[1].includes(INT)) {
+        type = "Intermediate US bonds (7-10 year)";
+        label = "Vanguard Intmdte Tm Govt Bd ETF";
+      } else if (row[1].includes(S&P)) {
+        type = "Stocks";
+        label = "VANGUARD S&P500"
+      } else {
+        isError = true;
+      }
+
+      var transaction = "DIVIDEND";
+      var value = toCurrency(row[5], "€");
+
+      if (!isError) {
+        var index = indexOf(GLOBAL.histo, value, 6);
+
+        if (!index || (index && row[0] != GLOBAL.dummy
+            && row[1] != type && row[2] != label && row[3] != transaction)) {
+            data.push([GLOBAL.dummy, type, label, transaction, "", "", value]);
+          } else {
+            ++dupCnt;
+          }
+        }
+      } else {
+        ++errCnt;
+        isError = false;
+      }
+    }
+
+    // Adding data
+    insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
   }
 
   function insertRows(data, id, dupCnt, errCnt, total) {
