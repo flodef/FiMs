@@ -489,7 +489,7 @@
 
         if (!index || (index && GLOBAL.histo[index][0] != GLOBAL.dummy
           && GLOBAL.histo[index][7] != id)) {
-            data.push([GLOBAL.dummy, type, label, transaction, "", "", value]);
+            data.push([GLOBAL.dummy, type, label, transaction, "", "", value, id]);
         } else {
             ++dupCnt;
         }
