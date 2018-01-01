@@ -489,9 +489,8 @@
         if (!index || (index && row[0] != GLOBAL.dummy
             && row[1] != type && row[2] != label && row[3] != transaction)) {
             data.push([GLOBAL.dummy, type, label, transaction, "", "", value]);
-          } else {
+        } else {
             ++dupCnt;
-          }
         }
       } else {
         ++errCnt;
