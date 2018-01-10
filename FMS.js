@@ -392,7 +392,9 @@
                        var index = indexOf(GLOBAL.histo, row[7], 7);
 
                        if (!index || (index && row[0] != toDate(GLOBAL.histo[index][0]))) {
-                         if (!indexOf(row, "#N/A")) {
+                         if (!indexOf(row, "#N/A")
+                         && !indexOf(row, "#VALUE!")
+                         && !indexOf(row, "#REF!")) {
                            data.push(row);
                          } else {
                            ++errCnt;
