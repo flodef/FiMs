@@ -101,7 +101,7 @@
       var index = indexOf(GLOBAL.invest, rank.toString(), 12);
 
       var nr = rank;
-      while (!index) {
+      while (index === null) {
         index = indexOf(GLOBAL.invest, (--nr).toString(), 12);
       }
 
@@ -310,7 +310,7 @@
     var index = index ? index : indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
     var rowCnt = rowCnt ? rowCnt : 1;
 
-    if (index*rowCnt > 0) {
+    if (index !== null && index*rowCnt > 0) {
       $("#snackbar").text((rowCnt == 1 ? "Transaction" : rowCnt + " Transactions") + " deleted");
 
       showLoader(true);
@@ -391,10 +391,11 @@
                        var row = contents[i];
                        var index = indexOf(GLOBAL.histo, row[7], 7);
 
-                       if (!index || (index && row[0] != toDate(GLOBAL.histo[index][0]))) {
-                         if (!indexOf(row, "#N/A")
-                         && !indexOf(row, "#VALUE!")
-                         && !indexOf(row, "#REF!")) {
+                       if (index === null
+                       || (index !== null && row[0] != toDate(GLOBAL.histo[index][0]))) {
+                         if (indexOf(row, "#N/A") === null
+                          && indexOf(row, "#VALUE!") === null
+                          && indexOf(row, "#REF!") === null) {
                            data.push(row);
                          } else {
                            ++errCnt;
@@ -408,7 +409,7 @@
                      var prevIndex;
                      var index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
                      var dai = [];
-                     while (index) {
+                     while (index !== null) {
                        if (index-1 == prevIndex) {
                          dai[dai.length-1][1] += 1;
                        } else {
@@ -445,9 +446,9 @@
       var label = row[2];
       var val = toCurrency(row[6], "€");
 
-      if (!indexOf(expenses, date, 0) ||
-          !indexOf(expenses, label, 1) ||
-          !indexOf(expenses, val, 2)) {
+      if (indexOf(expenses, date, 0) === null ||
+          indexOf(expenses, label, 1) === null ||
+          indexOf(expenses, val, 2) === null) {
         data.push([date, label, val]);
       } else {
         ++dupCnt;
@@ -489,8 +490,9 @@
       if (!isError) {
         var index = indexOf(GLOBAL.histo, value, 6);
 
-        if (!index || (index && (GLOBAL.histo[index][0] != GLOBAL.dummy
-                              || GLOBAL.histo[index][7] != id))) {
+        if (index === null || (index !== null &&
+                              (GLOBAL.histo[index][0] != GLOBAL.dummy
+                            || GLOBAL.histo[index][7] != id))) {
             data.push([GLOBAL.dummy, type, label, transaction, "", "", value, id]);
         } else {
             ++dupCnt;
