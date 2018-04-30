@@ -389,9 +389,10 @@
                      var data = [];
                      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
                        var row = contents[i];
-                       var index = indexOf(GLOBAL.histo, row[7], 7);
+                       var isEmpty = toValue(row[6]) == 0;
+                       var index = !isEmpty ? indexOf(GLOBAL.histo, row[7], 7) : null;
 
-                       if (toValue(row[6]) != 0
+                       if (!isEmpty
                        && (index === null
                        || (index !== null && row[0] != toDate(GLOBAL.histo[index][0])))) {
                          if (indexOf(row, "#N/A") === null
