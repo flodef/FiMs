@@ -390,7 +390,7 @@
                      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
                        var row = contents[i];
 
-                       if (row[6] != 0) {
+                       if (toValue(row[6]) != 0) {
                          var index = indexOf(GLOBAL.histo, row[7], 7);
 
                          if (index === null
