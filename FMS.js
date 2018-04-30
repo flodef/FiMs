@@ -389,19 +389,22 @@
                      var data = [];
                      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
                        var row = contents[i];
-                       var index = indexOf(GLOBAL.histo, row[7], 7);
 
-                       if (index === null
-                       || (index !== null && row[0] != toDate(GLOBAL.histo[index][0]))) {
-                         if (indexOf(row, "#N/A") === null
-                          && indexOf(row, "#VALUE!") === null
-                          && indexOf(row, "#REF!") === null) {
-                           data.push(row);
+                       if (row[6] != 0) {
+                         var index = indexOf(GLOBAL.histo, row[7], 7);
+
+                         if (index === null
+                         || (index !== null && row[0] != toDate(GLOBAL.histo[index][0]))) {
+                           if (indexOf(row, "#N/A") === null
+                            && indexOf(row, "#VALUE!") === null
+                            && indexOf(row, "#REF!") === null) {
+                             data.push(row);
+                           } else {
+                             ++errCnt;
+                           }
                          } else {
-                           ++errCnt;
+                           ++dupCnt;
                          }
-                       } else {
-                         ++dupCnt;
                        }
                      }
 
