@@ -92,12 +92,13 @@
   function rebalanceStocks() {
     updateInvestmentValues();
 
-    var tRebal = parseFloat((toValue(GLOBAL.invest[6][10])
-                          - toValue(GLOBAL.invest[6][9])).toFixed(2));
-    var tRest = toValue(GLOBAL.invest[6][13]);
+    var tRow = GLOBAL.invest.length - 1;
+    var tRebal = parseFloat((toValue(GLOBAL.invest[tRow][10])
+                           - toValue(GLOBAL.invest[tRow][9])).toFixed(2));
+    var tRest = toValue(GLOBAL.invest[tRow][13]);
     var contents = [];
     var rank = 0;
-    for (var i = 1; i < GLOBAL.invest.length-1; i++) { // Take only the value (no header, footer)
+    for (var i = 1; i < tRow; i++) { // Take only the value (no header, footer)
       var index = indexOf(GLOBAL.invest, rank.toString(), 12);
 
       var nr = rank;
