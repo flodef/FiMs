@@ -93,34 +93,34 @@
     updateInvestmentValues();
 
     var tRow = GLOBAL.invest.length - 1;
-    var tRebal = parseFloat((toValue(GLOBAL.invest[tRow][10])
-                           - toValue(GLOBAL.invest[tRow][9])).toFixed(2));
-    var tRest = toValue(GLOBAL.invest[tRow][13]);
+    var tRebal = parseFloat((toValue(GLOBAL.invest[tRow][11])
+                           - toValue(GLOBAL.invest[tRow][10])).toFixed(2));
+    var tRest = toValue(GLOBAL.invest[tRow][14]);
     var contents = [];
     var rank = 0;
     for (var i = 1; i < tRow; i++) { // Take only the value (no header, footer)
-      var index = indexOf(GLOBAL.invest, rank.toString(), 12);
+      var index = indexOf(GLOBAL.invest, rank.toString(), 13);
 
       var nr = rank;
       while (index === null) {
-        index = indexOf(GLOBAL.invest, (--nr).toString(), 12);
+        index = indexOf(GLOBAL.invest, (--nr).toString(), 13);
       }
 
       ++rank;
 
-      if (toValue(GLOBAL.invest[index][13]) != 0
-       && toValue(GLOBAL.invest[index][14]) < tRebal) {
-        var price = toValue(GLOBAL.invest[index][7]);
+      if (toValue(GLOBAL.invest[index][14]) != 0
+       && toValue(GLOBAL.invest[index][15]) < tRebal) {
+        var price = toValue(GLOBAL.invest[index][8]);
         var num = tRest/price;
         var bonus = num >= 0 ? Math.floor(num) : Math.ceil(num);
-        var rebal = toValue(GLOBAL.invest[index][13]) + bonus;
+        var rebal = toValue(GLOBAL.invest[index][14]) + bonus;
         var prov = (rebal * price).toFixed(2);
         var action = prov > 0;
 
         var array = [];
-        for (var j of [0, 1, GLOBAL.invest[index][6] != "" ? 6 : 7, 13, 14]) {
-          array[GLOBAL.invest[0][j]] = j == 13 ? rebal
-                                     : j == 14 ? prov + " €"
+        for (var j of [0, 1, GLOBAL.invest[index][7] != "" ? 7 : 8, 14, 15]) {
+          array[GLOBAL.invest[0][j]] = j == 14 ? rebal
+                                     : j == 15 ? prov + " €"
                                      : GLOBAL.invest[index][j];
         }
         array["Action"] = action;
@@ -701,7 +701,7 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
-      for (var j of [0, 5, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22]) {   // Select only the interesting columns
+      for (var j of [0, 6, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23]) {   // Select only the interesting columns
         tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
       tableHTML += '</tr>';
