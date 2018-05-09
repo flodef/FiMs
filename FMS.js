@@ -761,9 +761,9 @@
 
   function getTableReadOnlyContent(content, isHeader) {
     var isNumber = content.slice(-1) == '%' || content.slice(-1) == '€';
-    var color = isNumber && toValue(content) > 0 ? green
-              : isNumber && toValue(content) < 0 ? red
-              : black;
+    var color = isNumber && toValue(content) > 0 ? "green"
+              : isNumber && toValue(content) < 0 ? "red"
+              : "black";
     return isHeader ? '<th align="center">' + content + '</th>'
                     : '<td align="center" style="color:' + color + '">' + content + '</td>';
   }
