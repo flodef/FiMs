@@ -115,7 +115,7 @@
         var price = toValue(GLOBAL.invest[index][8]);
         var num = tRest/price;
         var bonus = num >= 0 ? Math.floor(num) : Math.ceil(num);
-        var rebal += bonus;
+        rebal += bonus;
         var prov = (rebal * price).toFixed(2);
         var action = prov > 0;
 
