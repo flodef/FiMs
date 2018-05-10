@@ -788,7 +788,8 @@
   }
 
   function getTitle(id) {
-    return '<h2 onclick="$(\'h2\').each(function() {$(this).hide(\'slow\');});$(\'#' + id + 'Table\').fadeToggle(\'slow\');">'
+    return '<h2 onclick="$(\'.mainTable\').each(function() {$(this).hide(\'slow\');});'
+          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\');">'
           + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
   }
 
@@ -805,7 +806,7 @@
   }
 
   function getMainTableHead(id) {
-    return '<table id="' + id + 'Table" class="sortable '
+    return '<table id="' + id + 'Table" class="sortable mainTable '
          + ($("#" + id + "Table").is(":visible") ? '' : 'hidden') + '">';
   }
 
