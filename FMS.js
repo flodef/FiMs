@@ -108,8 +108,9 @@
 
       ++rank;
 
-      if (toValue(GLOBAL.invest[index][14]) != 0
-       && toValue(GLOBAL.invest[index][15]) < tRebal) {
+      if (toValue(GLOBAL.invest[index][14]) != 0) {
+// WHY : Blocking transactions where there is positives and negatives
+//       && toValue(GLOBAL.invest[index][15]) < tRebal) {
         var price = toValue(GLOBAL.invest[index][8]);
         var num = tRest/price;
         var bonus = num >= 0 ? Math.floor(num) : Math.ceil(num);
