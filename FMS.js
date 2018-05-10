@@ -140,7 +140,8 @@
   }
 
   function updateRebalanceTable(contents) {
-    var closing = '$(\'#popupOverlay\').fadeOut(1000);$(\'#menu\').removeClass(\'blur-filter\');$(\'#content\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();'
+    var closing = '$(\'#popupOverlay\').fadeOut(1000);$(\'#menu\').removeClass(\'blur-filter\');$(\'#content\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();';
+
     var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
     for (var i = 0; i < contents.length; i++) {
       tableHTML += '<div ' + (i != 0 ? 'class="hidden"' : '') + 'id="rebal' + i + '">';
@@ -175,6 +176,7 @@
 
       var isLast = i == contents.length-1;
       var label = isLast ? "CLOSE" : "NEXT ORDER";
+      var skiping = '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000);';
       var action = '$(\'.rebalButton\').prop(\'disabled\', true);'
       action += 'insertHistoricRow([[\'' + GLOBAL.dummy + '\', \''
                                        + row[1][1] + '\', \''
@@ -184,9 +186,11 @@
                                        + tUnit + '\', \''
                                        + tVal + '\', \''
                                        + tId + '\']], \'Historic\', true);';
-      action += isLast ? closing : '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000);';
-      tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;"><button onclick="'
-                 + action + '" class="rebalButton">' + label + '</button></div>';
+      action += isLast ? closing : skiping;
+      tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;">'
+                 + '<button onclick="' + action + '" class="rebalButton">' + label + '</button>'
+                 + isLast ? '<button onclick="' + skiping + '" class="rebalButton">SKIP</button>' : ''
+                 + '</div>';
 
       tableHTML += '</div>';
     }
