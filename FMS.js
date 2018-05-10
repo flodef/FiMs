@@ -189,7 +189,7 @@
       action += isLast ? closing : skiping;
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;">'
                  + '<button onclick="' + action + '" class="rebalButton">' + label + '</button>'
-                 + (!isLast ? '<button onclick="' + skiping + '" class="rebalButton">SKIP</button>' : '')
+                 + '<button onclick="' + skiping + '" class="rebalButton">SKIP</button>'
                  + '</div>';
 
       tableHTML += '</div>';
