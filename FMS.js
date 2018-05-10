@@ -119,7 +119,7 @@
         var action = prov > 0;
 
         var array = [];
-        for (var j of [0, 1, 6, GLOBAL.invest[index][7] != "" ? 7 : 8, 14, 15, 16]) {
+        for (var j of [0, 1, 6, GLOBAL.invest[index][7] != "" ? 7 : 8, 14, 15, 17]) {
           array[GLOBAL.invest[0][j]] = j == 14 ? rebal
                                      : j == 15 ? prov + " €"
                                      : GLOBAL.invest[index][j];
@@ -153,11 +153,11 @@
       for (const [key, value] of row) {
           tableHTML += '<tr>';
 
-          var style = j == 0 || j == 3 ? 'font-weight:900;' : '';
+          var style = j == 0 || j == 4 ? 'font-weight:900;' : '';
 
-          style += j == 5 ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
+          style += j == 7 ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
                           : '';
-          var val = j == 5 ? (value ? "Buy" : "Sell") : value
+          var val = j == 7 ? (value ? "Buy" : "Sell") : value
           tableHTML += '<th align="center">' + key + '</th>'
                      + '<td align="center" style="' + style + '" padding="10px">' + val + '</td>'
 
