@@ -149,21 +149,19 @@
       tableHTML += '<table>';
 
       var row = Object.entries(contents[i]);
-      var j = 0;
       for (const [key, value] of row) {
           tableHTML += '<tr>';
 
-          var style = j == 0 || j == 4 ? 'font-weight:900;' : '';
+          var style = key == "Name" || key == "Rebalance" ? 'font-weight:900;' : '';
 
-          style += j == 7 ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
+          style += key == "Action"
+                          ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
                           : '';
-          var val = j == 7 ? (value ? "Buy" : "Sell") : value
+          var val = key == "Action" ? (value ? "Buy" : "Sell") : value
           tableHTML += '<th align="center">' + key + '</th>'
                      + '<td align="center" style="' + style + '" padding="10px">' + val + '</td>'
 
           tableHTML += '</tr>';
-
-          ++j;
       }
 
       tableHTML += '</table>';
