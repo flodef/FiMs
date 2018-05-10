@@ -119,7 +119,7 @@
         var action = prov > 0;
 
         var array = [];
-        for (var j of [0, 1, GLOBAL.invest[index][7] != "" ? 7 : 8, 14, 15]) {
+        for (var j of [0, 1, 6, GLOBAL.invest[index][7] != "" ? 7 : 8, 14, 15, 16]) {
           array[GLOBAL.invest[0][j]] = j == 14 ? rebal
                                      : j == 15 ? prov + " €"
                                      : GLOBAL.invest[index][j];
