@@ -108,13 +108,14 @@
 
       ++rank;
 
-      if (toValue(GLOBAL.invest[index][14]) != 0) {
-// WHY : Blocking transactions where there is positives and negatives
+      var rebal = toValue(GLOBAL.invest[index][14]);
+      if (toValue(GLOBAL.invest[index][17].split('(')[1].split(')')[0]) * rebal < 0) {  // meaning that tendency is opposite sign of rebalance and rebalance is not equal to zero
+// WHY ?? : Blocking transactions where there is positives and negatives
 //       && toValue(GLOBAL.invest[index][15]) < tRebal) {
         var price = toValue(GLOBAL.invest[index][8]);
         var num = tRest/price;
         var bonus = num >= 0 ? Math.floor(num) : Math.ceil(num);
-        var rebal = toValue(GLOBAL.invest[index][14]) + bonus;
+        var rebal += bonus;
         var prov = (rebal * price).toFixed(2);
         var action = prov > 0;
 
@@ -152,12 +153,12 @@
       for (const [key, value] of row) {
           tableHTML += '<tr>';
 
-          var style = key == "Name" || key == "Rebalance" ? 'font-weight:900;' : '';
-
+          var style = key == "Name" || key == "Rebalance" || (key == "Tendency" && value.substring(0, 3) != "MID")
+                    ? 'font-weight:900;' : '';
           style += key == "Action"
                           ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
                           : '';
-          var val = key == "Action" ? (value ? "Buy" : "Sell") : value
+          var val = key == "Action" ? (value ? "Buy" : "Sell") : value;
           tableHTML += '<th align="center">' + key + '</th>'
                      + '<td align="center" style="' + style + '" padding="10px">' + val + '</td>'
 
@@ -965,7 +966,8 @@
     return content ? parseFloat(String(content).replace(",", "")
                                                .replace(" ", "")
                                                .replace("$", "")
-                                               .replace("€", ""))
+                                               .replace("€", "")
+                                               .replace("%", ""))
                    : 0;
   }
 
