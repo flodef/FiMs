@@ -980,10 +980,11 @@
         ? String(content).replace(",", ".")
         : String(content) + "."
       : "0.").replace(new RegExp(' ', 'g'), '') + "00";
+    var neg = str.substring(0,1) == '-' ? -1 : 0;
     var i = str.indexOf(".");
     str = str.slice(0, i+4) + " " + symbol;
-    str = i > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
-        : i > 3 ? str.slice(0, i-3) + "," + str.slice(i-3)
+    str = i + neg > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
+        : i + neg > 3 ? str.slice(0, i-3) + "," + str.slice(i-3)
         : str;
 
     return str;
