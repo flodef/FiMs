@@ -86,7 +86,7 @@
                    $(".validateButton").prop('disabled', false);
                  })
                  .withFailureHandler(displayError)
-                 .getSheetValues("Historic!A:H");
+                 .getSheetValues("Historic!A:I");
   }
 
   function rebalanceStocks() {
@@ -396,7 +396,7 @@
                      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
                        var row = contents[i];
                        var isEmpty = toValue(row[6]) == 0;
-                       var index = !isEmpty ? indexOf(GLOBAL.histo, row[7], 7) : null;
+                       var index = !isEmpty ? indexOf(GLOBAL.histo, row[8], 8) : null;
 
                        if (!isEmpty
                        && (index === null
