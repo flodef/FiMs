@@ -981,7 +981,7 @@
         : String(content) + "."
       : "0.").replace(new RegExp(' ', 'g'), '') + "00";
     var i = str.indexOf(".");
-    str = str.slice(0, i+3) + " " + symbol;
+    str = str.slice(0, i+4) + " " + symbol;
     str = i > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
         : i > 3 ? str.slice(0, i-3) + "," + str.slice(i-3)
         : str;
