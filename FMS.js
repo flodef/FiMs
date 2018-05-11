@@ -900,7 +900,7 @@
   }
 
   function refreshTotal(id) {
-    if (id == GLOBAL.historic) {
+    if (id == GLOBAL.historic && $('#' + id + 'Table').is(':visible'))
       var qty = 0;
       var price = 0;
       var value = 0;
