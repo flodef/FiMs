@@ -924,7 +924,7 @@
       $("#" + id + "Footer").prop("innerHTML",
         '<td>TOTAL</td><td colspan="3" align="center">' + rows + ' rows</td>'
         + '<td>' + qty.toFixed(0) + '</td><td>' + toCurrency(price/ner, "€") + '</td>'
-        + '<td>' + toCurrency(value, "€") + '</td>');
+        + '<td>' + toCurrency(value, "€") + '</td><td>' + toCurrency(profit, "€") + '</td>');
     }
   }
 
