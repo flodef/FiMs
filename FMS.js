@@ -789,8 +789,8 @@
 
   function getTitle(id) {
     return '<h2 onclick="$(\'.mainTable\').each(function(){if(this.id != \'' + id + 'Table\'){$(this).hide();}});'
-          + 'if($(\'#' + id + 'Table\').is(\':hidden\')){refreshTotal(\'' + id + '\');}">'
-          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\', function(){});'
+          + 'if($(\'#' + id + 'Table\').is(\':hidden\')){refreshTotal(\'' + id + '\');}'
+          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\', function(){});">'
           + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
   }
 
