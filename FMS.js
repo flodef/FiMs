@@ -500,7 +500,7 @@
 
         if (index === null || (index !== null &&
                               (GLOBAL.histo[index][0] != GLOBAL.dummy
-                            || GLOBAL.histo[index][7] != id))) {
+                            || GLOBAL.histo[index][8] != id))) {
             data.push([GLOBAL.dummy, type, label, transaction, "", "", value, id]);
         } else {
             ++dupCnt;
@@ -903,7 +903,8 @@
     if (id == GLOBAL.historic) {
       var qty = 0;
       var price = 0;
-      var total = 0;
+      var value = 0;
+      var profit = 0;
       var rows = 0;
       var ner = 0;
       var max = !$('#' + id + 'Filter').is(':checked')
@@ -915,14 +916,15 @@
       elem.each((i, item) => {
         qty += toValue($(item).children("td")[4].innerHTML);
         price += toValue($(item).children("td")[5].innerHTML);
-        total += toValue($(item).children("td")[6].innerHTML);
+        value += toValue($(item).children("td")[6].innerHTML);
+        profit += toValue($(item).children("td")[7].innerHTML);
         ner = ner + ($(item).children("td")[4].innerHTML ? 1 : 0);
         ++rows;
       });
       $("#" + id + "Footer").prop("innerHTML",
         '<td>TOTAL</td><td colspan="3" align="center">' + rows + ' rows</td>'
         + '<td>' + qty.toFixed(0) + '</td><td>' + toCurrency(price/ner, "€") + '</td>'
-        + '<td>' + toCurrency(total, "€") + '</td>');
+        + '<td>' + toCurrency(value, "€") + '</td>');
     }
   }
 
