@@ -789,7 +789,7 @@
 
   function getTitle(id) {
     return '<h2 onclick="$(\'.mainTable\').each(function(){if(this.id != \'' + id + 'Table\'){$(this).hide();}});'
-          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\');">'
+          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\');refreshTotal(' + id + ');">'
           + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
   }
 
