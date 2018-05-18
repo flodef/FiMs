@@ -484,6 +484,12 @@
       } else if (row[1].includes("INT")) {
         type = "Intermediate US bonds (7-10 year)";
         label = "Vanguard Intmdte Tm Govt Bd ETF";
+      } else if (row[1].includes("20+")) {
+        type = "Long term US bonds (20-25 year)";
+        label = "ISHARES IV PLC ISHS $ TRSRY BD 20+YR UCITS ETF USD DIST";
+      } else if (row[1].includes("7-10")) {
+        type = "Intermediate US bonds (7-10 year)";
+        label = "ISHARES US T 7-10";
       } else if (row[1].includes("S&P")) {
         type = "Stocks";
         label = "VANGUARD S&P500"
