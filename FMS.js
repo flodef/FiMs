@@ -396,7 +396,7 @@
                      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
                        var row = contents[i];
                        var isEmpty = toValue(row[6]) == 0;
-                       var index = !isEmpty ? indexOf(GLOBAL.histo, row[8], 8) : null;
+                       var index = !isEmpty ? indexOf(GLOBAL.histo, row[7], 7) : null;
 
                        if (!isEmpty
                        && (index === null
@@ -506,7 +506,7 @@
 
         if (index === null || (index !== null &&
                               (GLOBAL.histo[index][0] != GLOBAL.dummy
-                            || GLOBAL.histo[index][8] != id))) {
+                            || GLOBAL.histo[index][7] != id))) {
             data.push([GLOBAL.dummy, type, label, transaction, "", "", value, id]);
         } else {
             ++dupCnt;
@@ -741,8 +741,10 @@
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
-      for (var j = 0; j < contents[i].length - 1; ++j) {   // Don't display the ID at the end
-        tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+      for (var j = 0; j < contents[i].length; ++j) {
+        tableHTML += j != contents[i].length - 2
+          ? getTableReadOnlyContent(contents[i][j], i == 0)
+          : '';     // Don't display the ID at the end
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
