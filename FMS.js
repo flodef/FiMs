@@ -742,9 +742,9 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
       for (var j = 0; j < contents[i].length; ++j) {
-        tableHTML += j != contents[i].length - 2
+        tableHTML += j != 7   // Don't display the ID at row 7
           ? getTableReadOnlyContent(contents[i][j], i == 0)
-          : '';     // Don't display the ID at the end
+          : '';
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
