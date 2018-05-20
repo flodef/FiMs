@@ -928,7 +928,7 @@
         qty += toValue(item[4].innerHTML);
         price += toValue(item[5].innerHTML);
         value += toValue(item[6].innerHTML);
-        profit += item.length >= 9 ? toValue(item[8].innerHTML) : 0;
+        profit += item.length >= 8 ? toValue(item[7].innerHTML) : 0;
         ner = ner + (item[4].innerHTML ? 1 : 0);
         ++rows;
       });
