@@ -909,12 +909,14 @@
 
   function refreshTotal(id) {
     if (id == GLOBAL.historic && $('#' + id + 'Table').is(':visible')) {
+      var item;
       var qty = 0;
       var price = 0;
       var value = 0;
       var profit = 0;
       var rows = 0;
       var ner = 0;
+
       var max = !$('#' + id + 'Filter').is(':checked')
         ? GLOBAL.limit : $("#" + id + "Table tbody tr").length;
       var elem = $("#" + id + "Table tbody tr:visible").length == 0
@@ -922,11 +924,12 @@
               ? $("#" + id + "Table tbody tr:lt(" + max + ")")
               : $("#" + id + "Table tbody tr:visible");
       elem.each((i, item) => {
-        qty += toValue($(item).children("td")[4].innerHTML);
-        price += toValue($(item).children("td")[5].innerHTML);
-        value += toValue($(item).children("td")[6].innerHTML);
-        profit += toValue($(item).children("td")[7].innerHTML);
-        ner = ner + ($(item).children("td")[4].innerHTML ? 1 : 0);
+        item = $(item).children("td");
+        qty += toValue(item[4].innerHTML);
+        price += toValue(item[5].innerHTML);
+        value += toValue(item[6].innerHTML);
+        profit += item.length >= 9 ? toValue(item[8].innerHTML) : 0;
+        ner = ner + (item[4].innerHTML ? 1 : 0);
         ++rows;
       });
       $("#" + id + "Footer").prop("innerHTML",
