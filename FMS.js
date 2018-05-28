@@ -396,7 +396,7 @@
                      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
                        var row = contents[i];
                        var isEmpty = toValue(row[6]) == 0;
-                       var index = !isEmpty ? indexOf(GLOBAL.histo, row[8], 8) : null;
+                       var index = !isEmpty ? indexOf(GLOBAL.histo, row[7], 7) : null;
 
                        if (!isEmpty
                        && (index === null
@@ -506,7 +506,7 @@
 
         if (index === null || (index !== null &&
                               (GLOBAL.histo[index][0] != GLOBAL.dummy
-                            || GLOBAL.histo[index][8] != id))) {
+                            || GLOBAL.histo[index][7] != id))) {
             data.push([GLOBAL.dummy, type, label, transaction, "", "", value, id]);
         } else {
             ++dupCnt;
@@ -741,8 +741,10 @@
     for (var i = 0; i < contents.length; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
-      for (var j = 0; j < contents[i].length - 1; ++j) {   // Don't display the ID at the end
-        tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+      for (var j = 0; j < contents[i].length; ++j) {
+        tableHTML += j != 7   // Don't display the ID at row 7
+          ? getTableReadOnlyContent(contents[i][j], i == 0)
+          : '';
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
@@ -907,12 +909,14 @@
 
   function refreshTotal(id) {
     if (id == GLOBAL.historic && $('#' + id + 'Table').is(':visible')) {
+      var item;
       var qty = 0;
       var price = 0;
       var value = 0;
       var profit = 0;
       var rows = 0;
       var ner = 0;
+
       var max = !$('#' + id + 'Filter').is(':checked')
         ? GLOBAL.limit : $("#" + id + "Table tbody tr").length;
       var elem = $("#" + id + "Table tbody tr:visible").length == 0
@@ -920,11 +924,12 @@
               ? $("#" + id + "Table tbody tr:lt(" + max + ")")
               : $("#" + id + "Table tbody tr:visible");
       elem.each((i, item) => {
-        qty += toValue($(item).children("td")[4].innerHTML);
-        price += toValue($(item).children("td")[5].innerHTML);
-        value += toValue($(item).children("td")[6].innerHTML);
-        profit += toValue($(item).children("td")[7].innerHTML);
-        ner = ner + ($(item).children("td")[4].innerHTML ? 1 : 0);
+        item = $(item).children("td");
+        qty += toValue(item[4].innerHTML);
+        price += toValue(item[5].innerHTML);
+        value += toValue(item[6].innerHTML);
+        profit += item.length >= 8 ? toValue(item[7].innerHTML) : 0;
+        ner = ner + (item[4].innerHTML ? 1 : 0);
         ++rows;
       });
       $("#" + id + "Footer").prop("innerHTML",
