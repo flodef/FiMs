@@ -732,7 +732,7 @@
     applyFilter(id, tableHTML);
 
 //    $("#" + id + "Table th:first").addClass("sorttable_sorted");
-    sorttable.innerSortFunction.apply($("#" + id + "Table th:first"), []);
+    sorttable.innerSortFunction.apply($("#" + id + "Table th:first")[0], []);
   }
 
   function updateHistoricTable(contents)
