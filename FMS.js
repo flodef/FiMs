@@ -730,6 +730,8 @@
     addTransactionName("", GLOBAL.approv);
 
     applyFilter(id, tableHTML);
+
+    $("#" + id + "Table th:first").addClass("sorttable_sorted");
   }
 
   function updateHistoricTable(contents)
