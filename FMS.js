@@ -62,7 +62,7 @@
                    updateHistoricValues();  // Next step
                  })
                  .withFailureHandler(displayError)
-                 .getSheetValues("Investment!D:AA");
+                 .getSheetValues("Investment!D:AC");
   }
 
   function updateHistoricValues()
@@ -712,8 +712,10 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
-      for (var j of [0, 6, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23]) {   // Select only the interesting columns
-        tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+      for (var j of [0, 6, 7, 9, 17, 18, 19, 20, 21, 22, 23, 24, 25]) {   // Select only the interesting columns
+        // Buy = 8, Estimation = 10, Monthly Trade = 11, Rank = 12, Rebalance = 13, Provision = 14, Tendency = 15
+        var con = j != 8 || !content[i][7] ? contents[i][j] : content[i][7];
+        tableHTML += getTableReadOnlyContent(con, i == 0);
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
