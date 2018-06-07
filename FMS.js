@@ -168,9 +168,9 @@
       tableHTML += '</table>';
 
       var tName = row[0][1];
-      var tQty = toValue(row[3][1]);
-      var tVal = -toValue(row[4][1]);
-      var tOpe = row[5][1] ? "BUY" : "SELL";
+      var tQty = toValue(row[4][1]);
+      var tVal = -toValue(row[5][1]);
+      var tOpe = row[7][1] ? "BUY" : "SELL";
       var tUnit = tQty && tVal && tName ? -tVal/tQty : "";
       var tId = tName + "@" + tOpe + "@" + tQty + "@" + tVal;
 
