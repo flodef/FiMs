@@ -991,10 +991,9 @@
 
   function toCurrency(content, symbol) {
     var str = (content
-      ? String(content).includes(".") ? String(content)
-      : String(content).includes(",")
-        ? String(content).replace(",", ".")
-        : String(content) + "."
+      ? String(content).includes(".") && !String(content).includes(",")
+        ? String(content) : String(content).includes(",")
+          ? String(content).replace(".", "").replace(",", ".") : String(content) + "."
       : "0.").replace(new RegExp(' ', 'g'), '') + "00";
     var neg = str.substring(0,1) == '-' ? -1 : 0;
     var i = str.indexOf(".");
