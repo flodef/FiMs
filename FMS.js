@@ -285,7 +285,7 @@
       gid = id == "Historic" ? 9
           : id == "ExpensesHistoric" ? 298395308
           : null;
-      endCol = id == "Historic" ? 12
+      endCol = id == "Historic" ? 13
              : id == "ExpensesHistoric" ? 4
              : null;
 
