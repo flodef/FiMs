@@ -682,12 +682,12 @@
                    }
                    tableHTML += '</tr>';
 
-                   tableHTML += getSubTableTitle(contents[5][0], "Settings!A6");
-                   tableHTML += '<tr>';
-                   for (var i = 1; i < contents[5].length; i++) {
-                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[5][i], "Dashboard!B" + contents[5][i], 1000000);
-                   }
-                   tableHTML += '</tr>';
+                   // tableHTML += getSubTableTitle(contents[5][0], "Settings!A6");
+                   // tableHTML += '<tr>';
+                   // for (var i = 1; i < contents[5].length; i++) {
+                   //   tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[5][i], "Dashboard!B" + contents[5][i], 1000000);
+                   // }
+                   // tableHTML += '</tr>';
 
                    tableHTML += '</table>';
 
