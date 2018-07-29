@@ -692,6 +692,10 @@
                    tableHTML += '</table>';
 
                    $("#dashboardDiv").prop("innerHTML", tableHTML);
+
+                   tableHTML = '<marquee direction="right" scrollamount="5" behavior="scroll">Scrolling text..</marquee>';
+                   $("#scrollDiv").prop("innerHTML", tableHTML);
+
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Settings!A:F");
