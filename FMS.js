@@ -692,7 +692,7 @@
                    tableHTML += '</table>';
                    $("#dashboardDiv").prop("innerHTML", tableHTML);
 
-                   tableHTML = '<marquee direction="right" scrollamount="5" behavior="scroll"><table><tr>';
+                   tableHTML = '<marquee direction="right" scrollamount="3" behavior="scroll"><table><tr>';
                    for (var i = 0; i < contents[5].length; ++i) {
                      tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[5][i], "Dashboard!B" + contents[5][i], 1000000);
                    }
