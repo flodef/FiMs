@@ -690,12 +690,14 @@
                    // tableHTML += '</tr>';
 
                    tableHTML += '</table>';
-
                    $("#dashboardDiv").prop("innerHTML", tableHTML);
 
-                   tableHTML = '<marquee direction="right" scrollamount="5" behavior="scroll">Scrolling text..</marquee>';
+                   tableHTML = '<marquee direction="right" scrollamount="5" behavior="scroll"><table><tr>';
+                   for (var i = 0; i < contents[5].length; ++i) {
+                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[5][i], "Dashboard!B" + contents[5][i], 1000000);
+                   }
+                   tableHTML += '</tr></table></marquee>';
                    $("#scrollDiv").prop("innerHTML", tableHTML);
-
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues("Settings!A:F");
