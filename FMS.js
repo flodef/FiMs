@@ -109,7 +109,7 @@
       ++rank;
 
       var rebal = toValue(GLOBAL.invest[index][14]);
-      if (toValue(GLOBAL.invest[index][17].split('(')[1].split(')')[0]) * rebal < 0) {  // meaning that tendency is opposite sign of rebalance and rebalance is not equal to zero
+      // if (toValue(GLOBAL.invest[index][17].split('(')[1].split(')')[0]) * rebal < 0) {  // meaning that tendency is opposite sign of rebalance and rebalance is not equal to zero
 // WHY ?? : Blocking transactions where there is positives and negatives
 //       && toValue(GLOBAL.invest[index][15]) < tRebal) {
         var price = toValue(GLOBAL.invest[index][8]);
@@ -131,7 +131,7 @@
 
         tRebal -= prov;
         tRest -= price * bonus;
-      }
+      //}
     };
 
     if (contents.length > 0) {
