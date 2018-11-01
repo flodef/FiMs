@@ -109,9 +109,8 @@
       ++rank;
 
       var rebal = toValue(GLOBAL.invest[index][14]);
+      if (rebal != 0) {
       // if (toValue(GLOBAL.invest[index][17].split('(')[1].split(')')[0]) * rebal < 0) {  // meaning that tendency is opposite sign of rebalance and rebalance is not equal to zero
-// WHY ?? : Blocking transactions where there is positives and negatives
-//       && toValue(GLOBAL.invest[index][15]) < tRebal) {
         var price = toValue(GLOBAL.invest[index][8]);
         var num = tRest/price;
         var bonus = num >= 0 ? Math.floor(num) : Math.ceil(num);
@@ -131,7 +130,7 @@
 
         tRebal -= prov;
         tRest -= price * bonus;
-      //}
+      }
     };
 
     if (contents.length > 0) {
