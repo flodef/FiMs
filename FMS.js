@@ -694,7 +694,8 @@
                    tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll"><table>';
                    for (var i = 0; i < contents[5].length; ++i) {
                      tableHTML += '<tr>';
-                     tableHTML += getTableReadOnlyCell(GLOBAL.dashb, contents[5][i], "Dashboard!B" + contents[6][i], 1000000);
+                     tableHTML += getTableReadOnlyContent(contents[5][i], true);
+                     tableHTML += getTableReadOnlyContent(GLOBAL.dashb[contents[6][i]-1][1], false);
                      tableHTML += '</tr>';
                    }
                    tableHTML += '</table></marquee>';
