@@ -82,7 +82,7 @@
                    });
 
                    hideLoader();
-                   $("#loading").text(GLOBAL.dashb[59][0] + ":" +  GLOBAL.dashb[59][1]);                   
+                   $("#loading").text(GLOBAL.dashb[59][0] + " : " +  GLOBAL.dashb[59][1]);                   
                    $(".validateButton").prop('disabled', false);
                  })
                  .withFailureHandler(displayError)
