@@ -692,7 +692,7 @@
                    $("#dashboardDiv").prop("innerHTML", tableHTML);
 
                    tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:45px;margin:15px"><table>';
-                   tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashb, 59) + '</tr>';
+                   tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashb, 60) + '</tr>';
                    for (var i = 0; i < contents[5].length; ++i) {
                      tableHTML += '<tr>';
                      tableHTML += getTableReadOnlyContent(contents[5][i], false);
