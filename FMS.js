@@ -82,7 +82,7 @@
                    });
 
                    hideLoader();
-                   $("#loading").text("");
+                   $("#loading").text(GLOBAL.dashb[59][0] + ":" +  GLOBAL.dashb[59][1]);                   
                    $(".validateButton").prop('disabled', false);
                  })
                  .withFailureHandler(displayError)
@@ -691,7 +691,7 @@
                    tableHTML += '</table>';
                    $("#dashboardDiv").prop("innerHTML", tableHTML);
 
-                   tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:45px"><table>';
+                   tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:45px;margin:15px"><table>';
                    for (var i = 0; i < contents[5].length; ++i) {
                      tableHTML += '<tr>';
                      tableHTML += getTableReadOnlyContent(contents[5][i], false);
