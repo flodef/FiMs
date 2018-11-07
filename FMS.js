@@ -691,10 +691,10 @@
                    tableHTML += '</table>';
                    $("#dashboardDiv").prop("innerHTML", tableHTML);
 
-                   tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll"><table>';
+                   tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:45px"><table>';
                    for (var i = 0; i < contents[5].length; ++i) {
                      tableHTML += '<tr>';
-                     tableHTML += getTableReadOnlyContent(contents[5][i], true);
+                     tableHTML += getTableReadOnlyContent(contents[5][i], false);
                      tableHTML += getTableReadOnlyContent(GLOBAL.dashb[contents[6][i]-1][1], false);
                      tableHTML += '</tr>';
                    }
