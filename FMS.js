@@ -691,11 +691,13 @@
                    tableHTML += '</table>';
                    $("#dashboardDiv").prop("innerHTML", tableHTML);
 
-                   tableHTML = '<marquee direction="right" scrollamount="3" behavior="scroll"><table><tr>';
+                   tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll"><table>';
                    for (var i = 0; i < contents[5].length; ++i) {
-                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[5][i], "Dashboard!B" + contents[5][i], 1000000);
+                     tableHTML += '<tr>';
+                     tableHTML += getTableReadOnlyCell(GLOBAL.dashb, "Dashboard!B" + contents[5][i], "Dashboard!B" + contents[6][i], 1000000);
+                     tableHTML += '</tr>';
                    }
-                   tableHTML += '</tr></table></marquee>';
+                   tableHTML += '</table></marquee>';
                    $("#scrollDiv").prop("innerHTML", tableHTML);
                  })
                  .withFailureHandler(displayError)
