@@ -34,14 +34,6 @@
 
       google.script.run
                    .withSuccessHandler(function(contents) {
-                     if (shouldRefresh)
-                     {
-                       updateValue(3, false, contents);
-                       updateValue(2, false, contents);
-                       updateValue(1, true, contents);
-                       updateValue(4, false, contents);
-                     }
-
                      updateDashboardTable(contents);
 
                      updateInvestmentValues();  // Next step
@@ -870,16 +862,6 @@
     } else {
       $("#transactionQuantityLabel").fadeOut();
     }
-  }
-
-  function updateValue(row, isPercent, contents) {
-    var col = 1;
-    var index = contents.length - 5;
-    var a = toValue(contents[row-1][col]);
-    var ax = toValue(contents[row-1 + index][col]);
-    var ar = isPercent ? (a + ax) / 100 : a + ax;
-
-    setValue("Dashboard!B" + row, [[ar]]);
   }
 
   function setValue(name, value, func) {
