@@ -684,7 +684,7 @@
                    $("#dashboardDiv").prop("innerHTML", tableHTML);
 
                    tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:45px;margin:15px"><table>';
-                   tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashb, GLOBAL.dasb.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
+                   tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashb, GLOBAL.dashb.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
                    for (var i = 0; i < contents[5].length; ++i) {
                      tableHTML += '<tr>';
                      tableHTML += getTableReadOnlyContent(contents[5][i], false);
