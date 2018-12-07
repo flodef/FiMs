@@ -348,7 +348,7 @@
                       compareResultData();
                     })
                     .withFailureHandler(displayError)
-                    .clearSheetValues("Account!A:J");
+                    .clearSheetValues("Account!A:K");
             } else if (data[0][0] == "dateOp" && data[0][1] == "dateVal") {
               google.script.run
                     .withSuccessHandler(function(contents) {
