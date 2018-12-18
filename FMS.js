@@ -714,7 +714,7 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
-      for (var j of [0, 6, 8, 10, 17, 18, 19, 20, 21, 22, 23, 24, 25]) {   // Select only the interesting columns
+      for (var j of [0, 6, 8, 10, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]) {   // Select only the interesting columns
         // Buy = 9, Estimation = 11, Monthly Trade = 12, Rank = 13, Rebalance = 14, Provision = 15, Tendency = 17
         var con = j != 8 || !contents[i][7] ? contents[i][j] : contents[i][7];
         tableHTML += getTableReadOnlyContent(con, i == 0);
