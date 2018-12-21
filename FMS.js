@@ -715,7 +715,7 @@
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
       for (var j of [0, 6, 8, 10, 14, 15, 17, 19, 20, 21, 22, 23, 24, 25, 26]) {   // Select only the interesting columns
-        // Name = 0, Shares = 6, Price = 8, Sell = 10, Rebalance = 14, Provision = 15, Tendency = 17, Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 20 to 26 
+        // Name = 0, Shares = 6, Price = 8, Sell = 10, Rebalance = 14, Provision = 15, Tendency = 17, Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 20 to 26
         var con = j != 8 || !contents[i][7] ? contents[i][j] : contents[i][7];
         tableHTML += getTableReadOnlyContent(con, i == 0);
       }
@@ -780,7 +780,7 @@
   }
 
   function getTableReadOnlyContent(content, isHeader) {
-    var isNumber = content.slice(-1) == '%' || content.slice(-1) == '€';
+    var isNumber = content && (content.slice(-1) == '%' || content.slice(-1) == '€');
     var color = isNumber && toValue(content) > 0 ? "green"
               : isNumber && toValue(content) < 0 ? "red"
               : "black";
