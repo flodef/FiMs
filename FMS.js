@@ -54,7 +54,7 @@
                    updateHistoricValues();  // Next step
                  })
                  .withFailureHandler(displayError)
-                 .getSheetValues("Investment!D:AC");
+                 .getSheetValues("Investment!D:AD");
   }
 
   function updateHistoricValues()
