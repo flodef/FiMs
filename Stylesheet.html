@@ -1,0 +1,417 @@
+<!-- This CSS package applies Google styling; it should always be included. -->
+<!--link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons.css"-->
+
+<!--style-->
+h1, h2
+{
+  font-weight: 400;
+  color: #b1b1b1;
+  margin : 0px;
+}
+
+h1
+{
+  font-size: 33px;
+  line-height: 0px;
+  padding: 35px 0px 25px 20px;
+}
+
+h2
+{
+  font-size: 21px;
+  line-height: 33px;
+  cursor: pointer;
+}
+
+table {
+  border-collapse: collapse;
+  border: 5px solid transparent;
+  padding: 5px;
+  width: 100%; 
+  margin: 15px 0px 0px 0px;
+}
+
+td {
+  padding: 2px 10px 2px 10px;
+}
+
+th {
+  padding: 2px 10px 2px 10px;
+  text-align: center;
+  background-color: #f1f1f1;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+tfoot {
+  padding: 2px 10px 2px 10px;
+  text-align: center;
+  font-weight: bold;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  color: #222;
+  font: 13px/18px arial, sans-serif;
+}
+
+button {
+  color: #fff;
+  border-radius: 3px;
+  background-color: #00aeef;
+  border-bottom: 3px solid #008bbf;
+  border-top: 3px solid #00aeef;
+  border-left: 3px solid #00aeef;
+  border-right: 3px solid #00aeef;
+  text-align: center;
+  width: 250px;
+  height: 31px;
+  line-height: 22px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+.topMenu {
+  width:auto;
+  background-color:rgba(255,255,255,0.8)
+}
+
+.blur-filter {
+    -webkit-filter: blur(2px);
+    -moz-filter: blur(2px);
+    -o-filter: blur(2px);
+    -ms-filter: blur(2px);
+    filter: blur(2px);
+}
+
+#footer {
+  font-size: xx-small;
+}
+
+
+/* Search bar */
+.searchInput {
+    background-image: url('https://www.w3schools.com/css/searchicon.png'); /* Add a search icon to input */
+    background-position: 3px 3px; /* Position the search icon */
+    background-repeat: no-repeat; /* Do not repeat the icon image */
+    height: 28px;
+    font-size: 16px; /* Increase font-size */
+    padding: 0px 0px 0px 40px; /* Add some padding */
+    border: 1px solid #b1b1b1; /* Add a grey border */
+    vertical-align: bottom;
+    width: 130px;
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
+}
+
+.searchInput:focus {
+    width: 250px;
+}
+
+table.sortable tr {
+    /* Add a bottom border to all table rows */
+    border-bottom: 1px solid #ddd; 
+}
+
+table.sortable tr.header, table.sortable tr:hover {
+    /* Add a grey background color to the table header and on hover */
+    background-color: #f1f1f1;
+}
+
+
+/* Loader and Overlay */
+.overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+}
+
+#popup {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 555px; /* Could be more or less, depending on screen size */
+}
+
+#loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  margin: -75px 0 0 -75px;
+  border: 16px solid transparent;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  border-right: 16px solid #3498db;
+  border-bottom: 16px solid #3498db;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Add animation to "page content" */
+.animate-bottom {
+  position: relative;
+  -webkit-animation-name: animatebottom;
+  -webkit-animation-duration: 1s;
+  animation-name: animatebottom;
+  animation-duration: 1s
+}
+
+@-webkit-keyframes animatebottom {
+  from { bottom:-100px; opacity:0 } 
+  to { bottom:0px; opacity:1 }
+}
+
+@keyframes animatebottom { 
+  from{ bottom:-100px; opacity:0 } 
+  to{ bottom:0; opacity:1 }
+}
+
+/* The snackbar - position it at the bottom and in the middle of the screen */
+#snackbar {
+    visibility: hidden; /* Hidden by default. Visible on click */
+    min-width: 250px; /* Set a default minimum width */
+    margin-left: -125px; /* Divide value of min-width by 2 */
+    background-color: #333; /* Black background color */
+    color: #fff; /* White text color */
+    text-align: center; /* Centered text */
+    border-radius: 2px; /* Rounded borders */
+    padding: 16px; /* Padding */
+    position: fixed; /* Sit on top of the screen */
+    z-index: 1; /* Add a z-index if needed */
+    left: 50%; /* Center the snackbar */
+    bottom: 30px; /* 30px from the bottom */
+}
+
+/* Show the snackbar when clicking on a button (class added with JavaScript) */
+#snackbar.show {
+    visibility: visible; /* Show the snackbar */
+
+/* Add animation: Take 0.5 seconds to fade in and out the snackbar. 
+However, delay the fade out process for 2.5 seconds */
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+/* Animations to fade the snackbar in and out */
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;} 
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;} 
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 17px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 13px;
+  width: 13px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(13px);
+  -ms-transform: translateX(13px);
+  transform: translateX(13px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Tooltip */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    /*border-bottom: 1px dotted black;*/
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    /*bottom: 125%;*/
+    top: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 3s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    /*top: 100%;*/
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    /*border-color: #555 transparent transparent transparent;*/
+    border-color: transparent transparent #555 transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+/* Image effect */
+img:hover {
+    -webkit-filter: blur(1px);
+    filter: blur(1px);
+    /*box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);*/
+    cursor: pointer;
+}
+
+
+/* Alert */
+#alert {
+    padding: 25px;
+    font-size: large;
+    color: white;
+    opacity: 1;
+    transition: opacity 0.6s;
+    margin-bottom: 15px;
+}
+
+.closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.5s;
+}
+
+.closebtn:hover {
+    color: black;
+}
+
+
+/* Removes border and other stuff on input type image */
+input[type="image"]
+{
+  width: 48px;
+  height: 48px;
+  min-width: 0px;
+  min-height: 0px;
+  border: 0px;
+  padding: 0px;
+  background: transparent;
+}
+
+input[type="image"]:focus, input[type="image"]:hover
+{
+  -webkit-filter: blur(1px);
+  filter: blur(1px);
+  cursor: pointer;
+  border: 0px;
+  padding: 0px;
+  background: transparent;
+}
+
+input[type="image"]:disabled, button:disabled {
+    -webkit-filter: grayscale(100%);
+       -moz-filter: grayscale(100%);
+         -o-filter: grayscale(100%);
+        -ms-filter: grayscale(100%);
+            filter: grayscale(100%);
+            border: 0px;
+}
+
+
+/* Removes step arrows on input type number */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+<!--/style-->

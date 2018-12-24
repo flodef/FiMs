@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <!-- Use a templated HTML printing scriptlet to import common stylesheet -->
+    <!--?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?-->
+	<link rel="stylesheet" href="Stylesheet.html">
+	<script type="text/javascript" src="JavaScript.html"></script>
+  </head>
+  <body>
+    <div id="focus" style="height:0px;">
+      <input id="mainFocus" type="image" src="https://i.stack.imgur.com/0BYg1.png" style="height:0px;" autofocus>
+    </div>
+
+    <div id="scrollDiv" class="overlay" style="text-align:center;width:100%"></div>
+
+    <div id="content" class="hidden overlay">
+      <div style="background:rgba(255,255,255,0.8);width:fit-content;"><h1 id="main-heading">Finance Manager</h1></div>
+      
+      <div id="dashboardDiv"></div>
+      <div id="investmentDiv"></div>
+      <div id="historicDiv"></div>
+
+      <div id="footer">
+        <table style="table-layout:fixed;">
+          <tr>
+            <td align="left">Data on <a href="https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw/" target="_blank">Google Drive File</a></td>
+            <td align="center" id="loading"></td>
+            <td align="right">Icon made by <a href="http://www.flaticon.com/authors/pixel-buddha" target="_blank">Pixel Buddha</a> from <a href="www.flaticon.com" target="_blank">www.flaticon.com</a></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div id="menu" align="right" class="overlay hidden" style="height:60px">
+      <table id="actionButton" class="topMenu">
+        <tr>
+          <td style="padding: 0px 5px 0px 0px;">
+            <div class="tooltip">
+              <input src="https://4.bp.blogspot.com/-DRpMV2TDFqc/WgYGlaC5-zI/AAAAAAABBck/3yPEyWd1S0s_lpQqtMmeHNrqf-aZWnheQCLcBGAs/s1600/Rebalance.png" 
+                     type="image" id="rebalanceButton" onclick="rebalanceStocks()">
+              <span class="tooltiptext">Rebalance Stocks</span>
+            </div>
+          </td>
+          <td style="padding: 0px 10px 0px 0px;">
+            <div class="tooltip">
+              <input src="https://2.bp.blogspot.com/-gJkGGGSNcPk/WU9gnCGEaSI/AAAAAAABAgc/GkWlbZjKuEUpUXG2U3rsc8fLnPhGxPf0gCLcBGAs/s1600/Add.png" 
+                     type="image" id="addButton" onclick="addTransaction()">
+              <span class="tooltiptext">Add Transaction</span>
+            </div>
+          </td>
+          <td style="padding: 0px 10px 0px 0px;">
+            <div class="tooltip">
+              <input src="https://3.bp.blogspot.com/-3mhymEJ9NMw/WU9gnk4px2I/AAAAAAABAgo/RmhA34MGgWYeLu6Br73YVX2CVf6eW3w8ACLcBGAs/s1600/Remove.png" 
+                     type="image" id="deleteButton" onclick="deleteTransaction()">
+              <span class="tooltiptext">Delete Transaction</span>
+            </div>
+          </td>
+          <td style="padding: 0px 10px 0px 0px;">
+            <div class="tooltip">
+              <input src="https://1.bp.blogspot.com/-eqXzHpVyPvo/WU9gnkHglAI/AAAAAAABAgs/6yBTjv2LDnc4DR67MzXDLv2t0TQA8Hr_wCLcBGAs/s1600/Upload.png" 
+                     type="image" id="uploadButton" onclick="uploadAccountFile()">
+              <span class="tooltiptext">Upload Account File</span>
+            </div>
+          </td>
+          <td style="padding: 0px;">
+            <div class="tooltip">
+              <input src="https://1.bp.blogspot.com/-yl40t31lIuI/WU9gnFOZ_0I/AAAAAAABAgg/vTgmLuGDWAwQXG8AqdRBVcAWqCKoxKadACLcBGAs/s1600/Refresh.png" 
+                     type="image" id="updateButton" onclick="updateAllValues(true)">
+              <span class="tooltiptext">Update values</span>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <table id="addTransactionForm" class="topMenu hidden">
+        <tr>
+          <td>Name:     <select id="transactionName" onchange="selectName(this)"></select></td>
+          <td style="width:150px;" id="transactionQuantityLabel">Quantity: <input id="transactionQuantity" class="auto" oninput="autoAdaptWidth(this)" 
+              min="-20000" max="20000" type="number" placeholder="0"></td>
+          <td style="width:150px;" id="transactionValueLabel">   Value:    <input id="transactionValue"    class="auto" oninput="autoAdaptWidth(this)" 
+              min="-100000" max="100000" type="number" placeholder="0">€</td>
+          <td style="padding: 0px 10px 0px 10px;">
+            <div class="tooltip">
+              <input src="https://4.bp.blogspot.com/-b_hMdL0T0qw/WU9gny_ixqI/AAAAAAABAgw/1xhGFuDsHK043GTkFU6MbDSDdeAgTbF8QCLcBGAs/s1600/Validate.png" 
+                     type="image" class="validateButton" onclick="validateAddForm()">
+              <span class="tooltiptext">Validate</span>
+            </div>
+          </td>
+          <td style="padding: 0px;">
+            <div class="tooltip">
+              <input src="https://4.bp.blogspot.com/-lGMwfKbTVZI/WU9gnNKLpoI/AAAAAAABAgk/W4A15_T1L2QLnSd2wkqU7p2-ifjgWD0hwCLcBGAs/s1600/Cancel.png" 
+                     type="image" class="cancelButton" onclick="cancelForm()">
+              <span class="tooltiptext">Cancel</span>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <table id="deleteTransactionForm" class="topMenu hidden">
+        <tr>
+          <td style="padding: 0px 10px 0px 10px; width:260px;"><strong style="font-size:larger">Are you sure you want to delete ?</strong></td>
+          <td style="padding: 0px 10px 0px 10px;">
+            <div class="tooltip">
+              <input src="https://4.bp.blogspot.com/-b_hMdL0T0qw/WU9gny_ixqI/AAAAAAABAgw/1xhGFuDsHK043GTkFU6MbDSDdeAgTbF8QCLcBGAs/s1600/Validate.png" 
+                     type="image" class="validateButton" onclick="validateDeleteForm()" height="32" width="32">
+              <span class="tooltiptext">Validate</span>
+            </div>
+          </td>
+          <td style="padding: 0px;">
+            <div class="tooltip">
+              <input src="https://4.bp.blogspot.com/-lGMwfKbTVZI/WU9gnNKLpoI/AAAAAAABAgk/W4A15_T1L2QLnSd2wkqU7p2-ifjgWD0hwCLcBGAs/s1600/Cancel.png" 
+                     type="image" class="cancelButton" onclick="cancelForm()" height="32" width="32">
+              <span class="tooltiptext">Cancel</span>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <table id="uploadFileForm" class="topMenu hidden">
+        <tr>
+          <td><strong>Upload Account CSV File:</strong></td>
+          <td><input id="fileUpload" type="file" accept=".csv" /></td>
+          <td style="padding: 0px 10px 0px 10px;">
+            <div class="tooltip">
+              <input src="https://4.bp.blogspot.com/-b_hMdL0T0qw/WU9gny_ixqI/AAAAAAABAgw/1xhGFuDsHK043GTkFU6MbDSDdeAgTbF8QCLcBGAs/s1600/Validate.png" 
+                     type="image" class="validateButton" onclick="validateUploadForm()" height="32" width="32">
+              <span class="tooltiptext">Validate</span>
+            </div>
+          </td>
+          <td style="padding: 0px;">
+            <div class="tooltip">
+              <input src="https://4.bp.blogspot.com/-lGMwfKbTVZI/WU9gnNKLpoI/AAAAAAABAgk/W4A15_T1L2QLnSd2wkqU7p2-ifjgWD0hwCLcBGAs/s1600/Cancel.png" 
+                     type="image" class="cancelButton" onclick="cancelForm()" height="32" width="32">
+              <span class="tooltiptext">Cancel</span>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="loaderOverlay" class="overlay hidden" style="background-color:rgba(0,0,0,0.3);">
+      <div id="loader"></div>
+    </div>
+
+    <div id="popupOverlay" class="overlay hidden" style="background-color:rgba(0,0,0,0.3);">
+      <div id="popup"></div>
+    </div>
+
+    <div id="alertOverlay" class="overlay hidden">
+      <div id="alert" align="center"></div>
+    </div>
+
+    <div id="snackbar"></div>
+
+    <!-- Store data passed to template here, so it is available to the
+     imported JavaScript. -->
+    <script>
+    </script>
+
+    <!-- Use a templated HTML printing scriptlet to import JavaScript. -->
+    <!--?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?-->
+  </body>
+</html>
