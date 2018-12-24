@@ -717,8 +717,8 @@
       for (var j of [0, 6, 8, 10, 14, 15, 18, 19, 21, 23, 25]) {   // Select only the interesting columns
         // Name = 0, Shares = 6, Price = 8, Sell = 10, Rebalance = 14, Provision = 15, Tendency = 18, Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 20 to 26
         var con = j != 8 || !contents[i][7]
-         ? j < 19 ? contents[i][j]
-         : contents[i][j] + '(' + contents[i][j+1] + ')'
+         ? j < 19 || i == 0 ? contents[i][j]
+         : contents[i][j] + ' (' + contents[i][j+1] + ')'
          : contents[i][7];
         tableHTML += getTableReadOnlyContent(con, i == 0);
       }
@@ -783,9 +783,13 @@
   }
 
   function getTableReadOnlyContent(content, isHeader) {
-    var isNumber = content && (content.slice(-1) == '%' || content.slice(-1) == '€');
-    var color = isNumber && toValue(content) > 0 ? "green"
-              : isNumber && toValue(content) < 0 ? "red"
+    var regExp = /\(([^)]+)\)/;
+    var matches = regExp.exec(content);
+    var number = matches ? matches[matches.length-1] : content;
+
+    var isNumber = number && (number.slice(-1) == '%' || number.slice(-1) == '€');
+    var color = isNumber && toValue(number) > 0 ? "green"
+              : isNumber && toValue(number) < 0 ? "red"
               : "black";
     return isHeader ? '<th align="center">' + content + '</th>'
                     : '<td align="center" style="color:' + color + '">' + content + '</td>';
