@@ -10,6 +10,13 @@
   GLOBAL.dashboard = "dashboard";
   GLOBAL.investment = "investment";
   GLOBAL.historic = "historic";
+  GLOBAL.dashboardFormulae = "Dashboard!A:B";
+  GLOBAL.investmentFormulae = "Investment!D:AE";
+  GLOBAL.historicFormulae = "Historic!A:I";
+  GLOBAL.resultFormulae = "Result!A:H";
+  GLOBAL.accountFormulae = "Account!A:K";
+  GLOBAL.expHistoFormulae = "ExpensesHistoric!A:C";
+  GLOBAL.settingsFormulae = "Settings!A:F";
 
   /**
    * Run initializations on web app load.
@@ -39,7 +46,7 @@
                      updateInvestmentValues();  // Next step
                    })
                    .withFailureHandler(displayError)
-                   .getSheetValues("Dashboard!A:B");
+                   .getSheetValues(GLOBAL.dashboardFormulae);
     }
   }
 
@@ -54,7 +61,7 @@
                    updateHistoricValues();  // Next step
                  })
                  .withFailureHandler(displayError)
-                 .getSheetValues("Investment!D:AD");
+                 .getSheetValues(GLOBAL.investmentFormulae);
   }
 
   function updateHistoricValues()
@@ -78,16 +85,13 @@
                    $(".validateButton").prop('disabled', false);
                  })
                  .withFailureHandler(displayError)
-                 .getSheetValues("Historic!A:I");
+                 .getSheetValues(GLOBAL.historicFormulae);
   }
 
   function rebalanceStocks() {
     updateInvestmentValues();
 
     var tRow = GLOBAL.invest.length - 1;
-    var tRebal = parseFloat((toValue(GLOBAL.invest[tRow][11])
-                           - toValue(GLOBAL.invest[tRow][10])).toFixed(2));
-    var tRest = toValue(GLOBAL.invest[tRow][14]);
     var contents = [];
     var rank = 0;
     for (var i = 1; i < tRow; i++) { // Take only the value (no header, footer)
@@ -99,29 +103,14 @@
       }
 
       ++rank;
-
-      var rebal = toValue(GLOBAL.invest[index][14]);
-      if (rebal != 0) {
-      // if (toValue(GLOBAL.invest[index][17].split('(')[1].split(')')[0]) * rebal < 0) {  // meaning that tendency is opposite sign of rebalance and rebalance is not equal to zero
-        var price = toValue(GLOBAL.invest[index][8]);
-        var num = tRest/price;
-        var bonus = num >= 0 ? Math.floor(num) : Math.ceil(num);
-        rebal += bonus;
-        var prov = (rebal * price).toFixed(2);
-        var action = prov > 0;
-
+      if(GLOBAL.invest[index][18].substring(0, 3) != "MID") {
         var array = [];
-        for (var j of [0, 1, 6, GLOBAL.invest[index][7] != "" ? 7 : 8, 14, 15, 17]) {
-          array[GLOBAL.invest[0][j]] = j == 14 ? rebal
-                                     : j == 15 ? prov + " €"
-                                     : GLOBAL.invest[index][j];
+        for (var j of [0, 10, 6, GLOBAL.invest[index][7] != "" ? 7 : 8, 14, 15, 27]) {
+          array[GLOBAL.invest[0][j]] = GLOBAL.invest[index][j];
         }
-        array["Action"] = action;
+        array["Action"] = GLOBAL.invest[index][j] > 0;
 
         contents.push(array);
-
-        tRebal -= prov;
-        tRest -= price * bonus;
       }
     };
 
@@ -348,14 +337,14 @@
                       compareResultData();
                     })
                     .withFailureHandler(displayError)
-                    .clearSheetValues("Account!A:K");
+                    .clearSheetValues(GLOBAL.accountFormulae);
             } else if (data[0][0] == "dateOp" && data[0][1] == "dateVal") {
               google.script.run
                     .withSuccessHandler(function(contents) {
                       insertExpensesRow(data, contents);
                     })
                     .withFailureHandler(displayError)
-                    .getSheetValues("ExpensesHistoric!A:C");
+                    .getSheetValues(GLOBAL.expHistoFormulae);
             } else if (data[0][0] == "CA ID" && data[0][1] == "Produit") {
               insertDividendRow(data);
             } else {
@@ -430,7 +419,7 @@
                    }
                  })
                  .withFailureHandler(displayError)
-                 .getSheetValues("Result!A:H");
+                 .getSheetValues(GLOBAL.resultFormulae);
   }
 
   function insertExpensesRow(contents, expenses) {
@@ -696,7 +685,7 @@
                    $("#scrollDiv").prop("innerHTML", tableHTML);
                  })
                  .withFailureHandler(displayError)
-                 .getSheetValues("Settings!A:F");
+                 .getSheetValues(GLOBAL.settingsFormulae);
 
     // Rebalance is not available if rebalance is not needed
     $("#rebalanceButton").prop('disabled', GLOBAL.dashb[GLOBAL.rebalRow][1] == "FALSE");
