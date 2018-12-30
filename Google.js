@@ -10,13 +10,19 @@
 
 class google {
   static get script() {
-    return new Script();
+    if (this._script === undefined) {
+      this._script = new Script();
+    }
+    return this._script;
   }
 }
 
 class Script {
+  constructor() {
+    this._run = new Run();
+  }
   get run() {
-    return new Run();
+    return this._run;
   }
 }
 
@@ -26,8 +32,8 @@ class Run {
   // }
   constructor() {
     // var url = "http://oss.sheetjs.com/test_files/formula_stress_test.xlsx";
-    var url = "Data/Finance.xlsx";
-    var url  = "https://rawgit.com/flodef/FM/master/FMS.js";
+    // var url = "Data/Finance.xlsx";
+    var url  = "https://rawgit.com/flodef/FM/master/Data/Finance.xlsx";
 
     // this.makeCorsRequest(url);
 
@@ -44,18 +50,18 @@ class Run {
     // if(rABS) reader.readAsBinaryString(f); else reader.readAsArrayBuffer(f);
 
     /* set up async GET request */
-    // var req = new XMLHttpRequest();
-    // req.open("GET", url, true);
-    // req.responseType = "arraybuffer";
-    //
-    // req.onload = function(e) {
-    //   var data = new Uint8Array(req.response);
-    //   var workbook = XLSX.read(data, {type:"array"});
-    //
-    //   /* DO SOMETHING WITH workbook HERE */
-    // }
-    //
-    // req.send();
+    var req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.responseType = "arraybuffer";
+
+    req.onload = function(e) {
+      var data = new Uint8Array(req.response);
+      var workbook = XLSX.read(data, {type:"array"});
+
+      /* DO SOMETHING WITH workbook HERE */
+    }
+
+    req.send();
   }
 
   // Create the XHR object.
