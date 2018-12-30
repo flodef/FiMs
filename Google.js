@@ -24,6 +24,78 @@ class Run {
   // get contents() {
   //   return [["Banana", "Orange", "Apple", "Mango"],["Banana", "Orange", "Apple", "Mango"]];
   // }
+  constructor() {
+    // var url = "http://oss.sheetjs.com/test_files/formula_stress_test.xlsx";
+    var url = "Data/Finance.xlsx";
+    var url  = "https://rawgit.com/flodef/FM/master/FMS.js";
+
+    // this.makeCorsRequest(url);
+
+    // var rABS = false; // true: readAsBinaryString ; false: readAsArrayBuffer
+    // var f =  "Data/Finance.xlsx";  //file:///C:/Users/fdefr/Downloads/FMS/Data/Finance.xlsx'
+    // var reader = new FileReader();
+    // reader.onload = function(e) {
+    //   var data = e.target.result;
+    //   if(!rABS) data = new Uint8Array(data);
+    //   var workbook = XLSX.read(data, {type: rABS ? 'binary' : 'array'});
+    //
+    //   /* DO SOMETHING WITH workbook HERE */
+    // };
+    // if(rABS) reader.readAsBinaryString(f); else reader.readAsArrayBuffer(f);
+
+    /* set up async GET request */
+    // var req = new XMLHttpRequest();
+    // req.open("GET", url, true);
+    // req.responseType = "arraybuffer";
+    //
+    // req.onload = function(e) {
+    //   var data = new Uint8Array(req.response);
+    //   var workbook = XLSX.read(data, {type:"array"});
+    //
+    //   /* DO SOMETHING WITH workbook HERE */
+    // }
+    //
+    // req.send();
+  }
+
+  // Create the XHR object.
+  createCORSRequest(method, url) {
+  var xhr = new XMLHttpRequest();
+  if ("withCredentials" in xhr) {
+    // XHR for Chrome/Firefox/Opera/Safari.
+    xhr.open(method, url, true);
+  } else if (typeof XDomainRequest != "undefined") {
+    // XDomainRequest for IE.
+    xhr = new XDomainRequest();
+    xhr.open(method, url);
+  } else {
+    // CORS not supported.
+    xhr = null;
+  }
+  return xhr;
+}
+
+// Make the actual CORS request.
+ makeCorsRequest(url) {
+  var xhr = this.createCORSRequest('GET', url);
+  if (!xhr) {
+    alert('CORS not supported');
+    return;
+  }
+
+  // Response handlers.
+  xhr.onload = function() {
+    var text = xhr.responseText;
+    alert('Response from CORS request');
+  };
+
+  xhr.onerror = function() {
+    alert('Woops, there was an error making the request.');
+  };
+
+  xhr.send();
+}
+
   withSuccessHandler(func) {
     this.sh = func;
     return this;
@@ -46,6 +118,58 @@ class Run {
   insertRows(sheetId, values, range) {}
   deleteRows(sheetId, startIndex, endIndex) {}
   sortColumn(sheetId, index, descending) {}
+
+
+  _getData2(range) {
+    var data = null;
+    var file = $("#fileUpload").prop("files")[0];
+    if (file)
+    {
+      var reader = new FileReader();
+      reader.readAsText(file);
+      reader.onload = function(event) {
+        var csvData = event.target.result;
+        try {
+          data = $.csv.toArrays(csvData.includes(";")
+            ? csvData.replace(new RegExp(',', 'g'), '.').replace(new RegExp(';', 'g'), ',')
+            : csvData);
+
+          if (data && data.length > 1)
+          {
+            if (data[0][0] == "Date" && data[0][1] == "Heure") {
+              google.script.run
+                    .withSuccessHandler(function(contents) {
+                      setValue("Account!A1", data);
+
+                      compareResultData();
+                    })
+                    .withFailureHandler(displayError)
+                    .clearSheetValues(GLOBAL.accountFormulae);
+            } else if (data[0][0] == "dateOp" && data[0][1] == "dateVal") {
+              google.script.run
+                    .withSuccessHandler(function(contents) {
+                      insertExpensesRow(data, contents);
+                    })
+                    .withFailureHandler(displayError)
+                    .getSheetValues(GLOBAL.expHistoFormulae);
+            } else if (data[0][0] == "CA ID" && data[0][1] == "Produit") {
+              insertDividendRow(data);
+            } else {
+              displayError("File type not recognised.");
+            }
+          } else {
+            displayError("No data to import: the file is empty.", true);
+          }
+        }
+        catch (err) {
+          displayError(err.message);
+        }
+      };
+      reader.onerror = function() { displayError("Unable to read the file."); };
+    } else {
+      displayError("No file had been selected.", true);
+    }
+  }
 
   _getData(range) {
     // GLOBAL.dashboardFormulae = "Dashboard!A:B";
