@@ -408,7 +408,7 @@
                      }
 
                      var f = count => {
-                       if (count == 0) {
+                       if (count <= 0) {
                          insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
                        }
                      };
