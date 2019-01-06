@@ -49,11 +49,11 @@ class Run {
       this.sh(this._getData(range));
     }
   }
-  static setSheetValues(range, values) {}
-  static clearSheetValues(range) {}
-  static insertRows(sheetId, values, range) {}
-  static deleteRows(sheetId, startIndex, endIndex) {}
-  static sortColumn(sheetId, index, descending) {}
+  static setSheetValues(range, values) { this.sh(); }
+  static clearSheetValues(range) { this.sh(); }
+  static insertRows(sheetId, values, range) { this.sh(); }
+  static deleteRows(sheetId, startIndex, endIndex) { this.sh(); }
+  static sortColumn(sheetId, index, descending) { this.sh(); }
 
   static _getData(range) {
     var a = range.split("!");

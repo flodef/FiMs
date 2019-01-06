@@ -291,7 +291,7 @@
                  .sortColumn(9, 0, true);
   }
 
-  function validateDeleteForm(index, rowCnt)
+  function validateDeleteForm(index, rowCnt, func = () => {})
   {
     var index = index ? index : indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
     var rowCnt = rowCnt ? rowCnt : 1;
@@ -302,7 +302,7 @@
       showLoader(true);
 
       google.script.run
-                   .withSuccessHandler(function(contents) { executionSuccess(); })
+                   .withSuccessHandler(function(contents) { func(); executionSuccess(); })
                    .withFailureHandler(displayError)
                    .deleteRows(9, index, index + rowCnt);
     } else {
@@ -319,7 +319,6 @@
     if (file)
     {
       var reader = new FileReader();
-      reader.readAsText(file);
       reader.onload = function(event) {
         var csvData = event.target.result;
         try {
@@ -333,7 +332,6 @@
               google.script.run
                     .withSuccessHandler(function(contents) {
                       setValue("Account!A1", data);
-
                       compareResultData();
                     })
                     .withFailureHandler(displayError)
@@ -359,6 +357,7 @@
         }
       };
       reader.onerror = function() { displayError("Unable to read the file."); };
+      reader.readAsText(file);
     } else {
       displayError("No file had been selected.", true);
     }
@@ -408,12 +407,22 @@
                        index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0, index+1);
                      }
 
-                     for (var i = dai.length-1; i >= 0; --i) { // Reverse loop
-                       validateDeleteForm(dai[i][0], dai[i][1]);
+                     var f = count => {
+                       if (count == 0) {
+                         insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
+                       }
+                     };
+
+                     if (dai.length == 0) {
+                       f(dai.length);
+                     } else {
+                       for (var i = dai.length-1; i >= 0; --i) { // Reverse loop
+                         validateDeleteForm(dai[i][0], dai[i][1], () => f(i));
+                       }
                      }
 
                      // Adding data
-                     insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
+                     //insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
                    } else {
                      compareResultData();
                    }
