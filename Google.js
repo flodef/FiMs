@@ -31,8 +31,8 @@ class Run {
   }
   static getSheetValues(range) {
     if (!this._workbook) {
-      // var url = "Data/Finance.xlsx";
-      var url  = "https://rawgit.com/flodef/FM/master/Data/Finance.xlsx";
+      var url = "Data/Finance.xlsx";
+      // var url  = "https://rawgit.com/flodef/FM/master/Data/Finance.xlsx";
       var run = this;
 
       fetch(url).then(function(response) {
