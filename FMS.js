@@ -714,10 +714,13 @@
       //for (var j = 0; j < contents[i].length; ++j)
       for (var j of [0, 6, 8, 10, 14, 15, 18, 19, 21, 23, 25]) {   // Select only the interesting columns
         // Name = 0, Shares = 6, Price = 8, Sell = 10, Rebalance = 14, Provision = 15, Tendency = 18, Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 20 to 26
-        var con = j != 8 || !contents[i][7]
-         ? j < 19 || i == 0 ? contents[i][j]
-         : contents[i][j] + ' (' + contents[i][j+1] + ')'
-         : contents[i][7];
+        var con =  i == 0 || j != 8
+                    ? i == 0 || j < 19
+                      ? contents[i][j]
+                      : contents[i][j] + ' (' + contents[i][j+1] + ')'
+                    : !contents[i][7] || contents[i][7] == contents[i][8]
+                      ? toCurrency(contents[i][j], "€")
+                      : toCurrency(contents[i][j], "€") + ' (' + toCurrency(contents[i][j-1], "$") + ')';
         tableHTML += getTableReadOnlyContent(con, i == 0);
       }
       tableHTML += '</tr>';
@@ -785,7 +788,7 @@
     var matches = regExp.exec(content);
     var number = matches ? matches[matches.length-1] : content;
 
-    var isNumber = number && (number.slice(-1) == '%' || number.slice(-1) == '€');
+    var isNumber = number && (number.slice(-1) == '%' || number.slice(-1) == '€'|| number.slice(-1) == '$');
     var color = isNumber && toValue(number) > 0 ? "green"
               : isNumber && toValue(number) < 0 ? "red"
               : "black";
@@ -994,8 +997,9 @@
       : "0.").replace(new RegExp(' ', 'g'), '') + "00";
     var neg = str.substring(0,1) == '-' ? -1 : 0;
     var i = str.indexOf(".");
-    str = str.slice(0, i+4) + " " + symbol;
-    str = i + neg > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
+    str = str.slice(0, i+4).replace(/^0+|0+$/g, '') + " " + symbol;
+    str = i + neg > 9 ? str.slice(0, i-9) + "," + str.slice(i-9, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
+        : i + neg > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
         : i + neg > 3 ? str.slice(0, i-3) + "," + str.slice(i-3)
         : str;
 
