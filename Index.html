@@ -418,6 +418,24 @@
         -webkit-appearance: none;
         margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
     }
+
+    /* Fix the scrollbar issue */
+    /* ::-webkit-scrollbar {
+      -webkit-appearance: none;
+      width: 7px;
+    }
+    ::-webkit-scrollbar-thumb {
+      border-radius: 4px;
+      background-color: rgba(0,0,0,.5);
+      -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+    }
+    .list::-webkit-scrollbar {
+      -webkit-appearance: scrollbartrack-vertical;
+      -webkit-appearance: scrollbarthumb-vertical;
+    }
+    html {
+      overflow-y: scroll;
+    } */
     </style>
 
     <script src="Lib/jquery.min.js"></script>
@@ -435,7 +453,7 @@
 
     <div id="scrollDiv" class="overlay" style="text-align:center;width:100%"></div>
 
-    <div id="content" class="hidden overlay">
+    <div id="content" class="hidden overlay" style="position:absolute;">
       <div style="background:rgba(255,255,255,0.8);width:fit-content;"><h1 id="main-heading">Finance Manager</h1></div>
 
       <div id="dashboardDiv"></div>
