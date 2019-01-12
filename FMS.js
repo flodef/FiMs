@@ -103,7 +103,7 @@
       }
 
       ++rank;
-      if(GLOBAL.invest[index][18].substring(0, 3) != "MID") {
+      if(shouldRebalance(GLOBAL.invest[index][18])) {
         var array = [];
         for (var j of [0, 10, 6, GLOBAL.invest[index][7] != "" ? 7 : 8, 14, 15, 27]) {
           array[GLOBAL.invest[0][j]] = GLOBAL.invest[index][j];
@@ -133,7 +133,7 @@
       for (const [key, value] of row) {
           tableHTML += '<tr>';
 
-          var style = key == "Name" || key == "Rebalance" || (key == "Tendency" && value.substring(0, 3) != "MID")
+          var style = key == "Name" || key == "Rebalance" || (key == "Tendency" && shouldRebalance(value))
                     ? 'font-weight:900;' : '';
           style += key == "Action"
                           ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
@@ -824,7 +824,7 @@
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="' + id + 'Search" class="searchInput" type="text" placeholder="Search"'
-         + 'onkeyup="searchTable(\'' + id + '\');" value="' + ($('#' + id + 'Search').val() || "") + '"></tr></table>'
+         + 'onkeyup="filterTable(\'' + id + '\');" value="' + ($('#' + id + 'Search').val() || "") + '"></tr></table>'
          + getMainTableHead(id);
   }
 
@@ -880,24 +880,15 @@
   }
 
   function filterTable(id) {
-    // Loop through all table rows, and hide those who don't match the search query
     var isChecked = $("#" + id + "Filter").is(':checked');
-    var func = id == GLOBAL.investment ? (i, item) => !isChecked || $(item).children("td")[7].innerHTML != 0
-             : id == GLOBAL.historic ? (i, item) => isChecked || i < GLOBAL.limit
-             : (item, i) => true;
-    toggleItem(id, func);
-
-    searchTable(id);
-  }
-
-  function searchTable(id) {
-    var max = !$('#' + id + 'Filter').is(':checked') ? GLOBAL.limit : null;
-    var filter = $('#' + id + 'Search').val().toUpperCase();
+    var search = $('#' + id + 'Search').val().toUpperCase();
     var index = id == GLOBAL.historic ? 2 : 0;
-    var func = (i, item) => (!max || i < max)
-      && $(item).children("td")[index].innerHTML.toUpperCase().includes(filter);
+    var searchFunc = item => $(item).children("td")[index].innerHTML.toUpperCase().includes(search);
+    var filterFunc = id == GLOBAL.investment ? (i, item) => (!isChecked || shouldRebalance($(item).children("td")[6].innerHTML)) && searchFunc(item)
+                   : id == GLOBAL.historic ? (i, item) => (isChecked || i < GLOBAL.limit) && searchFunc(item)
+                   : (item, i) => true;
 
-    toggleItem(id, func);
+    toggleItem(id, filterFunc);
 
     refreshTotal(id);
   }
@@ -978,6 +969,10 @@
     $("#alert").prop("innerHTML", '<span class="closebtn" onclick="$(\'#alertOverlay\').fadeOut(1000);$(\'#transactionName\').focus();">&times;</span>'
                                 + '<strong>' + (isWarning ? "WARNING" : "ALERT") + ':</strong> ' + msg);
     $('#alertOverlay').fadeIn(1000);
+  }
+
+  function shouldRebalance(value) {
+    return value.substring(0, 3) != "MID";
   }
 
   function toValue(content) {
