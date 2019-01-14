@@ -429,10 +429,6 @@
     <script src="Google.js"></script>
   </head>
   <body>
-    <div id="focus" style="height:0px;">
-      <input id="mainFocus" type="image" src="Img/0BYg1.png" style="height:0px;" autofocus>
-    </div>
-
     <div id="scrollDiv" class="overlay" style="text-align:center;width:100%"></div>
 
     <div id="content" class="hidden overlay" style="position:absolute;">
@@ -455,39 +451,43 @@
 
     <div id="menu" align="right" class="overlay hidden" style="height:60px">
       <table id="actionButton" class="topMenu">
+        <div id="focus" style="height:0px;">
+          <input id="mainFocus" type="image" src="https://i.stack.imgur.com/0BYg1.png" style="height:0px;" autofocus tabindex="1">
+        </div>
+
         <tr>
           <td style="padding: 0px 5px 0px 0px;">
             <div class="tooltip">
-              <input src="Img/Rebalance.png"
-                     type="image" id="rebalanceButton" onclick="rebalanceStocks()">
+              <input src="https://4.bp.blogspot.com/-DRpMV2TDFqc/WgYGlaC5-zI/AAAAAAABBck/3yPEyWd1S0s_lpQqtMmeHNrqf-aZWnheQCLcBGAs/s1600/Rebalance.png"
+                     type="image" id="rebalanceButton" onclick="rebalanceStocks()" tabindex="2">
               <span class="tooltiptext">Rebalance Stocks</span>
             </div>
           </td>
           <td style="padding: 0px 10px 0px 0px;">
             <div class="tooltip">
-              <input src="Img/Add.png"
-                     type="image" id="addButton" onclick="addTransaction()">
+              <input src="https://2.bp.blogspot.com/-gJkGGGSNcPk/WU9gnCGEaSI/AAAAAAABAgc/GkWlbZjKuEUpUXG2U3rsc8fLnPhGxPf0gCLcBGAs/s1600/Add.png"
+                     type="image" id="addButton" onclick="addTransaction()" tabindex="3">
               <span class="tooltiptext">Add Transaction</span>
             </div>
           </td>
           <td style="padding: 0px 10px 0px 0px;">
             <div class="tooltip">
-              <input src="Img/Remove.png"
-                     type="image" id="deleteButton" onclick="deleteTransaction()">
+              <input src="https://3.bp.blogspot.com/-3mhymEJ9NMw/WU9gnk4px2I/AAAAAAABAgo/RmhA34MGgWYeLu6Br73YVX2CVf6eW3w8ACLcBGAs/s1600/Remove.png"
+                     type="image" id="deleteButton" onclick="deleteTransaction()" tabindex="3">
               <span class="tooltiptext">Delete Transaction</span>
             </div>
           </td>
           <td style="padding: 0px 10px 0px 0px;">
             <div class="tooltip">
-              <input src="Img/Upload.png"
-                     type="image" id="uploadButton" onclick="uploadAccountFile()">
+              <input src="https://1.bp.blogspot.com/-eqXzHpVyPvo/WU9gnkHglAI/AAAAAAABAgs/6yBTjv2LDnc4DR67MzXDLv2t0TQA8Hr_wCLcBGAs/s1600/Upload.png"
+                     type="image" id="uploadButton" onclick="uploadAccountFile()" tabindex="4">
               <span class="tooltiptext">Upload Account File</span>
             </div>
           </td>
           <td style="padding: 0px;">
             <div class="tooltip">
-              <input src="Img/Refresh.png"
-                     type="image" id="updateButton" onclick="updateAllValues(true)">
+              <input src="https://1.bp.blogspot.com/-yl40t31lIuI/WU9gnFOZ_0I/AAAAAAABAgg/vTgmLuGDWAwQXG8AqdRBVcAWqCKoxKadACLcBGAs/s1600/Refresh.png"
+                     type="image" id="updateButton" onclick="updateAllValues(true)" tabindex="5">
               <span class="tooltiptext">Update values</span>
             </div>
           </td>
