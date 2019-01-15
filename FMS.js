@@ -17,22 +17,25 @@
   GLOBAL.accountFormulae = "Account!A:K";
   GLOBAL.expHistoFormulae = "ExpensesHistoric!A:C";
   GLOBAL.settingsFormulae = "Settings!A:F";
+  GLOBAL.doVisualUpdates = true;
 
   /**
    * Run initializations on web app load.
    */
+   // document.addEventListener('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
   $(function()
   {
     jQuery.fx.off = false;
-    updateAllValues(false);
-    setInterval(() => updateAllValues(false, true), 60 * 1000); // run update every minute
 
+    $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
+
+    updateAllValues(false);
+    setInterval(() => updateAllValues(false, true), 30 * 1000); // run update every minute
   });
 
-  function updateAllValues(shouldRefresh, isBackgroundUpdate)
-  {
-    if ($("#loading").text() == "") {
+  function updateAllValues(shouldRefresh, isBackgroundUpdate) {
+    if (GLOBAL.doVisualUpdates && $("#loading").text() == "") {
       if (!isBackgroundUpdate) {
         showLoader(shouldRefresh);
       }
@@ -50,8 +53,7 @@
     }
   }
 
-  function updateInvestmentValues()
-  {
+  function updateInvestmentValues() {
     $("#loading").text("Loading Investment ... (2/3)");
 
     google.script.run
@@ -64,8 +66,7 @@
                  .getSheetValues(GLOBAL.investmentFormulae);
   }
 
-  function updateHistoricValues()
-  {
+  function updateHistoricValues() {
     $(".validateButton").prop('disabled', true);
 
     $("#loading").text("Loading Historic ... (3/3)");
@@ -239,19 +240,15 @@
                  : tUnit && tUnit<0 ? "Quantity should have an opposite sign as Value."
                  : "";
 
-    if (!errorMsg)
-    {
+    if (!errorMsg) {
       insertHistoricRow([[tDate, tType, tName, tOpe, tQty, tUnit, tVal,
         tName + "@" + tOpe + "@" + tQty + "@" + tVal]], "Historic");
-    }
-    else
-    {
+    } else {
       displayError(errorMsg, true);
     }
   }
 
-  function insertHistoricRow(data, id, isBackgroundUpdate)
-  {
+  function insertHistoricRow(data, id, isBackgroundUpdate) {
     var index = 1;
     var rowCnt = data.length;
 
@@ -283,16 +280,14 @@
     }
   }
 
-  function sortTransactionValues()
-  {
+  function sortTransactionValues() {
     google.script.run
                  .withSuccessHandler(function(contents) { executionSuccess(); })
                  .withFailureHandler(displayError)
                  .sortColumn(9, 0, true);
   }
 
-  function validateDeleteForm(index, rowCnt, func = () => {})
-  {
+  function validateDeleteForm(index, rowCnt, func = () => {}) {
     var index = index ? index : indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
     var rowCnt = rowCnt ? rowCnt : 1;
 
@@ -310,14 +305,12 @@
     }
   }
 
-  function validateUploadForm()
-  {
+  function validateUploadForm() {
     showLoader(true);
 
     var data = null;
     var file = $("#fileUpload").prop("files")[0];
-    if (file)
-    {
+    if (file) {
       var reader = new FileReader();
       reader.onload = function(event) {
         var csvData = event.target.result;
@@ -326,8 +319,7 @@
             ? csvData.replace(new RegExp(',', 'g'), '.').replace(new RegExp(';', 'g'), ',')
             : csvData);
 
-          if (data && data.length > 1)
-          {
+          if (data && data.length > 1) {
             if (data[0][0] == "Date" && data[0][1] == "Heure") {
               google.script.run
                     .withSuccessHandler(function(contents) {
@@ -363,8 +355,7 @@
     }
   }
 
-  function compareResultData()
-  {
+  function compareResultData() {
     google.script.run
                  .withSuccessHandler(function(contents) {
                    if (contents.length > 1) {
@@ -549,62 +540,46 @@
     $('#mainFocus').focus();
   }
 
-  function onKeyUp(e)
-  {
+  function onKeyUp(e) {
     if (!$('#addTransactionForm').is(":animated")
      && !$('#deleteTransactionForm').is(":animated")
      && !$('#uploadFileForm').is(":animated")
      && !$('#actionButton').is(":animated")
-     && !$('#loaderOverlay').is(':visible'))
-    {
-      if ($('#alertOverlay').is(':visible'))
-      {
+     && !$('#loaderOverlay').is(':visible')) {
+      if ($('#alertOverlay').is(':visible')) {
         $('#alertOverlay').fadeOut(1000);
-      }
-      else if (!$('#actionButton').is(':visible'))
-      {
-        if (e.keyCode === 13) // Enter
-        {
-          if ($('#addTransactionForm').is(':visible'))
-          {
+      } else if (!$('#actionButton').is(':visible')) {
+        if (e.keyCode === 13) { // Enter
+          if ($('#addTransactionForm').is(':visible')) {
             validateAddForm();
           }
-          else if ($('#deleteTransactionForm').is(':visible'))
-          {
+          else if ($('#deleteTransactionForm').is(':visible')) {
             validateDeleteForm();
           }
-          else if ($('#uploadFileForm').is(':visible'))
-          {
+          else if ($('#uploadFileForm').is(':visible')) {
             validateUploadForm();
           }
         }
-        else if (e.keyCode === 27) // Esc
-        {
+        else if (e.keyCode === 27) { // Esc
           cancelForm();
         }
       }
       else
       {
-        if (!$('input[type="number"]').is(':focus') && !$('input[type="text"]').is(':focus'))// && $('#actionButton').is(':visible'))
-        {
-          if (e.keyCode === 186) // $
-          {
+        if (!$('input[type="number"]').is(':focus') && !$('input[type="text"]').is(':focus'))  {
+          if (e.keyCode === 186) { // $
             rebalanceStocks();
           }
-          if (e.keyCode === 107 || e.keyCode === 187) // +
-          {
+          if (e.keyCode === 107 || e.keyCode === 187) { // +
             addTransaction();
           }
-          else if (e.keyCode === 109 || e.keyCode === 189) // -
-          {
+          else if (e.keyCode === 109 || e.keyCode === 189) { // -
             deleteTransaction();
           }
-          else if (e.keyCode === 85) // U
-          {
+          else if (e.keyCode === 85) { // U
             uploadAccountFile();
           }
-          else if (e.keyCode === 82) // R
-          {
+          else if (e.keyCode === 82) { // R
             updateAllValues(true);
           }
         }
@@ -612,21 +587,18 @@
     }
   }
 
-  function addTransactionName(title, text)
-  {
+  function addTransactionName(title, text) {
     $('#transactionName').append($('<option>', {
       title: title,
       text: text
     }));
   }
 
-  function clearTransactionName()
-  {
+  function clearTransactionName() {
     $('#transactionName').children('option').remove();
   }
 
-  function updateDashboardTable(contents)
-  {
+  function updateDashboardTable(contents) {
     GLOBAL.dashb = contents;
 
     google.script.run
@@ -700,8 +672,7 @@
     $("#rebalanceButton").prop('disabled', GLOBAL.dashb[GLOBAL.rebalRow][1] == "FALSE");
   }
 
-  function updateInvestmentTable(contents)
-  {
+  function updateInvestmentTable(contents) {
     GLOBAL.invest = contents;
 
     clearTransactionName();
@@ -743,8 +714,7 @@
     sorttable.innerSortFunction.apply($("#" + id + "Table th:first")[0], []);
   }
 
-  function updateHistoricTable(contents)
-  {
+  function updateHistoricTable(contents) {
     GLOBAL.histo = contents;
 
     var id = GLOBAL.historic;

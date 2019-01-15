@@ -16,7 +16,9 @@ for /l %%n in (9,-1,0) do (
 SET /p retry= File not found. Check your Internet connexion. Retry (Y/N) ? 
 IF %retry%==Y GOTO lo
 :el
-MOVE /-Y C:\Users\fdefr\Downloads\Finance.xlsx .\Data
+CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
+SET do=%ERRORLEVEL%
+IF %do% EQU 1 MOVE C:\Users\fdefr\Downloads\Finance.xlsx .\Data
 CLS
 START /B http-server
 EXIT
