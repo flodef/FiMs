@@ -432,7 +432,7 @@
       var row = contents[i];
       var date = row[0];
       var label = row[2];
-      var val = toCurrency(row[6], "€");
+      var val = toCurrency(row[6]);
 
       if (indexOf(expenses, date, 0) === null ||
           indexOf(expenses, label, 1) === null ||
@@ -478,7 +478,7 @@
       }
 
       var transaction = "DIVIDEND";
-      var value = toCurrency(row[5], "€");
+      var value = toCurrency(row[5]);
       var id = label + "@" + transaction + "@@" + row[5].replace(",", ".");
 
       if (!isError) {
@@ -677,6 +677,8 @@
 
     clearTransactionName();
 
+    var tags = [];
+
     var id = GLOBAL.investment;
     var tableHTML = getTableTitle(id, "Rebalance", contents[0].length-1);
     for (var i = 0; i < contents.length; ++i) {
@@ -690,8 +692,8 @@
                       ? contents[i][j]
                       : contents[i][j] + ' (' + contents[i][j+1] + ')'
                     : !contents[i][7] || contents[i][7] == contents[i][8]
-                      ? toCurrency(contents[i][j], "€")
-                      : toCurrency(contents[i][j], "€") + ' (' + toCurrency(contents[i][j-1], "$") + ')';
+                      ? toCurrency(contents[i][j])
+                      : toCurrency(contents[i][j], "€", 4) + ' (' + toCurrency(contents[i][j-1], "$", 4) + ')';
         tableHTML += getTableReadOnlyContent(con, i == 0);
       }
       tableHTML += '</tr>';
@@ -700,6 +702,7 @@
       : i==contents.length-1 ? '</tfoot>' : '';
 
       if (i != 0 && i != contents.length-1) {
+        tags.push(contents[i][0]);
         addTransactionName(contents[i][1], contents[i][0]);
       }
     }
@@ -712,6 +715,9 @@
 
 //    $("#" + id + "Table th:first").addClass("sorttable_sorted");
     sorttable.innerSortFunction.apply($("#" + id + "Table th:first")[0], []);
+
+    // $("#" + id + "Search").easyAutocomplete({ data: tags, list: { match: { enabled: true } } });
+    // $("#" + id + "Search").autocomplete({ source: tags });
   }
 
   function updateHistoricTable(contents) {
@@ -782,7 +788,9 @@
 
   function getTitle(id) {
     return '<h2 onclick="$(\'.mainTable\').each(function(){if(this.id != \'' + id + 'Table\'){$(this).hide();}});'
-          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\', function(){if($(this).is(\':visible\')){refreshTotal(\'' + id + '\');}});">'
+          + '$(\'.searchInput\').each(function(){if(this.id != \'' + id + 'Search\'){$(this).hide();}});'
+          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\', function(){if($(this).is(\':visible\')){refreshTotal(\'' + id + '\');}});'
+          + '$(\'#' + id + 'Search\').fadeToggle(\'slow\');">'
           + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
   }
 
@@ -793,8 +801,10 @@
          + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="filterTable(\'' + id + '\')">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
-         + '<input id="' + id + 'Search" class="searchInput" type="text" placeholder="Search"'
-         + 'onkeyup="filterTable(\'' + id + '\');" value="' + ($('#' + id + 'Search').val() || "") + '"></tr></table>'
+         + '<input id="' + id + 'Search" type="text" placeholder="Search" class="searchInput '
+         + ($("#" + id + "Search").is(":visible") ? '' : 'hidden') + '" '
+         + 'onkeyup="filterTable(\'' + id + '\');" onchange="filterTable(\'' + id + '\');"'
+         + 'value="' + ($('#' + id + 'Search').val() || "") + '"></tr></table>'
          + getMainTableHead(id);
   }
 
@@ -900,8 +910,8 @@
       });
       $("#" + id + "Footer").prop("innerHTML",
         '<td>TOTAL</td><td colspan="3" align="center">' + rows + ' rows</td>'
-        + '<td>' + qty.toFixed(0) + '</td><td>' + toCurrency(price/ner, "€") + '</td>'
-        + '<td>' + toCurrency(value, "€") + '</td><td>' + toCurrency(profit, "€") + '</td>');
+        + '<td>' + qty.toFixed(0) + '</td><td>' + toCurrency(price/ner) + '</td>'
+        + '<td>' + toCurrency(value) + '</td><td>' + toCurrency(profit) + '</td>');
     }
   }
 
@@ -954,15 +964,17 @@
                    : 0;
   }
 
-  function toCurrency(content, symbol) {
+  function toCurrency(content, symbol = '€', precision = 2) {
     var str = (content
       ? String(content).includes(".") && !String(content).includes(",")
         ? String(content) : String(content).includes(",")
           ? String(content).replace(".", "").replace(",", ".") : String(content) + "."
-      : "0.").replace(new RegExp(' ', 'g'), '') + "00";
+      : "0.").replace(new RegExp('( |' + symbol + ')', 'g'), '') + "00";
     var neg = str.substring(0,1) == '-' ? -1 : 0;
     var i = str.indexOf(".");
-    str = str.slice(0, i+4).replace(/^0+|0+$/g, '') + " " + symbol;
+    str = str.slice(0, i+precision+1).replace(/^0+|0+$/g, '');
+    var j = str.length-str.indexOf(".")-1;
+    str = (j < 2 ? str + '0'.repeat(2-j) : str) + " " + symbol;
     str = i + neg > 9 ? str.slice(0, i-9) + "," + str.slice(i-9, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
         : i + neg > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
         : i + neg > 3 ? str.slice(0, i-3) + "," + str.slice(i-3)
