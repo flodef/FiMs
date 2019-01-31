@@ -969,7 +969,7 @@
       ? String(content).includes(".") && !String(content).includes(",")
         ? String(content) : String(content).includes(",")
           ? String(content).replace(".", "").replace(",", ".") : String(content) + "."
-      : "0.").replace(new RegExp('( |' + symbol + ')', 'g'), '') + "00";
+      : "0.").replace(" ", "").replace(symbol, "") + "00";
     var neg = str.substring(0,1) == '-' ? -1 : 0;
     var i = str.indexOf(".");
     str = str.slice(0, i+precision+1).replace(/^0+|0+$/g, '');
