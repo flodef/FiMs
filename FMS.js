@@ -693,7 +693,7 @@
                       : contents[i][j] + ' (' + contents[i][j+1] + ')'
                     : !contents[i][7] || contents[i][7] == contents[i][8]
                       ? toCurrency(contents[i][j])
-                      : toCurrency(contents[i][j], "€", 4) + ' (' + toCurrency(contents[i][j-1], "$", 4) + ')';
+                      : toCurrency(contents[i][j], 4) + ' (' + toCurrency(contents[i][j-1], 4, "$") + ')';
         tableHTML += getTableReadOnlyContent(con, i == 0);
       }
       tableHTML += '</tr>';
@@ -729,8 +729,9 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
       for (var j = 0; j < contents[i].length; ++j) {
+        var value = j != 5 ? contents[i][j] : toCurrency(contents[i][j], 4);
         tableHTML += j != 7   // Don't display the ID at row 7
-          ? getTableReadOnlyContent(contents[i][j], i == 0)
+          ? getTableReadOnlyContent(value, i == 0)
           : '';
       }
       tableHTML += '</tr>';
@@ -760,13 +761,15 @@
   }
 
   function getTableReadOnlyContent(content, isHeader) {
-    var regExp = /\(([^)]+)\)/;
-    var matches = regExp.exec(content);
-    var number = matches ? matches[matches.length-1] : content;
-
-    var isNumber = number && (number.slice(-1) == '%' || number.slice(-1) == '€'|| number.slice(-1) == '$');
-    var color = isNumber && toValue(number) > 0 ? "green"
-              : isNumber && toValue(number) < 0 ? "red"
+    var matches = /\(([^)]+)\)/.exec(content);
+    var value = matches ? matches[matches.length-1] : content;
+    var isCur = /(€|%|\$)/.test(value);
+    var number = parseFloat(value);
+    var color = isCur
+                  ? number > 0 ? "green"
+                  : number < 0 ? "red"
+                  : "wheat"
+              : !isNaN(number) && number == 0 ? "wheat"
               : "black";
     return isHeader ? '<th align="center">' + content + '</th>'
                     : '<td align="center" style="color:' + color + '">' + content + '</td>';
@@ -964,23 +967,28 @@
                    : 0;
   }
 
-  function toCurrency(content, symbol = '€', precision = 2) {
-    var str = (content
-      ? String(content).includes(".") && !String(content).includes(",")
-        ? String(content) : String(content).includes(",")
-          ? String(content).replace(".", "").replace(",", ".") : String(content) + "."
-      : "0.").replace(" ", "").replace(symbol, "") + "00";
-    var neg = str.substring(0,1) == '-' ? -1 : 0;
-    var i = str.indexOf(".");
-    str = str.slice(0, i+precision+1).replace(/^0+|0+$/g, '');
-    var j = str.length-str.indexOf(".")-1;
-    str = (j < 2 ? str + '0'.repeat(2-j) : str) + " " + symbol;
-    str = i + neg > 9 ? str.slice(0, i-9) + "," + str.slice(i-9, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
-        : i + neg > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
-        : i + neg > 3 ? str.slice(0, i-3) + "," + str.slice(i-3)
-        : str;
+  function toCurrency(content, precision = 2, symbol = '€') {
+    if (!isNaN(parseFloat(content))) {
+      var str = String(toValue((content
+        ? String(content).includes(".") && !String(content).includes(",")
+          ? String(content) : String(content).includes(",")
+            ? String(content).replace(".", "").replace(",", ".") : String(content) + "."
+        : "0.") + "00"));
 
-    return str;
+      var neg = str.substring(0,1) == '-' ? -1 : 0;
+      var i = str.indexOf(".");
+      str = str.slice(0, i+precision+1).replace(/^0+|0+$/g, '');
+      var j = str.length-str.indexOf(".")-1;
+      str = (j < 2 ? str + '0'.repeat(2-j) : str) + " " + symbol;
+      str = i + neg > 9 ? str.slice(0, i-9) + "," + str.slice(i-9, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
+          : i + neg > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
+          : i + neg > 3 ? str.slice(0, i-3) + "," + str.slice(i-3)
+          : str;
+
+      return str;
+    } else {
+      return content;
+    }
   }
 
   function toDate(content) {
