@@ -764,7 +764,7 @@
     var matches = /\(([^)]+)\)/.exec(content);
     var value = matches ? matches[matches.length-1] : content;
     var isCur = /(€|%|\$)/.test(value);
-    var number = parseFloat(value);
+    var number = toValue(value);
     var color = isCur
                   ? number > 0 ? "green"
                   : number < 0 ? "red"
