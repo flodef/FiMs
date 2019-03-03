@@ -894,8 +894,10 @@
       var value = 0;
       var instprof = 0;
       var avgprof = 0;
+      var priner = 0;
+      var instner = 0;
+      var avgner = 0;
       var rows = 0;
-      var ner = 0;
 
       var max = !$('#' + id + 'Filter').is(':checked')
         ? GLOBAL.limit : $("#" + id + "Table tbody tr").length;
@@ -908,19 +910,22 @@
         qty += toValue(item[4].innerHTML);
         price += toValue(item[5].innerHTML);
         value += toValue(item[6].innerHTML);
-        instprof += item.length >= 8 ? toValue(item[7].innerHTML) : 0;
-        avgprof += item.length >= 9 ? toValue(item[8].innerHTML) : 0;
-        ner = ner + (item[4].innerHTML ? 1 : 0);
+        instprof += toValue(item[7].innerHTML);
+        avgprof += toValue(item[8].innerHTML);
+
+        priner += item[5].innerHTML ? 1 : 0;
+        instner += item[7].innerHTML ? 1 : 0;
+        avgner += item[8].innerHTML ? 1 : 0;
         ++rows;
       });
       $("#" + id + "Footer").prop("innerHTML",
         '<td>TOTAL</td>'
         + '<td colspan="3" align="center">' + rows + ' rows</td>'
         + '<td>' + qty.toFixed(0) + '</td>'
-        + '<td>' + toCurrency(price/ner) + '</td>'
-        + '<td>' + toCurrency(value) + '</td>'
-        + '<td>' + toCurrency(instprof) + '</td>'
-        + '<td>' + toCurrency(avgprof) + '</td>');
+        + '<td>' + toCurrency(price/priner) + '</td>'
+        + '<td title="' + toCurrency(value/rows) + '">' + toCurrency(value) + '</td>'
+        + '<td title="' + toCurrency(instprof/instner) + '">' + toCurrency(instprof) + '</td>'
+        + '<td title="' + toCurrency(avgprof/avgner) + '">' + toCurrency(avgprof) + '</td>');
     }
   }
 
