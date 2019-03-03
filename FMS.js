@@ -606,42 +606,53 @@
                    var id = GLOBAL.dashboard;
                    var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
                    tableHTML += getMainTableHead(id);
-                   tableHTML += getSubTableTitle(contents[0][0], "Settings!A1");
-                   tableHTML += '<tr>';
-                   for (var i = 1; i < contents[0].length; i++) {
-                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[0][i]);
+                   for (var i = 0; i < 5; i++) {
+                     tableHTML += getSubTableTitle(contents[i][0], "Settings!A" + i+1);
+                     tableHTML += '<tr>';
+                     for (var j = 1; j < contents[i].length; j++) {
+                       tableHTML += i != 4 || j != 3
+                                  ? getTableReadOnlyCell(GLOBAL.dashb, contents[i][j])
+                                  : getTableEditableCell(GLOBAL.dashb, contents[i][j], "Allocation!B14", 1000000)
+                     }
+                     tableHTML += '</tr>';
                    }
-                   tableHTML += '</tr>';
 
-                   tableHTML += getSubTableTitle(contents[1][0], "Settings!A2");
-                   tableHTML += '<tr>';
-                   for (var i = 1; i < contents[1].length; i++) {
-                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[1][i]);
-                   }
-                   tableHTML += '</tr>';
-
-                   tableHTML += getSubTableTitle(contents[2][0], "Settings!A3");
-                   tableHTML += '<tr>';
-                   for (var i = 1; i < contents[2].length; i++) {
-                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[2][i]);
-                   }
-                   tableHTML += '</tr>';
-
-                   tableHTML += getSubTableTitle(contents[3][0], "Settings!A4");
-                   tableHTML += '<tr>';
-                   for (var i = 1; i < contents[3].length; i++) {
-                     tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[3][i]);
-                   }
-                   tableHTML += '</tr>';
-
-                   tableHTML += getSubTableTitle(contents[4][0], "Settings!A5");
-                   tableHTML += '<tr>';
-                   for (var i = 1; i < contents[4].length; i++) {
-                     tableHTML += i != 3
-                                ? getTableReadOnlyCell(GLOBAL.dashb, contents[4][i])
-                                : getTableEditableCell(GLOBAL.dashb, contents[4][i], "Allocation!B14", 1000000)
-                   }
-                   tableHTML += '</tr>';
+                   // tableHTML += getSubTableTitle(contents[0][0], "Settings!A1");
+                   // tableHTML += '<tr>';
+                   // for (var i = 1; i < contents[0].length; i++) {
+                   //   tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[0][i]);
+                   // }
+                   // tableHTML += '</tr>';
+                   //
+                   // tableHTML += getSubTableTitle(contents[1][0], "Settings!A2");
+                   // tableHTML += '<tr>';
+                   // for (var i = 1; i < contents[1].length; i++) {
+                   //   tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[1][i]);
+                   // }
+                   // tableHTML += '</tr>';
+                   //
+                   // tableHTML += getSubTableTitle(contents[2][0], "Settings!A3");
+                   // tableHTML += '<tr>';
+                   // for (var i = 1; i < contents[2].length; i++) {
+                   //   tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[2][i]);
+                   // }
+                   // tableHTML += '</tr>';
+                   //
+                   // tableHTML += getSubTableTitle(contents[3][0], "Settings!A4");
+                   // tableHTML += '<tr>';
+                   // for (var i = 1; i < contents[3].length; i++) {
+                   //   tableHTML+= getTableReadOnlyCell(GLOBAL.dashb, contents[3][i]);
+                   // }
+                   // tableHTML += '</tr>';
+                   //
+                   // tableHTML += getSubTableTitle(contents[4][0], "Settings!A5");
+                   // tableHTML += '<tr>';
+                   // for (var i = 1; i < contents[4].length; i++) {
+                   //   tableHTML += i != 3
+                   //              ? getTableReadOnlyCell(GLOBAL.dashb, contents[4][i])
+                   //              : getTableEditableCell(GLOBAL.dashb, contents[4][i], "Allocation!B14", 1000000)
+                   // }
+                   // tableHTML += '</tr>';
 
                    // tableHTML += getSubTableTitle(contents[5][0], "Settings!A6");
                    // tableHTML += '<tr>';
@@ -680,8 +691,10 @@
     var tags = [];
 
     var id = GLOBAL.investment;
-    var tableHTML = getTableTitle(id, "Rebalance", contents[0].length-1);
-    for (var i = 0; i < contents.length; ++i) {
+    var row = contents.length;
+    var col = contents[0].length;
+    var tableHTML = getTableTitle(id, "Rebalance", col-1);
+    for (var i = 0; i < row; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
@@ -698,10 +711,10 @@
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
-      : i==contents.length-2 ? '</tbody><tfoot>'
-      : i==contents.length-1 ? '</tfoot>' : '';
+      : i==row-2 ? '</tbody><tfoot>'
+      : i==row-1 ? '</tfoot>' : '';
 
-      if (i != 0 && i != contents.length-1) {
+      if (i != 0 && i != row-1) {
         tags.push(contents[i][0]);
         addTransactionName(contents[i][1], contents[i][0]);
       }
@@ -724,12 +737,15 @@
     GLOBAL.histo = contents;
 
     var id = GLOBAL.historic;
-    var tableHTML = getTableTitle(id, "Show all", contents[0].length-1);
-    for (var i = 0; i < contents.length; ++i) {
+    var row = contents.length;
+    var col = contents[0].length;
+    var tableHTML = getTableTitle(id, "Show all",col-1);
+    for (var i = 0; i < row; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
-      for (var j = 0; j < contents[i].length; ++j) {
-        var value = j != 5 ? contents[i][j] : toCurrency(contents[i][j], 4);
+      for (var j = 0; j < col; ++j) {
+        var value = j < contents[i].length ?
+          j != 5 ? contents[i][j] : toCurrency(contents[i][j], 4) : "";
         tableHTML += j != 7   // Don't display the ID at row 7
           ? getTableReadOnlyContent(value, i == 0)
           : '';
@@ -761,6 +777,7 @@
   }
 
   function getTableReadOnlyContent(content, isHeader) {
+    var content = content ? content : "";
     var matches = /\(([^)]+)\)/.exec(content);
     var value = matches ? matches[matches.length-1] : content;
     var isCur = /(€|%|\$)/.test(value);
@@ -912,10 +929,14 @@
         value += toValue(item[6].innerHTML);
         instprof += toValue(item[7].innerHTML);
         avgprof += toValue(item[8].innerHTML);
+        // instprof += item.length >= 8 ? toValue(item[7].innerHTML) : 0;
+        // avgprof += item.length >= 9 ? toValue(item[8].innerHTML) : 0;
 
         priner += item[5].innerHTML ? 1 : 0;
         instner += item[7].innerHTML ? 1 : 0;
         avgner += item[8].innerHTML ? 1 : 0;
+        // instner += item.length >= 8 && item[7].innerHTML ? 1 : 0;
+        // avgner += item.length >= 9 && item[8].innerHTML ? 1 : 0;
         ++rows;
       });
       $("#" + id + "Footer").prop("innerHTML",
