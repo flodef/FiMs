@@ -12,7 +12,7 @@
   GLOBAL.historic = "historic";
   GLOBAL.dashboardFormulae = "Dashboard!A:B";
   GLOBAL.investmentFormulae = "Investment!D:AE";
-  GLOBAL.historicFormulae = "Historic!A:I";
+  GLOBAL.historicFormulae = "Historic!A:J";
   GLOBAL.resultFormulae = "Result!A:H";
   GLOBAL.accountFormulae = "Account!A:K";
   GLOBAL.expHistoFormulae = "ExpensesHistoric!A:C";
