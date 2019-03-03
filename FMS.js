@@ -12,7 +12,7 @@
   GLOBAL.historic = "historic";
   GLOBAL.dashboardFormulae = "Dashboard!A:B";
   GLOBAL.investmentFormulae = "Investment!D:AE";
-  GLOBAL.historicFormulae = "Historic!A:I";
+  GLOBAL.historicFormulae = "Historic!A:J";
   GLOBAL.resultFormulae = "Result!A:H";
   GLOBAL.accountFormulae = "Account!A:K";
   GLOBAL.expHistoFormulae = "ExpensesHistoric!A:C";
@@ -892,7 +892,8 @@
       var qty = 0;
       var price = 0;
       var value = 0;
-      var profit = 0;
+      var instprof = 0;
+      var avgprof = 0;
       var rows = 0;
       var ner = 0;
 
@@ -907,14 +908,19 @@
         qty += toValue(item[4].innerHTML);
         price += toValue(item[5].innerHTML);
         value += toValue(item[6].innerHTML);
-        profit += item.length >= 8 ? toValue(item[7].innerHTML) : 0;
+        instprof += item.length >= 8 ? toValue(item[7].innerHTML) : 0;
+        avgprof += item.length >= 9 ? toValue(item[8].innerHTML) : 0;
         ner = ner + (item[4].innerHTML ? 1 : 0);
         ++rows;
       });
       $("#" + id + "Footer").prop("innerHTML",
-        '<td>TOTAL</td><td colspan="3" align="center">' + rows + ' rows</td>'
-        + '<td>' + qty.toFixed(0) + '</td><td>' + toCurrency(price/ner) + '</td>'
-        + '<td>' + toCurrency(value) + '</td><td>' + toCurrency(profit) + '</td>');
+        '<td>TOTAL</td>'
+        + '<td colspan="3" align="center">' + rows + ' rows</td>'
+        + '<td>' + qty.toFixed(0) + '</td>'
+        + '<td>' + toCurrency(price/ner) + '</td>'
+        + '<td>' + toCurrency(value) + '</td>'
+        + '<td>' + toCurrency(instprof) + '</td>'
+        + '<td>' + toCurrency(avgprof) + '</td>');
     }
   }
 
