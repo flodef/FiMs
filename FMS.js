@@ -606,13 +606,13 @@
                    var id = GLOBAL.dashboard;
                    var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
                    tableHTML += getMainTableHead(id);
-                   for (var i = 7; i < 12; i++) {
-                     tableHTML += getSubTableTitle(contents[i][0], "Settings!A" + i+1);
+                   for (var i = 0; i < 5; i++) {
+                     tableHTML += getSubTableTitle(contents[i][0], "Settings!A" + (i+1));
                      tableHTML += '<tr>';
                      for (var j = 1; j < contents[i].length; j++) {
                        tableHTML += i != 4 || j != 3
-                                  ? getTableReadOnlyCell(GLOBAL.dashb, contents[i][j])
-                                  : getTableEditableCell(GLOBAL.dashb, contents[i][j], "Allocation!B14", 1000000)
+                                  ? getTableReadOnlyCell(GLOBAL.dashb, contents[i+7][j])
+                                  : getTableEditableCell(GLOBAL.dashb, contents[i+7][j], "Allocation!B14", 1000000)
                      }
                      tableHTML += '</tr>';
                    }
@@ -624,7 +624,7 @@
                    for (var i = 0; i < contents[5].length; ++i) {
                      tableHTML += '<tr>';
                      tableHTML += getTableReadOnlyContent(contents[5][i], false);
-                     tableHTML += getTableReadOnlyContent(GLOBAL.dashb[contents[13][i]-1][1], false);
+                     tableHTML += getTableReadOnlyContent(GLOBAL.dashb[contents[6+7][i]-1][1], false);
                      tableHTML += '</tr>';
                    }
 
