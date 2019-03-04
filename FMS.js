@@ -698,7 +698,7 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
       for (var j = 0; j < col; ++j) {
-        var value = j < contents[i].length
+        var value = j < contents[i].length && contents[i][j]
           ? j != 5 || i == 0
             ? contents[i][j]
             : toCurrency(contents[i][j], 4)
@@ -959,7 +959,7 @@
 
     var neg = str.substring(0,1) == '-' ? -1 : 0;
     var i = str.indexOf(".");
-    str = str.slice(0, i+precision+1).replace(/^0+|0+$/g, '');
+    str = i != -1 ? str.slice(0, i+precision+1).replace(/^0+|0+$/g, '') : str + ".";
     var j = str.length-str.indexOf(".")-1;
     str = (j < 2 ? str + '0'.repeat(2-j) : str) + " " + symbol;
     str = i + neg > 9 ? str.slice(0, i-9) + "," + str.slice(i-9, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
