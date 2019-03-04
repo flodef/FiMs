@@ -123,7 +123,7 @@
   }
 
   function updateRebalanceTable(contents) {
-    var closing = '$(\'#popupOverlay\').fadeOut(1000);$(\'#menu\').removeClass(\'blur-filter\');$(\'#content\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();';
+    var closing = '$(\'#popupOverlay\').fadeOut(1000);$(\'.contentOverlay\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();';
 
     var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
     for (var i = 0; i < contents.length; i++) {
@@ -180,8 +180,7 @@
     $("#popup").prop("innerHTML", tableHTML);
 
     $('#popupOverlay').fadeIn(1000);
-    $('#menu').addClass("blur-filter");
-    $('#content').addClass("blur-filter");
+    $('.contentOverlay').addClass("blur-filter");
   }
 
   function addTransaction() {
@@ -619,7 +618,7 @@
                    tableHTML += '</table>';
                    $("#dashboardDiv").prop("innerHTML", tableHTML);
 
-                   tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:45px;margin:15px"><table>';
+                   tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
                    tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashb, GLOBAL.dashb.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
                    for (var i = 0; i < contents[5].length; ++i) {
                      tableHTML += '<tr>';
@@ -912,14 +911,12 @@
 
   function showLoader(isRefreshing) {
     $('#loaderOverlay').fadeIn(1000);
-    $('#content').fadeTo(1000, isRefreshing ? 0.3 : 0);
-    $('#menu').fadeTo(1000, isRefreshing ? 0.3 : 0);
+    $('.contentOverlay').fadeTo(1000, isRefreshing ? 0.3 : 0);
   }
 
   function hideLoader() {
     $('#loaderOverlay').fadeOut(1000);
-    $('#content').fadeTo(1000, 1);
-    $('#menu').fadeTo(1000, 1);
+    $('.contentOverlay').fadeTo(1000, 1);
   }
 
   function executionSuccess() {

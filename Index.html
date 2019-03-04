@@ -90,11 +90,15 @@
     }
 
     .blur-filter {
-        -webkit-filter: blur(2px);
-        -moz-filter: blur(2px);
-        -o-filter: blur(2px);
-        -ms-filter: blur(2px);
-        filter: blur(2px);
+      -webkit-filter: blur(2px);
+      -moz-filter: blur(2px);
+      -o-filter: blur(2px);
+      -ms-filter: blur(2px);
+      filter: blur(2px);
+    }
+
+    #content {
+      position: absolute;
     }
 
     #footer {
@@ -104,53 +108,57 @@
 
     /* Search bar */
     .searchInput {
-        border-radius: 25px;
-        background-image: url('Img/searchicon.png'); /* Add a search icon to input */
-        background-position: 6px 4px; /* Position the search icon */
-        background-repeat: no-repeat; /* Do not repeat the icon image */
-        height: 28px;
-        font-size: 16px; /* Increase font-size */
-        padding: 0px 0px 0px 40px; /* Add some padding */
-        border: 1px solid #b1b1b1; /* Add a grey border */
-        vertical-align: bottom;
-        width: 130px;
-        -webkit-transition: width 0.4s ease-in-out;
-        transition: width 0.4s ease-in-out;
+      border-radius: 25px;
+      background-image: url('Img/searchicon.png'); /* Add a search icon to input */
+      background-position: 6px 4px; /* Position the search icon */
+      background-repeat: no-repeat; /* Do not repeat the icon image */
+      height: 28px;
+      font-size: 16px; /* Increase font-size */
+      padding: 0px 0px 0px 40px; /* Add some padding */
+      border: 1px solid #b1b1b1; /* Add a grey border */
+      vertical-align: bottom;
+      width: 130px;
+      -webkit-transition: width 0.4s ease-in-out;
+      transition: width 0.4s ease-in-out;
     }
 
     .searchInput:focus {
-        width: 250px;
+      width: 250px;
     }
 
     table.sortable tr {
-        /* Add a bottom border to all table rows */
-        border-bottom: 1px solid #ddd;
+      /* Add a bottom border to all table rows */
+      border-bottom: 1px solid #ddd;
     }
 
     table.sortable tr.header, table.sortable tr:hover {
-        /* Add a grey background color to the table header and on hover */
-        background-color: #f1f1f1;
+      /* Add a grey background color to the table header and on hover */
+      background-color: #f1f1f1;
     }
 
 
     /* Loader and Overlay */
     .overlay {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 2;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+    }
+
+    .contentOverlay {
+      height: 60px;
     }
 
     #popup {
-        background-color: #fefefe;
-        margin: 15% auto; /* 15% from the top and centered */
-        padding: 20px;
-        border: 1px solid #888;
-        width: 555px; /* Could be more or less, depending on screen size */
+      background-color: #fefefe;
+      margin: 15% auto; /* 15% from the top and centered */
+      padding: 20px;
+      border: 1px solid #888;
+      width: 555px; /* Could be more or less, depending on screen size */
     }
 
     #loader {
@@ -201,49 +209,49 @@
 
     /* The snackbar - position it at the bottom and in the middle of the screen */
     #snackbar {
-        visibility: hidden; /* Hidden by default. Visible on click */
-        min-width: 250px; /* Set a default minimum width */
-        margin-left: -125px; /* Divide value of min-width by 2 */
-        background-color: #333; /* Black background color */
-        color: #fff; /* White text color */
-        text-align: center; /* Centered text */
-        border-radius: 2px; /* Rounded borders */
-        padding: 16px; /* Padding */
-        position: fixed; /* Sit on top of the screen */
-        z-index: 1; /* Add a z-index if needed */
-        left: 50%; /* Center the snackbar */
-        bottom: 30px; /* 30px from the bottom */
+      visibility: hidden; /* Hidden by default. Visible on click */
+      min-width: 250px; /* Set a default minimum width */
+      margin-left: -125px; /* Divide value of min-width by 2 */
+      background-color: #333; /* Black background color */
+      color: #fff; /* White text color */
+      text-align: center; /* Centered text */
+      border-radius: 2px; /* Rounded borders */
+      padding: 16px; /* Padding */
+      position: fixed; /* Sit on top of the screen */
+      z-index: 1; /* Add a z-index if needed */
+      left: 50%; /* Center the snackbar */
+      bottom: 30px; /* 30px from the bottom */
     }
 
     /* Show the snackbar when clicking on a button (class added with JavaScript) */
     #snackbar.show {
-        visibility: visible; /* Show the snackbar */
+      visibility: visible; /* Show the snackbar */
 
-    /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
-    However, delay the fade out process for 2.5 seconds */
-        -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-        animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
+      However, delay the fade out process for 2.5 seconds */
+      -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
     }
 
     /* Animations to fade the snackbar in and out */
     @-webkit-keyframes fadein {
-        from {bottom: 0; opacity: 0;}
-        to {bottom: 30px; opacity: 1;}
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
     }
 
     @keyframes fadein {
-        from {bottom: 0; opacity: 0;}
-        to {bottom: 30px; opacity: 1;}
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
     }
 
     @-webkit-keyframes fadeout {
-        from {bottom: 30px; opacity: 1;}
-        to {bottom: 0; opacity: 0;}
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
     }
 
     @keyframes fadeout {
-        from {bottom: 30px; opacity: 1;}
-        to {bottom: 0; opacity: 0;}
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
     }
 
     /* The switch - the box around the slider */
@@ -255,7 +263,9 @@
     }
 
     /* Hide default HTML checkbox */
-    .switch input {display:none;}
+    .switch input {
+      display:none;
+    }
 
     /* The slider */
     .slider {
@@ -307,80 +317,80 @@
 
     /* Tooltip */
     .tooltip {
-        position: relative;
-        display: inline-block;
-        /*border-bottom: 1px dotted black;*/
+      position: relative;
+      display: inline-block;
+      /*border-bottom: 1px dotted black;*/
     }
 
     .tooltip .tooltiptext {
-        visibility: hidden;
-        width: 120px;
-        background-color: #555;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-        padding: 5px 0;
-        position: absolute;
-        z-index: 1;
-        /*bottom: 125%;*/
-        top: 125%;
-        left: 50%;
-        margin-left: -60px;
-        opacity: 0;
-        transition: opacity 3s;
+      visibility: hidden;
+      width: 120px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 0;
+      position: absolute;
+      z-index: 1;
+      /*bottom: 125%;*/
+      top: 125%;
+      left: 50%;
+      margin-left: -60px;
+      opacity: 0;
+      transition: opacity 3s;
     }
 
     .tooltip .tooltiptext::after {
-        content: "";
-        position: absolute;
-        /*top: 100%;*/
-        bottom: 100%;
-        left: 50%;
-        margin-left: -5px;
-        border-width: 5px;
-        border-style: solid;
-        /*border-color: #555 transparent transparent transparent;*/
-        border-color: transparent transparent #555 transparent;
+      content: "";
+      position: absolute;
+      /*top: 100%;*/
+      bottom: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      /*border-color: #555 transparent transparent transparent;*/
+      border-color: transparent transparent #555 transparent;
     }
 
     .tooltip:hover .tooltiptext {
-        visibility: visible;
-        opacity: 1;
+      visibility: visible;
+      opacity: 1;
     }
 
 
     /* Image effect */
     img:hover {
-        -webkit-filter: blur(1px);
-        filter: blur(1px);
-        /*box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);*/
-        cursor: pointer;
+      -webkit-filter: blur(1px);
+      filter: blur(1px);
+      /*box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);*/
+      cursor: pointer;
     }
 
 
     /* Alert */
     #alert {
-        padding: 25px;
-        font-size: large;
-        color: white;
-        opacity: 1;
-        transition: opacity 0.6s;
-        margin-bottom: 15px;
+      padding: 25px;
+      font-size: large;
+      color: white;
+      opacity: 1;
+      transition: opacity 0.6s;
+      margin-bottom: 15px;
     }
 
     .closebtn {
-        margin-left: 15px;
-        color: white;
-        font-weight: bold;
-        float: right;
-        font-size: 22px;
-        line-height: 20px;
-        cursor: pointer;
-        transition: 0.5s;
+      margin-left: 15px;
+      color: white;
+      font-weight: bold;
+      float: right;
+      font-size: 22px;
+      line-height: 20px;
+      cursor: pointer;
+      transition: 0.5s;
     }
 
     .closebtn:hover {
-        color: black;
+      color: black;
     }
 
 
@@ -407,21 +417,21 @@
     }
 
     input[type="image"]:disabled, button:disabled {
-        -webkit-filter: grayscale(100%);
-           -moz-filter: grayscale(100%);
-             -o-filter: grayscale(100%);
-            -ms-filter: grayscale(100%);
-                filter: grayscale(100%);
-                border: 0px;
+      -webkit-filter: grayscale(100%);
+         -moz-filter: grayscale(100%);
+           -o-filter: grayscale(100%);
+          -ms-filter: grayscale(100%);
+              filter: grayscale(100%);
+              border: 0px;
     }
 
 
     /* Removes step arrows on input type number */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
-        /* display: none; <- Crashes Chrome on hover */
-        -webkit-appearance: none;
-        margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+      /* display: none; <- Crashes Chrome on hover */
+      -webkit-appearance: none;
+      margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
     }
     </style>
 
@@ -434,7 +444,7 @@
     <script src="Google.js"></script>
   </head>
   <body>
-    <div id="content" class="hidden overlay" style="position:absolute;">
+    <div id="content" class="overlay contentOverlay hidden">
       <div style="background:rgba(255,255,255,0.8);width:fit-content;"><h1 id="main-heading">Finance Manager</h1></div>
 
       <div id="dashboardDiv"></div>
@@ -452,9 +462,9 @@
       </div>
     </div>
 
-    <div id="scrollDiv" class="overlay" style="text-align:center;height:60px;width:100%"></div>
+    <div id="scrollDiv" align="center" class="overlay contentOverlay hidden"></div>
 
-    <div id="menu" align="right" class="overlay hidden" style="height:60px">
+    <div id="menu" align="right" class="overlay contentOverlay hidden">
       <table id="actionButton" class="topMenu">
         <div id="focus" style="height:0px;">
           <input id="mainFocus" type="image" src="Img/0BYg1.png" style="height:0px;" autofocus tabindex="1">
