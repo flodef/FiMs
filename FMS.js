@@ -953,15 +953,18 @@
   }
 
   function toCurrency(content, precision = 2, symbol = '€') {
-    var str = String(toValue((!isNaN(parseFloat(content))
+    var val = toValue(content);
+    var str = (val != 0
       ? String(content).includes(".") && !String(content).includes(",")
-        ? String(content) : String(content).includes(",")
-          ? String(content).replace(".", "").replace(",", ".") : String(content) + "."
-      : "0.") + "00"));
+        ? String(val)
+        : String(content).includes(",")
+          ? String(toValue(String(content).replace(".", "").replace(",", ".")))
+          : String(val) + "."
+      : "0.") + "00";
 
     var neg = str.substring(0,1) == '-' ? -1 : 0;
     var i = str.indexOf(".");
-    str = i != -1 ? str.slice(0, i+precision+1).replace(/^0+|0+$/g, '') : str + ".";
+    str = i != -1 ? str.slice(0, i+precision+1).replace(/0+$/g, '') : str + ".";
     var j = str.length-str.indexOf(".")-1;
     str = (j < 2 ? str + '0'.repeat(2-j) : str) + " " + symbol;
     str = i + neg > 9 ? str.slice(0, i-9) + "," + str.slice(i-9, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
