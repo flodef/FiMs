@@ -606,8 +606,8 @@
                    var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
                    tableHTML += getMainTableHead(id);
 
-                   var ln = contents.length/2;  // Take the full sheet row count, don't count the miror with numbers (/2), remove the two last row for scroll (-2)
-                   for (var i = 0; i < ln-2; i++) {
+                   var ln = contents.length/2;      // Take the full sheet row count, don't count the miror with numbers (/2)
+                   for (var i = 0; i < ln-2; i++) { // Remove the two last row for scroll (-2)
                      tableHTML += getSubTableTitle(contents[i][0], "Settings!A" + (i+1));
                      tableHTML += '<tr>';
                      for (var j = 1; j < contents[i].length; j++) {
