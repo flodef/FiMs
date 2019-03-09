@@ -606,14 +606,14 @@
                    var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
                    tableHTML += getMainTableHead(id);
 
-                   var ln = contents.length/2-2;  // Take the full sheet row count, don't count the miror with numbers (/2), remove the two last row for scroll (-2)
-                   for (var i = 0; i < ln; i++) {
+                   var ln = contents.length/2;  // Take the full sheet row count, don't count the miror with numbers (/2), remove the two last row for scroll (-2)
+                   for (var i = 0; i < ln-2; i++) {
                      tableHTML += getSubTableTitle(contents[i][0], "Settings!A" + (i+1));
                      tableHTML += '<tr>';
                      for (var j = 1; j < contents[i].length; j++) {
                        tableHTML += i != 4 || j != 3
-                                  ? getTableReadOnlyCell(GLOBAL.dashb, contents[i+7][j])
-                                  : getTableEditableCell(GLOBAL.dashb, contents[i+7][j], "Allocation!B14", 1000000)
+                                  ? getTableReadOnlyCell(GLOBAL.dashb, contents[i+ln][j])
+                                  : getTableEditableCell(GLOBAL.dashb, contents[i+ln][j], "Allocation!B14", 1000000)
                      }
                      tableHTML += '</tr>';
                    }
@@ -625,7 +625,7 @@
                    for (var i = 0; i < contents[5].length; ++i) {
                      tableHTML += '<tr>';
                      tableHTML += getTableReadOnlyContent(contents[5][i], false);
-                     tableHTML += getTableReadOnlyContent(GLOBAL.dashb[contents[6+7][i]-1][1], false);
+                     tableHTML += getTableReadOnlyContent(GLOBAL.dashb[contents[contents.length-1][i]-1][1], false);
                      tableHTML += '</tr>';
                    }
 
