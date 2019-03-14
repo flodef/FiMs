@@ -6,7 +6,7 @@
   GLOBAL.invest = [];
   GLOBAL.dummy = "XXXXXX";
   GLOBAL.limit = 10;
-  GLOBAL.rebalRow = 57;
+  GLOBAL.rebalRow = 55;
   GLOBAL.dashboard = "dashboard";
   GLOBAL.investment = "investment";
   GLOBAL.historic = "historic";
@@ -18,6 +18,8 @@
   GLOBAL.expHistoFormulae = "ExpensesHistoric!A:C";
   GLOBAL.settingsFormulae = "Settings!A:F";
   GLOBAL.doVisualUpdates = true;
+  GLOBAL.rebalanceButtonToolTip = "Rebalance";
+  GLOBAL.showAllButtonToolTip = "Show all";
 
   /**
    * Run initializations on web app load.
@@ -30,8 +32,23 @@
     $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
-    updateAllValues(false);
-    setInterval(() => updateAllValues(false, true), 30 * 1000); // run update every minute
+    var id = GLOBAL.dashboard;
+    var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
+    tableHTML += getMainTableHead(id);
+    setTable(id, tableHTML);
+
+    var id = GLOBAL.investment;
+    var tableHTML = getTableTitle(id, GLOBAL.rebalanceButtonToolTip);
+    setTable(id, tableHTML);
+
+    var id = GLOBAL.historic;
+    var tableHTML = getTableTitle(id, GLOBAL.showAllButtonToolTip);
+    setTable(id, tableHTML);
+
+    $('.contentOverlay').show();
+
+    // updateAllValues(false);
+    // setInterval(() => updateAllValues(false, true), 30 * 1000); // run update every minute
   });
 
   function updateAllValues(shouldRefresh, isBackgroundUpdate) {
@@ -40,57 +57,49 @@
         showLoader(shouldRefresh);
       }
 
-      $("#loading").text("Loading Dashboard ... (1/3)");
+      dashboardValuesUpdate();
+      investmentValuesUpdate();
+      historicValuesUpdate();
 
-      google.script.run
-                   .withSuccessHandler(function(contents) {
-                     updateDashboardTable(contents);
-
-                     updateInvestmentValues();  // Next step
-                   })
-                   .withFailureHandler(displayError)
-                   .getSheetValues(GLOBAL.dashboardFormulae);
+      hideLoader();
     }
   }
 
-  function updateInvestmentValues() {
-    $("#loading").text("Loading Investment ... (2/3)");
+  function dashboardValuesUpdate() {
+    // $("#loading").text("Loading Dashboard ... (1/3)");
+
+    google.script.run
+                 .withSuccessHandler(function(contents) {
+                   updateDashboardTable(contents);
+                 })
+                 .withFailureHandler(displayError)
+                 .getSheetValues(GLOBAL.dashboardFormulae);
+  }
+
+  function investmentValuesUpdate() {
+    // $("#loading").text("Loading Investment ... (2/3)");
 
     google.script.run
                  .withSuccessHandler(function(contents) {
                    updateInvestmentTable(contents);
-
-                   updateHistoricValues();  // Next step
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues(GLOBAL.investmentFormulae);
   }
 
-  function updateHistoricValues() {
-    $(".validateButton").prop('disabled', true);
-
-    $("#loading").text("Loading Historic ... (3/3)");
+  function historicValuesUpdate() {
+    // $("#loading").text("Loading Historic ... (3/3)");
 
     google.script.run
                  .withSuccessHandler(function(contents) {
                    updateHistoricTable(contents);
-
-                   $("input").each((i, item) => {
-                     if ($(item).hasClass("auto")) {
-                       autoAdaptWidth(item);
-                     }
-                   });
-
-                   hideLoader();
-                   $("#loading").text("");
-                   $(".validateButton").prop('disabled', false);
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues(GLOBAL.historicFormulae);
   }
 
   function rebalanceStocks() {
-    updateInvestmentValues();
+    investmentValuesUpdate();
 
     var tRow = GLOBAL.invest.length - 1;
     var contents = [];
@@ -158,7 +167,7 @@
       var isLast = i == contents.length-1;
       var label = isLast ? "CLOSE" : "NEXT ORDER";
       var skiping = '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000);';
-      var finish = isLast ? closing : skiping;
+      var next = isLast ? closing : skiping;
       var action = '$(\'.rebalButton\').prop(\'disabled\', true);'
       action += 'insertHistoricRow([[\'' + GLOBAL.dummy + '\', \''
                                        + row[1][1] + '\', \''
@@ -168,10 +177,10 @@
                                        + tUnit + '\', \''
                                        + tVal + '\', \''
                                        + tId + '\']], \'Historic\', true);';
-      action += finish;
+      action += next;
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;">'
                  + '<button style="margin:0px 5px 0px 5px;" onclick="' + action + '" class="rebalButton">' + label + '</button>'
-                 + '<button style="margin:0px 5px 0px 5px;" onclick="' + finish + '" class="rebalButton">SKIP</button>'
+                 + '<button style="margin:0px 5px 0px 5px;" onclick="' + next + '" class="rebalButton">SKIP</button>'
                  + '</div>';
 
       tableHTML += '</div>';
@@ -184,20 +193,20 @@
   }
 
   function addTransaction() {
-    updateHistoricValues();
+    historicValuesUpdate();
     $('#actionButton').hide("fade", null, 500, function()
     { $('#addTransactionForm').show("fade", null, 500, function()
     { $('#transactionName').focus(); }); });
   }
 
   function deleteTransaction() {
-    updateHistoricValues();
+    historicValuesUpdate();
     $('#actionButton').hide("fade", null, 500, function()
     { $('#deleteTransactionForm').show("fade", null, 500); });
   }
 
   function uploadAccountFile() {
-    updateHistoricValues();
+    historicValuesUpdate();
     $('#actionButton').hide("fade", null, 500, function()
     { $('#uploadFileForm').show("fade", null, 500, function()
     { $('#fileUpload').focus(); }); });
@@ -617,8 +626,7 @@
                      }
                      tableHTML += '</tr>';
                    }
-                   tableHTML += '</table>';
-                   $("#dashboardDiv").prop("innerHTML", tableHTML);
+                   setTable(id, tableHTML);
 
                    tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
                    tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashb, GLOBAL.dashb.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
@@ -631,12 +639,18 @@
 
                    tableHTML += '</table></marquee>';
                    $("#scrollDiv").prop("innerHTML", tableHTML);
+
+                   $("input").each((i, item) => {
+                     if ($(item).hasClass("auto")) {
+                       autoAdaptWidth(item);
+                     }
+                   });
                  })
                  .withFailureHandler(displayError)
                  .getSheetValues(GLOBAL.settingsFormulae);
 
     // Rebalance is not available if rebalance is not needed
-    $("#rebalanceButton").prop('disabled', GLOBAL.dashb[GLOBAL.rebalRow][1] == "FALSE");
+    $("#rebalanceButton").prop('disabled', GLOBAL.dashb[GLOBAL.rebalRow-1][1] == 0);
   }
 
   function updateInvestmentTable(contents) {
@@ -649,7 +663,7 @@
     var id = GLOBAL.investment;
     var row = contents.length;
     var col = contents[0].length;
-    var tableHTML = getTableTitle(id, "Rebalance", col-1);
+    var tableHTML = getTableTitle(id, GLOBAL.rebalanceButtonToolTip, col-1);
     for (var i = 0; i < row; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
@@ -675,7 +689,6 @@
         addTransactionName(contents[i][1], contents[i][0]);
       }
     }
-    tableHTML += '</table>';
 
     addTransactionName("", GLOBAL.cost);
     addTransactionName("", GLOBAL.approv);
@@ -692,10 +705,12 @@
   function updateHistoricTable(contents) {
     GLOBAL.histo = contents;
 
+    $(".validateButton").prop('disabled', true);
+
     var id = GLOBAL.historic;
     var row = contents.length;
     var col = contents[0].length;
-    var tableHTML = getTableTitle(id, "Show all",col-1);
+    var tableHTML = getTableTitle(id, GLOBAL.showAllButtonToolTip, col-1);
     for (var i = 0; i < row; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
@@ -714,13 +729,14 @@
       : i==contents.length-1 ? '</tbody><tfoot>' : '';
     }
     tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
-    tableHTML += '</table>';
 
     applyFilter(id, tableHTML);
+
+    $(".validateButton").prop('disabled', false);
   }
 
   function applyFilter(id, tableHTML) {
-    $("#" + id + "Div").prop("innerHTML", tableHTML);
+    setTable(id, tableHTML);
     sorttable.makeSortable($("#" + id + "Table").get(0));
     filterTable(id);
   }
@@ -768,8 +784,9 @@
   function getTitle(id) {
     return '<h2 onclick="$(\'.mainTable\').each(function(){if(this.id != \'' + id + 'Table\'){$(this).hide();}});'
           + '$(\'.searchInput\').each(function(){if(this.id != \'' + id + 'Search\'){$(this).hide();}});'
-          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\', function(){if($(this).is(\':visible\')){refreshTotal(\'' + id + '\');}});'
-          + '$(\'#' + id + 'Search\').fadeToggle(\'slow\');">'
+          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\', function(){'
+          + 'if($(this).is(\':visible\')){' + id + 'ValuesUpdate();}});'
+          + '$(\'#' + id + 'Search\').fadeToggle(\'slow\');' + '">'
           + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
   }
 
@@ -790,6 +807,11 @@
   function getMainTableHead(id) {
     return '<table id="' + id + 'Table" class="sortable mainTable '
          + ($("#" + id + "Table").is(":visible") ? '' : 'hidden') + '">';
+  }
+
+  function setTable(id, tableHTML) {
+    tableHTML += '</table>';
+    $("#" + id + "Div").prop("innerHTML", tableHTML);
   }
 
   function autoAdaptWidth(e) {
