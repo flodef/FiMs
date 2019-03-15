@@ -1,18 +1,21 @@
   window.GLOBAL = {};
   GLOBAL.cost = "COST";
   GLOBAL.approv = "APPROVISIONNEMENT";
-  GLOBAL.dashb = [];
-  GLOBAL.histo = [];
-  GLOBAL.invest = [];
+  GLOBAL.dashboardData = [];
+  GLOBAL.investmentData = [];
+  GLOBAL.historicData = [];
+  GLOBAL.evolutionData = [];
   GLOBAL.dummy = "XXXXXX";
   GLOBAL.limit = 10;
   GLOBAL.rebalRow = 55;
   GLOBAL.dashboard = "dashboard";
   GLOBAL.investment = "investment";
   GLOBAL.historic = "historic";
+  GLOBAL.evolution = "evolution";
   GLOBAL.dashboardFormula = "Dashboard!A:B";
   GLOBAL.investmentFormula = "Investment!D:AE";
   GLOBAL.historicFormula = "Historic!A:J";
+  GLOBAL.evolutionFormula = "Evolution!A:I";
   GLOBAL.resultFormula = "Result!A:H";
   GLOBAL.accountFormula = "Account!A:K";
   GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
@@ -44,6 +47,10 @@
     var tableHTML = getTableTitle(id, GLOBAL.showAllButtonToolTip);
     setTable(id, tableHTML);
 
+    var id = GLOBAL.evolution;
+    var tableHTML = getTableTitle(id, GLOBAL.showAllButtonToolTip);
+    setTable(id, tableHTML);
+
     $('.contentOverlay').show();
 
     updateAllValues();
@@ -53,6 +60,7 @@
     dashboardValuesUpdate();
     investmentValuesUpdate();
     historicValuesUpdate();
+    evolutionValuesUpdate();
   }
 
   function dashboardValuesUpdate() {
@@ -67,27 +75,31 @@
     getValue(GLOBAL.historicFormula, updateHistoricTable, GLOBAL.historic);
   }
 
+  function evolutionValuesUpdate() {
+    getValue(GLOBAL.evolutionFormula, updateEvolutionTable, GLOBAL.evolution);
+  }
+
   function rebalanceStocks() {
     investmentValuesUpdate();
 
-    var tRow = GLOBAL.invest.length - 1;
+    var tRow = GLOBAL.investmentData.length - 1;
     var contents = [];
     var rank = 0;
     for (var i = 1; i < tRow; i++) { // Take only the value (no header, footer)
-      var index = indexOf(GLOBAL.invest, rank.toString(), 13);
+      var index = indexOf(GLOBAL.investmentData, rank.toString(), 13);
 
       var nr = rank;
       while (index === null) {
-        index = indexOf(GLOBAL.invest, (--nr).toString(), 13);
+        index = indexOf(GLOBAL.investmentData, (--nr).toString(), 13);
       }
 
       ++rank;
-      if(shouldRebalance(GLOBAL.invest[index][18])) {
+      if(shouldRebalance(GLOBAL.investmentData[index][18])) {
         var array = [];
-        for (var j of [0, 10, 6, GLOBAL.invest[index][7] != "" ? 7 : 8, 14, 15, 27]) {
-          array[GLOBAL.invest[0][j]] = GLOBAL.invest[index][j];
+        for (var j of [0, 10, 6, GLOBAL.investmentData[index][7] != "" ? 7 : 8, 14, 15, 27]) {
+          array[GLOBAL.investmentData[0][j]] = GLOBAL.investmentData[index][j];
         }
-        array["Action"] = GLOBAL.invest[index][j] > 0;
+        array["Action"] = GLOBAL.investmentData[index][j] > 0;
 
         contents.push(array);
       }
@@ -265,7 +277,7 @@
   }
 
   function validateDeleteForm(index, rowCnt, func = () => {}) {
-    var index = index ? index : indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
+    var index = index ? index : indexOf(GLOBAL.historicData, GLOBAL.dummy, 0);
     var rowCnt = rowCnt ? rowCnt : 1;
 
     if (index !== null && index*rowCnt > 0) {
@@ -336,11 +348,11 @@
       for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
         var row = contents[i];
         var isEmpty = toValue(row[6]) == 0;
-        var index = !isEmpty ? indexOf(GLOBAL.histo, row[7], 7) : null;
+        var index = !isEmpty ? indexOf(GLOBAL.historicData, row[7], 7) : null;
 
         if (!isEmpty
         && (index === null
-        || (index !== null && row[0] != toDate(GLOBAL.histo[index][0])))) {
+        || (index !== null && row[0] != toDate(GLOBAL.historicData[index][0])))) {
           if (indexOf(row, "#N/A") === null
           && indexOf(row, "#VALUE!") === null
           && indexOf(row, "#REF!") === null) {
@@ -355,7 +367,7 @@
 
       // Removing dummy data
       var prevIndex;
-      var index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
+      var index = indexOf(GLOBAL.historicData, GLOBAL.dummy, 0);
       var dai = [];
       while (index !== null) {
         if (index-1 == prevIndex) {
@@ -365,7 +377,7 @@
         }
         prevIndex = index;
 
-        index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0, index+1);
+        index = indexOf(GLOBAL.historicData, GLOBAL.dummy, 0, index+1);
       }
 
       var f = count => {
@@ -374,6 +386,7 @@
         }
       };
 
+      // Adding data
       if (dai.length == 0) {
         f(dai.length);
       } else {
@@ -381,9 +394,6 @@
           validateDeleteForm(dai[i][0], dai[i][1], () => f(i));
         }
       }
-
-      // Adding data
-      //insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
     } else {
       getValue(GLOBAL.resultFormula, compareResultData);
     }
@@ -449,11 +459,11 @@
       var id = label + "@" + transaction + "@@" + row[5].replace(",", ".");
 
       if (!isError) {
-        var index = indexOf(GLOBAL.histo, value, 6);
+        var index = indexOf(GLOBAL.historicData, value, 6);
 
         if (index === null || (index !== null &&
-                              (GLOBAL.histo[index][0] != GLOBAL.dummy
-                            || GLOBAL.histo[index][7] != id))) {
+                              (GLOBAL.historicData[index][0] != GLOBAL.dummy
+                            || GLOBAL.historicData[index][7] != id))) {
             data.push([GLOBAL.dummy, type, label, transaction, "", "", value, id]);
         } else {
             ++dupCnt;
@@ -511,8 +521,8 @@
     if (!$('#addTransactionForm').is(":animated")
      && !$('#deleteTransactionForm').is(":animated")
      && !$('#uploadFileForm').is(":animated")
-     && !$('#actionButton').is(":animated")
-     && !$('#loaderOverlay').is(':visible')) {
+     && !$('#actionButton').is(":animated")) {
+     // && !$('#loaderOverlay').is(':visible')) {
       if ($('#alertOverlay').is(':visible')) {
         $('#alertOverlay').fadeOut(1000);
       } else if (!$('#actionButton').is(':visible')) {
@@ -566,7 +576,7 @@
   }
 
   function updateDashboardTable(contents) {
-    GLOBAL.dashb = contents;
+    GLOBAL.dashboardData = contents;
 
     getValue(GLOBAL.settingsFormula, (contents) => {
       var id = GLOBAL.dashboard;
@@ -579,19 +589,19 @@
         tableHTML += '<tr>';
         for (var j = 1; j < contents[i].length; j++) {
           tableHTML += i != 4 || j != 3
-          ? getTableReadOnlyCell(GLOBAL.dashb, contents[i+ln][j])
-          : getTableEditableCell(GLOBAL.dashb, contents[i+ln][j], "Allocation!B14", 1000000)
+          ? getTableReadOnlyCell(GLOBAL.dashboardData, contents[i+ln][j])
+          : getTableEditableCell(GLOBAL.dashboardData, contents[i+ln][j], "Allocation!B14", 1000000)
         }
         tableHTML += '</tr>';
       }
       setTable(id, tableHTML);
 
       tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
-      tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashb, GLOBAL.dashb.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
+      tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashboardData, GLOBAL.dashboardData.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
       for (var i = 0; i < contents[ln-2].length; ++i) {
         tableHTML += '<tr>';
         tableHTML += getTableReadOnlyContent(contents[ln-2][i], false);
-        tableHTML += getTableReadOnlyContent(GLOBAL.dashb[contents[ln*2-1][i]-1][1], false);
+        tableHTML += getTableReadOnlyContent(GLOBAL.dashboardData[contents[ln*2-1][i]-1][1], false);
         tableHTML += '</tr>';
       }
 
@@ -605,12 +615,12 @@
       });
 
       // Rebalance is not available if rebalance is not needed
-      $("#rebalanceButton").prop('disabled', GLOBAL.dashb[GLOBAL.rebalRow-1][1] == 0);
+      $("#rebalanceButton").prop('disabled', GLOBAL.dashboardData[GLOBAL.rebalRow-1][1] == 0);
     });
   }
 
   function updateInvestmentTable(contents) {
-    GLOBAL.invest = contents;
+    GLOBAL.investmentData = contents;
 
     clearTransactionName();
 
@@ -659,7 +669,7 @@
   }
 
   function updateHistoricTable(contents) {
-    GLOBAL.histo = contents;
+    GLOBAL.historicData = contents;
 
     $(".validateButton").prop('disabled', true);
 
@@ -689,6 +699,36 @@
     applyFilter(id, tableHTML);
 
     $(".validateButton").prop('disabled', false);
+  }
+
+  function updateEvolutionTable(contents) {
+    GLOBAL.evolutionData = contents;
+
+    var id = GLOBAL.evolution;
+    var row = contents.length;
+    var col = contents[0].length;
+    var tableHTML = getTableTitle(id, GLOBAL.showAllButtonToolTip, col-1);
+    for (var i = 0; i < row; ++i) {
+      tableHTML += i==0 ? '<thead>' : '';
+      tableHTML += '<tr>';
+      for (var j = 0; j < col; ++j) {
+        // var value = j < contents[i].length && contents[i][j]
+        //   ? j != 5 || i == 0
+        //     ? contents[i][j]
+        //     : toCurrency(contents[i][j], 4)
+        //   : "";
+        // tableHTML += j != 7   // Don't display the ID at row 7
+        //   ? getTableReadOnlyContent(value, i == 0)
+        //   : '';
+        tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+      }
+      tableHTML += '</tr>';
+      tableHTML += i==0 ? '</thead><tbody>'
+      : i==contents.length-1 ? '</tbody><tfoot>' : '';
+    }
+    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
+
+    applyFilter(id, tableHTML);
   }
 
   function applyFilter(id, tableHTML) {
@@ -836,7 +876,7 @@
     var index = id == GLOBAL.historic ? 2 : 0;
     var searchFunc = item => $(item).children("td")[index] && $(item).children("td")[index].innerHTML.toUpperCase().includes(search);
     var filterFunc = id == GLOBAL.investment ? (i, item) => (!isChecked || shouldRebalance($(item).children("td")[6] ? $(item).children("td")[6].innerHTML : null)) && searchFunc(item)
-                   : id == GLOBAL.historic ? (i, item) => (isChecked || i < GLOBAL.limit) && searchFunc(item)
+                   : id == GLOBAL.historic || id == GLOBAL.evolution ? (i, item) => (isChecked || i < GLOBAL.limit) && searchFunc(item)
                    : (item, i) => true;
 
     toggleItem(id, filterFunc);
@@ -855,7 +895,8 @@
   }
 
   function refreshTotal(id) {
-    if (id == GLOBAL.historic && $('#' + id + 'Table').is(':visible')) {
+    if (id == GLOBAL.historic) {
+      // && $('#' + id + 'Table').is(':visible')) {
       var item;
       var qty = 0;
       var price = 0;
@@ -870,9 +911,8 @@
       var max = !$('#' + id + 'Filter').is(':checked')
         ? GLOBAL.limit : $("#" + id + "Table tbody tr").length;
       var elem = $("#" + id + "Table tbody tr:visible").length == 0
-              && $('#loaderOverlay').is(':visible')
-              ? $("#" + id + "Table tbody tr:lt(" + max + ")")
-              : $("#" + id + "Table tbody tr:visible");
+               ? $("#" + id + "Table tbody tr:lt(" + max + ")")
+               : $("#" + id + "Table tbody tr:visible");
       elem.each((i, item) => {
         item = $(item).children("td");
         qty += toValue(item[4].innerHTML);
@@ -894,6 +934,27 @@
         + '<td title="' + toCurrency(value/rows) + '">' + toCurrency(value) + '</td>'
         + '<td title="' + toCurrency(instprof/instner) + '">' + toCurrency(instprof) + '</td>'
         + '<td title="' + toCurrency(avgprof/avgner) + '">' + toCurrency(avgprof) + '</td>');
+    } else if (id == GLOBAL.evolution) {
+      // && $('#' + id + 'Table').is(':visible')) {
+      var item;
+      var a = new Array(9).fill(0);
+
+      var max = !$('#' + id + 'Filter').is(':checked')
+        ? GLOBAL.limit : $("#" + id + "Table tbody tr").length;
+      var elem = $("#" + id + "Table tbody tr:visible").length == 0
+               ? $("#" + id + "Table tbody tr:lt(" + max + ")")
+               : $("#" + id + "Table tbody tr:visible");
+      elem.each((i, item) => {
+        item = $(item).children("td");
+        for (var j = 0; j < item.length; ++j) {
+          a[j] += j != 0 ? toValue(item[j].innerHTML) : 1;
+        }
+      });
+      var footer = '<td>TOTAL</td>';
+      for (var i = 1; i < a.length; i++) {
+        footer += '<td>' + toCurrency(a[i]/a[0], 2, i < 5 ? '%' :'€') + '</td>';
+      }
+      $("#" + id + "Footer").prop("innerHTML", footer);
     }
   }
 
@@ -906,15 +967,15 @@
     }
   }
 
-  function showLoader(isRefreshing) {
-    $('#loaderOverlay').fadeIn(1000);
-    $('.contentOverlay').fadeTo(1000, isRefreshing ? 0.3 : 0);
-  }
-
-  function hideLoader() {
-    $('#loaderOverlay').fadeOut(1000);
-    $('.contentOverlay').fadeTo(1000, 1);
-  }
+  // function showLoader(isRefreshing) {
+  //   $('#loaderOverlay').fadeIn(1000);
+  //   $('.contentOverlay').fadeTo(1000, isRefreshing ? 0.3 : 0);
+  // }
+  //
+  // function hideLoader() {
+  //   $('#loaderOverlay').fadeOut(1000);
+  //   $('.contentOverlay').fadeTo(1000, 1);
+  // }
 
   function executionSuccess() {
     updateAllValues();
@@ -959,12 +1020,11 @@
     str = i != -1 ? str.slice(0, i+precision+1).replace(/0+$/g, '') : str + ".";
     var j = str.length-str.indexOf(".")-1;
     str = (j < 2 ? str + '0'.repeat(2-j) : str) + " " + symbol;
-    str = i + neg > 9 ? str.slice(0, i-9) + "," + str.slice(i-9, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
-        : i + neg > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
-        : i + neg > 3 ? str.slice(0, i-3) + "," + str.slice(i-3)
-        : str;
 
-    return str;
+    return i + neg > 9 ? str.slice(0, i-9) + "," + str.slice(i-9, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
+         : i + neg > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
+         : i + neg > 3 ? str.slice(0, i-3) + "," + str.slice(i-3)
+         : str;
   }
 
   function toDate(content) {
