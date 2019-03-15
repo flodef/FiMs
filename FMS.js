@@ -17,7 +17,6 @@
   GLOBAL.accountFormula = "Account!A:K";
   GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
   GLOBAL.settingsFormula = "Settings!A:F";
-  GLOBAL.doVisualUpdates = true;
   GLOBAL.rebalanceButtonToolTip = "Rebalance";
   GLOBAL.showAllButtonToolTip = "Show all";
 
@@ -48,15 +47,12 @@
     $('.contentOverlay').show();
 
     updateAllValues();
-    // setInterval(() => updateAllValues(), 30 * 1000); // run update every minute
   });
 
   function updateAllValues() {
-    if (GLOBAL.doVisualUpdates && $("#loading").text() == "") {
-      dashboardValuesUpdate();
-      investmentValuesUpdate();
-      historicValuesUpdate();
-    }
+    dashboardValuesUpdate();
+    investmentValuesUpdate();
+    historicValuesUpdate();
   }
 
   function dashboardValuesUpdate() {
@@ -814,12 +810,17 @@
   }
 
   function getValue(formula, func, id) {
-    if (id) { $("#loading").text("Loading " + id + " ..."); }
+    if (!id || (id && $("#loading").text() == "")) {
+      if (id) { $("#loading").text("Loading " + id + " ..."); }
 
-    google.script.run
-                 .withSuccessHandler(function(contents) { if (func) { func(contents); if (id) { $("#loading").text(""); } } })
-                 .withFailureHandler(displayError)
-                 .getSheetValues(formula);
+      google.script.run
+                   .withSuccessHandler(function(contents) { if (func) { func(contents); if (id) { $("#loading").text(""); } } })
+                   .withFailureHandler(displayError)
+                   .getSheetValues(formula);
+     } else {
+       setTimeout(() => getValue(formula, func, id), 1000);
+
+     }
   }
 
   function setValue(name, value, func) {
