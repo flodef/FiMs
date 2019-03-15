@@ -47,21 +47,15 @@
 
     $('.contentOverlay').show();
 
-    // updateAllValues(false);
-    // setInterval(() => updateAllValues(false, true), 30 * 1000); // run update every minute
+    updateAllValues();
+    // setInterval(() => updateAllValues(), 30 * 1000); // run update every minute
   });
 
-  function updateAllValues(shouldRefresh, isBackgroundUpdate) {
+  function updateAllValues() {
     if (GLOBAL.doVisualUpdates && $("#loading").text() == "") {
-      // if (!isBackgroundUpdate) {
-      //   showLoader(shouldRefresh);
-      // }
-
       dashboardValuesUpdate();
       investmentValuesUpdate();
       historicValuesUpdate();
-
-      // hideLoader();
     }
   }
 
@@ -557,7 +551,7 @@
             uploadAccountFile();
           }
           else if (e.keyCode === 82) { // R
-            updateAllValues(true);
+            updateAllValues();
           }
         }
       }
@@ -922,7 +916,7 @@
   }
 
   function executionSuccess() {
-    updateAllValues(false, true);
+    updateAllValues();
     cancelForm();
     showSnackBar();
   }
