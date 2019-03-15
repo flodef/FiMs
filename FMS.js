@@ -748,11 +748,9 @@
   }
 
   function getTitle(id) {
-    return '<h2 onclick="if($(this).is(\':visible\')){' + id + 'ValuesUpdate();};'
+    return '<h2 onclick="if(!$(\'#' + id + 'Table\').is(\':visible\')){' + id + 'ValuesUpdate();};'
           + '$(\'.mainTable\').each(function(){if(this.id != \'' + id + 'Table\'){$(this).hide();}});'
           + '$(\'.searchInput\').each(function(){if(this.id != \'' + id + 'Search\'){$(this).hide();}});'
-          // + '$(\'#' + id + 'Table\').fadeToggle(\'slow\', function(){'
-          // + 'if($(this).is(\':visible\')){' + id + 'ValuesUpdate();}});'
           + '$(\'#' + id + 'Table\').fadeToggle(\'slow\');'
           + '$(\'#' + id + 'Search\').fadeToggle(\'slow\');' + '">'
           + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
