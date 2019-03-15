@@ -10,13 +10,13 @@
   GLOBAL.dashboard = "dashboard";
   GLOBAL.investment = "investment";
   GLOBAL.historic = "historic";
-  GLOBAL.dashboardFormulae = "Dashboard!A:B";
-  GLOBAL.investmentFormulae = "Investment!D:AE";
-  GLOBAL.historicFormulae = "Historic!A:J";
-  GLOBAL.resultFormulae = "Result!A:H";
-  GLOBAL.accountFormulae = "Account!A:K";
-  GLOBAL.expHistoFormulae = "ExpensesHistoric!A:C";
-  GLOBAL.settingsFormulae = "Settings!A:F";
+  GLOBAL.dashboardFormula = "Dashboard!A:B";
+  GLOBAL.investmentFormula = "Investment!D:AE";
+  GLOBAL.historicFormula = "Historic!A:J";
+  GLOBAL.resultFormula = "Result!A:H";
+  GLOBAL.accountFormula = "Account!A:K";
+  GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
+  GLOBAL.settingsFormula = "Settings!A:F";
   GLOBAL.doVisualUpdates = true;
   GLOBAL.rebalanceButtonToolTip = "Rebalance";
   GLOBAL.showAllButtonToolTip = "Show all";
@@ -53,49 +53,28 @@
 
   function updateAllValues(shouldRefresh, isBackgroundUpdate) {
     if (GLOBAL.doVisualUpdates && $("#loading").text() == "") {
-      if (!isBackgroundUpdate) {
-        showLoader(shouldRefresh);
-      }
+      // if (!isBackgroundUpdate) {
+      //   showLoader(shouldRefresh);
+      // }
 
       dashboardValuesUpdate();
       investmentValuesUpdate();
       historicValuesUpdate();
 
-      hideLoader();
+      // hideLoader();
     }
   }
 
   function dashboardValuesUpdate() {
-    // $("#loading").text("Loading Dashboard ... (1/3)");
-
-    google.script.run
-                 .withSuccessHandler(function(contents) {
-                   updateDashboardTable(contents);
-                 })
-                 .withFailureHandler(displayError)
-                 .getSheetValues(GLOBAL.dashboardFormulae);
+    getValue(GLOBAL.dashboardFormula, updateDashboardTable, GLOBAL.dashboard);
   }
 
   function investmentValuesUpdate() {
-    // $("#loading").text("Loading Investment ... (2/3)");
-
-    google.script.run
-                 .withSuccessHandler(function(contents) {
-                   updateInvestmentTable(contents);
-                 })
-                 .withFailureHandler(displayError)
-                 .getSheetValues(GLOBAL.investmentFormulae);
+    getValue(GLOBAL.investmentFormula, updateInvestmentTable, GLOBAL.investment);
   }
 
   function historicValuesUpdate() {
-    // $("#loading").text("Loading Historic ... (3/3)");
-
-    google.script.run
-                 .withSuccessHandler(function(contents) {
-                   updateHistoricTable(contents);
-                 })
-                 .withFailureHandler(displayError)
-                 .getSheetValues(GLOBAL.historicFormulae);
+    getValue(GLOBAL.historicFormula, updateHistoricTable, GLOBAL.historic);
   }
 
   function rebalanceStocks() {
@@ -332,17 +311,12 @@
               google.script.run
                     .withSuccessHandler(function(contents) {
                       setValue("Account!A1", data);
-                      compareResultData();
+                      getValue(GLOBAL.resultFormula, compareResultData);
                     })
                     .withFailureHandler(displayError)
-                    .clearSheetValues(GLOBAL.accountFormulae);
+                    .clearSheetValues(GLOBAL.accountFormula);
             } else if (data[0][0] == "dateOp" && data[0][1] == "dateVal") {
-              google.script.run
-                    .withSuccessHandler(function(contents) {
-                      insertExpensesRow(data, contents);
-                    })
-                    .withFailureHandler(displayError)
-                    .getSheetValues(GLOBAL.expHistoFormulae);
+              getValue(GLOBAL.expHistoFormula, (contents) => insertExpensesRow(data, contents));
             } else if (data[0][0] == "CA ID" && data[0][1] == "Produit") {
               insertDividendRow(data);
             } else {
@@ -363,71 +337,66 @@
     }
   }
 
-  function compareResultData() {
-    google.script.run
-                 .withSuccessHandler(function(contents) {
-                   if (contents.length > 1) {
-                     // Preparing data
-                     var dupCnt = 0;
-                     var errCnt = 0;
-                     var data = [];
-                     for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
-                       var row = contents[i];
-                       var isEmpty = toValue(row[6]) == 0;
-                       var index = !isEmpty ? indexOf(GLOBAL.histo, row[7], 7) : null;
+  function compareResultData(contents) {
+    if (contents.length > 1) {
+      // Preparing data
+      var dupCnt = 0;
+      var errCnt = 0;
+      var data = [];
+      for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
+        var row = contents[i];
+        var isEmpty = toValue(row[6]) == 0;
+        var index = !isEmpty ? indexOf(GLOBAL.histo, row[7], 7) : null;
 
-                       if (!isEmpty
-                       && (index === null
-                       || (index !== null && row[0] != toDate(GLOBAL.histo[index][0])))) {
-                         if (indexOf(row, "#N/A") === null
-                          && indexOf(row, "#VALUE!") === null
-                          && indexOf(row, "#REF!") === null) {
-                           data.push(row);
-                         } else {
-                           ++errCnt;
-                         }
-                       } else {
-                         ++dupCnt;
-                       }
-                     }
+        if (!isEmpty
+        && (index === null
+        || (index !== null && row[0] != toDate(GLOBAL.histo[index][0])))) {
+          if (indexOf(row, "#N/A") === null
+          && indexOf(row, "#VALUE!") === null
+          && indexOf(row, "#REF!") === null) {
+            data.push(row);
+          } else {
+            ++errCnt;
+          }
+        } else {
+          ++dupCnt;
+        }
+      }
 
-                     // Removing dummy data
-                     var prevIndex;
-                     var index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
-                     var dai = [];
-                     while (index !== null) {
-                       if (index-1 == prevIndex) {
-                         dai[dai.length-1][1] += 1;
-                       } else {
-                         dai.push([index, 1]);
-                       }
-                       prevIndex = index;
+      // Removing dummy data
+      var prevIndex;
+      var index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0);
+      var dai = [];
+      while (index !== null) {
+        if (index-1 == prevIndex) {
+          dai[dai.length-1][1] += 1;
+        } else {
+          dai.push([index, 1]);
+        }
+        prevIndex = index;
 
-                       index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0, index+1);
-                     }
+        index = indexOf(GLOBAL.histo, GLOBAL.dummy, 0, index+1);
+      }
 
-                     var f = count => {
-                       if (count <= 0) {
-                         insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
-                       }
-                     };
+      var f = count => {
+        if (count <= 0) {
+          insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
+        }
+      };
 
-                     if (dai.length == 0) {
-                       f(dai.length);
-                     } else {
-                       for (var i = dai.length-1; i >= 0; --i) { // Reverse loop
-                         validateDeleteForm(dai[i][0], dai[i][1], () => f(i));
-                       }
-                     }
+      if (dai.length == 0) {
+        f(dai.length);
+      } else {
+        for (var i = dai.length-1; i >= 0; --i) { // Reverse loop
+          validateDeleteForm(dai[i][0], dai[i][1], () => f(i));
+        }
+      }
 
-                     // Adding data
-                     //insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
-                   } else {
-                     compareResultData();
-                   }
-                 })
-                 .withFailureHandler(displayError)
-                 .getSheetValues(GLOBAL.resultFormulae);
+      // Adding data
+      //insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
+    } else {
+      getValue(GLOBAL.resultFormula, compareResultData);
+    }
   }
 
   function insertExpensesRow(contents, expenses) {
@@ -609,48 +578,45 @@
   function updateDashboardTable(contents) {
     GLOBAL.dashb = contents;
 
-    google.script.run
-                 .withSuccessHandler(function(contents) {
-                   var id = GLOBAL.dashboard;
-                   var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
-                   tableHTML += getMainTableHead(id);
+    getValue(GLOBAL.settingsFormula, (contents) => {
+      var id = GLOBAL.dashboard;
+      var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
+      tableHTML += getMainTableHead(id);
 
-                   var ln = contents.length/2;      // Take the full sheet row count, don't count the miror with numbers (/2)
-                   for (var i = 0; i < ln-2; i++) { // Remove the two last row for scroll (-2)
-                     tableHTML += getSubTableTitle(contents[i][0], "Settings!A" + (i+1));
-                     tableHTML += '<tr>';
-                     for (var j = 1; j < contents[i].length; j++) {
-                       tableHTML += i != 4 || j != 3
-                                  ? getTableReadOnlyCell(GLOBAL.dashb, contents[i+ln][j])
-                                  : getTableEditableCell(GLOBAL.dashb, contents[i+ln][j], "Allocation!B14", 1000000)
-                     }
-                     tableHTML += '</tr>';
-                   }
-                   setTable(id, tableHTML);
+      var ln = contents.length/2;      // Take the full sheet row count, don't count the miror with numbers (/2)
+      for (var i = 0; i < ln-2; i++) { // Remove the two last row for scroll (-2)
+        tableHTML += getSubTableTitle(contents[i][0], "Settings!A" + (i+1));
+        tableHTML += '<tr>';
+        for (var j = 1; j < contents[i].length; j++) {
+          tableHTML += i != 4 || j != 3
+          ? getTableReadOnlyCell(GLOBAL.dashb, contents[i+ln][j])
+          : getTableEditableCell(GLOBAL.dashb, contents[i+ln][j], "Allocation!B14", 1000000)
+        }
+        tableHTML += '</tr>';
+      }
+      setTable(id, tableHTML);
 
-                   tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
-                   tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashb, GLOBAL.dashb.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
-                   for (var i = 0; i < contents[ln-2].length; ++i) {
-                     tableHTML += '<tr>';
-                     tableHTML += getTableReadOnlyContent(contents[ln-2][i], false);
-                     tableHTML += getTableReadOnlyContent(GLOBAL.dashb[contents[ln*2-1][i]-1][1], false);
-                     tableHTML += '</tr>';
-                   }
+      tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
+      tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashb, GLOBAL.dashb.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
+      for (var i = 0; i < contents[ln-2].length; ++i) {
+        tableHTML += '<tr>';
+        tableHTML += getTableReadOnlyContent(contents[ln-2][i], false);
+        tableHTML += getTableReadOnlyContent(GLOBAL.dashb[contents[ln*2-1][i]-1][1], false);
+        tableHTML += '</tr>';
+      }
 
-                   tableHTML += '</table></marquee>';
-                   $("#scrollDiv").prop("innerHTML", tableHTML);
+      tableHTML += '</table></marquee>';
+      $("#scrollDiv").prop("innerHTML", tableHTML);
 
-                   $("input").each((i, item) => {
-                     if ($(item).hasClass("auto")) {
-                       autoAdaptWidth(item);
-                     }
-                   });
-                 })
-                 .withFailureHandler(displayError)
-                 .getSheetValues(GLOBAL.settingsFormulae);
+      $("input").each((i, item) => {
+        if ($(item).hasClass("auto")) {
+          autoAdaptWidth(item);
+        }
+      });
 
-    // Rebalance is not available if rebalance is not needed
-    $("#rebalanceButton").prop('disabled', GLOBAL.dashb[GLOBAL.rebalRow-1][1] == 0);
+      // Rebalance is not available if rebalance is not needed
+      $("#rebalanceButton").prop('disabled', GLOBAL.dashb[GLOBAL.rebalRow-1][1] == 0);
+    });
   }
 
   function updateInvestmentTable(contents) {
@@ -771,7 +737,7 @@
     return '<td align="center"><input class="auto" min="-' + limit + '" max="' + limit + '"'
          + ' oninput="autoAdaptWidth(this);setValue(\'' + rangeName + '\', [[this.value]])"'
          + ' style="border:0px;width:100px;min-width:15px;font-style:italic;" type="number" value="'
-         + this.toValue(content) + '">€</input></td>';
+         + toValue(content) + '">€</input></td>';
   }
 
   function getSubTableTitle(title, rangeName) {
@@ -782,10 +748,12 @@
   }
 
   function getTitle(id) {
-    return '<h2 onclick="$(\'.mainTable\').each(function(){if(this.id != \'' + id + 'Table\'){$(this).hide();}});'
+    return '<h2 onclick="if($(this).is(\':visible\')){' + id + 'ValuesUpdate();};'
+          + '$(\'.mainTable\').each(function(){if(this.id != \'' + id + 'Table\'){$(this).hide();}});'
           + '$(\'.searchInput\').each(function(){if(this.id != \'' + id + 'Search\'){$(this).hide();}});'
-          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\', function(){'
-          + 'if($(this).is(\':visible\')){' + id + 'ValuesUpdate();}});'
+          // + '$(\'#' + id + 'Table\').fadeToggle(\'slow\', function(){'
+          // + 'if($(this).is(\':visible\')){' + id + 'ValuesUpdate();}});'
+          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\');'
           + '$(\'#' + id + 'Search\').fadeToggle(\'slow\');' + '">'
           + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
   }
@@ -853,6 +821,15 @@
     }
   }
 
+  function getValue(formula, func, id) {
+    if (id) { $("#loading").text("Loading " + id + " ..."); }
+
+    google.script.run
+                 .withSuccessHandler(function(contents) { if (func) { func(contents); if (id) { $("#loading").text(""); } } })
+                 .withFailureHandler(displayError)
+                 .getSheetValues(formula);
+  }
+
   function setValue(name, value, func) {
     google.script.run
                  .withSuccessHandler(function(contents) { if (func) { func(); } })
@@ -864,8 +841,8 @@
     var isChecked = $("#" + id + "Filter").is(':checked');
     var search = $('#' + id + 'Search').val().toUpperCase();
     var index = id == GLOBAL.historic ? 2 : 0;
-    var searchFunc = item => $(item).children("td")[index].innerHTML.toUpperCase().includes(search);
-    var filterFunc = id == GLOBAL.investment ? (i, item) => (!isChecked || shouldRebalance($(item).children("td")[6].innerHTML)) && searchFunc(item)
+    var searchFunc = item => $(item).children("td")[index] && $(item).children("td")[index].innerHTML.toUpperCase().includes(search);
+    var filterFunc = id == GLOBAL.investment ? (i, item) => (!isChecked || shouldRebalance($(item).children("td")[6] ? $(item).children("td")[6].innerHTML : null)) && searchFunc(item)
                    : id == GLOBAL.historic ? (i, item) => (isChecked || i < GLOBAL.limit) && searchFunc(item)
                    : (item, i) => true;
 
@@ -962,7 +939,7 @@
   }
 
   function shouldRebalance(value) {
-    return value.substring(0, 3) != "MID";
+    return value && value.substring(0, 3) != "MID";
   }
 
   function toValue(content) {

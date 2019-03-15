@@ -1,8 +1,7 @@
+// USE EXAMPLE :
 // google.script.run
 //              .withSuccessHandler(function(contents) {
 //                updateDashboardTable(contents);
-//
-//                updateInvestmentValues();  // Next step
 //              })
 //              .withFailureHandler(displayError)
 //              .getSheetValues("Dashboard!A:B");
