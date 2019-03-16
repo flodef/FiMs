@@ -858,7 +858,7 @@
                    .withFailureHandler(displayError)
                    .getSheetValues(formula);
      } else {
-       setTimeout(() => getValue(formula, func, id), 1000);
+       setTimeout(() => getValue(formula, func, id), 500);
 
      }
   }

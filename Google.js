@@ -28,13 +28,14 @@ class Run {
     this.fh = func;
     return this;
   }
-  getSheetValues(range) {
+  async getSheetValues(range) {
     if (!Run._workbook) {
       var url = "Data/Finance.xlsx";
       // var url  = "https://rawgit.com/flodef/FM/master/Data/Finance.xlsx";
       var run = this;
 
-      fetch(url).then(function(response) {
+      await fetch(url)
+      .then(function(response) {
         if(response.ok) {
           return response.arrayBuffer();
         }
@@ -48,11 +49,11 @@ class Run {
       this.sh(this._getData(range));
     }
   }
-  setSheetValues(range, values) { this.sh(); }
-  clearSheetValues(range) { this.sh(); }
-  insertRows(sheetId, values, range) { this.sh(); }
-  deleteRows(sheetId, startIndex, endIndex) { this.sh(); }
-  sortColumn(sheetId, index, descending) { this.sh(); }
+  async setSheetValues(range, values) { this.sh(); }
+  async clearSheetValues(range) { this.sh(); }
+  async insertRows(sheetId, values, range) { this.sh(); }
+  async deleteRows(sheetId, startIndex, endIndex) { this.sh(); }
+  async sortColumn(sheetId, index, descending) { this.sh(); }
 
   _getData(range) {
     var a = range.split("!");
