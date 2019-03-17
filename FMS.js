@@ -48,7 +48,7 @@
 
     $('.contentOverlay').show();
 
-    // updateAllValues();
+    updateAllValues();
   });
 
   function updateAllValues() {
