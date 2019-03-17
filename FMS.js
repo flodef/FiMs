@@ -34,26 +34,21 @@
     $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
-    var id = GLOBAL.dashboard;
-    var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
-    tableHTML += getMainTableHead(id);
-    setTable(id, tableHTML);
+    var ids = [
+      [GLOBAL.dashboard, null],
+      [GLOBAL.investment, GLOBAL.rebalanceButtonToolTip],
+      [GLOBAL.historic, GLOBAL.showAllButtonToolTip],
+      [GLOBAL.evolution, GLOBAL.showAllButtonToolTip]
+    ];
 
-    var id = GLOBAL.investment;
-    var tableHTML = getTableTitle(id, GLOBAL.rebalanceButtonToolTip);
-    setTable(id, tableHTML);
-
-    var id = GLOBAL.historic;
-    var tableHTML = getTableTitle(id, GLOBAL.showAllButtonToolTip);
-    setTable(id, tableHTML);
-
-    var id = GLOBAL.evolution;
-    var tableHTML = getTableTitle(id, GLOBAL.showAllButtonToolTip);
-    setTable(id, tableHTML);
+    for (var i = 0; i < ids.length; i++) {
+      var tableHTML = getTableTitle(ids[i][0], ids[i][1]);
+      setTable(ids[i][0], tableHTML);
+    }
 
     $('.contentOverlay').show();
 
-    updateAllValues();
+    // updateAllValues();
   });
 
   function updateAllValues() {
@@ -562,8 +557,7 @@
 
     getValue(GLOBAL.settingsFormula, (contents) => {
       var id = GLOBAL.dashboard;
-      var tableHTML = '<div style="margin:25px 25px 25px 25px">' + getTitle(id) + '</div>';
-      tableHTML += getMainTableHead(id);
+      var tableHTML = getTableTitle(id);
 
       var ln = contents.length/2;      // Take the full sheet row count, don't count the miror with numbers (/2)
       for (var i = 0; i < ln-2; i++) { // Remove the two last row for scroll (-2)
@@ -771,15 +765,15 @@
   function getTableTitle(id, tooltip, colspan) {
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td>' + getTitle(id) + '</td>'
-         + '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
+         + (tooltip ? '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
          + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="filterTable(\'' + id + '\')">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="' + id + 'Search" type="text" placeholder="Search" class="searchInput '
          + ($("#" + id + "Search").is(":visible") ? '' : 'hidden') + '" '
          + 'onkeyup="filterTable(\'' + id + '\');" onchange="filterTable(\'' + id + '\');"'
-         + 'value="' + ($('#' + id + 'Search').val() || "") + '"></tr></table>'
-         + getMainTableHead(id);
+         + 'value="' + ($('#' + id + 'Search').val() || "") + '">' : '')
+         + '</tr></table>' + getMainTableHead(id);
   }
 
   function getMainTableHead(id) {
