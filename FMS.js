@@ -138,30 +138,12 @@
 
       tableHTML += '</table>';
 
-      var tName = row[0][1];
-      var tQty = toValue(row[4][1]);
-      var tVal = -toValue(row[5][1]);
-      var tOpe = row[7][1] ? "BUY" : "SELL";
-      var tUnit = tQty && tVal && tName ? -tVal/tQty : "";
-      var tId = tName + "@" + tOpe + "@" + tQty + "@" + tVal;
-
       var isLast = i == contents.length-1;
-      var label = isLast ? "CLOSE" : "NEXT ORDER";
       var skiping = '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000);';
       var next = isLast ? closing : skiping;
-      var action = '$(\'.rebalButton\').prop(\'disabled\', true);'
-      action += 'insertHistoricRow([[\'' + GLOBAL.dummy + '\', \''
-                                       + row[1][1] + '\', \''
-                                       + tName + '\', \''
-                                       + tOpe + '\', \''
-                                       + tQty + '\', \''
-                                       + tUnit + '\', \''
-                                       + tVal + '\', \''
-                                       + tId + '\']], \'Historic\', true);';
-      action += next;
+      var label = isLast ? "CLOSE" : "NEXT ORDER";
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;">'
-                 + '<button style="margin:0px 5px 0px 5px;" onclick="' + action + '" class="rebalButton">' + label + '</button>'
-                 + '<button style="margin:0px 5px 0px 5px;" onclick="' + next + '" class="rebalButton">SKIP</button>'
+                 + '<button style="margin:0px 5px 0px 5px;" onclick="' + next + '" class="rebalButton">' + label + '</button>'
                  + '</div>';
 
       tableHTML += '</div>';
@@ -859,7 +841,6 @@
                    .getSheetValues(formula);
      } else {
        setTimeout(() => getValue(formula, func, id), 500);
-
      }
   }
 
