@@ -395,24 +395,21 @@
 
 
     /* Removes border and other stuff on input type image */
-    input[type="image"]
-    {
+    input[type="image"] {
       width: 48px;
       height: 48px;
       min-width: 0px;
       min-height: 0px;
       border: 0px;
-      padding: 0px;
+      padding: 0px 10px 0px 0px;
       background: transparent;
     }
 
-    input[type="image"]:focus, input[type="image"]:hover
-    {
+    input[type="image"]:focus, input[type="image"]:hover {
       -webkit-filter: blur(1px);
       filter: blur(1px);
       cursor: pointer;
       border: 0px;
-      padding: 0px;
       background: transparent;
     }
 
@@ -424,6 +421,8 @@
               filter: grayscale(100%);
       border: 0px;
       cursor: default;
+      width: 0px;
+      padding: 0px;
     }
 
 
@@ -473,38 +472,38 @@
         </div>
 
         <tr>
-          <td style="padding: 0px 5px 0px 0px;">
+          <td style="padding: 0px;">
             <div class="tooltip">
-              <input src="Img/Rebalance.png"
-                     type="image" id="rebalanceButton" onclick="rebalanceStocks()" tabindex="2">
+              <input  id="rebalanceButton" class="actionButton" src="Img/Rebalance.png"
+                     type="image" onclick="rebalanceStocks()" tabindex="2">
               <span class="tooltiptext">Rebalance Stocks</span>
             </div>
           </td>
-          <td style="padding: 0px 10px 0px 0px;">
+          <td style="padding: 0px;">
             <div class="tooltip">
-              <input src="Img/Add.png"
-                     type="image" id="addButton" onclick="addTransaction()" tabindex="3">
+              <input id="addButton" class="actionButton" src="Img/Add.png"
+                     type="image" onclick="addTransaction()" tabindex="3">
               <span class="tooltiptext">Add Transaction</span>
             </div>
           </td>
-          <td style="padding: 0px 10px 0px 0px;">
+          <td style="padding: 0px;">
             <div class="tooltip">
-              <input src="Img/Remove.png"
-                     type="image" id="deleteButton" onclick="deleteTransaction()" tabindex="3">
+              <input id="deleteButton" class="actionButton" src="Img/Remove.png"
+                     type="image" onclick="deleteTransaction()" tabindex="3">
               <span class="tooltiptext">Delete Transaction</span>
             </div>
           </td>
-          <td style="padding: 0px 10px 0px 0px;">
+          <td style="padding: 0px;">
             <div class="tooltip">
-              <input src="Img/Upload.png"
-                     type="image" id="uploadButton" onclick="uploadAccountFile()" tabindex="4">
+              <input  id="uploadButton" class="actionButton" src="Img/Upload.png"
+                     type="image" onclick="uploadAccountFile()" tabindex="4">
               <span class="tooltiptext">Upload Account File</span>
             </div>
           </td>
           <td style="padding: 0px;">
             <div class="tooltip">
-              <input src="Img/Refresh.png"
-                     type="image" id="updateButton" onclick="updateAllValues(true)" tabindex="5">
+              <input id="updateButton" class="actionButton" src="Img/Refresh.png"
+                     type="image" onclick="updateAllValues(true)" tabindex="5">
               <span class="tooltiptext">Update values</span>
             </div>
           </td>

@@ -46,6 +46,8 @@
       setTable(ids[i][0], tableHTML);
     }
 
+    $(".actionButton").prop('disabled', true);
+
     $('.contentOverlay').show();
 
     updateAllValues();
@@ -587,14 +589,13 @@
           autoAdaptWidth(item);
         }
       });
-
-      // Rebalance is not available if rebalance is not needed
-      $("#rebalanceButton").prop('disabled', GLOBAL.dashboardData[GLOBAL.rebalRow-1][1] == 0);
     });
   }
 
   function updateInvestmentTable(contents) {
     GLOBAL.investmentData = contents;
+
+    $("#rebalanceButton").prop('disabled', GLOBAL.dashboardData[GLOBAL.rebalRow-1][1] == 0);
 
     clearTransactionName();
 
@@ -640,6 +641,7 @@
 
     // $("#" + id + "Search").easyAutocomplete({ data: tags, list: { match: { enabled: true } } });
     // $("#" + id + "Search").autocomplete({ source: tags });
+    // Rebalance is not available if rebalance is not needed
   }
 
   function updateHistoricTable(contents) {
@@ -647,6 +649,8 @@
 
     $(".validateButton").prop('disabled', true);
 
+    $("#uploadButton").prop('disabled', false);
+    $("#addButton").prop('disabled', false);
     $("#deleteButton").prop('disabled', !indexOf(GLOBAL.historicData, GLOBAL.dummy, 0));
 
     var id = GLOBAL.historic;
@@ -688,14 +692,6 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
       for (var j = 0; j < col; ++j) {
-        // var value = j < contents[i].length && contents[i][j]
-        //   ? j != 5 || i == 0
-        //     ? contents[i][j]
-        //     : toCurrency(contents[i][j], 4)
-        //   : "";
-        // tableHTML += j != 7   // Don't display the ID at row 7
-        //   ? getTableReadOnlyContent(value, i == 0)
-        //   : '';
         tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
       }
       tableHTML += '</tr>';
@@ -827,10 +823,10 @@
 
   function getValue(formula, func, id) {
     if (!id || (id && $("#loading").text() == "")) {
-      if (id) { $("#loading").text("Loading " + id + " ..."); }
+      displayLoading(id, true);
 
       google.script.run
-                   .withSuccessHandler(function(contents) { if (func) { func(contents); if (id) { $("#loading").text(""); } } })
+                   .withSuccessHandler(function(contents) { if (func) { func(contents); displayLoading(id, false); } })
                    .withFailureHandler(displayError)
                    .getSheetValues(formula);
      } else {
@@ -939,6 +935,13 @@
 
       // After 3 seconds, remove the show class from DIV
       setTimeout(function(){ $("#snackbar").removeClass("show"); $("#snackbar").text(""); }, 3000);
+    }
+  }
+
+  function displayLoading(id, isDisplayed) {
+    if (id) {
+      $("#loading").text(isDisplayed ? "Loading " + id + " ..." : "");
+      $("#updateButton").prop('disabled', isDisplayed);
     }
   }
 
