@@ -214,16 +214,14 @@
     }
   }
 
-  function insertHistoricRow(data, id, isBackgroundUpdate) {
+  function insertHistoricRow(data, id) {
     var index = 1;
     var rowCnt = data.length;
 
     if (rowCnt > 0) {
       $("#snackbar").text((rowCnt == 1 ? "Transaction" : rowCnt + " Transactions") + " added");
 
-      if (!isBackgroundUpdate) {
-        showLoader(true);
-      }
+      // showLoader(true);
 
       gid = id == "Historic" ? 9
           : id == "ExpensesHistoric" ? 298395308
@@ -260,7 +258,7 @@
     if (index !== null && index*rowCnt > 0) {
       $("#snackbar").text((rowCnt == 1 ? "Transaction" : rowCnt + " Transactions") + " deleted");
 
-      showLoader(true);
+      // showLoader(true);
 
       google.script.run
                    .withSuccessHandler(function(contents) { func(); executionSuccess(); })
@@ -272,7 +270,7 @@
   }
 
   function validateUploadForm() {
-    showLoader(true);
+    // showLoader(true);
 
     var data = null;
     var file = $("#fileUpload").prop("files")[0];
@@ -649,6 +647,8 @@
 
     $(".validateButton").prop('disabled', true);
 
+    $("#deleteButton").prop('disabled', !indexOf(GLOBAL.historicData, GLOBAL.dummy, 0));
+
     var id = GLOBAL.historic;
     var row = contents.length;
     var col = contents[0].length;
@@ -959,7 +959,7 @@
   }
 
   function displayError(msg, isWarning) {
-    hideLoader();
+    // hideLoader();
 
     $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
     $("#alert").prop("innerHTML", '<span class="closebtn" onclick="$(\'#alertOverlay\').fadeOut(1000);$(\'#transactionName\').focus();">&times;</span>'
