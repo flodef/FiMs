@@ -22,6 +22,7 @@
   GLOBAL.settingsFormula = "Settings!A:F";
   GLOBAL.rebalanceButtonToolTip = "Rebalance";
   GLOBAL.showAllButtonToolTip = "Show all";
+  GLOBAL.hasLoadingQueue = false;
 
   /**
    * Run initializations on web app load.
@@ -824,13 +825,15 @@
   function getValue(formula, func, id) {
     if (!id || (id && $("#loading").text() == "")) {
       displayLoading(id, true);
+      GLOBAL.hasLoadingQueue = false;
 
       google.script.run
                    .withSuccessHandler(function(contents) { if (func) { func(contents); displayLoading(id, false); } })
                    .withFailureHandler(displayError)
                    .getSheetValues(formula);
      } else {
-       setTimeout(() => getValue(formula, func, id), 500);
+       GLOBAL.hasLoadingQueue = true;
+       setTimeout(() => getValue(formula, func, id), 100);
      }
   }
 
@@ -941,7 +944,7 @@
   function displayLoading(id, isDisplayed) {
     if (id) {
       $("#loading").text(isDisplayed ? "Loading " + id + " ..." : "");
-      $("#updateButton").prop('disabled', isDisplayed);
+      $("#updateButton").prop('disabled', isDisplayed || GLOBAL.hasLoadingQueue);
     }
   }
 
