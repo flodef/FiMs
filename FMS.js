@@ -826,6 +826,7 @@
     if (!id || (id && $("#loading").text() == "")) {
       GLOBAL.hasLoadingQueue = false;
       displayLoading(id, true);
+      GLOBAL.hasLoadingQueue = false;
 
       google.script.run
                    .withSuccessHandler(function(contents) { if (func) { func(contents); displayLoading(id, false); } })
