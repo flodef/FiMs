@@ -7,7 +7,7 @@
   GLOBAL.evolutionData = [];
   GLOBAL.dummy = "XXXXXX";
   GLOBAL.limit = 10;
-  GLOBAL.rebalRow = 55;
+  GLOBAL.rebalCol = 15;
   GLOBAL.dashboard = "dashboard";
   GLOBAL.investment = "investment";
   GLOBAL.historic = "historic";
@@ -596,7 +596,7 @@
   function updateInvestmentTable(contents) {
     GLOBAL.investmentData = contents;
 
-    $("#rebalanceButton").prop('disabled', GLOBAL.dashboardData[GLOBAL.rebalRow-1][1] == 0);
+    $("#rebalanceButton").prop('disabled', toValue(GLOBAL.investmentData[GLOBAL.investmentData.length-1][GLOBAL.rebalCol]) == 0);
 
     clearTransactionName();
 
