@@ -28,9 +28,12 @@
    * Run initializations on web app load.
    */
    // document.addEventListener('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
-  $(function()
-  {
-    jQuery.fx.off = false;
+  $(() => {
+    jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
+
+    displayElement('.contentOverlay', true, 0);
+    displayElement(".actionButton", false, 0);
+    // $(".actionButton").prop('disabled', true);
 
     $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
@@ -46,10 +49,6 @@
       var tableHTML = getTableTitle(ids[i][0], ids[i][1]);
       setTable(ids[i][0], tableHTML);
     }
-
-    $(".actionButton").prop('disabled', true);
-
-    $('.contentOverlay').show();
 
     updateAllValues();
   });
@@ -111,7 +110,7 @@
   }
 
   function updateRebalanceTable(contents) {
-    var closing = '$(\'#popupOverlay\').fadeOut(1000);$(\'.contentOverlay\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus();';
+    var closing = 'displayElement(\'#popupOverlay\', false, () => { $(\'.contentOverlay\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus(); });';
 
     var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
     for (var i = 0; i < contents.length; i++) {
@@ -137,7 +136,7 @@
       tableHTML += '</table>';
 
       var isLast = i == contents.length-1;
-      var skiping = '$(\'#rebal' + i + '\').hide();$(\'#rebal' + (i+1) + '\').fadeIn(1000);';
+      var skiping = 'overDisplay(\'#rebal' + i + '\', \'#rebal' + (i+1) + '\');';
       var next = isLast ? closing : skiping;
       var label = isLast ? "CLOSE" : "NEXT ORDER";
       tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;">'
@@ -149,28 +148,23 @@
 
     $("#popup").prop("innerHTML", tableHTML);
 
-    $('#popupOverlay').fadeIn(1000);
     $('.contentOverlay').addClass("blur-filter");
+    displayElement('#popupOverlay', true);
   }
 
   function addTransaction() {
     historicValuesUpdate();
-    $('#actionButton').hide("fade", null, 500, function()
-    { $('#addTransactionForm').show("fade", null, 500, function()
-    { $('#transactionName').focus(); }); });
+    overDisplay('#actionButton', '#addTransactionForm', () => $('#transactionName').focus());
   }
 
   function deleteTransaction() {
     historicValuesUpdate();
-    $('#actionButton').hide("fade", null, 500, function()
-    { $('#deleteTransactionForm').show("fade", null, 500); });
+    overDisplay('#actionButton', '#deleteTransactionForm');
   }
 
   function uploadAccountFile() {
     historicValuesUpdate();
-    $('#actionButton').hide("fade", null, 500, function()
-    { $('#uploadFileForm').show("fade", null, 500, function()
-    { $('#fileUpload').focus(); }); });
+    overDisplay('#actionButton', '#uploadFileForm', () => $('#fileUpload').focus());
   }
 
   function validateAddForm() {
@@ -310,7 +304,7 @@
           displayError(err.message);
         }
       };
-      reader.onerror = function() { displayError("Unable to read the file."); };
+      reader.onerror = () => displayError("Unable to read the file.");
       reader.readAsText(file);
     } else {
       displayError("No file had been selected.", true);
@@ -476,18 +470,14 @@
 
   function cancelForm() {
     if ($('#addTransactionForm').is(":visible")) {
-      $('#addTransactionForm').hide("fade", null, 500, function()
-      { $('#actionButton').show("fade", null, 500);
+      overDisplay('#addTransactionForm', '#actionButton', () => {
         selectName($('#transactionName').get(0), 0);
         $('#transactionQuantity').val("");
         $('#transactionValue').val(""); });
     } else if ($('#deleteTransactionForm').is(":visible")) {
-      $('#deleteTransactionForm').hide("fade", null, 500, function()
-      { $('#actionButton').show("fade", null, 500); });
+      overDisplay('#deleteTransactionForm', '#actionButton');
     } else if ($('#uploadFileForm').is(":visible")) {
-      $('#uploadFileForm').hide("fade", null, 500, function()
-      { $('#actionButton').show("fade", null, 500);
-        $('#fileUpload').val("")});
+      overDisplay('#uploadFileForm', '#actionButton', () => $('#fileUpload').val(""));
     } else if ($('#popupOverlay').is(":visible")) {
       $(".rebalButton").prop('disabled', false);
     }
@@ -502,7 +492,7 @@
      && !$('#actionButton').is(":animated")) {
      // && !$('#loaderOverlay').is(':visible')) {
       if ($('#alertOverlay').is(':visible')) {
-        $('#alertOverlay').fadeOut(1000);
+        displayElement('#alertOverlay', false);
       } else if (!$('#actionButton').is(':visible')) {
         if (e.keyCode === 13) { // Enter
           if ($('#addTransactionForm').is(':visible')) {
@@ -596,7 +586,7 @@
   function updateInvestmentTable(contents) {
     GLOBAL.investmentData = contents;
 
-    $("#rebalanceButton").prop('disabled', toValue(GLOBAL.investmentData[GLOBAL.investmentData.length-1][GLOBAL.rebalCol]) == 0);
+    displayElement("#rebalanceButton", toValue(GLOBAL.investmentData[GLOBAL.investmentData.length-1][GLOBAL.rebalCol]) != 0);
 
     clearTransactionName();
 
@@ -650,9 +640,9 @@
 
     $(".validateButton").prop('disabled', true);
 
-    $("#uploadButton").prop('disabled', false);
-    $("#addButton").prop('disabled', false);
-    $("#deleteButton").prop('disabled', !indexOf(GLOBAL.historicData, GLOBAL.dummy, 0));
+    displayElement("#uploadButton", true);
+    displayElement("#addButton", true);
+    displayElement("#deleteButton", indexOf(GLOBAL.historicData, GLOBAL.dummy, 0));
 
     var id = GLOBAL.historic;
     var row = contents.length;
@@ -751,12 +741,11 @@
   }
 
   function getTitle(id) {
-    return '<h2 onclick="if(!$(\'#' + id + 'Table\').is(\':visible\')){' + id + 'ValuesUpdate();};'
-          + '$(\'.mainTable\').each(function(){if(this.id != \'' + id + 'Table\'){$(this).hide();}});'
-          + '$(\'.searchInput\').each(function(){if(this.id != \'' + id + 'Search\'){$(this).hide();}});'
-          + '$(\'#' + id + 'Table\').fadeToggle(\'slow\');'
-          + '$(\'#' + id + 'Search\').fadeToggle(\'slow\');' + '">'
-          + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
+    return '<h2 onclick="var shouldDisplay = !$(\'#' + id + 'Table\').is(\':visible\');'
+          + 'if(shouldDisplay){' + id + 'ValuesUpdate();};'
+          + '$(\'.mainTable\').each((i, item) => { var x = shouldDisplay && item.id == \'' + id + 'Table\'; displayElement(item, x, item.id != \'' + id + 'Table\' ? 0 : 1000) });'
+          + '$(\'.searchInput\').each((i, item) => { var x = shouldDisplay && item.id == \'' + id + 'Search\'; displayElement(item, x, item.id != \'' + id + 'Table\' ? 0 : 1000) });'
+          + '">' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
   }
 
   function getTableTitle(id, tooltip, colspan) {
@@ -815,11 +804,7 @@
       index = e.selectedIndex;
     }
 
-    if (e.options[index].title) {
-      $("#transactionQuantityLabel").fadeIn();
-    } else {
-      $("#transactionQuantityLabel").fadeOut();
-    }
+    displayElement("#transactionQuantityLabel", e.options[index].title);
   }
 
   function getValue(formula, func, id) {
@@ -852,21 +837,12 @@
     var searchFunc = item => $(item).children("td")[index] && $(item).children("td")[index].innerHTML.toUpperCase().includes(search);
     var filterFunc = id == GLOBAL.investment ? (i, item) => (!isChecked || shouldRebalance($(item).children("td")[6] ? $(item).children("td")[6].innerHTML : null)) && searchFunc(item)
                    : id == GLOBAL.historic || id == GLOBAL.evolution ? (i, item) => (isChecked || i < GLOBAL.limit) && searchFunc(item)
-                   : (item, i) => true;
+                   : (i, item) => true;
+    var displayFunc = (i, item) => { var fn = filterFunc(i, item) ? a => $(a).show() : a => $(a).hide(); fn(item); };
 
-    toggleItem(id, filterFunc);
+    $("#" + id + "Table tbody tr").each(displayFunc);
 
     refreshTotal(id);
-  }
-
-  function toggleItem(id, func) {
-    $("#" + id + "Table tbody tr").each((i, item) => {
-      if (func(i, item)) {
-        $(item).show();
-      } else {
-        $(item).hide();
-      }
-    });
   }
 
   function refreshTotal(id) {
@@ -938,24 +914,36 @@
       $("#snackbar").addClass("show");
 
       // After 3 seconds, remove the show class from DIV
-      setTimeout(function(){ $("#snackbar").removeClass("show"); $("#snackbar").text(""); }, 3000);
+      setTimeout(() => { $("#snackbar").removeClass("show"); $("#snackbar").text(""); }, 3000);
     }
   }
 
   function displayLoading(id, isDisplayed) {
     if (id) {
       $("#loading").text(isDisplayed ? "Loading " + id + " ..." : "");
-      $("#updateButton").prop('disabled', isDisplayed || GLOBAL.hasLoadingQueue);
+      displayElement("#updateButton", false);
+      setTimeout(() => displayElement("#updateButton", !isDisplayed && !GLOBAL.hasLoadingQueue), 300);
     }
   }
 
+  function displayElement(id, isDisplayed, duration = "slow", complete) {
+    var fn = isDisplayed
+      ? () => $(id).fadeIn(duration, complete)
+      : () => $(id).fadeOut(duration, complete);
+    fn();
+  }
+
+  function overDisplay(idToHide, idToShow, complete) {
+    displayElement(idToHide, false, () => displayElement(idToShow, true, complete));
+  }
+
   // function showLoader(isRefreshing) {
-  //   $('#loaderOverlay').fadeIn(1000);
+  //   displayElement('#loaderOverlay', true);
   //   $('.contentOverlay').fadeTo(1000, isRefreshing ? 0.3 : 0);
   // }
   //
   // function hideLoader() {
-  //   $('#loaderOverlay').fadeOut(1000);
+  //   displayElement('#loaderOverlay', false);
   //   $('.contentOverlay').fadeTo(1000, 1);
   // }
 
@@ -969,9 +957,9 @@
     // hideLoader();
 
     $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
-    $("#alert").prop("innerHTML", '<span class="closebtn" onclick="$(\'#alertOverlay\').fadeOut(1000);$(\'#transactionName\').focus();">&times;</span>'
+    $("#alert").prop("innerHTML", '<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>'
                                 + '<strong>' + (isWarning ? "WARNING" : "ALERT") + ':</strong> ' + msg);
-    $('#alertOverlay').fadeIn(1000);
+    displayElement('#alertOverlay', true);
   }
 
   function shouldRebalance(value) {
