@@ -921,8 +921,11 @@
   function displayLoading(id, isDisplayed) {
     if (id) {
       $("#loading").text(isDisplayed ? "Loading " + id + " ..." : "");
-      displayElement("#updateButton", false);
-      setTimeout(() => displayElement("#updateButton", !isDisplayed && !GLOBAL.hasLoadingQueue), 300);
+      if (isDisplayed || GLOBAL.hasLoadingQueue) {
+        displayElement("#updateButton", false);
+      } else {
+        setTimeout(() => displayElement("#updateButton", () => !GLOBAL.hasLoadingQueue), 300);
+      }
     }
   }
 
