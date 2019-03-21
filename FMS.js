@@ -809,12 +809,15 @@
 
   function getValue(formula, func, id) {
     if (!id || (id && $("#loading").text() == "")) {
-      GLOBAL.hasLoadingQueue = false;
       displayLoading(id, true);
-      GLOBAL.hasLoadingQueue = false;
 
       google.script.run
-                   .withSuccessHandler(function(contents) { if (func) { func(contents); displayLoading(id, false); } })
+                   .withSuccessHandler(function(contents) {
+                     if (func) {
+                       func(contents);
+                       GLOBAL.hasLoadingQueue = false;
+                       displayLoading(id, false);
+                     } })
                    .withFailureHandler(displayError)
                    .getSheetValues(formula);
      } else {
@@ -921,8 +924,11 @@
   function displayLoading(id, isDisplayed) {
     if (id) {
       $("#loading").text(isDisplayed ? "Loading " + id + " ..." : "");
-      displayElement("#updateButton", false);
-      setTimeout(() => displayElement("#updateButton", !isDisplayed && !GLOBAL.hasLoadingQueue), 300);
+      if (isDisplayed || GLOBAL.hasLoadingQueue) {
+        displayElement("#updateButton", false);
+      } else {
+        setTimeout(() => displayElement("#updateButton", () => !GLOBAL.hasLoadingQueue), 300);
+      }
     }
   }
 
