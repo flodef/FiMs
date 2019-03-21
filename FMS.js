@@ -927,7 +927,7 @@
       if (isDisplayed || GLOBAL.hasLoadingQueue) {
         displayElement("#updateButton", false);
       } else {
-        setTimeout(() => displayElement("#updateButton", () => !GLOBAL.hasLoadingQueue), 300);
+        setTimeout(() => displayElement("#updateButton", () => !GLOBAL.hasLoadingQueue), 500);
       }
     }
   }
