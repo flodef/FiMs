@@ -850,46 +850,40 @@
 
   function refreshTotal(id) {
     if (id == GLOBAL.historic) {
-      // && $('#' + id + 'Table').is(':visible')) {
-      var item;
-      var qty = 0;
-      var price = 0;
-      var value = 0;
-      var instprof = 0;
-      var avgprof = 0;
-      var priner = 0;
-      var instner = 0;
-      var avgner = 0;
-      var rows = 0;
-
-      var max = !$('#' + id + 'Filter').is(':checked')
-        ? GLOBAL.limit : $("#" + id + "Table tbody tr").length;
-      var elem = $("#" + id + "Table tbody tr:visible").length == 0
-               ? $("#" + id + "Table tbody tr:lt(" + max + ")")
-               : $("#" + id + "Table tbody tr:visible");
-      elem.each((i, item) => {
+      var calculateFunc = (i, item) => {
         item = $(item).children("td");
-        qty += toValue(item[4].innerHTML);
-        price += toValue(item[5].innerHTML);
-        value += toValue(item[6].innerHTML);
-        instprof += toValue(item[7].innerHTML);
-        avgprof += toValue(item[8].innerHTML);
-
-        priner += item[5].innerHTML ? 1 : 0;
-        instner += item[7].innerHTML ? 1 : 0;
-        avgner += item[8].innerHTML ? 1 : 0;
-        ++rows;
-      });
-      $("#" + id + "Footer").prop("innerHTML",
-        '<td>TOTAL</td>'
-        + '<td colspan="3" align="center">' + rows + ' rows</td>'
-        + '<td>' + qty.toFixed(0) + '</td>'
-        + '<td>' + toCurrency(price/priner) + '</td>'
-        + '<td title="' + toCurrency(value/rows) + '">' + toCurrency(value) + '</td>'
-        + '<td title="' + toCurrency(instprof/instner) + '">' + toCurrency(instprof) + '</td>'
-        + '<td title="' + toCurrency(avgprof/avgner) + '">' + toCurrency(avgprof) + '</td>');
+        for (var j = 0; j < item.length; ++j) {
+          a[j] += j == 0 ? 1
+                : j == 1 ? item[5].innerHTML ? 1 : 0
+                : j == 2 ? item[7].innerHTML ? 1 : 0
+                : j == 3 ? item[8].innerHTML ? 1 : 0
+                : toValue(item[j].innerHTML);
+        }
+      };
+      var footerFunc = () =>
+        '<td colspan="3" align="center">' + a[0] + ' rows</td>'
+         + '<td>' + a[4].toFixed(0) + '</td>'
+         + '<td>' + toCurrency(a[5]/a[1]) + '</td>'
+         + '<td title="' + toCurrency(a[6]/a[0]) + '">' + toCurrency(a[6]) + '</td>'
+         + '<td title="' + toCurrency(a[7]/a[2]) + '">' + toCurrency(a[7]) + '</td>'
+         + '<td title="' + toCurrency(a[8]/a[3]) + '">' + toCurrency(a[8]) + '</td>';
     } else if (id == GLOBAL.evolution) {
-      // && $('#' + id + 'Table').is(':visible')) {
+      var calculateFunc = (i, item) => {
+        item = $(item).children("td");
+        for (var j = 0; j < item.length; ++j) {
+          a[j] += j == 0 ? 1 : toValue(item[j].innerHTML);
+        }
+      };
+      var footerFunc = () => {
+        var footer = "";
+        for (var i = 1; i < a.length; i++) {
+          footer += '<td>' + toCurrency(a[i]/a[0], 2, i < 5 ? '%' :'€') + '</td>';
+        }
+        return footer;
+      }
+    }
+
+    if (calculateFunc) {
       var item;
       var a = new Array(9).fill(0);
 
@@ -898,17 +892,8 @@
       var elem = $("#" + id + "Table tbody tr:visible").length == 0
                ? $("#" + id + "Table tbody tr:lt(" + max + ")")
                : $("#" + id + "Table tbody tr:visible");
-      elem.each((i, item) => {
-        item = $(item).children("td");
-        for (var j = 0; j < item.length; ++j) {
-          a[j] += j != 0 ? toValue(item[j].innerHTML) : 1;
-        }
-      });
-      var footer = '<td>TOTAL</td>';
-      for (var i = 1; i < a.length; i++) {
-        footer += '<td>' + toCurrency(a[i]/a[0], 2, i < 5 ? '%' :'€') + '</td>';
-      }
-      $("#" + id + "Footer").prop("innerHTML", footer);
+      elem.each(calculateFunc);
+      $("#" + id + "Footer").prop("innerHTML", '<td>TOTAL</td>' + footerFunc());
     }
   }
 
