@@ -606,7 +606,8 @@
                     : !contents[i][7] || contents[i][7] == contents[i][8]
                       ? toCurrency(contents[i][j])
                       : toCurrency(contents[i][j], 4) + ' (' + toCurrency(contents[i][j-1], 4, "$") + ')';
-        tableHTML += getTableReadOnlyContent(con, i == 0);
+        var isDisabled = (j == 14 || j == 15) && !shouldRebalance(contents[i][18]);
+        tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled);
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
@@ -707,18 +708,16 @@
            getTableReadOnlyContent(contents[index-1][1], false);
   }
 
-  function getTableReadOnlyContent(content, isHeader) {
+  function getTableReadOnlyContent(content, isHeader, isDisabled) {
     var content = content ? content : "";
     var matches = /\(([^)]+)\)/.exec(content);
     var value = matches ? matches[matches.length-1] : content;
     var isCur = /(€|%|\$)/.test(value);
     var number = toValue(value);
-    var color = isCur
-                  ? number > 0 ? "green"
-                  : number < 0 ? "red"
-                  : "wheat"
-              : !isNaN(number) && number == 0 ? "wheat"
-              : "black";
+    var isDisabled = isDisabled || (!isNaN(number) && number == 0);
+    var color = isDisabled ? "wheat"
+                : isCur ? number > 0 ? "green" : "red"
+                : "black";
     return isHeader ? '<th align="center">' + content + '</th>'
                     : '<td align="center" style="color:' + color + '">' + content + '</td>';
   }
