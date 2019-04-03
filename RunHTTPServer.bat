@@ -1,5 +1,5 @@
 @ECHO off
-SET url="C:\Users\fdefr\Downloads\Finance.xlsx"
+SET url="C:\Users\fdefr\Downloads\Finance Manager Spreadsheet.xlsx"
 SET goo="https://docs.google.com/spreadsheets/d/e/2PACX-1vQOD1ZjNIwHLYr7Qft0UzPCAvYLlVW8kmDu8cvG6RPqtrBw5sIYkigiKDBONUfcVcL6g4Xb_j0oeZla/pub?output=xlsx"
 
 :lo
@@ -18,7 +18,7 @@ IF %retry%==Y GOTO lo
 :el
 CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 SET do=%ERRORLEVEL%
-IF %do% EQU 1 MOVE C:\Users\fdefr\Downloads\Finance.xlsx .\Data
+IF %do% EQU 1 MOVE %url% .\Data
 CLS
 START /B http-server
 EXIT

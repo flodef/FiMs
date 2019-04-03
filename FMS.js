@@ -7,7 +7,7 @@
   GLOBAL.evolutionData = [];
   GLOBAL.dummy = "XXXXXX";
   GLOBAL.limit = 10;
-  GLOBAL.rebalCol = 15;
+  GLOBAL.rebalCol = 18;
   GLOBAL.dashboard = "dashboard";
   GLOBAL.investment = "investment";
   GLOBAL.historic = "historic";
@@ -508,14 +508,11 @@
         else if (e.keyCode === 27) { // Esc
           cancelForm();
         }
-      }
-      else
-      {
+      } else {
         if (!$('input[type="number"]').is(':focus') && !$('input[type="text"]').is(':focus'))  {
           if (e.keyCode === 186) { // $
             rebalanceStocks();
-          }
-          if (e.keyCode === 107 || e.keyCode === 187) { // +
+          } else if (e.keyCode === 107 || e.keyCode === 187) { // +
             addTransaction();
           }
           else if (e.keyCode === 109 || e.keyCode === 189) { // -
@@ -586,7 +583,7 @@
   function updateInvestmentTable(contents) {
     GLOBAL.investmentData = contents;
 
-    displayElement("#rebalanceButton", toValue(GLOBAL.investmentData[GLOBAL.investmentData.length-1][GLOBAL.rebalCol]) != 0);
+    displayElement("#rebalanceButton", shouldRebalance(GLOBAL.investmentData[GLOBAL.investmentData.length-1][GLOBAL.rebalCol]));
 
     clearTransactionName();
 
@@ -954,7 +951,7 @@
   }
 
   function shouldRebalance(value) {
-    return value && value.substring(0, 3) != "MID";
+    return value && value.substring(0, 4) != "HOLD";
   }
 
   function toValue(content) {

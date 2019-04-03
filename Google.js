@@ -30,8 +30,8 @@ class Run {
   }
   async getSheetValues(range) {
     if (!Run._workbook) {
-      var url = "Data/Finance.xlsx";
-      // var url  = "https://rawgit.com/flodef/FM/master/Data/Finance.xlsx";
+      var url = "Data/Finance Manager Spreadsheet.xlsx";
+      // var url  = "https://rawgit.com/flodef/FM/master/Data/Finance Manager Spreadsheet.xlsx";
       var run = this;
 
       await fetch(url)
