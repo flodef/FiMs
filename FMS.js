@@ -38,16 +38,9 @@
     $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
-    var ids = [
-      [GLOBAL.dashboard, null],
-      [GLOBAL.investment, GLOBAL.rebalanceButtonToolTip],
-      [GLOBAL.historic, GLOBAL.showAllButtonToolTip],
-      [GLOBAL.evolution, GLOBAL.showAllButtonToolTip]
-    ];
-
-    for (var i = 0; i < ids.length; i++) {
-      var tableHTML = getTableTitle(ids[i][0], ids[i][1]);
-      setTable(ids[i][0], tableHTML);
+    for (ids of [GLOBAL.dashboard, GLOBAL.investment, GLOBAL.historic, GLOBAL.evolution]) {
+      var tableHTML = getTableTitle(ids, true);
+      setTable(ids, tableHTML);
     }
 
     updateAllValues();
@@ -592,7 +585,7 @@
     var id = GLOBAL.investment;
     var row = contents.length;
     var col = contents[0].length;
-    var tableHTML = getTableTitle(id, GLOBAL.rebalanceButtonToolTip, col-1);
+    var tableHTML = getTableTitle(id, false, GLOBAL.rebalanceButtonToolTip, col-1);
     for (var i = 0; i < row; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
@@ -645,7 +638,7 @@
     var id = GLOBAL.historic;
     var row = contents.length;
     var col = contents[0].length;
-    var tableHTML = getTableTitle(id, GLOBAL.showAllButtonToolTip, col-1);
+    var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col-1);
     for (var i = 0; i < row; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
@@ -676,7 +669,7 @@
     var id = GLOBAL.evolution;
     var row = contents.length;
     var col = contents[0].length;
-    var tableHTML = getTableTitle(id, GLOBAL.showAllButtonToolTip, col-1);
+    var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col-1);
     for (var i = 0; i < row; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
@@ -736,22 +729,25 @@
          + ' value="' + title + '"></input></td></tr>';
   }
 
-  function getTitle(id) {
-    return '<h2 onclick="var shouldDisplay = !$(\'#' + id + 'Table\').is(\':visible\');'
+  function getTitle(id, disabled) {
+    return '<h2'
+          + (!disabled ? ' onclick="var shouldDisplay = !$(\'#' + id + 'Table\').is(\':visible\');'
           + 'if(shouldDisplay){' + id + 'ValuesUpdate();};'
-          + '$(\'.mainTable\').each((i, item) => { var x = shouldDisplay && item.id == \'' + id + 'Table\'; displayElement(item, x, item.id != \'' + id + 'Table\' ? 0 : 1000) });'
-          + '$(\'.searchInput\').each((i, item) => { var x = shouldDisplay && item.id == \'' + id + 'Search\'; displayElement(item, x, item.id != \'' + id + 'Table\' ? 0 : 1000) });'
-          + '">' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
+          + 'for (suffix of [\'Table\', \'Switch\', \'Search\']) {'
+          + '$(\'.main\' + suffix).each((i, item) => toggleItem(\'' + id + '\' + suffix, item, shouldDisplay)); }"' : '')
+          + '>' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
   }
 
-  function getTableTitle(id, tooltip, colspan) {
+  function getTableTitle(id, disabled, tooltip, colspan) {
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-         + '<tr style="background-color:white;"><td>' + getTitle(id) + '</td>'
-         + (tooltip ? '<td><div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
+         + '<tr style="background-color:white;"><td>' + getTitle(id, disabled) + '</td>'
+         + (tooltip ? '<td id="' + id + 'Switch" class="mainSwitch '
+         + ($("#" + id + "Switch").is(":visible") ? '' : 'hidden') + '">'
+         + '<div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
          + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="filterTable(\'' + id + '\')">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
-         + '<input id="' + id + 'Search" type="text" placeholder="Search" class="searchInput '
+         + '<input id="' + id + 'Search" type="text" placeholder="Search" class="mainSearch '
          + ($("#" + id + "Search").is(":visible") ? '' : 'hidden') + '" '
          + 'onkeyup="filterTable(\'' + id + '\');" onchange="filterTable(\'' + id + '\');"'
          + 'value="' + ($('#' + id + 'Search').val() || "") + '">' : '')
@@ -766,6 +762,12 @@
   function setTable(id, tableHTML) {
     tableHTML += '</table>';
     $("#" + id + "Div").prop("innerHTML", tableHTML);
+  }
+
+  function toggleItem(id, item, shouldDisplay) {
+    var isCurrentId = item.id == id;
+    var shouldDisplay = shouldDisplay && isCurrentId;
+    displayElement(item, shouldDisplay, isCurrentId ? 1000 : 0)
   }
 
   function autoAdaptWidth(e) {
@@ -808,7 +810,7 @@
       displayLoading(id, true);
 
       google.script.run
-                   .withSuccessHandler(function(contents) {
+                   .withSuccessHandler(contents => {
                      if (func) {
                        func(contents);
                        GLOBAL.hasLoadingQueue = false;
@@ -824,14 +826,14 @@
 
   function setValue(name, value, func) {
     google.script.run
-                 .withSuccessHandler(function(contents) { if (func) { func(); } })
+                 .withSuccessHandler(contents => { if (func) { func(); } })
                  .withFailureHandler(displayError)
                  .setSheetValues(name, value);
   }
 
   function filterTable(id) {
     var isChecked = $("#" + id + "Filter").is(':checked');
-    var search = $('#' + id + 'Search').val().toUpperCase();
+    var search = $('#' + id + 'Search').val() ? $('#' + id + 'Search').val().toUpperCase() : "";
     var index = id == GLOBAL.historic ? 2 : 0;
     var searchFunc = item => $(item).children("td")[index] && $(item).children("td")[index].innerHTML.toUpperCase().includes(search);
     var filterFunc = id == GLOBAL.investment ? (i, item) => (!isChecked || shouldRebalance($(item).children("td")[6] ? $(item).children("td")[6].innerHTML : null)) && searchFunc(item)
