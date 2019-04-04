@@ -603,8 +603,8 @@
                     ? i == 0 || j < 19
                       ? contents[i][j]
                       : contents[i][j] + ' (' + contents[i][j+1] + ')'
-                    : !contents[i][7] || contents[i][7] == contents[i][8]
-                      ? toCurrency(contents[i][j])
+                    : !contents[i][7] || !contents[i][8] || contents[i][7] == contents[i][8]
+                      ? contents[i][8] ? toCurrency(contents[i][j], 4) : ""
                       : toCurrency(contents[i][j], 4) + ' (' + toCurrency(contents[i][j-1], 4, "$") + ')';
         var isDisabled = (j == 14 || j == 15) && !shouldRebalance(contents[i][18]);
         tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled);
