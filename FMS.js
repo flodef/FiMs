@@ -13,6 +13,7 @@
   GLOBAL.investment = "investment";
   GLOBAL.historic = "historic";
   GLOBAL.evolution = "evolution";
+  GLOBAL.account = "account";
   GLOBAL.dashboardFormula = "Dashboard!A:B";
   GLOBAL.investmentFormula = "Investment!D:AE";
   GLOBAL.historicFormula = "Historic!A:J";
@@ -262,11 +263,11 @@
   }
 
   function validateUploadForm() {
-    // showLoader(true);
-
     var data = null;
     var file = $("#fileUpload").prop("files")[0];
     if (file) {
+      showLoader(true);
+
       var reader = new FileReader();
       reader.onload = function(event) {
         var csvData = event.target.result;
@@ -280,14 +281,15 @@
               google.script.run
                     .withSuccessHandler(function(contents) {
                       setValue("Account!A1", data);
-                      getValue(GLOBAL.resultFormula, compareResultData);
+                      getValue(GLOBAL.resultFormula, compareResultData, GLOBAL.account, executionSuccess);
                     })
                     .withFailureHandler(displayError)
                     .clearSheetValues(GLOBAL.accountFormula);
             } else if (data[0][0] == "dateOp" && data[0][1] == "dateVal") {
-              getValue(GLOBAL.expHistoFormula, contents => insertExpensesRow(data, contents));
+              getValue(GLOBAL.expHistoFormula, contents => insertExpensesRow(data, contents), GLOBAL.account, executionSuccess);
             } else if (data[0][0] == "CA ID" && data[0][1] == "Produit") {
               insertDividendRow(data);
+              executionSuccess();
             } else {
               displayError("File type not recognised.");
             }
@@ -807,7 +809,7 @@
     displayElement("#transactionQuantityLabel", e.options[index].title);
   }
 
-  function getValue(formula, func, id) {
+  function getValue(formula, func, id, success) {
     if (!id || (id && $("#loading").text() == "")) {
       if (!id || !GLOBAL.hasAlreadyUpdated[id]) {
         displayLoading(id, true);
@@ -818,19 +820,22 @@
                          func(contents);
                          GLOBAL.hasLoadingQueue = false;
                          displayLoading(id, false);
+                         if (success) {
+                           success();
+                         }
                        } })
                      .withFailureHandler(displayError)
                      .getSheetValues(formula);
       }
     } else {
       GLOBAL.hasLoadingQueue = true;
-      setTimeout(() => getValue(formula, func, id), 100);
+      setTimeout(() => getValue(formula, func, id, success), 100);
     }
   }
 
-  function setValue(name, value, func) {
+  function setValue(name, value, success) {
     google.script.run
-                 .withSuccessHandler(contents => { if (func) { func(); } })
+                 .withSuccessHandler(contents => { if (success) { success(); } })
                  .withFailureHandler(displayError)
                  .setSheetValues(name, value);
   }
@@ -932,24 +937,20 @@
     displayElement(idToHide, false, () => displayElement(idToShow, true, complete));
   }
 
-  // function showLoader(isRefreshing) {
-  //   displayElement('#loaderOverlay', true);
-  //   $('.contentOverlay').fadeTo(1000, isRefreshing ? 0.3 : 0);
-  // }
-  //
-  // function hideLoader() {
-  //   displayElement('#loaderOverlay', false);
-  //   $('.contentOverlay').fadeTo(1000, 1);
-  // }
+  function showLoader(isDisplayed) {
+    displayElement('#loaderOverlay', isDisplayed);
+    $('.contentOverlay').fadeTo(1000, isDisplayed ? 0.3 : 1);
+  }
 
   function executionSuccess() {
-    updateAllValues();
+    // updateAllValues();
+    showLoader(false);
     cancelForm();
     showSnackBar();
   }
 
   function displayError(msg, isWarning) {
-    // hideLoader();
+    showLoader(false);
 
     $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
     $("#alert").prop("innerHTML", '<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>'
