@@ -8,6 +8,7 @@
   GLOBAL.dummy = "XXXXXX";
   GLOBAL.dataPreloadRowLimit = 10;
   GLOBAL.timeBetweenReload = 60;
+  GLOBAL.histoIdCol = 7;
   GLOBAL.rebalCol = 18;
   GLOBAL.dashboard = "dashboard";
   GLOBAL.investment = "investment";
@@ -164,14 +165,7 @@
   }
 
   function validateAddForm() {
-//    var today = new Date();
-//    var dd = today.getDate();
-//    var mm = today.getMonth()+1; //January is 0!
-//    var yyyy = today.getFullYear();
-//    dd = dd<10 ? '0' + dd : dd;
-//    mm = mm<10 ? '0' + mm : mm;
-//    var tDate = mm + '/' + dd + '/' + yyyy;
-    var tDate = GLOBAL.dummy;
+    var tDate = toStringDate();
 
     var tType = $("#transactionName").children(":selected").attr("title");
 
@@ -182,8 +176,8 @@
     var tQty = tName && !isNaN(qty) && qty != 0 ? qty : "";
 
     var tOpe = !tType ? name
-             : tQty<0 ? "SELL"
-             : tQty>0 ? "BUY"
+             : tQty < 0 ? "SELL"
+             : tQty > 0 ? "BUY"
              : "DIVIDEND";
 
     var val = parseFloat($("#transactionValue").val());
@@ -200,8 +194,7 @@
                  : "";
 
     if (!errorMsg) {
-      insertHistoricRow([[tDate, tType, tName, tOpe, tQty, tUnit, tVal,
-        tName + "@" + tOpe + "@" + tQty + "@" + tVal]], "Historic");
+      insertHistoricRow([[tDate, tType, tName, tOpe, tQty, tUnit, tVal, GLOBAL.dummy]], "Historic");
     } else {
       displayError(errorMsg, true);
     }
@@ -245,7 +238,7 @@
   }
 
   function validateDeleteForm(index, rowCnt, func = () => {}) {
-    var index = index ? index : indexOf(GLOBAL.historicData, GLOBAL.dummy, 0);
+    var index = index ? index : indexOf(GLOBAL.historicData, GLOBAL.dummy, GLOBAL.histoIdCol);
     var rowCnt = rowCnt ? rowCnt : 1;
 
     if (index !== null && index*rowCnt > 0) {
@@ -317,11 +310,11 @@
       for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
         var row = contents[i];
         var isEmpty = toValue(row[6]) == 0;
-        var index = !isEmpty ? indexOf(GLOBAL.historicData, row[7], 7) : null;
+        var index = !isEmpty ? indexOf(GLOBAL.historicData, row[GLOBAL.histoIdCol], GLOBAL.histoIdCol) : null;
 
         if (!isEmpty
         && (index === null
-        || (index !== null && row[0] != toDate(GLOBAL.historicData[index][0])))) {
+        || (index !== null && row[0] != toStringDate(GLOBAL.historicData[index][0])))) {
           if (indexOf(row, "#N/A") === null
           && indexOf(row, "#VALUE!") === null
           && indexOf(row, "#REF!") === null) {
@@ -336,7 +329,7 @@
 
       // Removing dummy data
       var prevIndex;
-      var index = indexOf(GLOBAL.historicData, GLOBAL.dummy, 0);
+      var index = indexOf(GLOBAL.historicData, GLOBAL.dummy, GLOBAL.histoIdCol);
       var dai = [];
       while (index !== null) {
         if (index-1 == prevIndex) {
@@ -346,7 +339,7 @@
         }
         prevIndex = index;
 
-        index = indexOf(GLOBAL.historicData, GLOBAL.dummy, 0, index+1);
+        index = indexOf(GLOBAL.historicData, GLOBAL.dummy, GLOBAL.histoIdCol, index+1);
       }
 
       var f = count => {
@@ -431,9 +424,9 @@
         var index = indexOf(GLOBAL.historicData, value, 6);
 
         if (index === null || (index !== null &&
-                              (GLOBAL.historicData[index][0] != GLOBAL.dummy
-                            || GLOBAL.historicData[index][7] != id))) {
-            data.push([GLOBAL.dummy, type, label, transaction, "", "", value, id]);
+                              (GLOBAL.historicData[index][GLOBAL.histoIdCol] != GLOBAL.dummy
+                            || GLOBAL.historicData[index][GLOBAL.histoIdCol] != id))) {
+            data.push([toStringDate(), type, label, transaction, "", "", value, GLOBAL.dummy]);
         } else {
             ++dupCnt;
         }
@@ -637,7 +630,7 @@
 
     displayElement("#uploadButton", true);
     displayElement("#addButton", true);
-    displayElement("#deleteButton", indexOf(GLOBAL.historicData, GLOBAL.dummy, 0));
+    displayElement("#deleteButton", indexOf(GLOBAL.historicData, GLOBAL.dummy, GLOBAL.histoIdCol));
 
     var id = GLOBAL.historic;
     var row = contents.length;
@@ -652,7 +645,7 @@
             ? contents[i][j]
             : toCurrency(contents[i][j], 4)
           : "";
-        tableHTML += j != 7   // Don't display the ID at row 7
+        tableHTML += j != GLOBAL.histoIdCol   // Don't display the Historic ID
           ? getTableReadOnlyContent(value, i == 0)
           : '';
       }
@@ -748,7 +741,8 @@
          + (tooltip ? '<td id="' + id + 'Switch" class="mainSwitch '
          + ($("#" + id + "Switch").is(":visible") ? '' : 'hidden') + '">'
          + '<div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-         + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') + ' onclick="filterTable(\'' + id + '\')">'
+         + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '')
+         + ' onclick="filterTable(\'' + id + '\', true)">'
          + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
          + '<td colspan="' + colspan + '" align="right">'
          + '<input id="' + id + 'Search" type="text" placeholder="Search" class="mainSearch '
@@ -840,7 +834,7 @@
                  .setSheetValues(name, value);
   }
 
-  function filterTable(id) {
+  function filterTable(id, shouldReload) {
     var isChecked = $("#" + id + "Filter").is(':checked');
     var search = $('#' + id + 'Search').val() ? $('#' + id + 'Search').val().toUpperCase() : "";
     var index = id == GLOBAL.historic ? 2 : 0;
@@ -849,6 +843,9 @@
                    : id == GLOBAL.historic || id == GLOBAL.evolution ? (i, item) => (isChecked || i < GLOBAL.dataPreloadRowLimit) && searchFunc(item)
                    : (i, item) => true;
     var displayFunc = (i, item) => { var fn = filterFunc(i, item) ? a => $(a).show() : a => $(a).hide(); fn(item); };
+    var loadFunc = (id == GLOBAL.historic || id == GLOBAL.evolution) && shouldReload && isChecked
+    ? null
+    : null;
 
     $("#" + id + "Table tbody tr").each(displayFunc);
 
@@ -993,12 +990,23 @@
          : str;
   }
 
-  function toDate(content) {
-    return content && content.split("/").length == 3
-         ? content.replace(/(^|\/)0+/g, "$1").split("/")[1] + "/"
-         + content.replace(/(^|\/)0+/g, "$1").split("/")[0] + "/"
-         + content.split("/")[2]
-         : null;
+  function toStringDate(date) {
+    if (typeof(date) == "string") {
+      return date && date.split("/").length == 3
+      ? date.replace(/(^|\/)0+/g, "$1").split("/")[1] + "/"
+      + date.replace(/(^|\/)0+/g, "$1").split("/")[0] + "/"
+      + date.split("/")[2]
+      : null;
+    } else if (typeof(date) == "object") {
+      var day = date.getDate();
+      var month = date.getMonth() + 1;   //January is 0!
+      var year = date.getFullYear();
+      day = day < 10 ? '0' + day : day;
+      month = month < 10 ? '0' + month : month;
+      return month + "/" + day + "/" + year;
+    } else {
+      return toStringDate(new Date());
+    }
   }
 
   function indexOf(array, value, index, start) {
