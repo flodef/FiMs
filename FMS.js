@@ -17,8 +17,8 @@
   GLOBAL.account = "account";
   GLOBAL.dashboardFormula = "Dashboard!A:B";
   GLOBAL.investmentFormula = "Investment!D:AE";
-  GLOBAL.historicFormula = "Historic!A:J";
-  GLOBAL.evolutionFormula = "Evolution!A:I";
+  GLOBAL.historicFormula = "Historic!A:J" + GLOBAL.dataPreloadRowLimit;
+  GLOBAL.evolutionFormula = "Evolution!A:I" + GLOBAL.dataPreloadRowLimit;
   GLOBAL.resultFormula = "Result!A:H";
   GLOBAL.accountFormula = "Account!A:K";
   GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
@@ -738,7 +738,7 @@
   function getTableTitle(id, disabled, tooltip, colspan) {
     return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td>' + getTitle(id, disabled) + '</td>'
-         + (tooltip ? '<td id="' + id + 'Switch" class="mainSwitch '
+         + (false ? '<td id="' + id + 'Switch" class="mainSwitch '
          + ($("#" + id + "Switch").is(":visible") ? '' : 'hidden') + '">'
          + '<div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
          + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '')
