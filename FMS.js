@@ -1,10 +1,7 @@
   window.GLOBAL = {};
   GLOBAL.cost = "COST";
   GLOBAL.approv = "APPROVISIONNEMENT";
-  GLOBAL.dashboardData = [];
-  GLOBAL.investmentData = [];
-  GLOBAL.historicData = [];
-  GLOBAL.evolutionData = [];
+  GLOBAL.data = [];
   GLOBAL.dummy = "XXXXXX";
   GLOBAL.dataPreloadRowLimit = 10;
   GLOBAL.timeBetweenReload = 60;
@@ -14,6 +11,7 @@
   GLOBAL.investment = "investment";
   GLOBAL.historic = "historic";
   GLOBAL.evolution = "evolution";
+  GLOBAL.settings = "settings";
   GLOBAL.account = "account";
   GLOBAL.dashboardFormula = "Dashboard!A:B";
   GLOBAL.investmentFormula = "Investment!D:AE";
@@ -32,7 +30,6 @@
   /**
    * Run initializations on web app load.
    */
-   // document.addEventListener('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
   $(() => {
     jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
 
@@ -48,7 +45,7 @@
       setTable(ids, tableHTML);
     }
 
-    updateAllValues();
+    getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, updateAllValues);
   });
 
   function updateAllValues() {
@@ -77,24 +74,25 @@
   function rebalanceStocks() {
     investmentValuesUpdate();
 
-    var tRow = GLOBAL.investmentData.length - 1;
+    var investmentData = GLOBAL.data[GLOBAL.investment];
+    var tRow = investmentData.length - 1;
     var contents = [];
     var rank = 0;
     for (var i = 1; i < tRow; i++) { // Take only the value (no header, footer)
-      var index = indexOf(GLOBAL.investmentData, rank.toString(), 13);
+      var index = indexOf(investmentData, rank.toString(), 13);
 
       var nr = rank;
       while (index === null) {
-        index = indexOf(GLOBAL.investmentData, (--nr).toString(), 13);
+        index = indexOf(investmentData, (--nr).toString(), 13);
       }
 
       ++rank;
-      if(shouldRebalance(GLOBAL.investmentData[index][18])) {
+      if(shouldRebalance(investmentData[index][18])) {
         var array = [];
-        for (var j of [0, 10, 6, GLOBAL.investmentData[index][7] != "" ? 7 : 8, 14, 15, 27]) {
-          array[GLOBAL.investmentData[0][j]] = GLOBAL.investmentData[index][j];
+        for (var j of [0, 10, 6, investmentData[index][7] != "" ? 7 : 8, 14, 15, 27]) {
+          array[investmentData[0][j]] = investmentData[index][j];
         }
-        array["Action"] = GLOBAL.investmentData[index][j] > 0;
+        array["Action"] = investmentData[index][j] > 0;
 
         contents.push(array);
       }
@@ -239,7 +237,7 @@
   }
 
   function validateDeleteForm(index, rowCnt, func = () => {}) {
-    var index = index ? index : indexOf(GLOBAL.historicData, GLOBAL.dummy, GLOBAL.histoIdCol);
+    var index = index ? index : indexOf(GLOBAL.data[GLOBAL.historic], GLOBAL.dummy, GLOBAL.histoIdCol);
     var rowCnt = rowCnt ? rowCnt : 1;
 
     if (index !== null && index*rowCnt > 0) {
@@ -280,7 +278,7 @@
                     .withFailureHandler(displayError)
                     .clearSheetValues(GLOBAL.accountFormula);
             } else if (data[0][0] == "dateOp" && data[0][1] == "dateVal") {
-              getValue(GLOBAL.expHistoFormula, contents => insertExpensesRow(data, contents), GLOBAL.account, executionSuccess);
+              getValue(GLOBAL.expHistoFormula, (id, contents) => insertExpensesRow(data, contents), GLOBAL.account, executionSuccess);
             } else if (data[0][0] == "CA ID" && data[0][1] == "Produit") {
               insertDividendRow(data);
               executionSuccess();
@@ -302,20 +300,21 @@
     }
   }
 
-  function compareResultData(contents) {
+  function compareResultData(id, contents) {
     if (contents.length > 1) {
       // Preparing data
       var dupCnt = 0;
       var errCnt = 0;
+      var historicData = GLOBAL.data[GLOBAL.historic];
       var data = [];
       for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
         var row = contents[i];
         var isEmpty = toValue(row[6]) == 0;
-        var index = !isEmpty ? indexOf(GLOBAL.historicData, row[GLOBAL.histoIdCol], GLOBAL.histoIdCol) : null;
+        var index = !isEmpty ? indexOf(historicData, row[GLOBAL.histoIdCol], GLOBAL.histoIdCol) : null;
 
         if (!isEmpty
         && (index === null
-        || (index !== null && row[0] != toStringDate(GLOBAL.historicData[index][0])))) {
+        || (index !== null && row[0] != toStringDate(historicData[index][0])))) {
           if (indexOf(row, "#N/A") === null
           && indexOf(row, "#VALUE!") === null
           && indexOf(row, "#REF!") === null) {
@@ -330,7 +329,7 @@
 
       // Removing dummy data
       var prevIndex;
-      var index = indexOf(GLOBAL.historicData, GLOBAL.dummy, GLOBAL.histoIdCol);
+      var index = indexOf(historicData, GLOBAL.dummy, GLOBAL.histoIdCol);
       var dai = [];
       while (index !== null) {
         if (index-1 == prevIndex) {
@@ -340,7 +339,7 @@
         }
         prevIndex = index;
 
-        index = indexOf(GLOBAL.historicData, GLOBAL.dummy, GLOBAL.histoIdCol, index+1);
+        index = indexOf(historicData, GLOBAL.dummy, GLOBAL.histoIdCol, index+1);
       }
 
       var f = count => {
@@ -422,11 +421,12 @@
       var id = label + "@" + transaction + "@@" + row[5].replace(",", ".");
 
       if (!isError) {
-        var index = indexOf(GLOBAL.historicData, value, 6);
+        var historicData = GLOBAL.data[GLOBAL.historic];
+        var index = indexOf(historicData, value, 6);
 
         if (index === null || (index !== null &&
-                              (GLOBAL.historicData[index][GLOBAL.histoIdCol] != GLOBAL.dummy
-                            || GLOBAL.historicData[index][GLOBAL.histoIdCol] != id))) {
+                              (historicData[index][GLOBAL.histoIdCol] != GLOBAL.dummy
+                            || historicData[index][GLOBAL.histoIdCol] != id))) {
             data.push([toStringDate(), type, label, transaction, "", "", value, GLOBAL.dummy]);
         } else {
             ++dupCnt;
@@ -531,56 +531,49 @@
     $('#transactionName').children('option').remove();
   }
 
-  function updateDashboardTable(contents) {
-    GLOBAL.dashboardData = contents;
+  function updateDashboardTable(id, contents) {
+    var settings = GLOBAL.data[GLOBAL.settings];
+    var tableHTML = getTableTitle(id);
 
-    getValue(GLOBAL.settingsFormula, contents => {
-      var id = GLOBAL.dashboard;
-      var tableHTML = getTableTitle(id);
-
-      var ln = contents.length/2;      // Take the full sheet row count, don't count the miror with numbers (/2)
-      for (var i = 0; i < ln-2; i++) { // Remove the two last row for scroll (-2)
-        tableHTML += getSubTableTitle(contents[i][0], "Settings!A" + (i+1));
-        tableHTML += '<tr>';
-        for (var j = 1; j < contents[i].length; j++) {
-          tableHTML += i != 4 || j != 3
-          ? getTableReadOnlyCell(GLOBAL.dashboardData, contents[i+ln][j])
-          : getTableEditableCell(GLOBAL.dashboardData, contents[i+ln][j], "Allocation!B14", 1000000)
-        }
-        tableHTML += '</tr>';
+    var ln = settings.length/2;      // Take the full sheet row count, don't count the miror with numbers (/2)
+    for (var i = 0; i < ln-2; i++) { // Remove the two last row for scroll (-2)
+      tableHTML += getSubTableTitle(settings[i][0], "Settings!A" + (i+1));
+      tableHTML += '<tr>';
+      for (var j = 1; j < settings[i].length; j++) {
+        tableHTML += i != 4 || j != 3
+        ? getTableReadOnlyCell(contents, settings[i+ln][j])
+        : getTableEditableCell(contents, settings[i+ln][j], "Allocation!B14", 1000000)
       }
-      setTable(id, tableHTML);
+      tableHTML += '</tr>';
+    }
+    setTable(id, tableHTML);
 
-      tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
-      tableHTML += '<tr>' + getTableReadOnlyCell(GLOBAL.dashboardData, GLOBAL.dashboardData.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
-      for (var i = 0; i < contents[ln-2].length; ++i) {
-        tableHTML += '<tr>';
-        tableHTML += getTableReadOnlyContent(contents[ln-2][i], false);
-        tableHTML += getTableReadOnlyContent(GLOBAL.dashboardData[contents[ln*2-1][i]-1][1], false);
-        tableHTML += '</tr>';
+    tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
+    tableHTML += '<tr>' + getTableReadOnlyCell(contents, contents.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
+    for (var i = 0; i < settings[ln-2].length; ++i) {
+      tableHTML += '<tr>';
+      tableHTML += getTableReadOnlyContent(settings[ln-2][i], false);
+      tableHTML += getTableReadOnlyContent(contents[settings[ln*2-1][i]-1][1], false);
+      tableHTML += '</tr>';
+    }
+
+    tableHTML += '</table></marquee>';
+    $("#scrollDiv").prop("innerHTML", tableHTML);
+
+    $("input").each((i, item) => {
+      if ($(item).hasClass("auto")) {
+        autoAdaptWidth(item);
       }
-
-      tableHTML += '</table></marquee>';
-      $("#scrollDiv").prop("innerHTML", tableHTML);
-
-      $("input").each((i, item) => {
-        if ($(item).hasClass("auto")) {
-          autoAdaptWidth(item);
-        }
-      });
     });
   }
 
-  function updateInvestmentTable(contents) {
-    GLOBAL.investmentData = contents;
-
-    displayElement("#rebalanceButton", shouldRebalance(GLOBAL.investmentData[GLOBAL.investmentData.length-1][GLOBAL.rebalCol]));
+  function updateInvestmentTable(id, contents) {
+    displayElement("#rebalanceButton", shouldRebalance(contents[contents.length-1][GLOBAL.rebalCol]));
 
     clearTransactionName();
 
     var tags = [];
 
-    var id = GLOBAL.investment;
     var row = contents.length;
     var col = contents[0].length;
     var tableHTML = getTableTitle(id, false, GLOBAL.rebalanceButtonToolTip, col-1);
@@ -624,16 +617,13 @@
     // Rebalance is not available if rebalance is not needed
   }
 
-  function updateHistoricTable(contents) {
-    GLOBAL.historicData = contents;
-
+  function updateHistoricTable(id, contents) {
     $(".validateButton").prop('disabled', true);
 
     displayElement("#uploadButton", true);
     displayElement("#addButton", true);
-    displayElement("#deleteButton", indexOf(GLOBAL.historicData, GLOBAL.dummy, GLOBAL.histoIdCol));
+    displayElement("#deleteButton", indexOf(contents, GLOBAL.dummy, GLOBAL.histoIdCol));
 
-    var id = GLOBAL.historic;
     var row = contents.length;
     var col = contents[0].length;
     var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col-1);
@@ -661,10 +651,7 @@
     $(".validateButton").prop('disabled', false);
   }
 
-  function updateEvolutionTable(contents) {
-    GLOBAL.evolutionData = contents;
-
-    var id = GLOBAL.evolution;
+  function updateEvolutionTable(id, contents) {
     var row = contents.length;
     var col = contents[0].length;
     var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col-1);
@@ -811,14 +798,18 @@
 
         google.script.run
                      .withSuccessHandler(contents => {
+                       if (id) {
+                         GLOBAL.data[id] = contents;
+                       }
                        if (func) {
-                         func(contents);
-                         GLOBAL.hasLoadingQueue = false;
-                         displayLoading(id, false);
-                         if (success) {
-                           success();
-                         }
-                       } })
+                         func(id, contents);
+                       }
+                       if (success) {
+                         success();
+                       }
+                       GLOBAL.hasLoadingQueue = false;
+                       displayLoading(id, false);
+                     })
                      .withFailureHandler(displayError)
                      .getSheetValues(formula);
       }
