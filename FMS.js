@@ -27,6 +27,7 @@
   GLOBAL.showAllButtonToolTip = "Show all";
   GLOBAL.hasAlreadyUpdated = [];
   GLOBAL.hasLoadingQueue = false;
+  GLOBAL.currentLoadingId;
 
   /**
    * Run initializations on web app load.
@@ -912,7 +913,8 @@
 
   function displayLoading(id, isDisplayed) {
     if (id) {
-      $("#loading").text(isDisplayed ? "Loading " + id + " ..." : "");
+      GLOBAL.currentLoadingId = isDisplayed ? id : null;
+      $("#loading").text(isDisplayed ? "Loading " + id + " ..." : null);
       if (isDisplayed || GLOBAL.hasLoadingQueue) {
         GLOBAL.hasAlreadyUpdated[id] = true;
         displayElement("#updateButton", false);
@@ -948,6 +950,7 @@
 
   function displayError(msg, isWarning) {
     showLoader(false);
+    displayLoading(GLOBAL.currentLoadingId, false);
 
     $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
     $("#alert").prop("innerHTML", '<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>'
