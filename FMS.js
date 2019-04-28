@@ -15,8 +15,8 @@
   GLOBAL.account = "account";
   GLOBAL.dashboardFormula = "Dashboard!A:B";
   GLOBAL.investmentFormula = "Investment!D:AE";
-  GLOBAL.historicFormula = "Historic!A:J" + GLOBAL.dataPreloadRowLimit;
-  GLOBAL.evolutionFormula = "Evolution!A:I" + GLOBAL.dataPreloadRowLimit;
+  GLOBAL.historicFormula = "Historic!A" + 1 + ":J" + (GLOBAL.dataPreloadRowLimit+1);
+  GLOBAL.evolutionFormula = "Evolution!A" + 1 + ":I" + (GLOBAL.dataPreloadRowLimit+1);
   GLOBAL.resultFormula = "Result!A:H";
   GLOBAL.accountFormula = "Account!A:K";
   GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
