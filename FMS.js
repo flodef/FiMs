@@ -14,7 +14,7 @@
   GLOBAL.settings = "settings";
   GLOBAL.account = "account";
   GLOBAL.dashboardFormula = "Dashboard!A:B";
-  GLOBAL.investmentFormula = "Investment!D:AE";
+  GLOBAL.investmentFormula = "Investment!D:AH";
   GLOBAL.historicFormula = "Historic!A" + 1 + ":J" + (GLOBAL.dataPreloadRowLimit+1);
   GLOBAL.evolutionFormula = "Evolution!A" + 1 + ":I" + (GLOBAL.dataPreloadRowLimit+1);
   GLOBAL.resultFormula = "Result!A:H";
@@ -581,12 +581,13 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
-      for (var j of [0, 6, 8, 10, 14, 15, 18, 19, 21, 23, 25]) {   // Select only the interesting columns
-        // Name = 0, Shares = 6, Price = 8, Sell = 10, Rebalance = 14, Provision = 15, Tendency = 18, Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 20 to 26
+      for (var j of [0, 6, 8, 10, 14, 15, 18, 19, 21, 23, 25, 29]) {   // Select only the interesting columns
+        // Name = 0, Shares = 6, Price = 8, Sell = 10, Rebalance = 14, Provision = 15, Tendency = 18,
+        // Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 20 to 26, Average price = 29, Gap = 30
         var con =  i == 0 || j != 8
                     ? i == 0 || j < 19
                       ? contents[i][j]
-                      : contents[i][j] + ' (' + contents[i][j+1] + ')'
+                      : toCurrency(contents[i][j], 3) + ' (' + contents[i][j+1] + ')'
                     : !contents[i][7] || !contents[i][8] || contents[i][7] == contents[i][8]
                       ? contents[i][8] ? toCurrency(contents[i][j], 4) : ""
                       : toCurrency(contents[i][j], 4) + ' (' + toCurrency(contents[i][j-1], 4, "$") + ')';
@@ -963,18 +964,11 @@
   }
 
   function toCurrency(content, precision = 2, symbol = '€') {
-    var val = toValue(content);
-    var str = (val != 0
-      ? String(content).includes(".") && !String(content).includes(",")
-        ? String(val)
-        : String(content).includes(",")
-          ? String(toValue(String(content).replace(".", "").replace(",", ".")))
-          : String(val) + "."
-      : "0.") + "00";
-
+    var str = String(toValue(content));
+    var ln = str.length;
     var neg = str.substring(0,1) == '-' ? -1 : 0;
-    var i = str.indexOf(".");
-    str = i != -1 ? str.slice(0, i+precision+1).replace(/0+$/g, '') : str + ".";
+    var i = str.indexOf(".") != -1 ? str.indexOf(".") : ln;
+    str = i != ln ? str.slice(0, i+precision+1).replace(/0+$/g, '') : str + ".";
     var j = str.length-str.indexOf(".")-1;
     str = (j < 2 ? str + '0'.repeat(2-j) : str) + " " + symbol;
 
