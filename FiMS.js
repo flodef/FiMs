@@ -584,13 +584,12 @@
       for (var j of [7, 10, 12, 14, 18, 19, 22, 23, 25, 27, 29, 33]) {   // Select only the interesting columns
         // Name = 7, Shares = 10, Price = 12, Sell = 14, Rebalance = 18, Provision = 19, Tendency = 22,
         // Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 23 to 29, Avg price = 33, Avg gap = 34
-        var con =  i == 0 || j != 8
+        var con =  i == 0 || j != 12
                     ? i == 0 || j < 23
                       ? contents[i][j]
                       : toCurrency(contents[i][j], 3) + ' (' + contents[i][j+1] + ')'
-                    : !contents[i][7] || !contents[i][8] || contents[i][7] == contents[i][8]
-                      ? contents[i][8] ? toCurrency(contents[i][j], 4) : ""
-                      : toCurrency(contents[i][j], 4) + ' (' + toCurrency(contents[i][j-1], 4, "$") + ')';
+                    : contents[i][12]
+                      ? toCurrency(contents[i][j], 4) : "";
         var isDisabled = (j == 14 || j == 15) && !shouldRebalance(contents[i][18]);
         tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled);
       }
