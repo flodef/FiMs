@@ -72,81 +72,81 @@
   }
 
   function rebalanceStocks() {
-    investmentValuesUpdate();
-
-    var investmentData = GLOBAL.data[GLOBAL.investment];
-    var tRow = investmentData.length - 1;
-    var contents = [];
-    var rank = 0;
-    for (var i = 1; i < tRow; i++) { // Take only the value (no header, footer)
-      var index = indexOf(investmentData, rank.toString(), 13);
-
-      var nr = rank;
-      while (index === null) {
-        index = indexOf(investmentData, (--nr).toString(), 13);
-      }
-
-      ++rank;
-      if(shouldRebalance(investmentData[index][18])) {
-        var array = [];
-        for (var j of [0, 10, 6, investmentData[index][7] != "" ? 7 : 8, 14, 15, 27]) {
-          array[investmentData[0][j]] = investmentData[index][j];
-        }
-        array["Action"] = investmentData[index][j] > 0;
-
-        contents.push(array);
-      }
-    };
-
-    if (contents.length > 0) {
-      updateRebalanceTable(contents);
-    } else {
-      displayError("No stock to rebalance", true);
-    }
+  //   investmentValuesUpdate();
+  //
+  //   var investmentData = GLOBAL.data[GLOBAL.investment];
+  //   var tRow = investmentData.length - 1;
+  //   var contents = [];
+  //   var rank = 0;
+  //   for (var i = 1; i < tRow; i++) { // Take only the value (no header, footer)
+  //     var index = indexOf(investmentData, rank.toString(), 13);
+  //
+  //     var nr = rank;
+  //     while (index === null) {
+  //       index = indexOf(investmentData, (--nr).toString(), 13);
+  //     }
+  //
+  //     ++rank;
+  //     if(shouldRebalance(investmentData[index][18])) {
+  //       var array = [];
+  //       for (var j of [0, 10, 6, investmentData[index][7] != "" ? 7 : 8, 14, 15, 27]) {
+  //         array[investmentData[0][j]] = investmentData[index][j];
+  //       }
+  //       array["Action"] = investmentData[index][j] > 0;
+  //
+  //       contents.push(array);
+  //     }
+  //   };
+  //
+  //   if (contents.length > 0) {
+  //     updateRebalanceTable(contents);
+  //   } else {
+  //     displayError("No stock to rebalance", true);
+  //   }
   }
 
-  function updateRebalanceTable(contents) {
-    var closing = 'displayElement(\'#popupOverlay\', false, () => { $(\'.contentOverlay\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus(); });';
-
-    var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
-    for (var i = 0; i < contents.length; i++) {
-      tableHTML += '<div ' + (i != 0 ? 'class="hidden"' : '') + 'id="rebal' + i + '">';
-      tableHTML += '<table>';
-
-      var row = Object.entries(contents[i]);
-      for (const [key, value] of row) {
-          tableHTML += '<tr>';
-
-          var style = key == "Name" || key == "Rebalance" || (key == "Tendency" && shouldRebalance(value))
-                    ? 'font-weight:900;' : '';
-          style += key == "Action"
-                          ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
-                          : '';
-          var val = key == "Action" ? (value ? "Buy" : "Sell") : value;
-          tableHTML += '<th align="center">' + key + '</th>'
-                     + '<td align="center" style="' + style + '" padding="10px">' + val + '</td>'
-
-          tableHTML += '</tr>';
-      }
-
-      tableHTML += '</table>';
-
-      var isLast = i == contents.length-1;
-      var skiping = 'overDisplay(\'#rebal' + i + '\', \'#rebal' + (i+1) + '\');';
-      var next = isLast ? closing : skiping;
-      var label = isLast ? "CLOSE" : "NEXT ORDER";
-      tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;">'
-                 + '<button style="margin:0px 5px 0px 5px;" onclick="' + next + '" class="rebalButton">' + label + '</button>'
-                 + '</div>';
-
-      tableHTML += '</div>';
-    }
-
-    $("#popup").prop("innerHTML", tableHTML);
-
-    $('.contentOverlay').addClass("blur-filter");
-    displayElement('#popupOverlay', true);
-  }
+  // function updateRebalanceTable(contents) {
+  //   var closing = 'displayElement(\'#popupOverlay\', false, () => { $(\'.contentOverlay\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus(); });';
+  //
+  //   var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
+  //   for (var i = 0; i < contents.length; i++) {
+  //     tableHTML += '<div ' + (i != 0 ? 'class="hidden"' : '') + 'id="rebal' + i + '">';
+  //     tableHTML += '<table>';
+  //
+  //     var row = Object.entries(contents[i]);
+  //     for (const [key, value] of row) {
+  //         tableHTML += '<tr>';
+  //
+  //         var style = key == "Name" || key == "Rebalance" || (key == "Tendency" && shouldRebalance(value))
+  //                   ? 'font-weight:900;' : '';
+  //         style += key == "Action"
+  //                         ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
+  //                         : '';
+  //         var val = key == "Action" ? (value ? "Buy" : "Sell") : value;
+  //         tableHTML += '<th align="center">' + key + '</th>'
+  //                    + '<td align="center" style="' + style + '" padding="10px">' + val + '</td>'
+  //
+  //         tableHTML += '</tr>';
+  //     }
+  //
+  //     tableHTML += '</table>';
+  //
+  //     var isLast = i == contents.length-1;
+  //     var skiping = 'overDisplay(\'#rebal' + i + '\', \'#rebal' + (i+1) + '\');';
+  //     var next = isLast ? closing : skiping;
+  //     var label = isLast ? "CLOSE" : "NEXT ORDER";
+  //     tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;">'
+  //                + '<button style="margin:0px 5px 0px 5px;" onclick="' + next + '" class="rebalButton">' + label + '</button>'
+  //                + '</div>';
+  //
+  //     tableHTML += '</div>';
+  //   }
+  //
+  //   $("#popup").prop("innerHTML", tableHTML);
+  //
+  //   $('.contentOverlay').addClass("blur-filter");
+  //   displayElement('#popupOverlay', true);
+  // }
 
   function addTransaction() {
     historicValuesUpdate();
@@ -590,7 +590,7 @@
                       : toCurrency(contents[i][j], 3) + ' (' + contents[i][j+1] + ')'
                     : contents[i][12]
                       ? toCurrency(contents[i][j], 4) : "";
-        var isDisabled = (j == 14 || j == 15) && !shouldRebalance(contents[i][18]);
+        var isDisabled = (j == 18 || j == 19) && !shouldRebalance(contents[i][22]);
         tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled);
       }
       tableHTML += '</tr>';
@@ -614,7 +614,6 @@
 
     // $("#" + id + "Search").easyAutocomplete({ data: tags, list: { match: { enabled: true } } });
     // $("#" + id + "Search").autocomplete({ source: tags });
-    // Rebalance is not available if rebalance is not needed
   }
 
   function updateHistoricTable(id, contents) {
