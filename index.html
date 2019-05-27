@@ -434,15 +434,6 @@
 
     <link rel="stylesheet" href="Lib/jquery-ui.css">    <!-- <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
     <link rel="stylesheet" href="Lib/easy-autocomplete.min.css">  <!-- http://easyautocomplete.com/dist/easy-autocomplete.min.css -->
-
-    <script src="Lib/jquery.min.js"></script>
-    <script src="Lib/jquery-ui.js"></script>
-    <script src="Lib/jquery.easy-autocomplete.min.js"></script>  <!-- http://easyautocomplete.com/dist/jquery.easy-autocomplete.min.js -->
-    <script src="Lib/jquery.csv-0.71.min.js"></script>
-    <script src="Lib/sorttable.js"></script>
-    <script src="Lib/xlsx.full.min.js"></script> <!-- from //unpkg.com/xlsx/dist/xlsx.full.min.js-->
-    <script src="FiMS.js"></script>
-    <script src="Google.js"></script>
   </head>
   <body>
     <div id="content" class="overlay contentOverlay hidden">
@@ -595,5 +586,13 @@
 
     <!-- Use a templated HTML printing scriptlet to import JavaScript. -->
     <?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
+    <script src="Lib/jquery.min.js"></script>
+    <script src="Lib/jquery-ui.js"></script>
+    <script src="Lib/jquery.easy-autocomplete.min.js"></script>  <!-- http://easyautocomplete.com/dist/jquery.easy-autocomplete.min.js -->
+    <script src="Lib/jquery.csv-0.71.min.js"></script>
+    <script src="Lib/sorttable.js"></script>
+    <script src="Lib/xlsx.full.min.js"></script> <!-- from //unpkg.com/xlsx/dist/xlsx.full.min.js-->
+    <script src="FiMS.js"></script>
+    <script src="Google.js"></script>
   </body>
 </html>
