@@ -480,7 +480,7 @@
     if (!$('#addTransactionForm').is(":animated")
      && !$('#deleteTransactionForm').is(":animated")
      && !$('#uploadFileForm').is(":animated")
-     && !$('#actionButton').is(":animated")) {
+     && !$('#actionButton').is(":animated")
      && !$('#loaderOverlay').is(':visible')) {
       if ($('#alertOverlay').is(':visible')) {
         displayElement('#alertOverlay', false);
