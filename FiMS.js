@@ -166,7 +166,7 @@
   function validateAddForm() {
     var tDate = toStringDate();
 
-    var tType = $("#transactionName").children(":selected").attr("title");
+    var tType = $("#transactionName").children(":selected").attr("type");
 
     var name = $("#transactionName").prop("value");
     var tName = tType ? name : "";
@@ -520,10 +520,10 @@
     }
   }
 
-  function addTransactionName(title, text) {
+  function addTransactionName(type, label) {
     $('#transactionName').append($('<option>', {
-      title: title,
-      text: text
+      type: type,
+      label: label
     }));
   }
 
@@ -599,8 +599,8 @@
       : i==row-1 ? '</tfoot>' : '';
 
       if (i != 0 && i != row-1) {
-        tags.push(contents[i][0]);
-        addTransactionName(contents[i][1], contents[i][0]);
+        tags.push(contents[i][7]);
+        addTransactionName(contents[i][0], contents[i][7]);
       }
     }
 
