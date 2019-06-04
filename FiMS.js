@@ -166,7 +166,7 @@
   function validateAddForm() {
     var tDate = toStringDate();
 
-    var tType = $("#transactionName").children(":selected").attr("type");
+    var tType = $("#transactionName").children(":selected").attr("title");
 
     var name = $("#transactionName").prop("value");
     var tName = tType ? name : "";
@@ -481,7 +481,7 @@
      && !$('#deleteTransactionForm').is(":animated")
      && !$('#uploadFileForm').is(":animated")
      && !$('#actionButton').is(":animated")) {
-     // && !$('#loaderOverlay').is(':visible')) {
+     && !$('#loaderOverlay').is(':visible')) {
       if ($('#alertOverlay').is(':visible')) {
         displayElement('#alertOverlay', false);
       } else if (!$('#actionButton').is(':visible')) {
@@ -522,8 +522,8 @@
 
   function addTransactionName(type, label) {
     $('#transactionName').append($('<option>', {
-      type: type,
-      label: label
+      title: type,
+      text: label
     }));
   }
 
