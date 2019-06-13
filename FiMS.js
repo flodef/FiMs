@@ -590,7 +590,7 @@
                       : toCurrency(contents[i][j], 3) + ' (' + contents[i][j+1] + ')'
                     : contents[i][12]
                       ? toCurrency(contents[i][j], 4) : "";
-        var isDisabled = (j == 18 || j == 19) && !shouldRebalance(contents[i][22]);
+        var isDisabled = (j == 18 || j == 19 || j == 22) && !shouldRebalance(contents[i][22]);
         tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled);
       }
       tableHTML += '</tr>';
