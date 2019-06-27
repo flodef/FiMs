@@ -309,19 +309,27 @@
       var data = [];
       for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
         var row = contents[i];
-        var isEmpty = toValue(row[6]) == 0;
-        var index = !isEmpty ? indexOf(historicData, row[GLOBAL.histoIdCol], GLOBAL.histoIdCol) : null;
+        var isEmpty = toValue(row[GLOBAL.histoIdCol-1]) == 0;
+        var start;
+        var isFound;
 
-        if (!isEmpty
-        && (index === null
-        || (index !== null && row[0] != toStringDate(historicData[index][0])))) {
-          if (indexOf(row, "#N/A") === null
-          && indexOf(row, "#VALUE!") === null
-          && indexOf(row, "#REF!") === null) {
-            data.push(row);
-          } else {
-            ++errCnt;
-          }
+        if (!isEmpty) {
+          do {
+            var index = indexOf(historicData, row[GLOBAL.histoIdCol], GLOBAL.histoIdCol, start);
+            if (index == null) {
+              if (indexOf(row, "#", null, null, (a, b) => a.startsWith(b)) == null {  // Check for error in spreadsheet (starts with #)
+                data.push(row);
+              } else {
+                ++errCnt;
+              }
+              isFound = true;
+            } else if (row[0] == toStringDate(historicData[index][0]))) {
+              ++dupCnt;
+              isFound = true;
+            } else {
+              start = index + 1;
+            }
+          } while(!isFound);
         } else {
           ++dupCnt;
         }
@@ -947,7 +955,7 @@
   }
 
   function shouldRebalance(value) {
-    return value && value.substring(0, 4) != "HOLD";
+    return value && !value.startsWith("HOLD");
   }
 
   function toValue(content) {
@@ -962,7 +970,7 @@
   function toCurrency(content, precision = 2, symbol = '€') {
     var str = String(toValue(content));
     var ln = str.length;
-    var neg = str.substring(0,1) == '-' ? -1 : 0;
+    var neg = str.startsWith("-") ? -1 : 0;
     var i = str.indexOf(".") != -1 ? str.indexOf(".") : ln;
     str = i != ln ? str.slice(0, i+precision+1).replace(/0+$/g, '') : str + ".";
     var j = str.length-str.indexOf(".")-1;
@@ -993,15 +1001,16 @@
     }
   }
 
-  function indexOf(array, value, index, start) {
+  function indexOf(array, value, index, start, compare) {
     var index = index >= 0 ? index : null;
     var x = Number.isInteger(start) ? start : 0;
+    var fn = compare ? compare : (a, b) => a == b;
 
     var i;
     if (Array.isArray(array)) {
       while(x < array.length
-         && ((index == null && array[x] != value)
-          || (index != null && array[x][index] != value))) { ++x; }
+         && ((index == null && !fn(array[x], value))
+          || (index != null && !fn(array[x][index], value)))) { ++x; }
 
       i = x < array.length ? x : null;
     }
