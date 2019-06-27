@@ -310,8 +310,8 @@
       for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
         var row = contents[i];
         var isEmpty = toValue(row[GLOBAL.histoIdCol-1]) == 0;
-        var start;
-        var isFound;
+        var start = 0;
+        var isFound = false;
 
         if (!isEmpty) {
           do {
