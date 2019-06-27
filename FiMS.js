@@ -317,7 +317,7 @@
           do {
             var index = indexOf(historicData, row[GLOBAL.histoIdCol], GLOBAL.histoIdCol, start);
             if (index == null) {
-              if (indexOf(row, "#", null, null, (a, b) => a.startsWith(b)) == null {  // Check for error in spreadsheet (starts with #)
+              if (indexOf(row, "#", null, null, (a, b) => a.startsWith(b)) == null) {  // Check for error in spreadsheet (starts with #)
                 data.push(row);
               } else {
                 ++errCnt;
