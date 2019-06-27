@@ -838,7 +838,7 @@
     ? null
     : null;
 
-    $("#" + id + "Table tbody tr").each(displayFunc);
+    // $("#" + id + "Table tbody tr").each(displayFunc);
 
     refreshTotal(id);
   }
