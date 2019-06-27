@@ -323,7 +323,7 @@
                 ++errCnt;
               }
               isFound = true;
-            } else if (row[0] == toStringDate(historicData[index][0]))) {
+            } else if (row[0] == toStringDate(historicData[index][0])) {
               ++dupCnt;
               isFound = true;
             } else {
