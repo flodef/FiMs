@@ -729,7 +729,7 @@
   function getTitle(id, disabled) {
     return '<h2'
           + (!disabled ? ' onclick="var shouldDisplay = !$(\'#' + id + 'Table\').is(\':visible\');'
-          + 'if(shouldDisplay){updateValues(' + id + ');};'
+          + 'if(shouldDisplay){updateValues(\'' + id + '\');};'
           + 'for (suffix of [\'Table\', \'Switch\', \'Search\']) {'
           + '$(\'.main\' + suffix).each((i, item) => toggleItem(\'' + id + '\' + suffix, item, shouldDisplay)); }"' : '')
           + '>' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
