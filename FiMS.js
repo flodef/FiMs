@@ -21,6 +21,9 @@
   GLOBAL.accountFormula = "Account!A:K";
   GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
   GLOBAL.settingsFormula = "Settings!A:F";
+  GLOBAL.displayId = [GLOBAL.dashboard, GLOBAL.investment, GLOBAL.historic, GLOBAL.evolution];
+  GLOBAL.displayFormula = [GLOBAL.dashboardFormula, GLOBAL.investmentFormula, GLOBAL.historicFormula, GLOBAL.evolutionFormula];
+  GLOBAL.formula = [];
   GLOBAL.rebalanceButtonToolTip = "Rebalance";
   GLOBAL.showAllButtonToolTip = "Show all";
   GLOBAL.hasAlreadyUpdated = [];
@@ -34,45 +37,32 @@
     jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
 
     displayElement('.contentOverlay', true, 0);
-    displayElement(".actionButton", false, 0);
-    // $(".actionButton").prop('disabled', true);
+    displayElement('.actionButton', false, 0);
+    // $('.actionButton').prop('disabled', true);
 
     $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
-    for (ids of [GLOBAL.dashboard, GLOBAL.investment, GLOBAL.historic, GLOBAL.evolution]) {
-      var tableHTML = getTableTitle(ids, true);
-      setTable(ids, tableHTML);
+    for (var i = 0; i < GLOBAL.displayId.length; ++i) {
+      var id = GLOBAL.displayId[i];
+      GLOBAL.formula[id] = GLOBAL.displayFormula[i];
+      var tableHTML = getTableTitle(id, true);
+      setTable(id, tableHTML);
     }
 
     getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, updateAllValues);
   });
 
   function updateAllValues() {
-    dashboardValuesUpdate();
-    investmentValuesUpdate();
-    historicValuesUpdate();
-    evolutionValuesUpdate();
+    GLOBAL.displayId.forEach(updateValues);
   }
 
-  function dashboardValuesUpdate() {
-    getValue(GLOBAL.dashboardFormula, updateDashboardTable, GLOBAL.dashboard);
-  }
-
-  function investmentValuesUpdate() {
-    getValue(GLOBAL.investmentFormula, updateInvestmentTable, GLOBAL.investment);
-  }
-
-  function historicValuesUpdate() {
-    getValue(GLOBAL.historicFormula, updateHistoricTable, GLOBAL.historic);
-  }
-
-  function evolutionValuesUpdate() {
-    getValue(GLOBAL.evolutionFormula, updateEvolutionTable, GLOBAL.evolution);
+  function updateValues(id) {
+    getValue(GLOBAL.formula[id], updateTable, id);
   }
 
   function rebalanceStocks() {
-  //   investmentValuesUpdate();
+  //   updateValues(GLOBAL.investment);
   //
   //   var investmentData = GLOBAL.data[GLOBAL.investment];
   //   var tRow = investmentData.length - 1;
@@ -149,17 +139,14 @@
   // }
 
   function addTransaction() {
-    historicValuesUpdate();
     overDisplay('#actionButton', '#addTransactionForm', () => $('#transactionName').focus());
   }
 
   function deleteTransaction() {
-    historicValuesUpdate();
     overDisplay('#actionButton', '#deleteTransactionForm');
   }
 
   function uploadAccountFile() {
-    historicValuesUpdate();
     overDisplay('#actionButton', '#uploadFileForm', () => $('#fileUpload').focus());
   }
 
@@ -199,7 +186,7 @@
     }
   }
 
-  function insertHistoricRow(data, id) {
+  function insertHistoricRow(data, sid) {
     var index = 1;
     var rowCnt = data.length;
 
@@ -208,21 +195,28 @@
 
       // showLoader(true);
 
-      gid = id == "Historic" ? 9
-          : id == "ExpensesHistoric" ? 298395308
-          : null;
-      endCol = id == "Historic" ? 15
-             : id == "ExpensesHistoric" ? 4
-             : null;
+      var id;
+      var gid;
+      var endCol;
+      if (sid == "Historic") {
+        id = GLOBAL.historic;
+        gid = 9;
+        endCol = 15;
+      } else if (sid == "ExpensesHistoric") {
+        id = GLOBAL.dashboard;
+        gid = 298395308;
+        endCol = 4;
+      }
 
-      if (gid && endCol) {
+      if (id && gid && endCol) {
         google.script.run
-                    //.withSuccessHandler(function(contents) { setValue(id + "!A2", data, sortTransactionValues) })
-                     .withSuccessHandler(function(contents) { setValue(id + "!A2", data, executionSuccess) })
+                    //.withSuccessHandler(contents => setValue(id + "!A2", data, sortTransactionValues))
+                     .withSuccessHandler(contents => setValue(sid + "!A2", data,
+                        () => { executionSuccess(); updateValues(id); }))
                      .withFailureHandler(displayError)
                      .insertRows(gid, data, {startRow:index, endCol:endCol});
       } else {
-        displayError("Unknow spreadsheet: " + id);
+        displayError("Unknow spreadsheet: " + sid);
       }
     } else {
       displayError("No transaction added.", true);
@@ -231,7 +225,7 @@
 
   function sortTransactionValues() {
     google.script.run
-                 .withSuccessHandler(function(contents) { executionSuccess(); })
+                 .withSuccessHandler(contents => executionSuccess())
                  .withFailureHandler(displayError)
                  .sortColumn(9, 0, true);
   }
@@ -246,7 +240,7 @@
       // showLoader(true);
 
       google.script.run
-                   .withSuccessHandler(function(contents) { func(); executionSuccess(); })
+                   .withSuccessHandler(contents => { func(); executionSuccess(); updateValues(GLOBAL.historic); })
                    .withFailureHandler(displayError)
                    .deleteRows(9, index, index + rowCnt);
     } else {
@@ -273,6 +267,7 @@
               google.script.run
                     .withSuccessHandler(function(contents) {
                       setValue("Account!A1", data);
+                      disableReload(GLOBAL.historic, false);  // Allow reload in case historic has already been loaded recently
                       getValue(restrainFormula(GLOBAL.historicFormula, -1, -1), null, GLOBAL.historic,
                         () => getValue(GLOBAL.resultFormula, compareResultData, GLOBAL.account, executionSuccess));
                     })
@@ -540,6 +535,15 @@
     $('#transactionName').children('option').remove();
   }
 
+  function updateTable(id, contents) {
+    var fn = id == GLOBAL.dashboard ? () => updateDashboardTable(id, contents)
+           : id == GLOBAL.investment ? () => updateInvestmentTable(id, contents)
+           : id == GLOBAL.historic ? () => updateHistoricTable(id, contents)
+           : id == GLOBAL.evolution ? () => updateEvolutionTable(id, contents)
+           : displayError("Update table id not recognised: " + id, false);
+    fn();
+  }
+
   function updateDashboardTable(id, contents) {
     var settings = GLOBAL.data[GLOBAL.settings];
     var tableHTML = getTableTitle(id);
@@ -725,7 +729,7 @@
   function getTitle(id, disabled) {
     return '<h2'
           + (!disabled ? ' onclick="var shouldDisplay = !$(\'#' + id + 'Table\').is(\':visible\');'
-          + 'if(shouldDisplay){' + id + 'ValuesUpdate();};'
+          + 'if(shouldDisplay){updateValues(' + id + ');};'
           + 'for (suffix of [\'Table\', \'Switch\', \'Search\']) {'
           + '$(\'.main\' + suffix).each((i, item) => toggleItem(\'' + id + '\' + suffix, item, shouldDisplay)); }"' : '')
           + '>' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
@@ -913,13 +917,17 @@
       GLOBAL.currentLoadingId = isDisplayed ? id : null;
       $("#loading").text(isDisplayed ? "Loading " + id + " ..." : null);
       if (isDisplayed || GLOBAL.hasLoadingQueue) {
-        GLOBAL.hasAlreadyUpdated[id] = true;
+        disableReload(id, true);
         displayElement("#updateButton", false);
       } else {
-        setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false,GLOBAL.timeBetweenReload*1000);
+        setTimeout(() => disableReload(id, false), GLOBAL.timeBetweenReload*1000);
         setTimeout(() => displayElement("#updateButton", !GLOBAL.hasLoadingQueue), 300);
       }
     }
+  }
+
+  function disableReload(id, isDisabled) {
+    GLOBAL.hasAlreadyUpdated[id] = isDisabled;
   }
 
   function displayElement(id, isDisplayed, duration = "slow", complete) {
