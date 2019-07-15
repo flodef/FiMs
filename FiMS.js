@@ -15,8 +15,8 @@
   GLOBAL.account = "account";
   GLOBAL.dashboardFormula = "Dashboard!A:B";
   GLOBAL.investmentFormula = "Investment!A:AI";
-  GLOBAL.historicFormula = "Historic!A" + 1 + ":J" + (GLOBAL.dataPreloadRowLimit+1);
-  GLOBAL.evolutionFormula = "Evolution!A" + 1 + ":J" + (GLOBAL.dataPreloadRowLimit+1);
+  GLOBAL.historicFormula = restrainFormula("Historic!A:J");
+  GLOBAL.evolutionFormula = restrainFormula("Evolution!A:J");
   GLOBAL.resultFormula = "Result!A:H";
   GLOBAL.accountFormula = "Account!A:K";
   GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
@@ -273,7 +273,8 @@
               google.script.run
                     .withSuccessHandler(function(contents) {
                       setValue("Account!A1", data);
-                      getValue(GLOBAL.resultFormula, compareResultData, GLOBAL.account, executionSuccess);
+                      getValue(restrainFormula(GLOBAL.historicFormula, -1, -1), null, GLOBAL.historic,
+                        () => getValue(GLOBAL.resultFormula, compareResultData, GLOBAL.account, executionSuccess));
                     })
                     .withFailureHandler(displayError)
                     .clearSheetValues(GLOBAL.accountFormula);
@@ -1016,4 +1017,16 @@
     }
 
     return i;
+  }
+
+  function restrainFormula(formula, low, high) {
+    formula = formula.replace(/\d+/g, '');
+    if (low != -1 && high != -1) {
+      var a = formula.split(':');
+      a[0] += low > 1 ? low : 1;
+      a[1] += high > 1 ? high : GLOBAL.dataPreloadRowLimit+1;
+      formula = a[0] + ':' + a[1];
+    }
+
+    return formula;
   }
