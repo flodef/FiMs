@@ -50,15 +50,15 @@
       setTable(id, tableHTML);
     }
 
-    getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, updateAllValues);
+    getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues);
   });
 
   function updateAllValues() {
     GLOBAL.displayId.forEach(updateValues);
   }
 
-  function updateValues(id) {
-    getValue(GLOBAL.formula[id], updateTable, id);
+  function updateValues(id, forceReload) {
+    getValue(GLOBAL.formula[id], updateTable, id, forceReload);
   }
 
   function rebalanceStocks() {
@@ -212,7 +212,7 @@
         google.script.run
                     //.withSuccessHandler(contents => setValue(id + "!A2", data, sortTransactionValues))
                      .withSuccessHandler(contents => setValue(sid + "!A2", data,
-                        () => { executionSuccess(); updateValues(id); }))
+                        () => { executionSuccess(); updateValues(id, true); }))
                      .withFailureHandler(displayError)
                      .insertRows(gid, data, {startRow:index, endCol:endCol});
       } else {
@@ -240,7 +240,7 @@
       // showLoader(true);
 
       google.script.run
-                   .withSuccessHandler(contents => { func(); executionSuccess(); updateValues(GLOBAL.historic); })
+                   .withSuccessHandler(contents => { func(); executionSuccess(); updateValues(GLOBAL.historic, true); })
                    .withFailureHandler(displayError)
                    .deleteRows(9, index, index + rowCnt);
     } else {
@@ -267,14 +267,13 @@
               google.script.run
                     .withSuccessHandler(function(contents) {
                       setValue("Account!A1", data);
-                      disableReload(GLOBAL.historic, false);  // Allow reload in case historic has already been loaded recently
-                      getValue(restrainFormula(GLOBAL.historicFormula, -1, -1), null, GLOBAL.historic,
-                        () => getValue(GLOBAL.resultFormula, compareResultData, GLOBAL.account, executionSuccess));
+                      getValue(restrainFormula(GLOBAL.historicFormula, -1, -1), null, GLOBAL.historic, true,
+                        () => getValue(GLOBAL.resultFormula, compareResultData, GLOBAL.account, true, executionSuccess));
                     })
                     .withFailureHandler(displayError)
                     .clearSheetValues(GLOBAL.accountFormula);
             } else if (data[0][0] == "dateOp" && data[0][1] == "dateVal") {
-              getValue(GLOBAL.expHistoFormula, (id, contents) => insertExpensesRow(data, contents), GLOBAL.account, executionSuccess);
+              getValue(GLOBAL.expHistoFormula, (id, contents) => insertExpensesRow(data, contents), GLOBAL.account, true, executionSuccess);
             } else if (data[0][0] == "CA ID" && data[0][1] == "Produit") {
               insertDividendRow(data);
               executionSuccess();
@@ -361,7 +360,7 @@
         }
       }
     } else {
-      getValue(GLOBAL.resultFormula, compareResultData);
+      getValue(GLOBAL.resultFormula, compareResultData, null, true);
     }
   }
 
@@ -803,9 +802,9 @@
     displayElement("#transactionQuantityLabel", e.options[index].title);
   }
 
-  function getValue(formula, func, id, success) {
+  function getValue(formula, func, id, forceReload, success) {
     if (!id || (id && $("#loading").text() == "")) {
-      if (!id || !GLOBAL.hasAlreadyUpdated[id]) {
+      if (!id || forceReload || !GLOBAL.hasAlreadyUpdated[id]) {
         displayLoading(id, true);
 
         google.script.run
@@ -827,7 +826,7 @@
       }
     } else {
       GLOBAL.hasLoadingQueue = true;
-      setTimeout(() => getValue(formula, func, id, success), 100);
+      setTimeout(() => getValue(formula, func, id, forceReload, success), 100);
     }
   }
 
@@ -917,17 +916,15 @@
       GLOBAL.currentLoadingId = isDisplayed ? id : null;
       $("#loading").text(isDisplayed ? "Loading " + id + " ..." : null);
       if (isDisplayed || GLOBAL.hasLoadingQueue) {
-        disableReload(id, true);
+        GLOBAL.hasAlreadyUpdated[id] = true;
         displayElement("#updateButton", false);
       } else {
-        setTimeout(() => disableReload(id, false), GLOBAL.timeBetweenReload*1000);
+        if (GLOBAL.hasAlreadyUpdated[id]) {
+          setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false, GLOBAL.timeBetweenReload*1000);
+        }
         setTimeout(() => displayElement("#updateButton", !GLOBAL.hasLoadingQueue), 300);
       }
     }
-  }
-
-  function disableReload(id, isDisabled) {
-    GLOBAL.hasAlreadyUpdated[id] = isDisabled;
   }
 
   function displayElement(id, isDisplayed, duration = "slow", complete) {
