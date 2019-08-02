@@ -1,4 +1,4 @@
-// MAIN SPREADSHEET 
+// MAIN SPREADSHEET
 var ss = SpreadsheetApp.getActiveSpreadsheet();
 
 // DASHBOARD ROWS
@@ -68,7 +68,7 @@ function dailyUpdate() {
     this._updateClosePrice();
     this._sendEvolution();
   }
-} 
+}
 
 function nightlyUpdate() {
   // Update only during the week
@@ -122,7 +122,7 @@ function cachePrice() {
     var x = new Date();
     var isEmpty = true;
     var updateArray = [];
-    
+
     var j = 0;
     for (var i = 0; i < lr; ++i) {
       var v = val[i][j];
@@ -130,7 +130,7 @@ function cachePrice() {
       if (v != LOADING) {
         updateArray.push(i);
       }
-      
+
       if (!this._isLoading(v)) {
         sheet.getRange(i+FR, PRICE_COL).clearContent();   // Clear costly formula to update
         if (v && !this._isError(v)) {
@@ -139,7 +139,7 @@ function cachePrice() {
         }
       }
     }
-    
+
     if (isEmpty || updateArray.length > 0) {
       cache.putAll({ "lr" : lr.toString(), "updateArray" : updateArray.join() });
     }
@@ -149,7 +149,7 @@ function cachePrice() {
 function processMail() {
   var x = new Date();
   var h = x.getHours();
-  if (h >= FH && h <= LH) {    
+  if (h >= FH && h <= LH) {
     var sheet = this._getSheet(ALERT);
     var array = sheet.getSheetValues(FR, FC, -1, 5);
 
@@ -168,7 +168,7 @@ function processMail() {
             : sub == "Alerte sur opération recherchée" ? function x(thr) { this._processAccountTransaction(thr); }
             : sub.substring(0, 21) == "DEGIRO - Avis d’opéré" ? function x(thr) { this._processStockTrade(thr); }
             : null;
-            
+
             if (fn) {
               fn(thr, id);
             }
@@ -176,7 +176,7 @@ function processMail() {
         }
       }
     }
-      
+
     // Send mails
     var a = [];
     for (var i = 0 ; i < array.length; i++) {
@@ -184,7 +184,7 @@ function processMail() {
       var value = row[0];
       var shouldDelete = false;
       var t = [row[1], row[2]];
-      
+
       var time = row[2] ? (x.getTime() - row[2].getTime())/1000/60 : 60;
       if (value > 0) {
         if (time >= 60 || value != row[1]) {
@@ -198,10 +198,10 @@ function processMail() {
       }
 
       a.push(t);
-      
+
       this._archiveMessage(shouldDelete ? alertThread[i] : null, true);
     }
-    
+
     this._setRangeValues(sheet, FR, FC+1, a);
   }
 }
@@ -222,7 +222,7 @@ function _processAccountBalance(thread) {
       if (b[3] == "-" && b[b.length-1] == "EUR") {
         var val = b[b.length-2];
         var name = b[4];
-        
+
         // Update bank account
         var index = this._indexOf(label, name, 0);
         if (index != null) {
@@ -230,10 +230,10 @@ function _processAccountBalance(thread) {
         } else {
           throw("Bank name not found in BankAccount sheet : " + name);
         }
-      } 
+      }
     }
   }
-  
+
   this._archiveMessage(thread, true);
 }
 
@@ -247,30 +247,30 @@ function _processAccountTransaction(thread) {
     var a = cnt.split("\n");
     for (var k = 0; k < a.length; k++) {
       var b = a[k].split(" ");
-      
+
       if (b[3] == "-" && b[b.length-1] == "EUR") {
         var val = b[b.length-2];
         var date = this._toStringDate(b[4]);
         var label = b.slice(6, b.length-2).join(" ");
         var slab = b.slice(6, b.length-4).join(" ");
-        
+
         var index = this._indexOf(array, parseFloat(val), 2);
-        
+
         // Check for duplicate
         var color;
         if (index != null && array[index][1].toString().indexOf(slab) != -1) {
-          if (date != this._toStringDate(array[index][0])) {            
+          if (date != this._toStringDate(array[index][0])) {
             // Compare date with one week difference
             var d1 = new Date(date);
             var d2 = array[index][0];
             d2.setDate(d2.getDate()+7);
-            
+
             // Over one week, no problem otherwise signal it
             if (d1 > d2) {
               color = "white";
             } else {
               color = "red";
-              
+
               var msg = "Date: " + _toStringDate(date)
               + "\nLabel: " + label
               + "\nValue: " + _round(val, 2, "€")
@@ -281,7 +281,7 @@ function _processAccountTransaction(thread) {
         } else {
           color = "white";
         }
-        
+
         if (color) {
           var data = [[date, label, val]];
           this._insertFirstRow(sheet, data, true);
@@ -290,7 +290,7 @@ function _processAccountTransaction(thread) {
       }
     }
   }
-  
+
   this._archiveMessage(thread, true);
 }
 
@@ -298,64 +298,64 @@ function _processStockTrade(thread) {
   // Get ids from investment table
   var sheet = this._getSheet(INVESTMENT);
   var array = sheet.getSheetValues(FR, FC, -1, Math.max(TYPE_COL, ISIN_COL, LABEL_COL));
-  
+
   // Add historic from stock trade mail
   var sheet = this._getSheet(HISTORIC);
   var pdl = 15;     // Length of data to process
   var hea = 6;      // Length of the header
   var foo = 28;     // Length of the footer
   var ta = 0        // Number of transaction added
-  
+
   var messages = thread.getMessages();
   for (var j = 0 ; j < messages.length; j++) {
     var cnt = messages[j].getPlainBody();
     var a = cnt.split("\n");
     var tc = Math.round((a.length-hea-foo)/pdl);  // Number of transaction to process
-    
-    var k = hea+1;    // Skip first rows as it is mail crap 
+
+    var k = hea+1;    // Skip first rows as it is mail crap
     while(k < a.length) {
       var b = a[k].split("*");
       if (b[0].split(" ")[0] == "Date") {
         var isin = a[k+1].split("*")[1];                                                                    // Code ISIN *JE00B1VS3770*
-        var qty = a[k+6].split("*")[1];                                                                     // Quantité *190* 
+        var qty = a[k+6].split("*")[1];                                                                     // Quantité *190*
         var cur = a[k+8].split("*")[1].substr(0, 3);                                                        // Montant devise locale *USD 8 434,10*
         var amount = Number(a[k+9].split("*")[1].replace(new RegExp("[A-Z ]", 'g'),"").replace(",", "."));  // Montant *EUR 8 434,10*
         var cost = Number(a[k+11].split("*")[1].replace(new RegExp("[A-Z ]", 'g'),"").replace(",", "."));   // Frais *EUR -3,69*
         var date = _toDate();
-        
+
         var row = this._indexOf(array, isin, ISIN_COL-1);
         if (row >= 0) {
           var label = array[row][LABEL_COL-1];
           var type = array[row][TYPE_COL-1];
-          
+
           if (cost != 0) {
             this._insertHistoricRow(date, type, label, null, null, null, cost);  //(date, type, label, trans, quantity, price, value, tag)
           }
-          
+
           var trans = amount < 0 ? "BUY" : "SELL";
           var quantity = amount < 0 ? qty : -qty;
-          var price = this._toFixed(Math.abs(amount / quantity),4);
+          var price = this._toFixed(Math.abs(this._toFixed(amount, 2) / quantity), 4);
           var value = amount;
           var tag = cur == "EUR" ? null : DUMMY;  // Add dummy if currency is not Euro, as the exchange rate fee is not known
           this._insertHistoricRow(date, type, label, trans, quantity, price, value, tag);  //(date, type, label, trans, quantity, price, value, tag)
-          
+
           ++ta;
         } else {
           throw("ISIN not found in Investment sheet : " + isin);
         }
-        
+
         k += pdl;                      // Skip all the processed data
       } else {
-        k += k <= pdl ? 1 : a.length;  // Go to the next line if data has not been processed, otherwise strait at the end of the array, 
+        k += k <= pdl ? 1 : a.length;  // Go to the next line if data has not been processed, otherwise strait at the end of the array,
       }
-    }  
-    
+    }
+
     if (ta != tc) {
-      throw("All stock transaction has not been processed : " + ta + " transaction(s) added insead of " + tc);    
+      throw("All stock transaction has not been processed : " + ta + " transaction(s) added insead of " + tc);
     }
   }
-  
-  this._archiveMessage(thread);  
+
+  this._archiveMessage(thread);
 }
 
 function _updateClosePrice() {
@@ -363,18 +363,18 @@ function _updateClosePrice() {
   var lr = sheet.getMaxRows()-FR;
   var formula = sheet.getRange(lr+FR, PRICE_COL);
   var range = sheet.getRange(FR, PRICE_COL, lr, 1);
-  
+
   this._copyFormula(formula, range);
 
   var j = 0;
   for (var i = 0; i < lr; ++i) {
     var v;
     var r = sheet.getRange(i+FR, PRICE_COL);
-    
+
     do  {
       v = r.getValue();
     } while (this._isLoading(v));
-    
+
     if (!this._isError(v)) {
       sheet.getRange(i+FR, PRICE_COL+1).setValue(v);  // Cache the value
     }
@@ -383,7 +383,7 @@ function _updateClosePrice() {
   range.clearContent();   // Clear costly formula to update
 }
 
-function _sendEvolution() {  
+function _sendEvolution() {
   // Get values
   var sheet = this._getSheet(PRICE);
   var array = sheet.getSheetValues(FR, FC, 2, -1);
@@ -393,14 +393,14 @@ function _sendEvolution() {
     // Daily Performance mail
     var sheet = this._getSheet(EVOLUTION);
     var array = sheet.getSheetValues(FR, FC, 1, -1);
-    
+
     var msg = "Performance: " + this._round(array[0][4], 2, "%")
     + " (" + this._round(array[0][5], 2, "€") + ")"
-    + "\nPortfolio: " + this._round(array[0][1], 2, "%") + " + " 
+    + "\nPortfolio: " + this._round(array[0][1], 2, "%") + " + "
     + this._round(array[0][2], 2, "%") + " = " + this._round(array[0][3], 2, "%")
     + " (" + this._round(array[0][6], 2, "€") + ")"
     + "\n" + SSLINK + "1307757852";
-    
+
     this._sendMessage("Daily Stock report", msg);
   }
 }
@@ -424,7 +424,7 @@ function _updateEvolution() {
   } while (shouldDelete);
 
   // Check for difference
-  if (this._checkPriceDiff(array)) {  
+  if (this._checkPriceDiff(array)) {
     // Update price
     this._copyFirstRow(sheet, array);
 
@@ -480,7 +480,7 @@ function _updateInterest() {
     col = !isEmpty && v <= d ? i : col;
     end = !isEmpty ? i : end;
   }
-  
+
   var fr = FR+col;
   var mr = FR+end-fr+1;
   var lr = array.length+FR-(mr+fr);
@@ -492,19 +492,19 @@ function _updateInterest() {
   }
 }
 
-function _updateDividend() {  
+function _updateDividend() {
   // Get dividend from investment table
   var sheet = this._getSheet(INVESTMENT);
   var array = sheet.getSheetValues(FR, FC, -1, Math.max(TYPE_COL, LABEL_COL, NEXTDIV_COL, ESTDIV_COL));
   var today = this._toDate();
   var x = [];
-  
+
   for (var i = 0; i < array.length; ++i) {
     if (array[i][NEXTDIV_COL-1] && array[i][NEXTDIV_COL-1] <= today) {
       x.push([today, array[i][TYPE_COL-1], array[i][LABEL_COL-1], "DIVIDEND", "", "", this._round(array[i][ESTDIV_COL-1], 2), DUMMY]);
     }
   }
-    
+
   // Insert the monthly interest into the historic
   if (x.length > 0) {
     var sheet = this._getSheet(HISTORIC);
@@ -528,18 +528,18 @@ function _updateValues() {
 function _copyValue(sheet, row, col, url, table, offset) {
   var value = '=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(QUERY(IMPORTHTML("' + url + '","table",' + table + '), "select Col2 limit 1 offset ' + offset + '", 1),"%",""),",",".")/100))';
   var range = sheet.getRange(row, col);
-  
+
   range.setValue(value);
   do  {
     value = range.getValue();
   } while (this._isLoading(value));
-  
+
   if (!this._isError(value)) {
     range.setValue(value);  // Copy only the value
   }
 }
 
-function _updateAllocation() {  
+function _updateAllocation() {
   // Search if entries have already been added
   var allocSheet = this._getSheet(ALLOCHIST);
   var lr = Math.min(allocSheet.getMaxRows(), 3);
@@ -563,14 +563,14 @@ function _updateAllocation() {
     } else {
       alloc = array[CURALL_ROW-FR][0];                // get the alloc from current if not set
     }
-    
+
     // Set the values into the allocation historic
     this._setRangeValues(allocSheet, 3, FC, [allocArray[1]]);    // Copy only values into previous row (archive)
-    
+
     var date = _toStringDate();
     var data = [[date, portValue, alloc]];
     this._insertFirstRow(allocSheet, data);
-    
+
     // Insert the monthly interest into the historic
     var date = _toDate();              // Get date without hours
     date.setDate(date.getDate() - 1);  // Yesterday's date as interest are added for the last day of the previous month
@@ -625,14 +625,14 @@ function _updateClient() {
       ss.moveActiveSheet(index - 1);
       sheet.protect().setWarningOnly(true);
     }
-    
+
     var lr = sheet.getMaxRows();
     var array = lr >= FR ? sheet.getSheetValues(FR, FC, 1, -1) : [];
-    
+
     // Add monthly client profit
     if (!_isCurrentMonth(array)) {
       var hasPrevious = array.length > 0;
-      
+
       var date = this._toDate();
       var year = date.getFullYear();
       var month = date.getMonth();
@@ -647,17 +647,17 @@ function _updateClient() {
       var movement = total - gain - (hasPrevious ? array[0][1] : 0);
       var cumv = movement + (hasPrevious ? array[0][2] : 0);
       var cumg = total - cumv;
-      
+
       var data = [[date, value, cumv, movement, rate, gain, cumg, total]];
       this._insertFirstRow(sheet, data, true);
-      
+
     // On new client sheet, freeze the first row and copy format from the model
       if (!hasPrevious) {
         sheet.setFrozenRows(1);
         var lc = sheet.getMaxColumns();
         modelSheet.getRange(FR, FC, 1, lc).copyTo(sheet.getRange(FR, FC, 1, lc), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
       }
-            
+
       // Update client main data
       var data = [[name, value, gain, total]];
       this._setRangeValues(clientSheet, i + FR, FC, data);
@@ -669,8 +669,8 @@ function _updateClient() {
 
 function _getSheet(sheetName) {
 //  var sheet = SpreadsheetApp.getActiveSheet();
-//  return sheet && sheet.getName() == sheetName 
-//  ? sheet 
+//  return sheet && sheet.getName() == sheetName
+//  ? sheet
 //  : SpreadsheetApp.setActiveSheet(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName));
   return ss.getSheetByName(sheetName);
 }
@@ -707,7 +707,7 @@ function _insertFirstRow(sheet, data, isFast, lc) {
 
 function _insertHistoricRow(date, type, label, trans, quantity, price, value, tag) {
   var sheet = this._getSheet(HISTORIC);
-  
+
   date = date ? date : this._toDate();
   type = type ? type : "";
   label = label ? label : "";
@@ -716,7 +716,7 @@ function _insertHistoricRow(date, type, label, trans, quantity, price, value, ta
   price = price ? price : "";
   value = value ? value : 0;
   tag = tag ? tag : label + "@" + trans + "@" + quantity + "@" + value; //Vanguard S&P 500 UCITS ETF@COST@@-3.69
-  
+
   var data = [[date, type, label, trans, quantity, price, value, tag]];
   this._insertFirstRow(sheet, data, true, sheet.getMaxColumns() - 3);
 }
@@ -744,7 +744,7 @@ function _round(value, precision, symbol) {
   var mult = Math.pow(10, precision);
   var sup = symbol == "%" ? 100 : 1;
   var symbol = typeof(symbol) === "string" ? symbol : 0;
-  
+
   return Math.round(value * sup * mult) / mult + symbol;
 }
 
@@ -782,13 +782,13 @@ function _toStringDate(date) {
 function _indexOf(array, value, index, start) {
   var index = index >= 0 ? index : null;
   var x = parseInt(start) ? parseInt(start) : 0;
-  
+
   var i = null;
   if (Array.isArray(array)) {
     while(x < array.length
           && ((index == null && array[x] != value)
       || (index != null && array[x][index] != value))) { ++x; }
-    
+
     i = x < array.length ? x : null;
   }
 
