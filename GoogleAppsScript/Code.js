@@ -395,8 +395,9 @@ function _sendEvolution() {
     var array = sheet.getSheetValues(1, FC, 2, -1);
 
     var msg = "";
-    for (var i of [5, 6, 7, 10]) {
-      msg += array[0][i] + ": " + this._round(array[1][i], 2, "€") + "\n";
+    var col = [5, 6, 7, 10];
+    for (var i = 0; i < array[0].length; ++i) {
+      msg += col.includes(i) ? array[0][i] + ": " + this._round(array[1][i], 2, "€") + "\n" : "";
     }
     msg += SSLINK + "1307757852";
 
