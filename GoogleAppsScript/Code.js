@@ -392,14 +392,13 @@ function _sendEvolution() {
   if (this._checkPriceDiff(array)) {
     // Daily Performance mail
     var sheet = this._getSheet(EVOLUTION);
-    var array = sheet.getSheetValues(FR, FC, 1, -1);
+    var array = sheet.getSheetValues(1, FC, 2, -1);
 
-    var msg = "Performance: " + this._round(array[0][4], 2, "%")
-    + " (" + this._round(array[0][5], 2, "€") + ")"
-    + "\nPortfolio: " + this._round(array[0][1], 2, "%") + " + "
-    + this._round(array[0][2], 2, "%") + " = " + this._round(array[0][3], 2, "%")
-    + " (" + this._round(array[0][7], 2, "€") + ")"
-    + "\n" + SSLINK + "1307757852";
+    var msg = "";
+    for (var i of [5, 6, 7, 10]) {
+      msg += array[0][i] + ": " + this._round(array[1][i], 2, "€") + "\n";
+    }
+    msg += SSLINK + "1307757852";
 
     this._sendMessage("Daily Stock report", msg);
   }
