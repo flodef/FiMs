@@ -1,5 +1,5 @@
 // MAIN SPREADSHEET
-var ss = SpreadsheetApp.getActiveSpreadsheet();
+var SS = SpreadsheetApp.getActiveSpreadsheet();
 
 // DASHBOARD ROWS
 var PORCAS_ROW = 35;          // Should be the "Current portfolio cash" row
@@ -398,7 +398,7 @@ function _sendEvolution() {
     + " (" + this._round(array[0][5], 2, "€") + ")"
     + "\nPortfolio: " + this._round(array[0][1], 2, "%") + " + "
     + this._round(array[0][2], 2, "%") + " = " + this._round(array[0][3], 2, "%")
-    + " (" + this._round(array[0][6], 2, "€") + ")"
+    + " (" + this._round(array[0][7], 2, "€") + ")"
     + "\n" + SSLINK + "1307757852";
 
     this._sendMessage("Daily Stock report", msg);
@@ -621,8 +621,8 @@ function _updateClient() {
       sheet.setName(name);
       sheet.deleteRow(FR);
       var index = sheet.getIndex();
-      ss.setActiveSheet(sheet);
-      ss.moveActiveSheet(index - 1);
+      SS.setActiveSheet(sheet);
+      SS.moveActiveSheet(index - 1);
       sheet.protect().setWarningOnly(true);
     }
 
@@ -672,7 +672,7 @@ function _getSheet(sheetName) {
 //  return sheet && sheet.getName() == sheetName
 //  ? sheet
 //  : SpreadsheetApp.setActiveSheet(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName));
-  return ss.getSheetByName(sheetName);
+  return SS.getSheetByName(sheetName);
 }
 
 function _setRangeValues(sheet, row, column, data) {
