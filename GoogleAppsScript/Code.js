@@ -308,7 +308,9 @@ function _processStockTrade(thread) {
 
   var messages = thread.getMessages();
   for (var j = 0 ; j < messages.length; j++) {
-    var cnt = messages[j].getPlainBody();
+    var message = messages[j];
+    var date = _toDate(message.getDate());
+    var cnt = message.getPlainBody();
     var a = cnt.split("\n");
     var tc = Math.round((a.length-hea-foo)/pdl);  // Number of transaction to process
 
@@ -321,7 +323,6 @@ function _processStockTrade(thread) {
         var cur = a[k+8].split("*")[1].substr(0, 3);                                                        // Montant devise locale *USD 8 434,10*
         var amount = Number(a[k+9].split("*")[1].replace(new RegExp("[A-Z ]", 'g'),"").replace(",", "."));  // Montant *EUR 8 434,10*
         var cost = Number(a[k+11].split("*")[1].replace(new RegExp("[A-Z ]", 'g'),"").replace(",", "."));   // Frais *EUR -3,69*
-        var date = _toDate();
 
         var row = this._indexOf(array, isin, ISIN_COL-1);
         if (row >= 0) {
