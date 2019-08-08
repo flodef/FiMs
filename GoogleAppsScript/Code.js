@@ -334,7 +334,7 @@ function _processStockTrade(thread) {
 
           var trans = amount < 0 ? "BUY" : "SELL";
           var quantity = amount < 0 ? qty : -qty;
-          var price = this._toFixed(Math.abs(this._toFixed(amount, 2) / quantity), 4);
+          var price = this._round(Math.abs(amount / quantity), 4);
           var value = amount;
           var tag = cur == "EUR" ? null : DUMMY;  // Add dummy if currency is not Euro, as the exchange rate fee is not known
           this._insertHistoricRow(date, type, label, trans, quantity, price, value, tag);  //(date, type, label, trans, quantity, price, value, tag)
