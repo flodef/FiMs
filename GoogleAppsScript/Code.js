@@ -4,10 +4,10 @@ var SS = SpreadsheetApp.getActiveSpreadsheet();
 // DASHBOARD ROWS
 var PORCAS_ROW = 35;          // Should be the "Current portfolio cash" row
 var PORVAL_ROW = 36;          // Should be the "Current portfolio value" row
-var LIVRETA_ROW = 54;         // Should be the "Livret A" row
-var EONIA_ROW = 55;           // Should be the "EONIA" row
-var INTRAT_ROW = 56;          // Should be the "Interest rate (EONIA+1.25%)" row
-var MONINT_ROW = 57;          // Should be the "Monthly interest" row
+var LIVRETA_ROW = 53;         // Should be the "Livret A" row
+var EONIA_ROW = 54;           // Should be the "EONIA" row
+var INTRAT_ROW = 55;          // Should be the "Interest rate (EONIA+1.25%)" row
+var MONINT_ROW = 56;          // Should be the "Monthly interest" row
 
 // INVESTMENT COLS
 var TYPE_COL = 1;             // Should be the "Type" column
