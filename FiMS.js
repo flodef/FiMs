@@ -590,8 +590,11 @@
     var col = contents[0].length;
     var tableHTML = getTableTitle(id, false, GLOBAL.rebalanceButtonToolTip, col-1);
     for (var i = 0; i < row; ++i) {
+      var bgcolor = contents[i][0].includes("BUY") ? "green" : contents[i][0].includes("SELL") ? "red" : null;
+      var color = bgcolor ? "black" : null;
       tableHTML += i==0 ? '<thead>' : '';
-      tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '">';
+      tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '"' +
+        bgcolor ? 'style="background-color:' + bgcolor + ';color:' + color + ';font-weight:bold;"' : '' + '>';
       //for (var j = 0; j < contents[i].length; ++j)
       for (var j of [7, 10, 12, 14, 18, 19, 22, 23, 25, 27, 29, 33]) {   // Select only the interesting columns
         // Name = 7, Shares = 10, Price = 12, Sell = 14, Rebalance = 18, Provision = 19, Tendency = 22,
@@ -603,9 +606,6 @@
                     : contents[i][12]
                       ? toCurrency(contents[i][j], 4) : "";
         var isDisabled = (j == 18 || j == 19 || j == 22) && !shouldRebalance(contents[i][22]);
-        var color = j == 22 && !isDisabled
-          ? con.includes("BUY") ? "green" : con.includes("SELL") ? "red" : null
-          : null;
         tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled, color);
       }
       tableHTML += '</tr>';
