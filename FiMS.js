@@ -591,8 +591,9 @@
     var col = contents[0].length;
     var tableHTML = getTableTitle(id, false, GLOBAL.rebalanceButtonToolTip, col-1);
     for (var i = 0; i < row; ++i) {
-      var bgcolor = contents[i][GLOBAL.tendencyCol].includes("BUY") ? "green"
-                  : contents[i][GLOBAL.tendencyCol].includes("SELL") ? "red"
+      var bgcolor = i == row-1 ? null
+                  : contents[i][GLOBAL.tendencyCol].includes("BUY") ? "lightgreen"
+                  : contents[i][GLOBAL.tendencyCol].includes("SELL") ? "lightcoral"
                   : null;
       var color = bgcolor ? "black" : null;
       tableHTML += i==0 ? '<thead>' : '';
@@ -613,9 +614,9 @@
         tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled, color);
       }
       tableHTML += '</tr>';
-      tableHTML += i==0 ? '</thead><tbody>'
-      : i==row-2 ? '</tbody><tfoot>'
-      : i==row-1 ? '</tfoot>' : '';
+      tableHTML += i == 0 ? '</thead><tbody>'
+      : i == row-2 ? '</tbody><tfoot>'
+      : i == row-1 ? '</tfoot>' : '';
 
       if (i != 0 && i != row-1) {
         tags.push(contents[i][7]);
