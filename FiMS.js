@@ -645,6 +645,10 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
       for (var j = 0; j < col; ++j) {
+        if (contents[i][GLOBAL.histoIdCol] == GLOBAL.dummy) {  // Row becomes red if it is a dummy
+          tableHTML.slice(0, -4);
+          tableHTML += '<tr style="background-color: red;">';
+        }
         var value = j < contents[i].length && contents[i][j]
           ? j != 5 || i == 0
             ? contents[i][j]
