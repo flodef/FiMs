@@ -603,10 +603,10 @@
                     : contents[i][12]
                       ? toCurrency(contents[i][j], 4) : "";
         var isDisabled = (j == 18 || j == 19 || j == 22) && !shouldRebalance(contents[i][22]);
-        var html = getTableReadOnlyContent(con, i == 0, isDisabled);
-        tableHTML += j != 22
-          ? html
-          : html.replace("green", GLOBAL.dummy).replace("red", "green").replace(GLOBAL.dummy, "red");   // reverse text color for Tendency column
+        var color = j == 22 && !isDisabled
+          ? con.includes("BUY") ? "green" : con.includes("SELL") ? "red" : null
+          : null;
+        tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled, color);
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
@@ -702,14 +702,15 @@
            getTableReadOnlyContent(contents[index-1][1], false);
   }
 
-  function getTableReadOnlyContent(content, isHeader, isDisabled) {
+  function getTableReadOnlyContent(content, isHeader, isDisabled, color) {
     var content = content ? content : "";
     var matches = /\(([^)]+)\)/.exec(content);
     var value = matches ? matches[matches.length-1] : content;
     var isCur = /(€|%|\$)/.test(value);
     var number = toValue(value);
     var isDisabled = isDisabled || (!isNaN(number) && number == 0);
-    var color = isDisabled ? "wheat"
+    var color = color ? color
+                : isDisabled ? "wheat"
                 : isCur ? number > 0 ? "green" : "red"
                 : "black";
     return isHeader ? '<th align="center">' + content + '</th>'
