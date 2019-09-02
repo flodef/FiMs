@@ -594,7 +594,7 @@
       var color = bgcolor ? "black" : null;
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '"' +
-        bgcolor ? 'style="background-color:' + bgcolor + ';color:' + color + ';font-weight:bold;"' : '' + '>';
+        (bgcolor ? 'style="background-color:' + bgcolor + ';color:' + color + ';font-weight:bold;"' : '') + '>';
       //for (var j = 0; j < contents[i].length; ++j)
       for (var j of [7, 10, 12, 14, 18, 19, 22, 23, 25, 27, 29, 33]) {   // Select only the interesting columns
         // Name = 7, Shares = 10, Price = 12, Sell = 14, Rebalance = 18, Provision = 19, Tendency = 22,
