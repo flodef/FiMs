@@ -112,7 +112,7 @@
   //         style += key == "Action"
   //                         ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
   //                         : '';
-  //         var val = key == "Action" ? (value ? "Buy" : "Sell") : value;
+  //         var val = key == "Action" ? (value ? "BUY" : "SELL") : value;
   //         tableHTML += '<th align="center">' + key + '</th>'
   //                    + '<td align="center" style="' + style + '" padding="10px">' + val + '</td>'
   //
@@ -591,7 +591,7 @@
     var tableHTML = getTableTitle(id, false, GLOBAL.rebalanceButtonToolTip, col-1);
     for (var i = 0; i < row; ++i) {
       tableHTML += i==0 ? '<thead>' : '';
-      tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][1] + '">';
+      tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '">';
       //for (var j = 0; j < contents[i].length; ++j)
       for (var j of [7, 10, 12, 14, 18, 19, 22, 23, 25, 27, 29, 33]) {   // Select only the interesting columns
         // Name = 7, Shares = 10, Price = 12, Sell = 14, Rebalance = 18, Provision = 19, Tendency = 22,
@@ -603,7 +603,8 @@
                     : contents[i][12]
                       ? toCurrency(contents[i][j], 4) : "";
         var isDisabled = (j == 18 || j == 19 || j == 22) && !shouldRebalance(contents[i][22]);
-        tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled);
+        var html = getTableReadOnlyContent(con, i == 0, isDisabled);
+        tableHTML += j != 22 = html : html.replace("green", GLOBAL.dummy).replace("red", "green").replace(GLOBAL.dummy, "red");
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
