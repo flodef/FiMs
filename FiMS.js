@@ -7,6 +7,7 @@
   GLOBAL.timeBetweenReload = 60;
   GLOBAL.histoIdCol = 7;
   GLOBAL.rebalCol = 18;
+  GLOBAL.tendencyCol = 22;
   GLOBAL.dashboard = "dashboard";
   GLOBAL.investment = "investment";
   GLOBAL.historic = "historic";
@@ -590,7 +591,9 @@
     var col = contents[0].length;
     var tableHTML = getTableTitle(id, false, GLOBAL.rebalanceButtonToolTip, col-1);
     for (var i = 0; i < row; ++i) {
-      var bgcolor = contents[i][0].includes("BUY") ? "green" : contents[i][0].includes("SELL") ? "red" : null;
+      var bgcolor = contents[i][GLOBAL.tendencyCol].includes("BUY") ? "green"
+                  : contents[i][GLOBAL.tendencyCol].includes("SELL") ? "red"
+                  : null;
       var color = bgcolor ? "black" : null;
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '"' +
@@ -605,7 +608,8 @@
                       : toCurrency(contents[i][j], 3) + ' (' + contents[i][j+1] + ')'
                     : contents[i][12]
                       ? toCurrency(contents[i][j], 4) : "";
-        var isDisabled = (j == 18 || j == 19 || j == 22) && !shouldRebalance(contents[i][22]);
+        var isDisabled = (j == 18 || j == 19 || j == GLOBAL.tendencyCol)
+          && !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
         tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled, color);
       }
       tableHTML += '</tr>';
