@@ -604,7 +604,9 @@
                       ? toCurrency(contents[i][j], 4) : "";
         var isDisabled = (j == 18 || j == 19 || j == 22) && !shouldRebalance(contents[i][22]);
         var html = getTableReadOnlyContent(con, i == 0, isDisabled);
-        tableHTML += j != 22 = html : html.replace("green", GLOBAL.dummy).replace("red", "green").replace(GLOBAL.dummy, "red");
+        tableHTML += j != 22
+          ? html
+          : html.replace("green", GLOBAL.dummy).replace("red", "green").replace(GLOBAL.dummy, "red");   // reverse text color for Tendency column
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
