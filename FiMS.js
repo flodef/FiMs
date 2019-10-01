@@ -19,7 +19,7 @@
   GLOBAL.historicFormula = restrainFormula("Historic!A:J");
   GLOBAL.evolutionFormula = restrainFormula("Evolution!A:J");
   GLOBAL.resultFormula = "Result!A:H";
-  GLOBAL.accountFormula = "Account!A:K";
+  GLOBAL.accountFormula = "Account!A:L";
   GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
   GLOBAL.settingsFormula = "Settings!A:F";
   GLOBAL.displayId = [GLOBAL.dashboard, GLOBAL.investment, GLOBAL.historic, GLOBAL.evolution];
