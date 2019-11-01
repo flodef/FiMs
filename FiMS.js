@@ -647,8 +647,9 @@
     var col = contents[0].length;
     var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col-1);
     for (var i = 0; i < row; ++i) {
+      var isDummy = contents[i][GLOBAL.histoIdCol] != GLOBAL.dummy;
       tableHTML += i==0 ? '<thead>' : '';
-      tableHTML += contents[i][GLOBAL.histoIdCol] != GLOBAL.dummy
+      tableHTML += isDummy
         ? '<tr>'
         : '<tr style="background-color: red;">'; // Row becomes red if it is a dummy
       for (var j = 0; j < col; ++j) {
@@ -658,7 +659,7 @@
             : toCurrency(contents[i][j], 4)
           : "";
         tableHTML += j != GLOBAL.histoIdCol   // Don't display the Historic ID
-          ? getTableReadOnlyContent(value, i == 0)
+          ? getTableReadOnlyContent(value, i == 0, false, isDummy ? "black" : null)
           : '';
       }
       tableHTML += '</tr>';
