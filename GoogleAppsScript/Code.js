@@ -416,7 +416,8 @@ function _updateEvolution() {
   // Delete last price if older than one year
   var lr = sheet.getMaxRows();
   var lyd = _toDate();
-  lyd.setFullYear(lyd.getFullYear() - 1);
+  lyd.setFullYear(lyd.getFullYear()-1);
+  lyd.setMonth(lyd.getMonth()-1);
   do {
     var oldDate = sheet.getRange(lr, FC).getValue();
     var shouldDelete = oldDate < lyd;
