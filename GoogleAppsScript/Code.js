@@ -15,9 +15,9 @@ var TITLE_COL = 5;            // Should be the "Title" column
 var ISIN_COL = 6;             // Should be the "Isin" column
 var LABEL_COL = 8;            // Should be the "Label" column
 var PRICE_COL = 12;           // Should be the "Price" column
-var LASTUPD_COL = 42;         // Should be the "Last upd" column
-var NEXTDIV_COL = 44;         // Should be the "Next div" column
-var ESTDIV_COL = 46;          // Should be the "Est div" column
+var LASTUPD_COL = 43;         // Should be the "Last upd" column
+var NEXTDIV_COL = 45;         // Should be the "Next div" column
+var ESTDIV_COL = 47;          // Should be the "Est div" column
 
 // ALLOCATION ROWS
 var CURALL_ROW = 12;          // Should be the "Current allocation" row
