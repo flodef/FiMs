@@ -15,7 +15,7 @@
   GLOBAL.settings = "settings";
   GLOBAL.account = "account";
   GLOBAL.dashboardFormula = "Dashboard!A:B";
-  GLOBAL.investmentFormula = "Investment!A:AI";
+  GLOBAL.investmentFormula = "Investment!A:AL";
   GLOBAL.historicFormula = restrainFormula("Historic!A:J");
   GLOBAL.evolutionFormula = restrainFormula("Evolution!A:J");
   GLOBAL.resultFormula = "Result!A:H";
@@ -600,13 +600,14 @@
       tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '"' +
         (bgcolor ? 'style="background-color:' + bgcolor + ';color:' + color + ';font-weight:bold;"' : '') + '>';
       //for (var j = 0; j < contents[i].length; ++j)
-      for (var j of [7, 10, 12, 14, 18, 19, 22, 32, 23, 29, 33]) {   // Select only the interesting columns
+      for (var j of [7, 10, 12, 14, 18, 19, 22, 32, 23, 29, 33, 36]) {   // Select only the interesting columns
         // Name = 7, Shares = 10, Price = 12, Sell = 14, Rebalance = 18, Provision = 19, Tendency = 22,
-        // Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 23 to 29, Trans profit = 32, Avg price = 33, Avg gap = 34
+        // Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 23 to 29, Trans profit = 32,
+        // Avg price = 33, Avg gap = 34, Avg lm price = 36, Avg lm progress = 37
         var con =  i == 0 || j != 12
                     ? i == 0 || j < 23 || j == 32
                       ? contents[i][j]
-                      : toCurrency(contents[i][j], 3) + ' (' + contents[i][j+1] + ')'
+                      : (contents[i][j] ? toCurrency(contents[i][j], 3) : "") + ' (' + contents[i][j+1] + ')'
                     : contents[i][12]
                       ? toCurrency(contents[i][j], 4) : "";
         var isDisabled = (j == 18 || j == 19 || j == GLOBAL.tendencyCol)
