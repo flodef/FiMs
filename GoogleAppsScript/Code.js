@@ -274,7 +274,7 @@ function _processAccountTransaction(thread) {
 
               var msg = "Date: " + _toStringDate(date)
               + "\nLabel: " + label
-              + "\nValue: " + _round(val, 2, "€")
+              + "\nValue: " + _round(val, 2, " €")
               + "\n" + SSLINK + "298395308";
               this._sendMessage("Expense duplicate", msg);
             }
@@ -397,10 +397,8 @@ function _sendEvolution() {
     var array = sheet.getSheetValues(1, FC, 2, -1);
 
     var msg = "";
-    // var col = [5, 6, 7, 8, 9];
     for (var i = 5; i < array[0].length; ++i) {
-      // msg += this._indexOf(col, i) != null ? array[0][i] + ": " + this._round(array[1][i], 2, "€") + "\n" : "";
-      msg += array[0][i] + ": " + this._round(array[1][i], 2, "€") + "\n";
+      msg += array[0][i] + ": " + this._round(array[1][i], 2, " €") + "\n";
     }
     msg += SSLINK + "1307757852";
 
