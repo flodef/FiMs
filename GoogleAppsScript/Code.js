@@ -741,7 +741,8 @@ function _isMarketOpen() {
 
 function _toFixed(value, precision) {
   var str = value.toString();
-  return str.slice(0, str.indexOf(".") + precision+1).replace(/^0+|0+$/g, '');
+  str += (str.indexOf(".") != -1 ? "" : ".") + '0'.repeat(precision);
+  return str.slice(0, str.indexOf(".") + precision+Math.min(precision, 1));
 }
 
 function _round(value, precision, symbol) {
@@ -749,7 +750,7 @@ function _round(value, precision, symbol) {
   var sup = symbol == "%" ? 100 : 1;
   var symbol = typeof(symbol) === "string" ? symbol : 0;
 
-  return Math.round(value * sup * mult) / mult + symbol;
+  return this._toFixed(Math.round(value * sup * mult) / mult, precision) + symbol;
 }
 
 function _isCurrentDay(array) {
