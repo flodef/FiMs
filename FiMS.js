@@ -612,7 +612,8 @@
                       ? toCurrency(contents[i][j], 4) : "";
         var isDisabled = (j == 18 || j == 19 || j == GLOBAL.tendencyCol)
           && !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
-        tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled, color);
+        tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled,
+          j == 32 ? getColor(contents[i][j]) : color);
       }
       tableHTML += '</tr>';
       tableHTML += i == 0 ? '</thead><tbody>'
@@ -709,17 +710,11 @@
            getTableReadOnlyContent(contents[index-1][1], false);
   }
 
-  function getTableReadOnlyContent(content, isHeader, isDisabled, color) {
-    var content = content ? content : "";
+  function getTableReadOnlyContent(content = "", isHeader, isDisabled, color) {
     var matches = /\(([^)]+)\)/.exec(content);
     var value = matches ? matches[matches.length-1] : content;
     var isCur = /(€|%|\$)/.test(value);
-    var number = toValue(value);
-    var isDisabled = isDisabled || (!isNaN(number) && number == 0);
-    var color = color ? color
-                : isDisabled ? "wheat"
-                : isCur ? number > 0 ? "green" : "red"
-                : "black";
+    var color = getColor(value, isDisabled, isCur, color);
     return isHeader ? '<th align="center">' + content + '</th>'
                     : '<td align="center" style="color:' + color + '">' + content + '</td>';
   }
@@ -767,6 +762,14 @@
   function getMainTableHead(id) {
     return '<table id="' + id + 'Table" class="sortable mainTable '
          + ($("#" + id + "Table").is(":visible") ? '' : 'hidden') + '">';
+  }
+
+  function getColor(value, isDisabled = false, isCur = true, forcedColor) {
+    var number = toValue(value);
+    return forcedColor ? forcedColor
+                       : isDisabled || (!isNaN(number) && number == 0) ? "wheat"
+                       : isCur ? number > 0 ? "green" : "red"
+                       : "black";
   }
 
   function setTable(id, tableHTML) {
