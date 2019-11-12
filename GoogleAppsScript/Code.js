@@ -741,7 +741,7 @@ function _isMarketOpen() {
 
 function _toFixed(value, precision) {
   var str = value.toString();
-  str += (str.indexOf(".") != -1 ? "" : ".") + '0'.repeat(precision);
+  str += (str.indexOf(".") != -1 ? "" : ".") + Array(precision+1).join('0');
   return str.slice(0, str.indexOf(".") + precision+Math.min(precision, 1));
 }
 
