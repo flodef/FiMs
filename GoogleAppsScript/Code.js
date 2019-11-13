@@ -510,10 +510,9 @@ function _updateDividend() {
   // Insert the monthly interest into the historic
   if (x.length > 0) {
     var sheet = this._getSheet(HISTORIC);
-    var lc = sheet.getMaxColumns() - 3;
     for (var i = 0; i < x.length; ++i) {
       var data = [x[i]];
-      this._insertFirstRow(sheet, data, true, lc);
+      this._insertFirstRow(sheet, data, true);
     }
   }
 }
@@ -720,7 +719,7 @@ function _insertHistoricRow(date, type, label, trans, quantity, price, value, ta
   tag = tag ? tag : label + "@" + trans + "@" + quantity + "@" + value; //Vanguard S&P 500 UCITS ETF@COST@@-3.69
 
   var data = [[date, type, label, trans, quantity, price, value, tag]];
-  this._insertFirstRow(sheet, data, true, sheet.getMaxColumns() - 3);
+  this._insertFirstRow(sheet, data, true);
 }
 
 function _importXml(row, table) {
