@@ -599,20 +599,15 @@ function _updateExpense() {
 }
 
 function _updateClient() {
-  // Retrive client rate
-  var sheet = this._getSheet(DASHBOARD);
-  var lc = sheet.getMaxColumns();
-  var array = sheet.getSheetValues(FR, lc, -1, 1);
-  var rate = array[INTRAT_ROW-FR][0];
-
   // Retrieve client main data
   var clientSheet = this._getSheet(CLIENT);
-  var clientArray = clientSheet.getSheetValues(FR, FC, -1, 2);
+  var clientArray = clientSheet.getSheetValues(FR, FC, -1, 3);
 
   for (var i = 0; i < clientArray.length; ++i) {
     // Retrieve client account data
     var name = clientArray[i][0];
     var cliv = clientArray[i][1];
+    var isRc = clientArray[i][2];
     var sheet = this._getSheet(name);
 
     // If the sheet does not exist, create a new client sheet from the model
@@ -638,21 +633,14 @@ function _updateClient() {
       var year = date.getFullYear();
       var month = date.getMonth();
       var date = _toStringDate(new Date(year, month, 1));
-      var prevv = hasPrevious ? Math.min(cliv, array[0][1]) : 0;
-      var rate = hasPrevious && this._isError(rate) ? array[0][4] : rate;
-      var prevg = hasPrevious ? array[0][5] : 0;
-      var mrate = rate / 12;
-      var value = cliv + (hasPrevious && month == 0 ? prevg + cliv * mrate : 0);
-      var gain = prevv * mrate + (month == 1 ? 0 : prevg);
-      var total = value + (month == 0 ? 0 : gain);
-      var movement = total - gain - (hasPrevious ? array[0][1] : 0);
-      var cumv = movement + (hasPrevious ? array[0][2] : 0);
-      var cumg = total - cumv;
 
-      var data = [[date, value, cumv, movement, rate, gain, cumg, total]];
+      var data = [[date, cliv]];
       this._insertFirstRow(sheet, data, true);
 
-    // On new client sheet, freeze the first row and copy format from the model
+      var array = sheet.getSheetValues(FR, FC, 2, -1);
+      this._setRangeValues(sheet, 3, FC, [array[1]]);    // Copy only values into previous row (archive)
+
+      // On new client sheet, freeze the first row and copy format from the model
       if (!hasPrevious) {
         sheet.setFrozenRows(1);
         var lc = sheet.getMaxColumns();
@@ -660,7 +648,12 @@ function _updateClient() {
       }
 
       // Update client main data
-      var data = [[name, value, gain, total]];
+      var mvmt = 0;             // Movement
+      var cumG = array[0][7];   // Cumul gain
+      var yRate = array[0][5];  // Yearly rate
+      var total = array[0][9];  // Total
+
+      var data = [[name, mvmt, isRc, cumG, yRate, total]];
       this._setRangeValues(clientSheet, i + FR, FC, data);
     }
   }
