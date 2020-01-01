@@ -606,8 +606,9 @@ function _updateClient() {
   for (var i = 0; i < clientArray.length; ++i) {
     // Retrieve client account data
     var name = clientArray[i][0];
-    var cliv = clientArray[i][1];
-    var isRc = clientArray[i][2];
+    var prov = clientArray[i][1];
+    var mvmt = clientArray[i][2];
+    var isRc = clientArray[i][3];
     var sheet = this._getSheet(name);
 
     // If the sheet does not exist, create a new client sheet from the model
@@ -633,8 +634,9 @@ function _updateClient() {
       var year = date.getFullYear();
       var month = date.getMonth();
       var date = _toStringDate(new Date(year, month, 1));
+      var mvmt = mvmt <= 0 || prov >= 0 ? mvmt : Math.max(mvmt + prov, 0);
 
-      var data = [[date, cliv]];
+      var data = [[date, mvmt]];
       this._insertFirstRow(sheet, data, true);
 
       var array = sheet.getSheetValues(FR, FC, 2, -1);
@@ -653,8 +655,8 @@ function _updateClient() {
       var yRate = array[0][5];  // Yearly rate
       var total = array[0][9];  // Total
 
-      var data = [[name, mvmt, isRc, cumG, yRate, total]];
-      this._setRangeValues(clientSheet, i + FR, FC, data);
+      var data = [[mvmt, isRc, cumG, yRate, total]];
+      this._setRangeValues(clientSheet, i + FR, FC + 2, data);
     }
   }
 }
