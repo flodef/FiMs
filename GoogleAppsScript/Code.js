@@ -649,10 +649,11 @@ function _updateClient() {
       }
 
       // Update client main data
-      var mvmt = 0;             // Movement
-      var cumG = array[0][7];   // Cumul gain
-      var yRate = array[0][5];  // Yearly rate
-      var total = array[0][9];  // Total
+      var mvmt = isRc ? clientArray[i][2] : 0;  // Movement
+      var isRc = isRc ? "X" : "";               // Is recurrent
+      var cumG = array[0][7];                   // Cumul gain
+      var yRate = array[0][5];                  // Yearly rate
+      var total = array[0][9];                  // Total
 
       var data = [[mvmt, isRc, cumG, yRate, total]];
       this._setRangeValues(clientSheet, i + FR, FC + 2, data);
