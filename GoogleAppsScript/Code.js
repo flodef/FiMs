@@ -403,6 +403,9 @@ function _sendEvolution() {
     msg += SSLINK + "1307757852";
 
     this._sendMessage("Daily Stock report", msg);
+  } else {
+    var msg = "If today is bank holiday, delete the message, otherwise check spreadsheet.";
+    this._sendMessage("No update for Evolution/Price", msg);
   }
 }
 
@@ -434,9 +437,6 @@ function _updateEvolution() {
     var sheet = this._getSheet(EVOLUTION);
     var array = sheet.getSheetValues(FR, FC, 1, -1);
     this._copyFirstRow(sheet, array);
-  } else {
-    var msg = "If today is stock holiday, delete the message, otherwise check spreadsheet.";
-    this._sendMessage("No update for Evolution/Price", msg);
   }
 }
 
@@ -450,9 +450,9 @@ function _copyFirstRow(sheet, array) {
 function _checkPriceDiff(array) {
   // Check for difference
   var lc = (array[0].length-1)/2;
-  var i = -1;
+  var i = 0;    // Skip first column which is the date
   var isDiff = false;
-  while (!isDiff && ++i < lc) {
+  while (!isDiff && ++i <= lc) {
     isDiff = array[0][i] != array[1][i] ? true : isDiff;
   }
 
