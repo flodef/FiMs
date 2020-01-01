@@ -88,7 +88,6 @@ function monthlyUpdate() {
   this._updateAllocation();
   this._updateExpense();
   this._updateClient();
-  this._updateInterest();
 }
 
 function updatePrice() {
