@@ -599,15 +599,16 @@ function _updateExpense() {
 
 function _updateClient() {
   // Retrieve client main data
+  var infoOffset = 8;
   var clientSheet = this._getSheet(CLIENT);
-  var clientArray = clientSheet.getSheetValues(FR, FC, -1, 3);
+  var clientArray = clientSheet.getSheetValues(FR, FC, -1, 4 + infoOffset);
 
   for (var i = 0; i < clientArray.length; ++i) {
     // Retrieve client account data
     var name = clientArray[i][0];
-    var prov = clientArray[i][1];
-    var mvmt = clientArray[i][2];
-    var isRc = clientArray[i][3];
+    var prov = clientArray[i][1 + infoOffset];
+    var mvmt = clientArray[i][2 + infoOffset];
+    var isRc = clientArray[i][3 + infoOffset];
     var sheet = this._getSheet(name);
 
     // If the sheet does not exist, create a new client sheet from the model
@@ -633,9 +634,9 @@ function _updateClient() {
       var year = date.getFullYear();
       var month = date.getMonth();
       var date = _toStringDate(new Date(year, month, 1));
-      var mvmt = mvmt <= 0 || prov >= 0 ? mvmt : Math.max(mvmt + prov, 0);
+      var clim = mvmt <= 0 || prov >= 0 ? mvmt : Math.max(mvmt + prov, 0);
 
-      var data = [[date, mvmt]];
+      var data = [[date, clim]];
       this._insertFirstRow(sheet, data, true);
 
       var array = sheet.getSheetValues(FR, FC, 2, -1);
@@ -649,14 +650,14 @@ function _updateClient() {
       }
 
       // Update client main data
-      var mvmt = isRc ? clientArray[i][2] : 0;  // Movement
-      var isRc = isRc ? "X" : "";               // Is recurrent
-      var cumG = array[0][7];                   // Cumul gain
-      var yRate = array[0][5];                  // Yearly rate
-      var total = array[0][9];                  // Total
+      var mvmt = isRc ? mvmt : 0;  // Movement
+      var isRc = isRc ? "X" : "";  // Is recurrent
+      var cumG = array[0][7];      // Cumul gain
+      var yRate = array[0][5];     // Yearly rate
+      var total = array[0][9];     // Total
 
       var data = [[mvmt, isRc, cumG, yRate, total]];
-      this._setRangeValues(clientSheet, i + FR, FC + 2, data);
+      this._setRangeValues(clientSheet, i + FR, FC + 2 + infoOffset, data);
     }
   }
 }
