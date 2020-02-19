@@ -2,9 +2,8 @@
 var SS = SpreadsheetApp.getActiveSpreadsheet();
 
 // DASHBOARD ROWS
-var PORCAS_ROW = 35;          // Should be the "Current portfolio cash" row
-var PORVAL_ROW = 36;          // Should be the "Current portfolio value" row
-var LIVRETA_ROW = 53;         // Should be the "Livret A" row
+var PORCAS_ROW = 36;          // Should be the "Current portfolio cash" row
+var PORVAL_ROW = 37;          // Should be the "Current portfolio value" row
 var EONIA_ROW = 54;           // Should be the "EONIA" row
 var INTRAT_ROW = 55;          // Should be the "Interest rate (EONIA+1.25%)" row
 var MONINT_ROW = 56;          // Should be the "Monthly interest" row
@@ -522,7 +521,6 @@ function _updateValues() {
   var col = 2;
   var sheet = this._getSheet(DASHBOARD);
   this._copyValue(sheet, EONIA_ROW, col, "http://www.global-rates.com/interest-rates/eonia/eonia.aspx", 19, 0);
-  this._copyValue(sheet, LIVRETA_ROW, col, "https://www.cbanque.com/placement/taux_livreta.php", 1, 1);
 }
 
 function _copyValue(sheet, row, col, url, table, offset) {
