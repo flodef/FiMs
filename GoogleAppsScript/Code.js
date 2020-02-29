@@ -606,7 +606,7 @@ function _updateClient() {
     var name = clientArray[i][0];
     var prov = clientArray[i][1 + infoOffset];
     var mvmt = clientArray[i][2 + infoOffset];
-    var isRc = clientArray[i][3 + infoOffset];
+    var recu = clientArray[i][3 + infoOffset];
     var sheet = this._getSheet(name);
 
     // If the sheet does not exist, create a new client sheet from the model
@@ -632,9 +632,10 @@ function _updateClient() {
       var year = date.getFullYear();
       var month = date.getMonth();
       var date = _toStringDate(new Date(year, month, 1));
-      var clim = mvmt <= 0 || prov >= 0 ? mvmt : Math.max(mvmt + prov, 0);
+      var allm = mvmt + recu;
+      var clim = allm <= 0 || prov >= 0 ? allm : Math.max(allm + prov, 0);
 
-      var data = [[date, clim]];
+      var data = [[date, allm]];
       this._insertFirstRow(sheet, data, true);
 
       var array = sheet.getSheetValues(FR, FC, 2, -1);
@@ -648,14 +649,16 @@ function _updateClient() {
       }
 
       // Update client main data
-      var mvmt = isRc ? mvmt : 0;  // Movement
-      var isRc = isRc ? "X" : "";  // Is recurrent
+      var mvmt = mvmt <= 0 || prov >= 0 ? 0 : Math.min(-prov, mvmt);  // Movement
       var cumG = array[0][7];      // Cumul gain
       var yRate = array[0][5];     // Yearly rate
       var total = array[0][9];     // Total
 
-      var data = [[mvmt, isRc, cumG, yRate, total]];
+      var data = [[mvmt, recu, cumG, yRate, total]];
       this._setRangeValues(clientSheet, i + FR, FC + 2 + infoOffset, data);
+
+      // Send message for recurrent withdraw
+      this._sendMessage(name + "monthly withdrawal: " + recu + " €", "");
     }
   }
 }
