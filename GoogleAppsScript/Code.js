@@ -579,7 +579,7 @@ function _updateAllocation() {
 function _updateExpense() {
   var sheet = this._getSheet(EXPENSES);
   var array = sheet.getSheetValues(FR, FC, 2, -1);
- if (!_isCurrentMonth(array)) {
+  if (!_isCurrentMonth(array)) {
     // Add new month
     var data = [[this._toDate()]];
     this._insertFirstRow(sheet, data);
@@ -659,7 +659,7 @@ function _updateClient() {
 
       // Send message for recurrent withdraw
       if (recu) {
-        this._sendMessage(name + "monthly withdrawal: " + recu + " €", "");
+        this._sendMessage(name + " monthly withdrawal: " + recu + " €", "");
       }
     }
   }
