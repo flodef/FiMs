@@ -579,20 +579,20 @@ function _updateAllocation() {
 function _updateExpense() {
   var sheet = this._getSheet(EXPENSES);
   var array = sheet.getSheetValues(FR, FC, 2, -1);
-  if (!_isCurrentMonth(array)) {
+ if (!_isCurrentMonth(array)) {
     // Add new month
     var data = [[this._toDate()]];
     this._insertFirstRow(sheet, data);
 
     // Archive previous month
-    this._setRangeValues(sheet, FR+1, FC, [array[0]]);    // Copy only values into previous row (archive)
+    this._setRangeValues(sheet, FR+2, FC, [array[1]]);    // Copy only values into previous row (archive)
 
     // Archive expenses historic
     var sheet = this._getSheet(EXPHISTO);
     var lc = sheet.getMaxColumns();
     var array = sheet.getSheetValues(FR+1, lc, -1, 1);
     this._setRangeValues(sheet, FR+1, lc, array);    // Copy only values into previous row (archive)
-  }
+ }
 }
 
 function _updateClient() {
