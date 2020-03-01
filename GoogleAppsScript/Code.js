@@ -658,7 +658,9 @@ function _updateClient() {
       this._setRangeValues(clientSheet, i + FR, FC + 2 + infoOffset, data);
 
       // Send message for recurrent withdraw
-      this._sendMessage(name + "monthly withdrawal: " + recu + " €", "");
+      if (recu) {
+        this._sendMessage(name + "monthly withdrawal: " + recu + " €", "");
+      }
     }
   }
 }
