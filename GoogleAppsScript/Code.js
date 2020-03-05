@@ -2,7 +2,6 @@
 var SS = SpreadsheetApp.getActiveSpreadsheet();
 
 // DASHBOARD ROWS
-var PORCAS_ROW = 36;          // Should be the "Current portfolio cash" row
 var PORVAL_ROW = 37;          // Should be the "Current portfolio value" row
 var EONIA_ROW = 54;           // Should be the "EONIA" row
 var INTRAT_ROW = 55;          // Should be the "Interest rate (EONIA+1.25%)" row
@@ -461,15 +460,15 @@ function _updateInterest() {
   // Get dashboard mandatory data
   var sheet = this._getSheet(DASHBOARD);
   var lc = sheet.getMaxColumns();
-  var array = sheet.getSheetValues(FR, lc, -1, 1);
-  var rate = array[INTRAT_ROW-FR][0];
-  var cash = array[PORCAS_ROW-FR][0];
+  var rate = sheet.getRange(INTRAT_ROW, lc).getValue();
 
-  // Update interest data
+  // Get current date
   var sheet = this._getSheet(INTEREST);
   var array = sheet.getSheetValues(FR, FC, -1, 1);
   var d = this._toDate();      // Get date without hours to match range's date
   d.setDate(d.getDate() - 1);  // Yesterday's date as script is executed the next night
+
+  // Retrieve current & last columns
   var i = -1;
   var col = 0;
   var end = 0;
@@ -481,13 +480,12 @@ function _updateInterest() {
     end = !isEmpty ? i : end;
   }
 
+  // Update interest data
   var fr = FR+col;
   var mr = FR+end-fr+1;
   var lr = array.length+FR-(mr+fr);
-  sheet.getRange(fr, 2, mr).setValue(-cash);
   sheet.getRange(fr, 4, mr).setValue(rate);
   if (lr) {
-    sheet.getRange(mr+fr, 2, lr).setValue(null);
     sheet.getRange(mr+fr, 4, lr).setValue(null);
   }
 }
