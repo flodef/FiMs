@@ -397,7 +397,7 @@ function _sendEvolution() {
     for (var i = 5; i < array[0].length; ++i) {
       msg += array[0][i] + ": " + this._round(array[1][i], 2, " €") + "\n";
     }
-    msg += DEGLINK;
+    msg += APPLINK;
 
     this._sendMessage("Daily Stock report", msg);
   } else {
