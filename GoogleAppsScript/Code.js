@@ -2,6 +2,7 @@
 var SS = SpreadsheetApp.getActiveSpreadsheet();
 
 // DASHBOARD ROWS
+var MONPAY_ROW = 20;          // Should be the "Monthly payment" row
 var PORVAL_ROW = 37;          // Should be the "Current portfolio value" row
 var EONIA_ROW = 54;           // Should be the "EONIA" row
 var INTRAT_ROW = 55;          // Should be the "Interest rate (EONIA+1.25%)" row
@@ -547,6 +548,7 @@ function _updateAllocation() {
     var array = sheet.getSheetValues(FR, lc, -1, 1);
     var portValue = this._toFixed(array[PORVAL_ROW-FR][0], 2);
     var monint = this._toFixed(array[MONINT_ROW-FR][0], 2);
+    var monpay = this._toFixed(array[MONPAY_ROW-FR][0], 2);
 
     // Set the new requested allocation as the current one
     var sheet = this._getSheet(ALLOCATION);
@@ -571,6 +573,11 @@ function _updateAllocation() {
     var date = _toDate();              // Get date without hours
     date.setDate(date.getDate() - 1);  // Yesterday's date as interest are added for the last day of the previous month
     this._insertHistoricRow(date, null, null, null, null, null, monint);  //(date, type, label, trans, quantity, price, value)
+
+    // Insert the monthly interest into the historic
+    var date = _toDate();              // Get date without hours
+    this._insertHistoricRow(date, null, null, "APPROVISIONNEMENT", null, null, monpay);  //(date, type, label, trans, quantity, price, value)
+    this._sendMessage("Account withdrawal: " + monpay + " €", "");
   }
 }
 
