@@ -974,6 +974,7 @@
     $("#alert").prop("innerHTML", '<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>'
                                 + '<strong>' + (isWarning ? "WARNING" : "ALERT") + ':</strong> ' + msg);
     displayElement('#alertOverlay', true);
+    displayElement("#updateButton", true);
   }
 
   function shouldRebalance(value) {
