@@ -657,7 +657,7 @@ function _updateClient() {
       var mvmt = mvmt <= 0 || prov >= 0 ? 0 : Math.min(-prov, mvmt);  // Movement
       var cumG = array[0][7];      // Cumul gain
       var yRate = array[0][5];     // Yearly rate
-      var total = array[0][9];     // Total
+      var total = array[0][11];    // Total
 
       var data = [[mvmt, recu, cumG, yRate, total]];
       this._setRangeValues(clientSheet, i + FR, FC + 2 + infoOffset, data);
