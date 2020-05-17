@@ -548,7 +548,7 @@ function _updateAllocation() {
     var array = sheet.getSheetValues(FR, lc, -1, 1);
     var portValue = this._toFixed(array[PORVAL_ROW-FR][0], 2);
     var monint = this._toFixed(array[MONINT_ROW-FR][0], 2);
-    var monpay = this._toFixed(array[MONPAY_ROW-FR][0], 2);
+    var monpay = this._toFixed(array[MONPAY_ROW-FR][0], 0);
 
     // Set the new requested allocation as the current one
     var sheet = this._getSheet(ALLOCATION);
@@ -743,7 +743,7 @@ function _isMarketOpen() {
 function _toFixed(value, precision) {
   var str = value.toString();
   str += (str.indexOf(".") != -1 ? "" : ".") + Array(precision+1).join('0');
-  return str.slice(0, str.indexOf(".") + precision+Math.min(precision, 1));
+  return str.slice(0, str.indexOf(".") + precision + Math.min(precision, 1));
 }
 
 function _round(value, precision, symbol) {
