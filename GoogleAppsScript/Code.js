@@ -575,9 +575,11 @@ function _updateAllocation() {
     this._insertHistoricRow(date, null, null, null, null, null, monint);  //(date, type, label, trans, quantity, price, value)
 
     // Insert the monthly interest into the historic
-    var date = _toDate();              // Get date without hours
-    this._insertHistoricRow(date, null, null, "APPROVISIONNEMENT", null, null, monpay);  //(date, type, label, trans, quantity, price, value)
-    this._sendMessage("Account withdrawal: " + monpay + " €", "");
+    if (monpay) {
+      var date = _toDate();              // Get date without hours
+      this._insertHistoricRow(date, null, null, "APPROVISIONNEMENT", null, null, monpay);  //(date, type, label, trans, quantity, price, value)
+      this._sendMessage("Account withdrawal: " + monpay + " €", "");
+    }
   }
 }
 
