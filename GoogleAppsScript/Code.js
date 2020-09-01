@@ -81,12 +81,12 @@ function nightlyUpdate() {
     this._updateInterest();
     this._updateValues();
   }
+  this._updateClient();   // Client is updated everyday
 };
 
 function monthlyUpdate() {
   this._updateAllocation();
   this._updateExpense();
-  this._updateClient();
 }
 
 function updatePrice() {
@@ -630,6 +630,16 @@ function _updateClient() {
 
     var lr = sheet.getMaxRows();
     var array = lr >= FR ? sheet.getSheetValues(FR, FC, 1, -1) : [];
+
+    // Update immediately movement if negative (avoid cheating by withdrawing money at the begin of
+    // the month and still getting the interests)
+    if (mvmt < 0) {
+      var r = sheet.getRange(FR, 2);
+      var prevMvmt = r.getValue();
+      r.setValue(prevMvmt + mvmt);
+      clientSheet.getRange(i+FR, FC + 2 + infoOffset).setValue(0);
+      mvmt = 0;
+    }
 
     // Add monthly client profit
     if (!_isCurrentMonth(array)) {
