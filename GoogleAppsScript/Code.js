@@ -619,7 +619,7 @@ function _updateClient() {
     // If the sheet does not exist, create a new client sheet from the model
     if (!sheet) {
       var modelSheet = this._getSheet(CLIMODEL);
-      var sheet = modelSheet.copyTo(ss);
+      var sheet = modelSheet.copyTo(SS);
       sheet.setName(name);
       sheet.deleteRow(FR);
       var index = sheet.getIndex();
