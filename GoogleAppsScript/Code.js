@@ -604,7 +604,7 @@ function _updateExpense() {
 
 function _updateClient() {
   // Retrieve client main data
-  var infoOffset = 9;   // number of columns with client personal info (name, adress, etc)
+  var infoOffset = 12;   // number of columns with client personal info (name, adress, etc)
   var clientSheet = this._getSheet(CLIENT);
   var clientArray = clientSheet.getSheetValues(FR, FC, -1, 4 + infoOffset);
 
