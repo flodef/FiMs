@@ -621,7 +621,7 @@ function _updateClient() {
       var modelSheet = this._getSheet(CLIMODEL);
       var sheet = modelSheet.copyTo(SS);
       sheet.setName(name);
-      sheet.deleteRow(FR);
+      // sheet.deleteRow(FR);
       var index = sheet.getIndex();
       SS.setActiveSheet(sheet);
       SS.moveActiveSheet(index - 1);
@@ -838,4 +838,14 @@ function _archiveMessage(thread, shouldDelete) {
 
 function _sendMessage(object, message) {
   MailApp.sendEmail(MAIL, object, message);
+}
+
+/**
+ * Gets the current sheet name.
+ *
+ * @return The current sheet name.
+ * @customfunction
+ */
+function SHEETNAME() {
+  return SS.getActiveSheet().getName();
 }
