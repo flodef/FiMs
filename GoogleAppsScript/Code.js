@@ -849,3 +849,13 @@ function _sendMessage(object, message) {
 function SHEETNAME() {
   return SS.getActiveSheet().getName();
 }
+
+/**
+ * Gets the interest rate.
+ *
+ * @return The interest rate.
+ * @customfunction
+ */
+function INTERESTRATE() {
+  return 1.25/100;
+}
