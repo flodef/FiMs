@@ -81,12 +81,12 @@ function nightlyUpdate() {
     this._updateInterest();
     this._updateValues();
   }
-  this._updateClient();   // Client is updated everyday
 };
 
 function monthlyUpdate() {
   this._updateAllocation();
   this._updateExpense();
+  this._updateClient();
 }
 
 function updatePrice() {
@@ -438,25 +438,6 @@ function _updateEvolution() {
   }
 }
 
-function _copyFirstRow(sheet, array) {
-  if (!this._isCurrentDay(array)) {
-    this._insertFirstRow(sheet, null, true);
-    this._setRangeValues(sheet, FR + 1, FC, [array[0]]);    // Copy only values into previous row (archive)
-  }
-}
-
-function _checkPriceDiff(array) {
-  // Check for difference
-  var lc = (array[0].length-1)/2;
-  var i = 0;    // Skip first column which is the date
-  var isDiff = false;
-  while (!isDiff && ++i <= lc) {
-    isDiff = array[0][i] != array[1][i] ? true : isDiff;
-  }
-
-  return isDiff;
-}
-
 function _updateInterest() {
   // Get dashboard mandatory data
   var sheet = this._getSheet(DASHBOARD);
@@ -604,16 +585,12 @@ function _updateExpense() {
 
 function _updateClient() {
   // Retrieve client main data
-  var infoOffset = 12;   // number of columns with client personal info (name, adress, etc)
   var clientSheet = this._getSheet(CLIENT);
-  var clientArray = clientSheet.getSheetValues(FR, FC, -1, 4 + infoOffset);
+  var clientArray = clientSheet.getSheetValues(FR, FC, -1, 1);
 
   for (var i = 0; i < clientArray.length; ++i) {
     // Retrieve client account data
     var name = clientArray[i][0];
-    var prov = clientArray[i][1 + infoOffset];
-    var mvmt = clientArray[i][2 + infoOffset];
-    var recu = clientArray[i][3 + infoOffset];
     var sheet = this._getSheet(name);
 
     // If the sheet does not exist, create a new client sheet from the model
@@ -621,63 +598,18 @@ function _updateClient() {
       var modelSheet = this._getSheet(CLIMODEL);
       var sheet = modelSheet.copyTo(SS);
       sheet.setName(name);
-      // sheet.deleteRow(FR);
       var index = sheet.getIndex();
       SS.setActiveSheet(sheet);
       SS.moveActiveSheet(index - 1);
+      sheet.setFrozenRows(1);
       sheet.protect().setWarningOnly(true);
     }
 
-    var lr = sheet.getMaxRows();
-    var array = lr >= FR ? sheet.getSheetValues(FR, FC, 1, -1) : [];
-
-    // Update immediately movement if negative (avoid cheating by withdrawing money at the begin of
-    // the month and still getting the interests)
-    if (mvmt < 0) {
-      var r = sheet.getRange(FR, 2);
-      var prevMvmt = r.getValue();
-      r.setValue(prevMvmt + mvmt);
-      clientSheet.getRange(i+FR, FC + 2 + infoOffset).setValue(0);
-      mvmt = 0;
-    }
+    var array = sheet.getSheetValues(FR, FC, 1, -1);
 
     // Add monthly client profit
     if (!_isCurrentMonth(array)) {
-      var hasPrevious = array.length > 0;
-
-      var date = this._toDate();
-      var year = date.getFullYear();
-      var month = date.getMonth();
-      var date = _toStringDate(new Date(year, month, 1));
-      var allm = mvmt + recu;
-      var clim = allm <= 0 || prov >= 0 ? allm : Math.max(allm + prov, 0);
-
-      var data = [[date, allm]];
-      this._insertFirstRow(sheet, data, true);
-
-      var array = sheet.getSheetValues(FR, FC, 2, -1);
-      this._setRangeValues(sheet, 3, FC, [array[1]]);    // Copy only values into previous row (archive)
-
-      // On new client sheet, freeze the first row and copy format from the model
-      if (!hasPrevious) {
-        sheet.setFrozenRows(1);
-        var lc = sheet.getMaxColumns();
-        modelSheet.getRange(FR, FC, 1, lc).copyTo(sheet.getRange(FR, FC, 1, lc), SpreadsheetApp.CopyPasteType.PASTE_FORMAT, false);
-      }
-
-      // Update client main data
-      var mvmt = mvmt <= 0 || prov >= 0 ? 0 : Math.min(-prov, mvmt);  // Movement
-      var cumG = array[0][7];      // Cumul gain
-      var yRate = array[0][5];     // Yearly rate
-      var total = array[0][11];    // Total
-
-      var data = [[mvmt, recu, cumG, yRate, total]];
-      this._setRangeValues(clientSheet, i + FR, FC + 2 + infoOffset, data);
-
-      // Send message for recurrent withdraw
-      if (recu) {
-        this._sendMessage(name + " monthly withdrawal: " + recu + " €", "");
-      }
+      this._copyFirstRow(sheet, array);
     }
   }
 }
@@ -742,6 +674,25 @@ function _importXml(row, table) {
   return '=IMPORTXML("' + BLGLINK + '" & A' + row + ' & ":" & C' + row + ', "' + table + '")';
 }
 
+function _checkPriceDiff(array) {
+  // Check for difference
+  var lc = (array[0].length-1)/2;
+  var i = 0;    // Skip first column which is the date
+  var isDiff = false;
+  while (!isDiff && ++i <= lc) {
+    isDiff = array[0][i] != array[1][i] ? true : isDiff;
+  }
+
+  return isDiff;
+}
+
+function _copyFirstRow(sheet, array) {
+  if (!this._isCurrentDay(array)) {
+    this._insertFirstRow(sheet, null, true);
+    this._setRangeValues(sheet, FR + 1, FC, [array[0]]);    // Copy only values into previous row (archive)
+  }
+}
+
 function _isMarketOpen() {
   var x = new Date();
   var d = x.getDay();
@@ -767,11 +718,11 @@ function _round(value, precision, symbol) {
 }
 
 function _isCurrentDay(array) {
-  return array.length > 0 ? _toStringDate() == _toStringDate(array[0][0]) : false;
+  return array && array.length > 0 ? _toStringDate() == _toStringDate(array[0][0]) : false;
 }
 
 function _isCurrentMonth(array) {
-  return array.length > 0 ? new Date().getMonth() == array[0][0].getMonth() : false;
+  return array && array.length > 0 ? new Date().getMonth() == array[0][0].getMonth() : false;
 }
 
 function _toDate(date) {
