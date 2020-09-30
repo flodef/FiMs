@@ -45,15 +45,15 @@
     $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
-    var tabButtonsHTML = "";
+    var tabContainerHTML = "";
     for (var i = 0; i < GLOBAL.displayId.length; ++i) {
       var id = GLOBAL.displayId[i];
       GLOBAL.formula[id] = GLOBAL.displayFormula[i];
       var tableHTML = getTableTitle(id, true);
       setTable(id, tableHTML);
-      tabButtonsHTML += getTitle(id);
+      tabContainerHTML += getTitle(id);
     }
-    setTabButtons(tabButtonsHTML);
+    setTabContainer(tabContainerHTML);
 
     getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues);
   });
@@ -66,13 +66,15 @@
         .animate({width: $("#loaderBar > span").data("origWidth")}, 3000);
   }
 
-  function openTab(evt, id) {
-    $(".tabcontent").each((i, item) => item.style.display = "none");    // Hide all tab content
-    $(".tabLinks").each((i, item) => item.className = item.className.replace(" active", ""));  // Remove the class "active" to all tabLinks"
-    $("#" + id + "Content").prop("style").display = "table";  // Show the current tab
-    evt.currentTarget.className += " active";  // Add an "active" class to the button that opened the tab
+  function openTab(id) {
+    if (!isButtonActive(id)) {
+      $(".tabContent").each((i, item) => item.style.display = "none");    // Hide all tab content
+      $(".tabLinks").each((i, item) => item.className = item.className.replace(" active", ""));  // Remove the class "active" to all tabLinks"
+      $("#" + id + "Content").prop("style").display = "table";  // Show the current tab
+      $("#" + id + "Button").prop("className", $("#" + id + "Button").prop("className") + " active"); // Add an "active" class to the button that opened the tab
 
-    updateValues(id);   // Update value when Tab is displayed
+      updateValues(id);   // Update value when Tab is displayed
+    }
   }
 
   function updateAllValues() {
@@ -569,6 +571,9 @@
     var settings = GLOBAL.data[GLOBAL.settings];
     var tableHTML = getTableTitle(id);
 
+    var isFirstLoading = $("#" + id + "Button").prop('disabled');
+
+    // Set the dashboard table
     var ln = settings.length/2;      // Take the full sheet row count, don't count the miror with numbers (/2)
     for (var i = 0; i < ln-2; i++) { // Remove the two last row for scroll (-2)
       tableHTML += getSubTableTitle(settings[i][0], "Settings!A" + (i+1));
@@ -581,7 +586,9 @@
       tableHTML += '</tr>';
     }
     setTable(id, tableHTML);
+    activateButton(id);
 
+    // Set the scrolling panel
     tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
     tableHTML += '<tr>' + getTableReadOnlyCell(contents, contents.length-1) + '</tr>';  // Dirty way to display the "Time since last update"
     for (var i = 0; i < settings[ln-2].length; ++i) {
@@ -600,8 +607,10 @@
       }
     });
 
-    $("#loaderBar").fadeOut();  // Hide the loader bar
-    $("#tabButtons button:first-child")[0].click(); // Activate first tab as open by default
+    displayElement("#loaderBar", false);  // Hide the loader bar
+    if (isFirstLoading) {
+      $("#" + id + "Button").click();// Activate first tab as open by default
+    }
   }
 
   function updateInvestmentTable(id, contents) {
@@ -720,6 +729,7 @@
 
   function applyFilter(id, tableHTML) {
     setTable(id, tableHTML);
+    activateButton(id);
     sorttable.makeSortable($("#" + id + "Table").get(0));
     filterTable(id);
   }
@@ -758,12 +768,12 @@
   }
 
   function getTitle(id) {
-    return '<button class="tabLinks" onclick="openTab(event, \'' + id + '\')">'
+    return '<button disabled id="' + id + 'Button" class="tabLinks" onclick="openTab(\'' + id + '\')">'
           + id.charAt(0).toUpperCase() + id.slice(1) + '</button>';
   }
 
   function getTableTitle(id, disabled, tooltip, colspan) {
-    return '<table id="' + id + 'Content" class="tabcontent"><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
+    return '<table id="' + id + 'Content" class="tabContent"><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
          + '<tr style="background-color:white;"><td></td>'
          + (false ? '<td id="' + id + 'Switch" class="mainSwitch '
          + ($("#" + id + "Switch").is(":visible") ? '' : 'hidden') + '">'
@@ -827,8 +837,8 @@
     $("#" + id + "Div").prop("innerHTML", tableHTML);
   }
 
-  function setTabButtons(innerHTML) {
-    $("#tabButtons").prop("innerHTML", innerHTML);  // Set the tab buttons content
+  function setTabContainer(innerHTML) {
+    $("#tabContainer").prop("innerHTML", innerHTML);  // Set the tab buttons content
     $(".tabLinks").css("width", 100/GLOBAL.displayId.length + "%");   // Tab buttons should be centered
   }
 
@@ -1030,6 +1040,19 @@
                                 + '<strong>' + (isWarning ? "WARNING" : "ALERT") + ':</strong> ' + msg);
     displayElement('#alertOverlay', true);
     displayElement("#updateButton", true);
+  }
+
+  function isButtonActive(id) {
+    return $("#" + id + "Button").prop("className").includes("active");
+  }
+
+  function activateButton(id) {
+    // Display the table if the button is already active, otherwise enable it to be clickable
+    if (isButtonActive(id)) {
+      $("#" + id + "Content").prop("style").display = "table";  // Show the current tab
+    } else {
+      $("#" + id + "Button").prop('disabled', false);
+    }
   }
 
   function shouldRebalance(value) {

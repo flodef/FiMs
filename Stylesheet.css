@@ -95,7 +95,7 @@ marquee {
 }
 
 /* Tab */
-#tabButtons {
+#tabContainer {
   overflow: hidden;
   border: 1px solid #ccc;
   background-color: white;
@@ -107,8 +107,6 @@ marquee {
   float: left;
   border: none;
   outline: none;
-  cursor: pointer;
-  padding: 14px 16px;
   transition: 0.3s;
   font-weight: 400;
   color: #b1b1b1;
@@ -116,18 +114,20 @@ marquee {
   font-size: 21px;
   line-height: 33px;
   border-radius: 0px;
-  height: auto;
+  height: 60px;
 }
 
 .tabLinks:hover {
   background-color: #f1f1f1;
+  cursor: pointer;
 }
 
 .tabLinks.active {
   background-color: #ddd;
+  cursor: default;
 }
 
-.tabcontent {
+.tabContent {
   display: none;
   padding: 6px 12px;
   border: 1px solid #ccc;
