@@ -39,6 +39,7 @@ var INTEREST = "Interest";     // The "Interest" sheet name
 var ALERT = "Alert";           // The "Alert" sheet name
 var PRICE = "Price";           // The "Price" sheet name
 var CLIMODEL = "ClientModel";  // The "ClientModel" sheet name
+var CLIHISTO = "ClientHistoric";  // The "ClientHistoric" sheet name
 
 // WEB LINKS
 var SSLINK = "https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw/edit#gid=";
@@ -586,11 +587,12 @@ function _updateExpense() {
 function _updateClient() {
   // Retrieve client main data
   var clientSheet = this._getSheet(CLIENT);
-  var clientArray = clientSheet.getSheetValues(FR, FC, -1, 1);
+  var clientArray = clientSheet.getSheetValues(FR, FC, -1, 2);
 
   for (var i = 0; i < clientArray.length; ++i) {
     // Retrieve client account data
     var name = clientArray[i][0];
+    var recu = clientArray[i][1];
     var sheet = this._getSheet(name);
 
     // If the sheet does not exist, create a new client sheet from the model
@@ -610,6 +612,16 @@ function _updateClient() {
     // Add monthly client profit
     if (!_isCurrentMonth(array)) {
       this._copyFirstRow(sheet, array);
+
+      // Add recurrent withdrawal to client historic
+      if (recu < 0) {
+        var histoSheet = this._getSheet(CLIHISTO);
+        var d = this._toDate();      // Get date without hours to match range's date
+        d.setDate(d.getDate() + 10); // Take around 10 days to make a bank transfer
+        
+        var data = [[d, name, recu]];
+        this._insertFirstRow(histoSheet, data);
+      }
     }
   }
 }
