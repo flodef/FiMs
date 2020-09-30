@@ -21,7 +21,6 @@ table {
   border: 5px solid transparent;
   padding: 5px;
   width: 100%;
-  margin: 15px 0px 0px 0px;
 }
 
 td {
@@ -75,6 +74,7 @@ marquee {
 .topMenu {
   width:auto;
   background-color:rgba(255,255,255,0.8);
+  margin: 15px 0px 0px 0px;
 }
 
 .blur-filter {
@@ -91,6 +91,7 @@ marquee {
 
 #footer {
   font-size: xx-small;
+  margin: 15px;
 }
 
 /* Tab */
