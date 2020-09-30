@@ -40,19 +40,40 @@
     displayElement('.contentOverlay', true, 0);
     displayElement('.actionButton', false, 0);
     // $('.actionButton').prop('disabled', true);
+    animateLoaderBar();
 
     $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
     $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
+    var tabButtonsHTML = "";
     for (var i = 0; i < GLOBAL.displayId.length; ++i) {
       var id = GLOBAL.displayId[i];
       GLOBAL.formula[id] = GLOBAL.displayFormula[i];
       var tableHTML = getTableTitle(id, true);
       setTable(id, tableHTML);
+      tabButtonsHTML += getTitle(id);
     }
+    setTabButtons(tabButtonsHTML);
 
     getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues);
   });
+
+  function animateLoaderBar() {
+    $("#loaderBar").prop("innerHTML", "<span></span>");
+    $("#loaderBar > span")
+        .data("origWidth", $("#loaderBar > span").width())
+        .width(0)
+        .animate({width: $("#loaderBar > span").data("origWidth")}, 3000);
+  }
+
+  function openTab(evt, id) {
+    $(".tabcontent").each((i, item) => item.style.display = "none");    // Hide all tab content
+    $(".tabLinks").each((i, item) => item.className = item.className.replace(" active", ""));  // Remove the class "active" to all tabLinks"
+    $("#" + id + "Content").prop("style").display = "table";  // Show the current tab
+    evt.currentTarget.className += " active";  // Add an "active" class to the button that opened the tab
+
+    updateValues(id);   // Update value when Tab is displayed
+  }
 
   function updateAllValues() {
     GLOBAL.displayId.forEach(updateValues);
@@ -578,6 +599,9 @@
         autoAdaptWidth(item);
       }
     });
+
+    $("#loaderBar").fadeOut();  // Hide the loader bar
+    $("#tabButtons button:first-child")[0].click(); // Activate first tab as open by default
   }
 
   function updateInvestmentTable(id, contents) {
@@ -733,18 +757,14 @@
          + ' value="' + title + '"></input></td></tr>';
   }
 
-  function getTitle(id, disabled) {
-    return '<h2'
-          + (!disabled ? ' onclick="var shouldDisplay = !$(\'#' + id + 'Table\').is(\':visible\');'
-          + 'if(shouldDisplay){updateValues(\'' + id + '\');};'
-          + 'for (suffix of [\'Table\', \'Switch\', \'Search\']) {'
-          + '$(\'.main\' + suffix).each((i, item) => toggleItem(\'' + id + '\' + suffix, item, shouldDisplay)); }"' : '')
-          + '>' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
+  function getTitle(id) {
+    return '<button class="tabLinks" onclick="openTab(event, \'' + id + '\')">'
+          + id.charAt(0).toUpperCase() + id.slice(1) + '</button>';
   }
 
   function getTableTitle(id, disabled, tooltip, colspan) {
-    return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-         + '<tr style="background-color:white;"><td>' + getTitle(id, disabled) + '</td>'
+    return '<table id="' + id + 'Content" class="tabcontent"><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
+         + '<tr style="background-color:white;"><td></td>'
          + (false ? '<td id="' + id + 'Switch" class="mainSwitch '
          + ($("#" + id + "Switch").is(":visible") ? '' : 'hidden') + '">'
          + '<div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
@@ -760,9 +780,39 @@
   }
 
   function getMainTableHead(id) {
-    return '<table id="' + id + 'Table" class="sortable mainTable '
-         + ($("#" + id + "Table").is(":visible") ? '' : 'hidden') + '">';
+    return '<table id="' + id + 'Table" class="sortable mainTable">';
   }
+
+  // function getTitle(id, disabled) {
+  //   return '<h2'
+  //         + (!disabled ? ' onclick="var shouldDisplay = !$(\'#' + id + 'Table\').is(\':visible\');'
+  //         + 'if(shouldDisplay){updateValues(\'' + id + '\');};'
+  //         + 'for (suffix of [\'Table\', \'Switch\', \'Search\']) {'
+  //         + '$(\'.main\' + suffix).each((i, item) => toggleItem(\'' + id + '\' + suffix, item, shouldDisplay)); }"' : '')
+  //         + '>' + id.charAt(0).toUpperCase() + id.slice(1) + '</h2>';
+  // }
+
+  // function getTableTitle(id, disabled, tooltip, colspan) {
+  //   return '<table><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
+  //        + '<tr style="background-color:white;"><td>' + getTitle(id, disabled) + '</td>'
+  //        + (false ? '<td id="' + id + 'Switch" class="mainSwitch '
+  //        + ($("#" + id + "Switch").is(":visible") ? '' : 'hidden') + '">'
+  //        + '<div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
+  //        + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '')
+  //        + ' onclick="filterTable(\'' + id + '\', true)">'
+  //        + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
+  //        + '<td colspan="' + colspan + '" align="right">'
+  //        + '<input id="' + id + 'Search" type="text" placeholder="Search" class="mainSearch '
+  //        + ($("#" + id + "Search").is(":visible") ? '' : 'hidden') + '" '
+  //        + 'onkeyup="filterTable(\'' + id + '\');" onchange="filterTable(\'' + id + '\');"'
+  //        + 'value="' + ($('#' + id + 'Search').val() || "") + '">' : '')
+  //        + '</tr></table>' + getMainTableHead(id);
+  // }
+
+  // function getMainTableHead(id) {
+  //   return '<table id="' + id + 'Table" class="sortable mainTable '
+  //        + ($("#" + id + "Table").is(":visible") ? '' : 'hidden') + '">';
+  // }
 
   function getColor(value, isDisabled = false, isCur = true, forcedColor) {
     var number = toValue(value);
@@ -775,6 +825,11 @@
   function setTable(id, tableHTML) {
     tableHTML += '</table>';
     $("#" + id + "Div").prop("innerHTML", tableHTML);
+  }
+
+  function setTabButtons(innerHTML) {
+    $("#tabButtons").prop("innerHTML", innerHTML);  // Set the tab buttons content
+    $(".tabLinks").css("width", 100/GLOBAL.displayId.length + "%");   // Tab buttons should be centered
   }
 
   function toggleItem(id, item, shouldDisplay) {
