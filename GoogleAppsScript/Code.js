@@ -618,7 +618,7 @@ function _updateClient() {
         var histoSheet = this._getSheet(CLIHISTO);
         var d = this._toDate();      // Get date without hours to match range's date
         d.setDate(d.getDate() + 10); // Take around 10 days to make a bank transfer
-        
+
         var data = [[d, name, recu]];
         this._insertFirstRow(histoSheet, data);
       }
@@ -810,7 +810,7 @@ function _sendMessage(object, message) {
  * @customfunction
  */
 function SHEETNAME() {
-  return SS.getActiveSheet().getName();
+  return SS.getActiveSheet().getSheetName();
 }
 
 /**
