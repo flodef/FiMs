@@ -90,6 +90,10 @@ function monthlyUpdate() {
   this._updateClient();
 }
 
+function yearlyUpdate() {
+  this._sendCharity();
+}
+
 function updatePrice() {
   var cache = CacheService.getScriptCache();
   var values = cache.getAll(["lr", "updateArray"]);
@@ -273,7 +277,7 @@ function _processAccountTransaction(thread) {
 
               var msg = "Date: " + _toStringDate(date)
               + "\nLabel: " + label
-              + "\nValue: " + _round(val, 2, " €")
+              + "\nValue: " + this._round(val, 2, " €")
               + "\n" + SSLINK + "298395308";
               this._sendMessage("Expense duplicate", msg);
             }
@@ -624,6 +628,47 @@ function _updateClient() {
       }
     }
   }
+}
+
+function _sendCharity() {
+  // Retrieve client main data
+  var clientSheet = this._getSheet(CLIENT);
+  var clientArray = clientSheet.getSheetValues(FR, FC, -1, -1);
+
+  var object = "Don annuel à une oeuvre de charité";
+  var recap = "Liste des dons :\n";
+  for (var i = 0; i < clientArray.length; ++i) {
+    // Retrieve client account data
+    var name = clientArray[i][0];
+    var char = clientArray[i][2];
+    var mail = clientArray[i][10];
+    var assoc = clientArray[i][20];
+    var link = clientArray[i][21];
+
+    // Send charity message if amount < 1
+    if (char <= -1) {
+      var money = this._round(-char, 2, " €");
+      var message = "Cher(e) " + name + ",\n\n"
+        + "Tout d'abord, mes meilleurs voeux pour cette nouvelle année qui commence, je l'espère, le plus magnifiquement pour toi.\n\n"
+        + "Comme chaque année, je tiens tout particulièrement à reverser 5,5% des gains récoltés par notre projet de financement participatif.\n"
+        + "Cette année, ce pourcentage représente la somme de " + money + " !\n\n"
+        + (assoc
+          ? "C'est déjà ça de gagné pour l'association \"" + assoc + "\", que tu as choisie. Un énorme merci pour elle.\n"
+          + "J'attends le justificatif de ton don, don que tu peux faire grâce au lien suivant : " + link + "\n"
+          : "Malheureusement, tu n'as pas (encore) choisie d'association à qui effectuer un don ... N'hésite pas à me contacter sous peu afin de changer ça !\n")
+        + "Sans réponse de ta part, je ferai ce don à ta place pour l'association de mon choix (Les Restos du Coeur) d'ici le 31 janvier.\n\n"
+        + "Enfin, toute ma reconnaissance pour ta confiance et ton investissement qui aide, à notre échelle, l'épanouissement de l'économie locale et solidaire.\n\n"
+        + "Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n"
+        + "Flo"
+
+      MailApp.sendEmail(mail, object, message);
+
+      recap += " - " + name + " (" + mail + ") : don de "+ money + (assoc ? " à \"" + assoc + "\" (" + link + ")" : "") + "\n";
+    }
+  }
+
+  // Recap message send to myself
+  this._sendMessage(object, recap);
 }
 
 
