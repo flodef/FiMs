@@ -68,9 +68,9 @@
 
   function openTab(id) {
     if (!isButtonActive(id)) {
-      $(".tabContent").each((i, item) => item.style.display = "none");    // Hide all tab content
-      $(".tabLinks").each((i, item) => item.className = item.className.replace(" active", ""));  // Remove the class "active" to all tabLinks"
-      $("#" + id + "Content").prop("style").display = "table";  // Show the current tab
+      GLOBAL.displayId.forEach(id => displayElement("#" + id + "Div", false, 0));                     // Hide all tab content
+      $(".tabLinks").each((i, item) => item.className = item.className.replace(" active", ""));       // Remove the class "active" to all tabLinks"
+      displayElement("#" + id + "Div", true);                                                         // Show the current tab
       $("#" + id + "Button").prop("className", $("#" + id + "Button").prop("className") + " active"); // Add an "active" class to the button that opened the tab
 
       updateValues(id);   // Update value when Tab is displayed
@@ -607,9 +607,9 @@
       }
     });
 
-    displayElement("#loaderBar", false);  // Hide the loader bar
     if (isFirstLoading) {
-      $("#" + id + "Button").click();// Activate first tab as open by default
+      displayElement("#loaderBar", false, 0); // Hide the loader bar
+      openTab(id);                            // Activate first tab as open by default
     }
   }
 
@@ -1043,16 +1043,12 @@
   }
 
   function isButtonActive(id) {
-    return $("#" + id + "Button").prop("className").includes("active");
+    return $("#" + id + "Button").prop("className")
+        && $("#" + id + "Button").prop("className").includes("active");
   }
 
-  function activateButton(id) {
-    // Display the table if the button is already active, otherwise enable it to be clickable
-    if (isButtonActive(id)) {
-      $("#" + id + "Content").prop("style").display = "table";  // Show the current tab
-    } else {
-      $("#" + id + "Button").prop('disabled', false);
-    }
+  function activateButton(id, isActivated = true) {
+    $("#" + id + "Button").prop('disabled', !isActivated);
   }
 
   function shouldRebalance(value) {

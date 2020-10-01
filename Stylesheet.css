@@ -128,17 +128,12 @@ marquee {
 }
 
 .tabContent {
-  display: none;
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-top: none;
-  animation: fadeEffect 2s; /* Fading effect takes 1 second */
 }
 
-@keyframes fadeEffect {
-  from {opacity: 0;}
-  to {opacity: 1;}
-}
+
 /* Search bar */
 .mainSearch {
   border-radius: 25px;
