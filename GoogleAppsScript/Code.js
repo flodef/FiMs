@@ -58,6 +58,7 @@ var FH = 9;
 var LH = 17;
 var FD = 1;
 var LD = 5;
+var FM = 0;
 
 
 function dailyUpdate() {
@@ -91,21 +92,25 @@ function monthlyUpdate() {
 }
 
 function yearlyUpdate() {
-  this._sendCharity();
+  var x = new Date();
+  var m = x.getMonth();
+  if (m = FM) {
+    this._sendCharity();
+  }
 }
 
 function updatePrice() {
   var cache = CacheService.getScriptCache();
-  var values = cache.getAll(["lr", "updateArray"]);
-  if ((this._isMarketOpen()) && values["lr"]) {
-    cache.removeAll(["lr", "updateArray"]);
-    var lr = Number(values["lr"]);
+  var values = cache.getAll(["mr", "updateArray"]);
+  if ((this._isMarketOpen()) && values["mr"]) {
+    cache.removeAll(["mr", "updateArray"]);
+    var mr = Number(values["mr"]);
     var updateArray = values["updateArray"] ? values["updateArray"].split(",") : [];
 
     var sheet = this._getSheet(INVESTMENT);
     var formula = sheet.getRange(1, PRICE_COL);
-    if (updateArray.length == 0 || updateArray.length >= lr) {
-      this._copyFormula(formula, sheet.getRange(FR, PRICE_COL, lr, 1));  // Update by copying the main formula into all cells
+    if (updateArray.length == 0 || updateArray.length >= mr) {
+      this._copyFormula(formula, sheet.getRange(FR, PRICE_COL, mr, 1));  // Update by copying the main formula into all cells
     } else {
       for (var i = 0; i < updateArray.length; ++i) {
         this._copyFormula(formula, sheet.getRange(Number(updateArray[i])+FR, PRICE_COL));  // Update by copying the main formula into individual cells
@@ -119,33 +124,36 @@ function updatePrice() {
 function cachePrice() {
   if (this._isMarketOpen()) {
     var sheet = this._getSheet(INVESTMENT);
-    var lr = sheet.getMaxRows()-FR;
-    var range = sheet.getRange(FR, PRICE_COL, lr, 1);
-    var val = range.getValues();
-    var cache = CacheService.getScriptCache();
-    var x = new Date();
-    var isEmpty = true;
-    var updateArray = [];
+    var lr = sheet.getMaxRows();
+    var mr = lr-FR;
+    if (sheet.getRange(lr, PRICE_COL+1).getValue()) {
+      var range = sheet.getRange(FR, PRICE_COL, mr, 1);
+      var val = range.getValues();
+      var cache = CacheService.getScriptCache();
+      var x = new Date();
+      var isEmpty = true;
+      var updateArray = [];
 
-    var j = 0;
-    for (var i = 0; i < lr; ++i) {
-      var v = val[i][j];
-      isEmpty = !v && isEmpty;
-      if (v != LOADING) {
-        updateArray.push(i);
-      }
+      var j = 0;
+      for (var i = 0; i < mr; ++i) {
+        var v = val[i][j];
+        isEmpty = !v && isEmpty;
+        if (v != LOADING) {
+          updateArray.push(i);  // Add index of values to update into an array
+        }
 
-      if (!this._isLoading(v)) {
-        sheet.getRange(i+FR, PRICE_COL).clearContent();   // Clear costly formula to update
-        if (v && !this._isError(v)) {
-          sheet.getRange(i+FR, PRICE_COL+1).setValue(v);  // Cache the value
-          sheet.getRange(i+FR, LASTUPD_COL).setValue(x);  // Set the last updated date
+        if (!this._isLoading(v)) {
+          sheet.getRange(i+FR, PRICE_COL).clearContent();   // Clear costly formula to update
+          if (v && !this._isError(v)) {
+            sheet.getRange(i+FR, PRICE_COL+1).setValue(v);  // Cache the value
+            sheet.getRange(i+FR, LASTUPD_COL).setValue(x);  // Set the last updated date
+          }
         }
       }
-    }
 
-    if (isEmpty || updateArray.length > 0) {
-      cache.putAll({ "lr" : lr.toString(), "updateArray" : updateArray.join() });
+      if (isEmpty || updateArray.length > 0) {
+        cache.putAll({ "mr" : mr.toString(), "updateArray" : updateArray.join() });
+      }
     }
   }
 }
@@ -365,14 +373,15 @@ function _processStockTrade(thread) {
 
 function _updateClosePrice() {
   var sheet = this._getSheet(INVESTMENT);
-  var lr = sheet.getMaxRows()-FR;
-  var formula = sheet.getRange(lr+FR, PRICE_COL);
-  var range = sheet.getRange(FR, PRICE_COL, lr, 1);
+  var lr = sheet.getMaxRows();
+  var mr = lr-FR;
+  var formula = sheet.getRange(lr, PRICE_COL);
+  var range = sheet.getRange(FR, PRICE_COL, mr, 1);
 
   this._copyFormula(formula, range);
 
   var j = 0;
-  for (var i = 0; i < lr; ++i) {
+  for (var i = 0; i < mr; ++i) {
     var v;
     var r = sheet.getRange(i+FR, PRICE_COL);
 
