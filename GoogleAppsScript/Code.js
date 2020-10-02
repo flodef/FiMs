@@ -126,34 +126,33 @@ function cachePrice() {
     var sheet = this._getSheet(INVESTMENT);
     var lr = sheet.getMaxRows();
     var mr = lr-FR;
-    if (sheet.getRange(lr, PRICE_COL+1).getValue()) {
-      var range = sheet.getRange(FR, PRICE_COL, mr, 1);
-      var val = range.getValues();
-      var cache = CacheService.getScriptCache();
-      var x = new Date();
-      var isEmpty = true;
-      var updateArray = [];
+    var isUpdateFreezed = sheet.getRange(lr, PRICE_COL+1).getValue() != "";
+    var range = sheet.getRange(FR, PRICE_COL, mr, 1);
+    var val = range.getValues();
+    var cache = CacheService.getScriptCache();
+    var x = new Date();
+    var isEmpty = true;
+    var updateArray = [];
 
-      var j = 0;
-      for (var i = 0; i < mr; ++i) {
-        var v = val[i][j];
-        isEmpty = !v && isEmpty;
-        if (v != LOADING) {
-          updateArray.push(i);  // Add index of values to update into an array
-        }
-
-        if (!this._isLoading(v)) {
-          sheet.getRange(i+FR, PRICE_COL).clearContent();   // Clear costly formula to update
-          if (v && !this._isError(v)) {
-            sheet.getRange(i+FR, PRICE_COL+1).setValue(v);  // Cache the value
-            sheet.getRange(i+FR, LASTUPD_COL).setValue(x);  // Set the last updated date
-          }
-        }
+    var j = 0;
+    for (var i = 0; i < mr; ++i) {
+      var v = val[i][j];
+      isEmpty = !v && isEmpty;
+      if (v != LOADING) {
+        updateArray.push(i);  // Add index of values to update into an array
       }
 
-      if (isEmpty || updateArray.length > 0) {
-        cache.putAll({ "mr" : mr.toString(), "updateArray" : updateArray.join() });
+      if (!this._isLoading(v)) {
+        sheet.getRange(i+FR, PRICE_COL).clearContent();   // Clear costly formula to update
+        if (v && !this._isError(v) && !isUpdateFreezed) {
+          sheet.getRange(i+FR, PRICE_COL+1).setValue(v);  // Cache the value
+          sheet.getRange(i+FR, LASTUPD_COL).setValue(x);  // Set the last updated date
+        }
       }
+    }
+
+    if ((isEmpty || updateArray.length > 0) && !isUpdateFreezed) {
+      cache.putAll({ "mr" : mr.toString(), "updateArray" : updateArray.join() });
     }
   }
 }
@@ -377,6 +376,8 @@ function _updateClosePrice() {
   var mr = lr-FR;
   var formula = sheet.getRange(lr, PRICE_COL);
   var range = sheet.getRange(FR, PRICE_COL, mr, 1);
+
+  sheet.getRange(lr, PRICE_COL+1).setValue("");   // Unfreeze update process in case it's still there
 
   this._copyFormula(formula, range);
 
