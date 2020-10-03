@@ -479,8 +479,6 @@ input::-webkit-inner-spin-button {
 
 input{
   outline: 0px;
-}
-.auto {
   border: 0px;
   width: 100px;
   min-width: 5px;
@@ -513,9 +511,6 @@ input:hover, input:focus {
   to { min-width: 5px; }
 }
 
-/* .auto:focus {
-  outline: 0px;
-} */
 
 /* Animated Progress bar */
 #loaderBar {
@@ -664,4 +659,35 @@ input:hover, input:focus {
   -webkit-animation: none;
   -moz-animation: none;
   background-image: none;
+}
+
+
+/* Checkmark */
+.checkmark {
+    display:inline-block;
+    position: relative;
+    top: -20px;
+    -webkit-transform: rotate(45deg) scale(0.5);; /* Chrome, Safari, Opera */
+    transform: rotate(45deg) scale(0.5);;
+    cursor: pointer;
+}
+
+.checkmark:before {
+    content: "";
+    position: absolute;
+    width:15px;
+    height:45px;
+    background-color:green;
+    left:15px;
+    top:0px;
+}
+
+.checkmark:after {
+    content:"";
+    position: absolute;
+    width:16px;
+    height:15px;
+    background-color:green;
+    left:0px;
+    top:30px;
 }

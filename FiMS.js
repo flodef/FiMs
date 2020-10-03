@@ -582,7 +582,7 @@
       for (var j = 1; j < settings[i].length; j++) {
         tableHTML += i != 4 || j != 3
         ? getTableReadOnlyCell(contents, settings[i+ln][j])
-        : getTableEditableCell(contents, settings[i+ln][j], "Allocation!B14", 0, 0, 999999);
+        : getTableEditableCell(contents, settings[i+ln][j], "Allocation!B14", 0, 0, 999999, true);
       }
       tableHTML += '</tr>';
     }
@@ -731,9 +731,9 @@
     filterTable(id);
   }
 
-  function getTableEditableCell(contents, index, range, precision, min, max) {
+  function getTableEditableCell(contents, index, range, precision, min, max, hasValidator) {
     return getTableReadOnlyContent(contents[index-1][0], false) +
-           getTableEditableContent(contents[index-1][1], range, precision, min, max);
+           getTableEditableContent(contents[index-1][1], range, precision, min, max, hasValidator);
   }
 
   function getTableReadOnlyCell(contents, index) {
@@ -750,10 +750,13 @@
                     : '<td align="center" style="color:' + color + '">' + content + '</td>';
   }
 
-  function getTableEditableContent(content, range, precision, min, max) {
-    return '<td align="center"><input class="auto" min="' + min + '" max="' + max + '"'
+  function getTableEditableContent(content, range, precision, min, max, hasValidator) {
+    return '<td align="center">' + (hasValidator ? '<table><tr><td>' : '')
+         + '<input class="auto" min="' + min + '" max="' + max + '"'
          + ' oninput="autoAdaptWidth(this, ' + precision + ');setValue(\'' + range + '\', [[this.value]]);"'
-         + ' type="text" value="' + toValue(content) + '"> €</input></td>';
+         + ' type="text" value="' + toValue(content) + '"> €</input></td>'
+         + (hasValidator ? '<td><span class="checkmark" onclick="setValue(\'' + range + '\', [[' + toValue(content) + ']]);">'
+            + '</span></td></tr></table></td>' : '');
   }
 
   function getSubTableTitle(title, range) {
