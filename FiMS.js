@@ -54,6 +54,7 @@
       tabContainerHTML += getTitle(id);
     }
     setTabContainer(tabContainerHTML);
+    displayElement(".tabContent", false, 0);
 
     getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues);
   });
@@ -581,7 +582,7 @@
       for (var j = 1; j < settings[i].length; j++) {
         tableHTML += i != 4 || j != 3
         ? getTableReadOnlyCell(contents, settings[i+ln][j])
-        : getTableEditableCell(contents, settings[i+ln][j], "Allocation!B14", 1000000)
+        : getTableEditableCell(contents, settings[i+ln][j], "Allocation!B14", 0, 0, 999999);
       }
       tableHTML += '</tr>';
     }
@@ -600,12 +601,6 @@
 
     tableHTML += '</table></marquee>';
     $("#scrollDiv").prop("innerHTML", tableHTML);
-
-    $("input").each((i, item) => {
-      if ($(item).hasClass("auto")) {
-        autoAdaptWidth(item);
-      }
-    });
 
     if (isFirstLoading) {
       displayElement("#loaderBar", false, 0); // Hide the loader bar
@@ -645,8 +640,10 @@
                       ? toCurrency(contents[i][j], 4) : "";
         var isDisabled = (j == 18 || j == 19 || j == GLOBAL.tendencyCol)
           && !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
-        tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled,
-          j == 32 ? getColor(contents[i][j]) : color);
+        tableHTML += j != 12 || i == 0 || i == row-1
+          ? getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color)
+          : getTableEditableContent(con, "Investment!M" + (i+1), 3, toValue(con)*0.75, toValue(con)*1.25);
+        // tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color);
       }
       tableHTML += '</tr>';
       tableHTML += i == 0 ? '</thead><tbody>'
@@ -665,7 +662,7 @@
     applyFilter(id, tableHTML);
 
 //    $("#" + id + "Table th:first").addClass("sorttable_sorted");
-    sorttable.innerSortFunction.apply($("#" + id + "Table th:first")[0], []);
+    // sorttable.innerSortFunction.apply($("#" + id + "Table th:first")[0], []);
 
     // $("#" + id + "Search").easyAutocomplete({ data: tags, list: { match: { enabled: true } } });
     // $("#" + id + "Search").autocomplete({ source: tags });
@@ -730,13 +727,13 @@
   function applyFilter(id, tableHTML) {
     setTable(id, tableHTML);
     activateButton(id);
-    sorttable.makeSortable($("#" + id + "Table").get(0));
+    // sorttable.makeSortable($("#" + id + "Table").get(0));
     filterTable(id);
   }
 
-  function getTableEditableCell(contents, index, rangeName, limit) {
+  function getTableEditableCell(contents, index, range, precision, min, max) {
     return getTableReadOnlyContent(contents[index-1][0], false) +
-           getTableEditableContent(contents[index-1][1], rangeName, limit);
+           getTableEditableContent(contents[index-1][1], range, precision, min, max);
   }
 
   function getTableReadOnlyCell(contents, index) {
@@ -753,18 +750,16 @@
                     : '<td align="center" style="color:' + color + '">' + content + '</td>';
   }
 
-  function getTableEditableContent(content, rangeName, limit) {
-    return '<td align="center"><input class="auto" min="-' + limit + '" max="' + limit + '"'
-         + ' oninput="autoAdaptWidth(this);setValue(\'' + rangeName + '\', [[this.value]])"'
-         + ' style="border:0px;width:100px;min-width:15px;font-style:italic;" type="number" value="'
-         + toValue(content) + '">€</input></td>';
+  function getTableEditableContent(content, range, precision, min, max) {
+    return '<td align="center"><input class="auto" min="' + min + '" max="' + max + '"'
+         + ' oninput="autoAdaptWidth(this, ' + precision + ');setValue(\'' + range + '\', [[this.value]]);"'
+         + ' type="text" value="' + toValue(content) + '"> €</input></td>';
   }
 
-  function getSubTableTitle(title, rangeName) {
-    return '<tr><td colspan="10"><input class="tableTitle" type="text"'
-         + ' oninput=";setValue(\'' + rangeName + '\', [[this.value]])"'
-         + ' style="border:0px;min-width:55px;min-width:200px;font-size:16px;line-height:33px;color:#b1b1b1;margin:6px;"'
-         + ' value="' + title + '"></input></td></tr>';
+  function getSubTableTitle(title, range) {
+    return '<tr><td colspan="10"><input class="tableTitle auto" max="30" style="font-size:16px;"'
+         + ' oninput="autoAdaptWidth(this);setValue(\'' + range + '\', [[this.value]]);"'
+         + ' type="text" value="' + title + '"></input></td></tr>';
   }
 
   function getTitle(id) {
@@ -835,6 +830,12 @@
   function setTable(id, tableHTML) {
     tableHTML += '</table>';
     $("#" + id + "Div").prop("innerHTML", tableHTML);
+
+    $("input").each((i, item) => {
+      if ($(item).hasClass("auto")) {
+        autoAdaptWidth(item, 3);
+      }
+    });
   }
 
   function setTabContainer(innerHTML) {
@@ -848,29 +849,30 @@
     displayElement(item, shouldDisplay, isCurrentId ? 1000 : 0)
   }
 
-  function autoAdaptWidth(e) {
-    var step = 7.23;
-    var index = 10;
-    var precision = 2;
-    var maxLength = Math.max(String(e.min).length, String(e.max).length) + precision;
+  function autoAdaptWidth(e, precision = 0) {
+    var size = e.style.fontSize ? e.style.fontSize : "13.33px";
+    var step = parseFloat(size)/1.8;
+    var index = 1;
 
-    var val = parseFloat(e.value);
-    if (!isNaN(val)) {
-      if (val > e.max) {
-        e.value = e.max;
-      } else if (val < e.min) {
-        e.value = e.min;
-      } else if (val * 100 % 1 !== 0 || String(e.value).length > maxLength) {
-        e.value = val.toFixed(precision);
+    // Filter the entered value through a regular expression if it's a number
+    if (e.max && e.min) {
+      var maxLength = Math.max(String(e.min).length, String(e.max).length) + precision;
+      var val = parseFloat(e.value);
+      var patt = new RegExp("^" + (e.min < 0 ? e.max < 0 ? "-+" : "-?" : "") + "([0-9]*$"
+        + (precision > 0 ? "|[0-9]+\\.?[0-9]{0," + precision + "}$" : "") + ")");
+      while (e.value && (!patt.test(e.value) ||
+        (!isNaN(val) && (val > e.max || val < e.min || val * Math.pow(10, precision) % 1 !== 0 || String(e.value).length > maxLength)))) {
+        e.value = e.value.slice(0, -1);
+        var val = parseFloat(e.value);
       }
-
-      e.style.borderColor = "transparent";
-      e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
-    } else {
-      e.style.borderColor = !e.placeholder || e.value != ""
-              ? "red"
-              : "transparent";
+    } else if (e.max) {
+      var patt = new RegExp("^\\w{0," + e.max+ "}$");
+      while (e.value && !patt.test(e.value)) {
+        e.value = e.value.slice(0, -1);
+      }
     }
+
+    e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
   }
 
   function selectName(e, index) {
@@ -911,11 +913,11 @@
     }
   }
 
-  function setValue(name, value, success) {
+  function setValue(range, value, success) {
     google.script.run
                  .withSuccessHandler(contents => { if (success) { success(); } })
                  .withFailureHandler(displayError)
-                 .setSheetValues(name, value);
+                 .setSheetValues(range, value);
   }
 
   function filterTable(id, shouldReload) {
@@ -1125,4 +1127,8 @@
     }
 
     return formula;
+  }
+
+  function roundDown(value, precision = 0) {
+    return (value * Math.pow(10, precision) | 0) / Math.pow(10, precision);
   }
