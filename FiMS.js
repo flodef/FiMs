@@ -755,8 +755,8 @@
          + '<input class="auto" min="' + min + '" max="' + max + '"'
          + ' oninput="autoAdaptWidth(this, ' + precision + ');setValue(\'' + range + '\', [[this.value]]);"'
          + ' type="text" value="' + toValue(content) + '"> €</input></td>'
-         + (hasValidator ? '<td style="width:25px;height:40px;"><div class="checkmark" '
-            + 'onclick="setValue(\'' + range + '\', [[' + toValue(content) + ']]);">'
+         + (hasValidator ? '<td><div class="checkmark" '
+            + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']]); }">'
             + '</div></td></tr></table></td>' : '');
   }
 
