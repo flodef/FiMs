@@ -69,10 +69,10 @@
 
   function openTab(id) {
     if (!isButtonActive(id)) {
-      GLOBAL.displayId.forEach(id => displayElement("#" + id + "Div", false, 0));                     // Hide all tab content
-      $(".tabLinks").each((i, item) => item.className = item.className.replace(" active", ""));       // Remove the class "active" to all tabLinks"
-      displayElement("#" + id + "Div", true);                                                         // Show the current tab
-      $("#" + id + "Button").prop("className", $("#" + id + "Button").prop("className") + " active"); // Add an "active" class to the button that opened the tab
+      GLOBAL.displayId.forEach(id => displayElement("#" + id + "Div", false, 0)); // Hide all tab content
+      $(".tabLinks").each((i, item) => $(item).removeClass("active"));            // Remove the class "active" from all tabLinks"
+      displayElement("#" + id + "Div", true);                                     // Show the current tab
+      $("#" + id + "Button").addClass("active");                                  // Add an "active" class to the button that opened the tab
 
       updateValues(id);   // Update value when Tab is displayed
     }
@@ -755,8 +755,9 @@
          + '<input class="auto" min="' + min + '" max="' + max + '"'
          + ' oninput="autoAdaptWidth(this, ' + precision + ');setValue(\'' + range + '\', [[this.value]]);"'
          + ' type="text" value="' + toValue(content) + '"> €</input></td>'
-         + (hasValidator ? '<td><span class="checkmark" onclick="setValue(\'' + range + '\', [[' + toValue(content) + ']]);">'
-            + '</span></td></tr></table></td>' : '');
+         + (hasValidator ? '<td style="width:25px;height:40px;"><div class="checkmark" '
+            + 'onclick="setValue(\'' + range + '\', [[' + toValue(content) + ']]);">'
+            + '</div></td></tr></table></td>' : '');
   }
 
   function getSubTableTitle(title, range) {
@@ -839,6 +840,10 @@
         autoAdaptWidth(item, 3);
       }
     });
+
+    $(".checkmark")
+      .on("click", e => $(e.target).addClass('draw'))
+      .on("animationend", e => $(e.target).removeClass('draw'));
   }
 
   function setTabContainer(innerHTML) {
@@ -993,7 +998,8 @@
       $("#snackbar").text(text);
     }
 
-    if ($("#snackbar").text()) {
+    // Shows the snackbar only if has text and is not already displayed
+    if ($("#snackbar").text() && !$("#snackbar").hasClass("show")) {
       $("#snackbar").addClass("show");
 
       // After 3 seconds, remove the show class from DIV
