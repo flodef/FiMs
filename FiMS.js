@@ -918,7 +918,7 @@
 
   function setValue(range, value, success) {
     google.script.run
-                 .withSuccessHandler(contents => { if (success) { success(); } })
+                 .withSuccessHandler(contents => { if (success) { success(); } showSnackBar("Value has been updated !"); })
                  .withFailureHandler(displayError)
                  .setSheetValues(range, value);
   }
@@ -988,7 +988,11 @@
     }
   }
 
-  function showSnackBar() {
+  function showSnackBar(text) {
+    if (text) {
+      $("#snackbar").text(text);
+    }
+
     if ($("#snackbar").text()) {
       $("#snackbar").addClass("show");
 

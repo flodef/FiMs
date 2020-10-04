@@ -617,21 +617,13 @@ input:hover, input:focus {
 }
 
 @-webkit-keyframes move {
-    0% {
-       background-position: 0 0;
-    }
-    100% {
-       background-position: 50px 50px;
-    }
+    0% { background-position: 0 0; }
+    100% { background-position: 50px 50px; }
 }
 
 @-moz-keyframes move {
-    0% {
-       background-position: 0 0;
-    }
-    100% {
-       background-position: 50px 50px;
-    }
+    0% { background-position: 0 0; }
+    100% { background-position: 50px 50px; }
 }
 
 .grey > span {
@@ -670,6 +662,10 @@ input:hover, input:focus {
     -webkit-transform: rotate(45deg) scale(0.5);; /* Chrome, Safari, Opera */
     transform: rotate(45deg) scale(0.5);;
     cursor: pointer;
+    /* width: 110px;
+    height:110px;
+    background: green;
+    border-radius:50%; */
 }
 
 .checkmark:before {
@@ -677,7 +673,7 @@ input:hover, input:focus {
     position: absolute;
     width:15px;
     height:45px;
-    background-color:green;
+    background-color:#b1b1b1;
     left:15px;
     top:0px;
 }
@@ -687,7 +683,7 @@ input:hover, input:focus {
     position: absolute;
     width:16px;
     height:15px;
-    background-color:green;
+    background-color:#b1b1b1;
     left:0px;
     top:30px;
 }
