@@ -563,7 +563,7 @@
     var fn = id == GLOBAL.dashboard ? () => updateDashboardTable(id, contents)
            : id == GLOBAL.investment ? () => updateInvestmentTable(id, contents)
            : id == GLOBAL.historic ? () => updateHistoricTable(id, contents)
-           : id == GLOBAL.evolution ? () => updateEvolutionTable(id, contents)
+           : id == GLOBAL.evolution ? () => { updateEvolutionTable(id, contents); setEvents(); } // Special function that need to be run when every table has been loaded
            : displayError("Update table id not recognised: " + id, false);
     fn();
   }
@@ -733,7 +733,8 @@
 
   function getTableEditableCell(contents, index, range, precision, min, max, hasValidator) {
     return getTableReadOnlyContent(contents[index-1][0], false) +
-           getTableEditableContent(contents[index-1][1], range, precision, min, max, hasValidator);
+           (hasValidator ? getTableValidatableContent(contents[index-1][1], range, precision, min, max) :
+           getTableEditableContent(contents[index-1][1], range, precision, min, max, hasValidator));
   }
 
   function getTableReadOnlyCell(contents, index) {
@@ -758,6 +759,12 @@
          + (hasValidator ? '<td><div class="checkmark" '
             + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']]); }">'
             + '</div></td></tr></table></td>' : '');
+  }
+
+  function getTableValidatableContent(content, range, precision, min, max) {
+    return '<td class="validateContent" align="center"><div style="position:relative"><span>' + content
+         + '</span><div style="position:absolute;left:50%;top:50%;" class="checkmark" '
+         + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']]); }"></div></div></td>';
   }
 
   function getSubTableTitle(title, range) {
@@ -834,7 +841,9 @@
   function setTable(id, tableHTML) {
     tableHTML += '</table>';
     $("#" + id + "Div").prop("innerHTML", tableHTML);
+  }
 
+  function setEvents() {
     $("input").each((i, item) => {
       if ($(item).hasClass("auto")) {
         autoAdaptWidth(item, 3);
@@ -844,6 +853,11 @@
     $(".checkmark")
       .on("click", e => $(e.target).addClass('draw'))
       .on("animationend", e => $(e.target).removeClass('draw'));
+
+    var children = $(".validateContent").children().children();
+    $(".validateContent").hover(
+      e => { children.first().fadeOut(); children.last().fadeIn(); },
+      e => { children.last().fadeOut(); children.first().fadeIn(); });
   }
 
   function setTabContainer(innerHTML) {

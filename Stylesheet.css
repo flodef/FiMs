@@ -656,7 +656,7 @@ input:hover, input:focus {
 
 /* Checkmark */
 .checkmark {
-  display: inline-block;
+  display: none;
   cursor: pointer;
   opacity: 1;
   height: 25px;
@@ -670,7 +670,7 @@ input:hover, input:focus {
 }
 
 .draw {
-  animation-duration: 3000ms;
+  animation-duration: 1000ms;
   animation-timing-function: ease;
   animation-name: checkmark;
   cursor: default;
@@ -682,13 +682,8 @@ input:hover, input:focus {
     width: 0;
     opacity: 1;
   }
-  20% {
-    height: 0;
-    width: 12px;
-    opacity: 1;
-  }
   40% {
-    height: 25px;
+    height: 0;
     width: 12px;
     opacity: 1;
   }
