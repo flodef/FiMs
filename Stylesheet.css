@@ -484,11 +484,13 @@ input{
   min-width: 5px;
   font-style: italic;
   animation: shrink 0.5s;
+  background-color: transparent;
 }
 
 input:hover, input:focus {
   min-width: 35px;
   animation: expand 0.5s;
+  background-color: white;
 }
 
 @-webkit-keyframes expand {

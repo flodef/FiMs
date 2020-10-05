@@ -22,6 +22,7 @@
   GLOBAL.accountFormula = "Account!A:L";
   GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
   GLOBAL.settingsFormula = "Settings!A:F";
+  GLOBAL.allocationFormula = "Allocation!B14";
   GLOBAL.displayId = [GLOBAL.dashboard, GLOBAL.investment, GLOBAL.historic, GLOBAL.evolution];
   GLOBAL.displayFormula = [GLOBAL.dashboardFormula, GLOBAL.investmentFormula, GLOBAL.historicFormula, GLOBAL.evolutionFormula];
   GLOBAL.formula = [];
@@ -30,6 +31,7 @@
   GLOBAL.hasAlreadyUpdated = [];
   GLOBAL.hasLoadingQueue = false;
   GLOBAL.currentLoadingId;
+  GLOBAL.allocation;
 
   /**
    * Run initializations on web app load.
@@ -560,12 +562,16 @@
   }
 
   function updateTable(id, contents) {
-    var fn = id == GLOBAL.dashboard ? () => updateDashboardTable(id, contents)
+    var fn = id == GLOBAL.dashboard ? () => preUpdateDashboardTable(id, contents)
            : id == GLOBAL.investment ? () => updateInvestmentTable(id, contents)
            : id == GLOBAL.historic ? () => updateHistoricTable(id, contents)
            : id == GLOBAL.evolution ? () => { updateEvolutionTable(id, contents); setEvents(); } // Special function that need to be run when every table has been loaded
            : displayError("Update table id not recognised: " + id, false);
     fn();
+  }
+
+  function preUpdateDashboardTable(id, contents) {
+    getValue(GLOBAL.allocationFormula, (id, contents) => GLOBAL.allocation = contents[0][0], null, null, () => updateDashboardTable(id, contents));
   }
 
   function updateDashboardTable(id, contents) {
@@ -582,7 +588,7 @@
       for (var j = 1; j < settings[i].length; j++) {
         tableHTML += i != 4 || j != 3
         ? getTableReadOnlyCell(contents, settings[i+ln][j])
-        : getTableEditableCell(contents, settings[i+ln][j], "Allocation!B14", 0, 0, 999999, true);
+        : getTableValidatableCell(contents, settings[i+ln][j], GLOBAL.allocationFormula, GLOBAL.allocation);
       }
       tableHTML += '</tr>';
     }
@@ -731,16 +737,19 @@
     filterTable(id);
   }
 
-  function getTableEditableCell(contents, index, range, precision, min, max, hasValidator) {
-    return getTableReadOnlyContent(contents[index-1][0], false) +
-           (hasValidator
-             ? getTableValidatableContent(contents[index-1][1], range)
-             : getTableEditableContent(contents[index-1][1], range, precision, min, max));
+  function getTableEditableCell(contents, index, range, precision, min, max) {
+    return getTableReadOnlyContent(contents[index-1][0], false)
+         + getTableEditableContent(contents[index-1][1], range, precision, min, max);
+  }
+
+  function getTableValidatableCell(contents, index, range, expected) {
+    return getTableReadOnlyContent(contents[index-1][0], false)
+         + getTableValidatableContent(contents[index-1][1], range, expected);
   }
 
   function getTableReadOnlyCell(contents, index) {
-    return getTableReadOnlyContent(contents[index-1][0], false) +
-           getTableReadOnlyContent(contents[index-1][1], false);
+    return getTableReadOnlyContent(contents[index-1][0], false)
+         + getTableReadOnlyContent(contents[index-1][1], false);
   }
 
   function getTableReadOnlyContent(content = "", isHeader, isDisabled, color) {
@@ -752,15 +761,16 @@
                     : '<td align="center" style="color:' + color + '">' + content + '</td>';
   }
 
-  function getTableEditableContent(content, range, precision, min, max, hasValidator) {
+  function getTableEditableContent(content, range, precision, min, max) {
     return '<td align="center"><input class="auto" min="' + min + '" max="' + max + '"'
          + ' oninput="autoAdaptWidth(this, ' + precision + ');setValue(\'' + range + '\', [[this.value]]);"'
          + ' type="text" value="' + toValue(content) + '"> €</input></td>';
   }
 
-  function getTableValidatableContent(content, range) {
-    return '<td class="validateContent" align="center"><div style="position:relative"><span>' + content
-         + '</span><div style="position:absolute;left:40%;top:50%;" class="checkmark" '
+  function getTableValidatableContent(content, range, expected) {
+    return '<td class="validateContent" align="center" style="background-color:' + (content == expected ? 'transparent' : 'pink') + '">'
+         + '<div style="position:relative"><span>' + content + '</span>'
+         + '<div style="position:absolute;left:35%;top:50%;" class="checkmark" '
          + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']]); }"></div></div></td>';
   }
 
@@ -904,7 +914,7 @@
     displayElement("#transactionQuantityLabel", e.options[index].title);
   }
 
-  function getValue(formula, func, id, forceReload, success) {
+  function getValue(range, func, id, forceReload, success) {
     if (!id || (id && $("#loading").text() == "")) {
       if (!id || forceReload || !GLOBAL.hasAlreadyUpdated[id]) {
         displayLoading(id, true);
@@ -924,11 +934,11 @@
                        displayLoading(id, false);
                      })
                      .withFailureHandler(displayError)
-                     .getSheetValues(formula);
+                     .getSheetValues(range);
       }
     } else {
       GLOBAL.hasLoadingQueue = true;
-      setTimeout(() => getValue(formula, func, id, forceReload, success), 100);
+      setTimeout(() => getValue(range, func, id, forceReload, success), 100);
     }
   }
 

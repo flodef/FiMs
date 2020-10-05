@@ -63,7 +63,7 @@ class Run {
     var r = a.length >= 2 ? a[1] : fullRange;
     var ar = r.split(':');
     var sr = ar[0];
-    var er = ar[1];
+    var er = ar[1] || ar[0];    // Set the starting range as the ending range if none (eg : sheet!A1)
     var dr = XLSX.utils.decode_range(fullRange);
     sr += !this._hasNumber(sr) ? (dr.s.r+1) : "";
     er += !this._hasNumber(er) ? (dr.e.r+1) : "";
