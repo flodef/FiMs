@@ -733,8 +733,9 @@
 
   function getTableEditableCell(contents, index, range, precision, min, max, hasValidator) {
     return getTableReadOnlyContent(contents[index-1][0], false) +
-           (hasValidator ? getTableValidatableContent(contents[index-1][1], range, precision, min, max) :
-           getTableEditableContent(contents[index-1][1], range, precision, min, max, hasValidator));
+           (hasValidator
+             ? getTableValidatableContent(contents[index-1][1], range)
+             : getTableEditableContent(contents[index-1][1], range, precision, min, max));
   }
 
   function getTableReadOnlyCell(contents, index) {
@@ -752,16 +753,12 @@
   }
 
   function getTableEditableContent(content, range, precision, min, max, hasValidator) {
-    return '<td align="center">' + (hasValidator ? '<table><tr><td>' : '')
-         + '<input class="auto" min="' + min + '" max="' + max + '"'
+    return '<td align="center"><input class="auto" min="' + min + '" max="' + max + '"'
          + ' oninput="autoAdaptWidth(this, ' + precision + ');setValue(\'' + range + '\', [[this.value]]);"'
-         + ' type="text" value="' + toValue(content) + '"> €</input></td>'
-         + (hasValidator ? '<td><div class="checkmark" '
-            + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']]); }">'
-            + '</div></td></tr></table></td>' : '');
+         + ' type="text" value="' + toValue(content) + '"> €</input></td>';
   }
 
-  function getTableValidatableContent(content, range, precision, min, max) {
+  function getTableValidatableContent(content, range) {
     return '<td class="validateContent" align="center"><div style="position:relative"><span>' + content
          + '</span><div style="position:absolute;left:40%;top:50%;" class="checkmark" '
          + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']]); }"></div></div></td>';
