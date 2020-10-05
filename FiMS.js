@@ -763,7 +763,7 @@
 
   function getTableValidatableContent(content, range, precision, min, max) {
     return '<td class="validateContent" align="center"><div style="position:relative"><span>' + content
-         + '</span><div style="position:absolute;left:50%;top:50%;" class="checkmark" '
+         + '</span><div style="position:absolute;left:40%;top:50%;" class="checkmark" '
          + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']]); }"></div></div></td>';
   }
 
