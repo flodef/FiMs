@@ -770,7 +770,7 @@
   }
 
   function getTableValidatableContent(content, range, expected) {
-    return '<td class="validateContent" align="center" style="background-color:'
+    return '<td class="validateContent" align="center" style="font-style:italic;background-color:'
          + (!expected ||content == expected ? 'transparent' : 'pink') + '">'
          + '<div style="position:relative"><span>' + content + '</span>'
          + '<div style="position:absolute;left:35%;top:50%;" class="checkmark" '
