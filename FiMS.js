@@ -69,23 +69,25 @@
         .animate({width: $("#loaderBar > span").data("origWidth")}, 3000);
   }
 
-  function openTab(id) {
+  function openTab(id, isFirstLoading) {
     if (!isButtonActive(id)) {
       GLOBAL.displayId.forEach(id => displayElement("#" + id + "Div", false, 0)); // Hide all tab content
       $(".tabLinks").each((i, item) => $(item).removeClass("active"));            // Remove the class "active" from all tabLinks"
       displayElement("#" + id + "Div", true);                                     // Show the current tab
       $("#" + id + "Button").addClass("active");                                  // Add an "active" class to the button that opened the tab
 
-      updateValues(id);   // Update value when Tab is displayed
+      if (!isFirstLoading) {
+        updateValues(id, false, setEvents);   // Update value when Tab is displayed, and set events when finished
+      }
     }
   }
 
   function updateAllValues() {
-    GLOBAL.displayId.forEach(updateValues);
+    GLOBAL.displayId.forEach(id => updateValues(id));
   }
 
-  function updateValues(id, forceReload) {
-    getValue(GLOBAL.formula[id], updateTable, id, forceReload);
+  function updateValues(id, forceReload, success) {
+    getValue(GLOBAL.formula[id], updateTable, id, forceReload, success);
   }
 
   function rebalanceStocks() {
@@ -610,7 +612,7 @@
 
     if (isFirstLoading) {
       displayElement("#loaderBar", false, 0); // Hide the loader bar
-      openTab(id);                            // Activate first tab as open by default
+      openTab(id, true);                      // Activate first tab as open by default
     }
   }
 
