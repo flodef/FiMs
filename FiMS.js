@@ -573,7 +573,7 @@
   }
 
   function preUpdateDashboardTable(id, contents) {
-    getValue(GLOBAL.allocationFormula, (id, contents) => GLOBAL.allocation = contents[0][0], null, null, () => updateDashboardTable(id, contents));
+    getValue(GLOBAL.allocationFormula, (id, contents) => GLOBAL.allocation = contents ? contents[0][0] : null, null, null, () => updateDashboardTable(id, contents));
   }
 
   function updateDashboardTable(id, contents) {
@@ -770,7 +770,8 @@
   }
 
   function getTableValidatableContent(content, range, expected) {
-    return '<td class="validateContent" align="center" style="background-color:' + (content == expected ? 'transparent' : 'pink') + '">'
+    return '<td class="validateContent" align="center" style="background-color:'
+         + (!expected ||content == expected ? 'transparent' : 'pink') + '">'
          + '<div style="position:relative"><span>' + content + '</span>'
          + '<div style="position:absolute;left:35%;top:50%;" class="checkmark" '
          + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']]); }"></div></div></td>';
