@@ -765,7 +765,8 @@
 
   function getTableEditableContent(id, content, range, precision, min, max) {
     return '<td align="center"><input class="auto" min="' + min + '" max="' + max + '"'
-         + ' oninput="autoAdaptWidth(this, ' + precision + ');setValue(\'' + range + '\', [[this.value]], () => updateValues(\'' + id + '\', true, setEvents));"'
+         + ' onfocusout="' + getUpdateContent(id, range, toValue(content)) + '"'
+         + ' onkeyup="if (event.keyCode == 13) { ' + getUpdateContent(id, range, toValue(content)) + ' } else if (event.keyCode == 27) { this.value = ' + toValue(content) + '; } autoAdaptWidth(this, ' + precision + ');"'
          + ' type="text" value="' + toValue(content) + '"> €</input></td>';
   }
 
@@ -773,9 +774,13 @@
     return '<td class="validateContent" align="center" style="font-style:italic;background-color:'
          + (!expected ||content == expected ? 'transparent' : 'pink') + '">'
          + '<div style="position:relative"><span>' + content + '</span>'
-         + '<div style="position:absolute;left:35%;top:50%;" class="checkmark" '
-         + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']], () => updateValues(\'' + id + '\', true, setEvents)); }">'
+         + '<div style="position:absolute;left:35%;top:50%;" class="checkmark" value="' + toValue(content) + '"'
+         + 'onclick="if(!$(this).hasClass(\'draw\')) { ' + getUpdateContent(id, range, GLOBAL.dummy) + ' }">'
          + '</div></div></td>';
+  }
+
+  function getUpdateContent(id, range, expected) {
+    return 'if (this.value != \'' + expected + '\') { setValue(\'' + range + '\', [[this.value]], () => updateValues(\'' + id + '\', true, setEvents)); }';
   }
 
   function getSubTableTitle(title, range) {
