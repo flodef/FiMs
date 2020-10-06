@@ -590,7 +590,7 @@
       for (var j = 1; j < settings[i].length; j++) {
         tableHTML += i != 4 || j != 3
         ? getTableReadOnlyCell(contents, settings[i+ln][j])
-        : getTableValidatableCell(contents, settings[i+ln][j], GLOBAL.allocationFormula, GLOBAL.allocation);
+        : getTableValidatableCell(id, contents, settings[i+ln][j], GLOBAL.allocationFormula, GLOBAL.allocation);
       }
       tableHTML += '</tr>';
     }
@@ -650,7 +650,7 @@
           && !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
         tableHTML += j != 12 || i == 0 || i == row-1
           ? getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color)
-          : getTableEditableContent(con, "Investment!M" + (i+1), 3, toValue(con)*0.75, toValue(con)*1.25);
+          : getTableEditableContent(id, con, "Investment!M" + (i+1), 3, toValue(con)*0.75, toValue(con)*1.25);
         // tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color);
       }
       tableHTML += '</tr>';
@@ -739,14 +739,14 @@
     filterTable(id);
   }
 
-  function getTableEditableCell(contents, index, range, precision, min, max) {
+  function getTableEditableCell(id, contents, index, range, precision, min, max) {
     return getTableReadOnlyContent(contents[index-1][0], false)
-         + getTableEditableContent(contents[index-1][1], range, precision, min, max);
+         + getTableEditableContent(id, contents[index-1][1], range, precision, min, max);
   }
 
-  function getTableValidatableCell(contents, index, range, expected) {
+  function getTableValidatableCell(id, contents, index, range, expected) {
     return getTableReadOnlyContent(contents[index-1][0], false)
-         + getTableValidatableContent(contents[index-1][1], range, expected);
+         + getTableValidatableContent(id, contents[index-1][1], range, expected);
   }
 
   function getTableReadOnlyCell(contents, index) {
@@ -763,18 +763,19 @@
                     : '<td align="center" style="color:' + color + '">' + content + '</td>';
   }
 
-  function getTableEditableContent(content, range, precision, min, max) {
+  function getTableEditableContent(id, content, range, precision, min, max) {
     return '<td align="center"><input class="auto" min="' + min + '" max="' + max + '"'
-         + ' oninput="autoAdaptWidth(this, ' + precision + ');setValue(\'' + range + '\', [[this.value]]);"'
+         + ' oninput="autoAdaptWidth(this, ' + precision + ');setValue(\'' + range + '\', [[this.value]], () => updateValues(\'' + id + '\', true, setEvents));"'
          + ' type="text" value="' + toValue(content) + '"> €</input></td>';
   }
 
-  function getTableValidatableContent(content, range, expected) {
+  function getTableValidatableContent(id, content, range, expected) {
     return '<td class="validateContent" align="center" style="font-style:italic;background-color:'
          + (!expected ||content == expected ? 'transparent' : 'pink') + '">'
          + '<div style="position:relative"><span>' + content + '</span>'
          + '<div style="position:absolute;left:35%;top:50%;" class="checkmark" '
-         + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']]); }"></div></div></td>';
+         + 'onclick="if(!$(this).hasClass(\'draw\')) { setValue(\'' + range + '\', [[' + toValue(content) + ']], () => updateValues(\'' + id + '\', true, setEvents)); }">'
+         + '</div></div></td>';
   }
 
   function getSubTableTitle(title, range) {
