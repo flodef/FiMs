@@ -766,7 +766,7 @@
   function getTableEditableContent(id, content, range, precision, min, max) {
     return '<td align="center"><input class="auto" min="' + min + '" max="' + max + '"'
          + ' onfocusout="' + getUpdateContent(id, range, toValue(content)) + '"'
-         + ' onkeyup="if (event.keyCode == 13) { ' + getUpdateContent(id, range, toValue(content)) + ' } else if (event.keyCode == 27) { this.value = ' + toValue(content) + '; } autoAdaptWidth(this, ' + precision + ');"'
+         + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27) { this.value = ' + toValue(content) + '; } autoAdaptWidth(this, ' + precision + ');"'
          + ' type="text" value="' + toValue(content) + '"> €</input></td>';
   }
 
