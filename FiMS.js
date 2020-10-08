@@ -860,20 +860,15 @@
   }
 
   function setEvents() {
-    $("input").each((i, item) => {
-      if ($(item).hasClass("auto")) {
-        autoAdaptWidth(item, 3);
-      }
-    });
+    $(".auto").each((i, item) => autoAdaptWidth(item, 3));
 
     $(".checkmark")
       .on("click", e => $(e.target).addClass('draw'))
       .on("animationend", e => $(e.target).removeClass('draw'));
 
-    var children = $(".validateContent").children().children();
     $(".validateContent").hover(
-      e => { children.first().fadeOut(); children.last().fadeIn(); },
-      e => { children.last().fadeOut(); children.first().fadeIn(); });
+      e => { var c = $(e.target).children().children(); c.first().fadeOut(); c.last().fadeIn(); },
+      e => { var c = $(e.target).children().children(); c.last().fadeOut(); c.first().fadeIn(); });
   }
 
   function setTabContainer(innerHTML) {
