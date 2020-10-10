@@ -1045,11 +1045,9 @@
       $("#loading").text(isDisplayed ? "Loading " + id + " ..." : null);
       if (isDisplayed || GLOBAL.loadingQueueCount) {
         GLOBAL.hasAlreadyUpdated[id] = true;
+        setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false, GLOBAL.timeBetweenReload*1000);
         displayElement("#updateButton", false);
       } else {
-        if (GLOBAL.hasAlreadyUpdated[id]) {
-          setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false, GLOBAL.timeBetweenReload*1000);
-        }
         setTimeout(() => displayElement("#updateButton", !GLOBAL.loadingQueueCount), 100);  // Hack for local refresh because it loads everything in the same function
       }
     }
