@@ -28,10 +28,9 @@
   GLOBAL.formula = [];
   GLOBAL.rebalanceButtonToolTip = "Rebalance";
   GLOBAL.showAllButtonToolTip = "Show all";
+  GLOBAL.loadingQueueCount = 0;
   GLOBAL.hasAlreadyUpdated = [];
-  GLOBAL.hasLoadingQueue = false;
   GLOBAL.currentLoadingId;
-  GLOBAL.allocation;
 
   /**
    * Run initializations on web app load.
@@ -77,13 +76,13 @@
       $("#" + id + "Button").addClass("active");                                  // Add an "active" class to the button that opened the tab
 
       if (!isFirstLoading) {
-        updateValues(id, false, setEvents);   // Update value when Tab is displayed, and set events when finished
+        updateValues(id, false);
       }
     }
   }
 
   function updateAllValues() {
-    GLOBAL.displayId.forEach(id => updateValues(id));
+    GLOBAL.displayId.forEach(id => updateValues(id, true));
   }
 
   function updateValues(id, forceReload, success) {
@@ -564,17 +563,17 @@
   }
 
   function updateTable(id, contents) {
-    var fn = id == GLOBAL.dashboard ? () => preUpdateDashboardTable(id, contents)
+    var fn = id == GLOBAL.dashboard ? () => updateDashboardTable(id, contents)
            : id == GLOBAL.investment ? () => updateInvestmentTable(id, contents)
            : id == GLOBAL.historic ? () => updateHistoricTable(id, contents)
-           : id == GLOBAL.evolution ? () => { updateEvolutionTable(id, contents); setEvents(); } // Special function that need to be run when every table has been loaded
+           : id == GLOBAL.evolution ? () => updateEvolutionTable(id, contents)
            : displayError("Update table id not recognised: " + id, false);
     fn();
   }
 
-  function preUpdateDashboardTable(id, contents) {
-    getValue(GLOBAL.allocationFormula, (id, contents) => GLOBAL.allocation = contents ? contents[0][0] : null, null, null, () => updateDashboardTable(id, contents));
-  }
+  // function preUpdateDashboardTable(id, contents) {
+  //   getValue(GLOBAL.allocationFormula, (id, contents) => GLOBAL.allocation = contents ? contents[0][0] : null, null, null, () => updateDashboardTable(id, contents));
+  // }
 
   function updateDashboardTable(id, contents) {
     var settings = GLOBAL.data[GLOBAL.settings];
@@ -583,6 +582,7 @@
     var isFirstLoading = $("#" + id + "Button").prop('disabled');
 
     // Set the dashboard table
+    var allocation = contents[indexOf(contents, "Requested allocation", 0)][1];   // Requested allocation
     var ln = settings.length/2;      // Take the full sheet row count, don't count the miror with numbers (/2)
     for (var i = 0; i < ln-2; i++) { // Remove the two last row for scroll (-2)
       tableHTML += getSubTableTitle(settings[i][0], "Settings!A" + (i+1));
@@ -590,7 +590,7 @@
       for (var j = 1; j < settings[i].length; j++) {
         tableHTML += i != 4 || j != 3
         ? getTableReadOnlyCell(contents, settings[i+ln][j])
-        : getTableValidatableCell(id, contents, settings[i+ln][j], GLOBAL.allocationFormula, GLOBAL.allocation);
+        : getTableValidatableCell(id, contents, settings[i+ln][j], GLOBAL.allocationFormula, allocation);
       }
       tableHTML += '</tr>';
     }
@@ -780,7 +780,7 @@
   }
 
   function getUpdateContent(id, range, expected) {
-    return 'if (this.value != \'' + expected + '\') { setValue(\'' + range + '\', [[this.value]], () => updateValues(\'' + id + '\', true, setEvents)); }';
+    return 'if (this.value != \'' + expected + '\') { setValue(\'' + range + '\', [[this.value]], () => updateValues(\'' + id + '\', true)); }';
   }
 
   function getSubTableTitle(title, range) {
@@ -934,14 +934,19 @@
                        if (success) {
                          success();
                        }
-                       GLOBAL.hasLoadingQueue = false;
                        displayLoading(id, false);
+
+                       if (id && !GLOBAL.loadingQueueCount) {
+                         setEvents();  // Set events when everything has been loaded
+                       }
+
+                       GLOBAL.loadingQueueCount = Math.max(GLOBAL.loadingQueueCount-1, 0);
                      })
                      .withFailureHandler(displayError)
                      .getSheetValues(range);
       }
     } else {
-      GLOBAL.hasLoadingQueue = true;
+      ++GLOBAL.loadingQueueCount;
       setTimeout(() => getValue(range, func, id, forceReload, success), 100);
     }
   }
@@ -1036,14 +1041,14 @@
     if (id) {
       GLOBAL.currentLoadingId = isDisplayed ? id : null;
       $("#loading").text(isDisplayed ? "Loading " + id + " ..." : null);
-      if (isDisplayed || GLOBAL.hasLoadingQueue) {
+      if (isDisplayed || GLOBAL.loadingQueueCount) {
         GLOBAL.hasAlreadyUpdated[id] = true;
         displayElement("#updateButton", false);
       } else {
         if (GLOBAL.hasAlreadyUpdated[id]) {
           setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false, GLOBAL.timeBetweenReload*1000);
         }
-        setTimeout(() => displayElement("#updateButton", !GLOBAL.hasLoadingQueue), 300);
+        setTimeout(() => displayElement("#updateButton", !GLOBAL.loadingQueueCount), 100);  // Hack for local refresh because it loads everything in the same function 
       }
     }
   }
