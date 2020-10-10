@@ -940,14 +940,16 @@
                          setEvents();  // Set events when everything has been loaded
                        }
 
-                       GLOBAL.loadingQueueCount = Math.max(GLOBAL.loadingQueueCount-1, 0);
                      })
                      .withFailureHandler(displayError)
                      .getSheetValues(range);
       }
     } else {
       ++GLOBAL.loadingQueueCount;
-      setTimeout(() => getValue(range, func, id, forceReload, success), 100);
+      setTimeout(() => {
+        GLOBAL.loadingQueueCount = Math.max(GLOBAL.loadingQueueCount-1, 0);
+        getValue(range, func, id, forceReload, success)
+      }, 100);
     }
   }
 
@@ -1048,7 +1050,7 @@
         if (GLOBAL.hasAlreadyUpdated[id]) {
           setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false, GLOBAL.timeBetweenReload*1000);
         }
-        setTimeout(() => displayElement("#updateButton", !GLOBAL.loadingQueueCount), 100);  // Hack for local refresh because it loads everything in the same function 
+        setTimeout(() => displayElement("#updateButton", !GLOBAL.loadingQueueCount), 100);  // Hack for local refresh because it loads everything in the same function
       }
     }
   }
