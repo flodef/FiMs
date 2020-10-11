@@ -765,9 +765,7 @@
 
   function getTableEditableContent(id, content, range, precision, min, max) {
     return '<td align="center"><input class="auto" min="' + min + '" max="' + max + '"'
-         + ' onfocusout="' + getUpdateContent(id, range, toValue(content)) + '"'
-         + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27) { this.value = ' + toValue(content) + '; } autoAdaptWidth(this, ' + precision + ');"'
-         + ' type="text" value="' + toValue(content) + '"> €</input></td>';
+         + getEditCellHandler(id, range, toValue(content), precision) + '"> €</input></td>';
   }
 
   function getTableValidatableContent(id, content, range, expected) {
@@ -779,14 +777,20 @@
          + '</div></div></td>';
   }
 
+  function getEditCellHandler(id, range, expected, precision = 0) {
+    return ' onfocusout="' + getUpdateContent(id, range, expected) + '"'
+         + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27) { this.value = \'' + expected + '\'; } autoAdaptWidth(this, ' + precision + ');"'
+         + ' oninput="autoAdaptWidth(this, ' + precision + ');" type="text" value="' + expected + '"'
+  }
+
   function getUpdateContent(id, range, expected) {
-    return 'if (this.value != \'' + expected + '\') { setValue(\'' + range + '\', [[this.value]], () => updateValues(\'' + id + '\', true)); }';
+    return 'if (this.value != \'' + expected + '\') '
+         + '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]' + (id ? ', () => updateValues(\'' + id + '\', true)' : '') + '); }';
   }
 
   function getSubTableTitle(title, range) {
     return '<tr><td colspan="10"><input class="tableTitle auto" max="30" style="font-size:16px;"'
-         + ' oninput="autoAdaptWidth(this);setValue(\'' + range + '\', [[this.value]]);"'
-         + ' type="text" value="' + title + '"></input></td></tr>';
+         + getEditCellHandler(null, range, title) + '"></input></td></tr>';
   }
 
   function getTitle(id) {
