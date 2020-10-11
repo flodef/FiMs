@@ -28,6 +28,7 @@
   GLOBAL.formula = [];
   GLOBAL.rebalanceButtonToolTip = "Rebalance";
   GLOBAL.showAllButtonToolTip = "Show all";
+  GLOBAL.requestedAllocation = "Requested allocation";
   GLOBAL.loadingQueueCount = 0;
   GLOBAL.hasAlreadyUpdated = [];
   GLOBAL.currentLoadingId;
@@ -582,10 +583,10 @@
     var isFirstLoading = $("#" + id + "Button").prop('disabled');
 
     // Set the dashboard table
-    var allocation = contents[indexOf(contents, "Requested allocation", 0)][1];   // Requested allocation
+    var allocation = contents[indexOf(contents, GLOBAL.requestedAllocation, 0)][1];   // Requested allocation
     var ln = settings.length/2;      // Take the full sheet row count, don't count the miror with numbers (/2)
     for (var i = 0; i < ln-2; i++) { // Remove the two last row for scroll (-2)
-      tableHTML += getSubTableTitle(settings[i][0], "Settings!A" + (i+1));
+      tableHTML += getSubTableTitle(GLOBAL.settings, settings[i][0], "Settings!A" + (i+1));
       tableHTML += '<tr>';
       for (var j = 1; j < settings[i].length; j++) {
         tableHTML += i != 4 || j != 3
@@ -788,9 +789,9 @@
          + '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]' + (id ? ', () => updateValues(\'' + id + '\', true)' : '') + '); }';
   }
 
-  function getSubTableTitle(title, range) {
+  function getSubTableTitle(id, title, range) {
     return '<tr><td colspan="10"><input class="tableTitle auto" max="30" style="font-size:16px;"'
-         + getEditCellHandler(null, range, title) + '"></input></td></tr>';
+         + getEditCellHandler(id, range, title) + '"></input></td></tr>';
   }
 
   function getTitle(id) {
