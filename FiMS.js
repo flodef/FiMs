@@ -786,7 +786,10 @@
 
   function getUpdateContent(id, range, expected) {
     return 'if (this.value != \'' + expected + '\') '
-         + '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]' + (id ? ', () => updateValues(\'' + id + '\', true)' : '') + '); }';
+         + '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]'
+         + (id ? id  != GLOBAL.settings ? ', () => updateValues(\'' + id + '\', true)'
+         : ', () => getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues)'
+         : '') + '); }';
   }
 
   function getSubTableTitle(id, title, range) {
