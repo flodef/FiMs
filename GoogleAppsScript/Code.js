@@ -33,13 +33,13 @@ var ALLOCATION = "Allocation"; // The "Allocation" sheet name
 var ALLOCHIST = "AllocationHistoric"; // The "AllocationHistoric" sheet name
 var EVOLUTION = "Evolution";   // The "Evolution" sheet name
 var SELECTION = "Selection";   // The "Selection" sheet name
-var CLIENT = "Client";         // The "Client" sheet name
+var ASSOCIATE = "Associate";      // The "Associate" sheet name
 var BANKACC = "BankAccount";   // The "BankAccount" sheet name
 var INTEREST = "Interest";     // The "Interest" sheet name
 var ALERT = "Alert";           // The "Alert" sheet name
 var PRICE = "Price";           // The "Price" sheet name
-var CLIMODEL = "ClientModel";  // The "ClientModel" sheet name
-var CLIHISTO = "ClientHistoric";  // The "ClientHistoric" sheet name
+var ASSMODEL = "AssociateModel";  // The "AssociateModel" sheet name
+var ASSHISTO = "AssociateHistoric";  // The "AssociateHistoric" sheet name
 
 // WEB LINKS
 var SSLINK = "https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw/edit#gid=";
@@ -88,7 +88,7 @@ function nightlyUpdate() {
 function monthlyUpdate() {
   this._updateAllocation();
   this._updateExpense();
-  this._updateClient();
+  this._updateAssociate();
 }
 
 function yearlyUpdate() {
@@ -598,20 +598,20 @@ function _updateExpense() {
  }
 }
 
-function _updateClient() {
-  // Retrieve client main data
-  var clientSheet = this._getSheet(CLIENT);
-  var clientArray = clientSheet.getSheetValues(FR, FC, -1, 2);
+function _updateAssociate() {
+  // Retrieve associate main data
+  var associateSheet = this._getSheet(ASSOCIATE);
+  var associateArray = associateSheet.getSheetValues(FR, FC, -1, 2);
 
-  for (var i = 0; i < clientArray.length; ++i) {
-    // Retrieve client account data
-    var name = clientArray[i][0];
-    var recu = clientArray[i][1];
+  for (var i = 0; i < associateArray.length; ++i) {
+    // Retrieve associate account data
+    var name = associateArray[i][0];
+    var recu = associateArray[i][1];
     var sheet = this._getSheet(name);
 
-    // If the sheet does not exist, create a new client sheet from the model
+    // If the sheet does not exist, create a new associate sheet from the model
     if (!sheet) {
-      var modelSheet = this._getSheet(CLIMODEL);
+      var modelSheet = this._getSheet(ASSMODEL);
       var sheet = modelSheet.copyTo(SS);
       sheet.setName(name);
       var index = sheet.getIndex();
@@ -623,13 +623,13 @@ function _updateClient() {
 
     var array = sheet.getSheetValues(FR, FC, 1, -1);
 
-    // Add monthly client profit
+    // Add monthly associate profit
     if (!_isCurrentMonth(array)) {
       this._copyFirstRow(sheet, array);
 
-      // Add recurrent withdrawal to client historic
+      // Add recurrent withdrawal to associate historic
       if (recu < 0) {
-        var histoSheet = this._getSheet(CLIHISTO);
+        var histoSheet = this._getSheet(ASSHISTO);
         var d = this._toDate();      // Get date without hours to match range's date
         d.setDate(d.getDate() + 10); // Take around 10 days to make a bank transfer
 
@@ -641,19 +641,19 @@ function _updateClient() {
 }
 
 function _sendCharity() {
-  // Retrieve client main data
-  var clientSheet = this._getSheet(CLIENT);
-  var clientArray = clientSheet.getSheetValues(FR, FC, -1, -1);
+  // Retrieve associate main data
+  var associateSheet = this._getSheet(ASSOCIATE);
+  var associateArray = associateSheet.getSheetValues(FR, FC, -1, -1);
 
   var object = "Don annuel à une oeuvre de charité";
   var recap = "Liste des dons :\n";
-  for (var i = 0; i < clientArray.length; ++i) {
-    // Retrieve client account data
-    var name = clientArray[i][0];
-    var char = clientArray[i][2];
-    var mail = clientArray[i][10];
-    var assoc = clientArray[i][20];
-    var link = clientArray[i][21];
+  for (var i = 0; i < associateArray.length; ++i) {
+    // Retrieve associate account data
+    var name = associateArray[i][0];
+    var char = associateArray[i][2];
+    var mail = associateArray[i][10];
+    var assoc = associateArray[i][20];
+    var link = associateArray[i][21];
 
     // Send charity message if amount < 1
     if (char <= -1) {
