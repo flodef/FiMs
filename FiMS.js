@@ -572,10 +572,6 @@
     fn();
   }
 
-  // function preUpdateDashboardTable(id, contents) {
-  //   getValue(GLOBAL.allocationFormula, (id, contents) => GLOBAL.allocation = contents ? contents[0][0] : null, null, null, () => updateDashboardTable(id, contents));
-  // }
-
   function updateDashboardTable(id, contents) {
     var settings = GLOBAL.data[GLOBAL.settings];
     var tableHTML = getTableTitle(id);

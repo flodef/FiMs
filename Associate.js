@@ -44,8 +44,8 @@
     jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
 
     displayElement('.contentOverlay', true, 0);
-    displayElement('.actionButton', false, 0);
-    // $('.actionButton').prop('disabled', true);
+    displayElement('.actionButton', true, 0);
+
     animateLoaderBar();
 
     $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
@@ -131,6 +131,50 @@
       openTab(id, true);                      // Activate first tab as open by default
     }
   }
+
+  function connect() {
+    var closing = 'displayElement(\'#popupOverlay\', false, () => { $(\'.contentOverlay\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus(); });';
+
+    var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
+    // for (var i = 0; i < contents.length; i++) {
+    //   tableHTML += '<div ' + (i != 0 ? 'class="hidden"' : '') + 'id="rebal' + i + '">';
+    //   tableHTML += '<table>';
+    //
+    //   var row = Object.entries(contents[i]);
+    //   for (const [key, value] of row) {
+    //       tableHTML += '<tr>';
+    //
+    //       var style = key == "Name" || key == "Rebalance" || (key == "Tendency" && shouldRebalance(value))
+    //                 ? 'font-weight:900;' : '';
+    //       style += key == "Action"
+    //                       ? 'background-color:' + (value ? "#a2c642" : "#da4a4a") + ';color:white;"'
+    //                       : '';
+    //       var val = key == "Action" ? (value ? "BUY" : "SELL") : value;
+    //       tableHTML += '<th align="center">' + key + '</th>'
+    //                  + '<td align="center" style="' + style + '" padding="10px">' + val + '</td>'
+    //
+    //       tableHTML += '</tr>';
+    //   }
+    // 
+    //   tableHTML += '</table>';
+    //
+    //   var isLast = i == contents.length-1;
+    //   var skiping = 'overDisplay(\'#rebal' + i + '\', \'#rebal' + (i+1) + '\');';
+    //   var next = isLast ? closing : skiping;
+    //   var label = isLast ? "CLOSE" : "NEXT ORDER";
+    //   tableHTML += '<div align="center" style="margin:15px 0px 0px 0px;">'
+    //              + '<button style="margin:0px 5px 0px 5px;" onclick="' + next + '" class="rebalButton">' + label + '</button>'
+    //              + '</div>';
+    //
+    //   tableHTML += '</div>';
+    // }
+
+    $("#popup").prop("innerHTML", tableHTML);
+
+    $('.contentOverlay').addClass("blur-filter");
+    displayElement('#popupOverlay', true);
+  }
+
 
   // function updateDashboardTable(id, contents) {
   //   var settings = GLOBAL.data[GLOBAL.settings];
