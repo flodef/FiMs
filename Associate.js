@@ -110,9 +110,10 @@
     var row = contents.length;
     var col = contents[0].length;
     var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col-1);
+    tableHTML += '<div style="padding: 5px 25px;">';
     for (var i = 1; i < row; ++i) {     // Skip the header
       for (var j = 0; j < col; ++j) {
-        var con = contents[i][j].replace('\n',' <br>').replace('\r',' <br>');
+        var con = contents[i][j];
         var isQuestion = j == 0;
         var str = '';
         con.split(' ').forEach(a => str += (a.slice(0, 4) == 'http' ? '<a href=' + a +  ' target="_blank">' + a + '</a>' : a) + ' ');
@@ -120,6 +121,7 @@
       }
       tableHTML += '<br><br>';
     }
+    tableHTML += '</div>';
 
     setTable(id, tableHTML);
     activateButton(id);
