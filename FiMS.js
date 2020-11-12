@@ -1,7 +1,5 @@
-  window.GLOBAL = {};
   GLOBAL.cost = "COST";
   GLOBAL.approv = "APPROVISIONNEMENT";
-  GLOBAL.data = [];
   GLOBAL.dummy = "XXXXXX";
   GLOBAL.dataPreloadRowLimit = 10;
   GLOBAL.timeBetweenReload = 60;
@@ -25,13 +23,9 @@
   GLOBAL.allocationFormula = "Allocation!B14";
   GLOBAL.displayId = [GLOBAL.dashboard, GLOBAL.investment, GLOBAL.historic, GLOBAL.evolution];
   GLOBAL.displayFormula = [GLOBAL.dashboardFormula, GLOBAL.investmentFormula, GLOBAL.historicFormula, GLOBAL.evolutionFormula];
-  GLOBAL.formula = [];
   GLOBAL.rebalanceButtonToolTip = "Rebalance";
   GLOBAL.showAllButtonToolTip = "Show all";
   GLOBAL.requestedAllocation = "Requested allocation";
-  GLOBAL.loadingQueueCount = 0;
-  GLOBAL.hasAlreadyUpdated = [];
-  GLOBAL.currentLoadingId;
 
   /**
    * Run initializations on web app load.
@@ -60,35 +54,6 @@
 
     getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues);
   });
-
-  function animateLoaderBar() {
-    $("#loaderBar").prop("innerHTML", "<span></span>");
-    $("#loaderBar > span")
-        .data("origWidth", $("#loaderBar > span").width())
-        .width(0)
-        .animate({width: $("#loaderBar > span").data("origWidth")}, 3000);
-  }
-
-  function openTab(id, isFirstLoading) {
-    if (!isButtonActive(id)) {
-      GLOBAL.displayId.forEach(id => displayElement("#" + id + "Div", false, 0)); // Hide all tab content
-      $(".tabLinks").each((i, item) => $(item).removeClass("active"));            // Remove the class "active" from all tabLinks"
-      displayElement("#" + id + "Div", true);                                     // Show the current tab
-      $("#" + id + "Button").addClass("active");                                  // Add an "active" class to the button that opened the tab
-
-      if (!isFirstLoading) {
-        updateValues(id, false);
-      }
-    }
-  }
-
-  function updateAllValues() {
-    GLOBAL.displayId.forEach(id => updateValues(id, true));
-  }
-
-  function updateValues(id, forceReload, success) {
-    getValue(GLOBAL.formula[id], updateTable, id, forceReload, success);
-  }
 
   function rebalanceStocks() {
   //   updateValues(GLOBAL.investment);

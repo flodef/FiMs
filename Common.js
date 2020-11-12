@@ -1,6 +1,45 @@
 /**
- * Functions that are shared between main app and associate app.
- */
+* Functions that are shared between main app and associate app.
+*/
+
+window.GLOBAL = {};
+GLOBAL.data = [];
+GLOBAL.formula = [];
+GLOBAL.loadingQueueCount = 0;
+GLOBAL.hasAlreadyUpdated = [];
+GLOBAL.currentLoadingId;
+GLOBAL.currentDisplayedId;
+
+function animateLoaderBar() {
+  $("#loaderBar").prop("innerHTML", "<span></span>");
+  $("#loaderBar > span")
+      .data("origWidth", $("#loaderBar > span").width())
+      .width(0)
+      .animate({width: $("#loaderBar > span").data("origWidth")}, 3000);
+}
+
+function openTab(id, isFirstLoading) {
+  if (GLOBAL.currentDisplayedId != id) {
+    GLOBAL.currentDisplayedId = id;
+    GLOBAL.displayId.forEach(id => displayElement("#" + id + "Div", false, 0)); // Hide all tab content
+    // $(".tabLinks").each((i, item) => $(item).removeClass("active"));            // Remove the class "active" from all tabLinks"
+    $(".tabLinks").removeClass("active");                                       // Remove the class "active" from all tabLinks"
+    displayElement("#" + id + "Div", true);                                     // Show the current tab
+    $("#" + id + "Button").addClass("active");                                  // Add an "active" class to the button that opened the tab
+
+    if (!isFirstLoading) {
+      updateValues(id, false);
+    }
+  }
+}
+
+function updateAllValues() {
+  GLOBAL.displayId.forEach(id => updateValues(id, true));
+}
+
+function updateValues(id, forceReload, success) {
+  getValue(GLOBAL.formula[id], updateTable, id, forceReload, success);
+}
 
 function applyFilter(id, tableHTML) {
   setTable(id, tableHTML);
@@ -146,6 +185,8 @@ function setEvents() {
   $(".validateContent").hover(
     e => { var c = $(e.target).children().children(); c.first().fadeOut(); c.last().fadeIn(); },
     e => { var c = $(e.target).children().children(); c.last().fadeOut(); c.first().fadeIn(); });
+
+  updateTable(GLOBAL.currentDisplayedId, GLOBAL.data[GLOBAL.currentDisplayedId]);  // Refresh current displayed tab if display before events has been set
 }
 
 function setTabContainer(innerHTML) {
@@ -362,11 +403,6 @@ function displayError(msg, isWarning) {
                               + '<strong>' + (isWarning ? "WARNING" : "ALERT") + ':</strong> ' + msg);
   displayElement('#alertOverlay', true);
   displayElement("#updateButton", true);
-}
-
-function isButtonActive(id) {
-  return $("#" + id + "Button").prop("className")
-      && $("#" + id + "Button").prop("className").includes("active");
 }
 
 function activateButton(id, isActivated = true) {
