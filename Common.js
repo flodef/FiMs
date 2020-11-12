@@ -28,7 +28,7 @@ function openTab(id, isFirstLoading) {
     $("#" + id + "Button").addClass("active");                                  // Add an "active" class to the button that opened the tab
 
     if (!isFirstLoading) {
-      updateValues(id, false);
+      updateValues(id);
     }
   }
 }
@@ -185,8 +185,6 @@ function setEvents() {
   $(".validateContent").hover(
     e => { var c = $(e.target).children().children(); c.first().fadeOut(); c.last().fadeIn(); },
     e => { var c = $(e.target).children().children(); c.last().fadeOut(); c.first().fadeIn(); });
-
-  updateTable(GLOBAL.currentDisplayedId, GLOBAL.data[GLOBAL.currentDisplayedId]);  // Refresh current displayed tab if display before events has been set
 }
 
 function setTabContainer(innerHTML) {
@@ -256,8 +254,11 @@ function getValue(range, func, id, forceReload, success) {
 
                      if (id && !GLOBAL.loadingQueueCount) {
                        setEvents();  // Set events when everything has been loaded
-                     }
 
+                       if (GLOBAL.currentDisplayedId != id) {
+                         updateValues(GLOBAL.currentDisplayedId);   // Refresh current displayed tab if displayed before events has been set
+                       }
+                     }
                    })
                    .withFailureHandler(displayError)
                    .getSheetValues(range);

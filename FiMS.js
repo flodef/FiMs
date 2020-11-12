@@ -612,7 +612,7 @@
           && !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
         tableHTML += j != 12 || i == 0 || i == row-1
           ? getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color)
-          : getTableEditableContent(id, con, "Investment!M" + (i+1), 3, toValue(con)*0.75, toValue(con)*1.25);
+          : getTableEditableContent(id, con, "Investment!M" + (i+1), 3, 0, toValue(con)*1.25);
         // tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color);
       }
       tableHTML += '</tr>';
