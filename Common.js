@@ -256,7 +256,7 @@ function getValue(range, func, id, forceReload, success) {
                        setEvents();  // Set events when everything has been loaded
 
                        if (GLOBAL.currentDisplayedId != id) {
-                         updateValues(GLOBAL.currentDisplayedId);   // Refresh current displayed tab if displayed before events has been set
+                         updateValues(GLOBAL.currentDisplayedId, true);   // Refresh current displayed tab if displayed before events has been set
                        }
                      }
                    })
