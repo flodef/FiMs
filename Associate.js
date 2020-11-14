@@ -17,6 +17,16 @@
     updateAllValues();
 
     GLOBAL.userId = new URLSearchParams(location.search).get("id") ?? "";
+
+    google.script.run
+                 .withSuccessHandler(contents => { alert(contents); })
+                 .withFailureHandler(displayError)
+                 .getUserId();
+
+     google.script.run
+                  .withSuccessHandler(contents => { alert(contents); })
+                  .withFailureHandler(displayError)
+                  .setUserId("Toto");
   });
 
   function onKeyUp(e) {}
