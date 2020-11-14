@@ -7,6 +7,7 @@ GLOBAL.data = [];
 GLOBAL.formula = [];
 GLOBAL.loadingQueueCount = 0;
 GLOBAL.hasAlreadyUpdated = [];
+GLOBAL.tempInput = [];
 GLOBAL.currentLoadingId;
 GLOBAL.currentDisplayedId;
 
@@ -39,6 +40,16 @@ function updateAllValues() {
 
 function updateValues(id, forceReload, success) {
   getValue(GLOBAL.formula[id], updateTable, id, forceReload, success);
+}
+
+function openPopup(innerHTML) {
+  $("#popup").prop("innerHTML", innerHTML);
+  $(".contentOverlay").addClass("blur-filter");
+  displayElement('#popupOverlay', true);
+}
+
+function closePopup() {
+  displayElement('#popupOverlay', false, () => { $('.contentOverlay').removeClass('blur-filter');$('#mainFocus').focus(); });
 }
 
 function applyFilter(id, tableHTML) {
@@ -74,7 +85,7 @@ function getTableReadOnlyContent(content = "", isHeader, isDisabled, color) {
 
 function getTableEditableContent(id, content, range, precision, min, max) {
   return '<td align="center"><input class="auto" min="' + min + '" max="' + max + '"'
-       + getEditCellHandler(id, range, toValue(content), precision) + '"> €</input></td>';
+       + getEditCellHandler(toValue(content), id, range, precision) + '"> €</input></td>';
 }
 
 function getTableValidatableContent(id, content, range, expected) {
@@ -86,23 +97,24 @@ function getTableValidatableContent(id, content, range, expected) {
        + '</div></div></td>';
 }
 
-function getEditCellHandler(id, range, expected, precision = 0) {
-  return ' onfocusout="' + getUpdateContent(id, range, expected) + '"'
-       + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27) { this.value = \'' + expected + '\'; } autoAdaptWidth(this, ' + precision + ');"'
+function getEditCellHandler(expected, id, range, precision = 0) {
+  return ' onfocusout="' + (range ? getUpdateContent(id, range, expected) : '') + '"'
+       + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27)'
+       + ' { this.value = \'' + expected + '\'; GLOBAL.tempInput[this.id] = \'' + expected + '\';} autoAdaptWidth(this, ' + precision + ');"'
        + ' oninput="autoAdaptWidth(this, ' + precision + ');" type="text" value="' + expected + '"'
 }
 
 function getUpdateContent(id, range, expected) {
   return 'if (this.value != \'' + expected + '\') '
        + '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]'
-       + (id ? id  != GLOBAL.settings ? ', () => updateValues(\'' + id + '\', true)'
+       + (id ? id != GLOBAL.settings ? ', () => updateValues(\'' + id + '\', true)'
        : ', () => getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues)'
        : '') + '); }';
 }
 
 function getSubTableTitle(id, title, range) {
-  return '<tr><td colspan="10"><input class="tableTitle auto" max="30" style="font-size:16px;"'
-       + getEditCellHandler(id, range, title) + '"></input></td></tr>';
+  return '<tr><td colspan="10"><input class="tableTitle auto" maxLength="30" style="font-size:16px;"'
+       + getEditCellHandler(title, id, range) + '"></input></td></tr>';
 }
 
 function getTitle(id) {
@@ -205,23 +217,33 @@ function autoAdaptWidth(e, precision = 0) {
 
   // Filter the entered value through a regular expression if it's a number
   if (e.max && e.min) {
-    var maxLength = Math.max(String(e.min).length, String(e.max).length) + precision;
-    var val = parseFloat(e.value);
-    var patt = new RegExp("^" + (e.min < 0 ? e.max < 0 ? "-+" : "-?" : "") + "([0-9]*$"
+    const maxLength = Math.max(String(e.min).length, String(e.max).length) + precision;
+    const patt = new RegExp("^" + (e.min < 0 ? e.max < 0 ? "-+" : "-?" : "") + "([0-9]*$"
       + (precision > 0 ? "|[0-9]+\\.?[0-9]{0," + precision + "}$" : "") + ")");
+    var val = parseFloat(e.value);
     while (e.value && (!patt.test(e.value) ||
       (!isNaN(val) && (val > e.max || val < e.min || val * Math.pow(10, precision) % 1 !== 0 || String(e.value).length > maxLength)))) {
       e.value = e.value.slice(0, -1);
-      var val = parseFloat(e.value);
+      val = parseFloat(e.value);
     }
-  } else if (e.max) {
-    var patt = new RegExp("^\\w{0," + e.max+ "}$");
-    while (e.value && !patt.test(e.value)) {
-      e.value = e.value.slice(0, -1);
+  } else if (e.maxLength || e.minlength) {
+    const id = e.id;
+    const minlength = e.minlength ?? 3;
+    const maxLength = e.maxLength ?? 30;
+    if (e.value.length < minlength && GLOBAL.tempInput[id] && GLOBAL.tempInput[id].length >= minlength) {
+      e.value = GLOBAL.tempInput[id];
+    } else {
+      var patt = new RegExp("^\\w{0," + maxLength + "}$");
+      while (e.value && !patt.test(e.value)) {
+        e.value = e.value.slice(0, -1);
+      }
+      GLOBAL.tempInput[id] = e.value;
     }
   }
 
-  e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
+  if (!e.placeholder) {
+    e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
+  }
 }
 
 function selectName(e, index) {

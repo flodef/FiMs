@@ -28,6 +28,7 @@
   // GLOBAL.rebalanceButtonToolTip = "Rebalance";
   // GLOBAL.showAllButtonToolTip = "Show all";
   // GLOBAL.requestedAllocation = "Requested allocation";
+  GLOBAL.userId;
 
 //THIS PAGE SHORTENED URL : https://bit.ly/3eiucSP
 
@@ -57,6 +58,8 @@
     displayElement(".tabContent", false, 0);
 
     updateAllValues();
+
+    $(document).ready(() => $("#mainFocus").focus());   // Set the main focus (replace autofocus attribute)
   });
 
   function updateTable(id, contents) {
@@ -100,7 +103,15 @@
   function connect() {
     var closing = 'displayElement(\'#popupOverlay\', false, () => { $(\'.contentOverlay\').removeClass(\'blur-filter\');$(\'#mainFocus\').focus(); });';
 
-    var tableHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
+    // var innerHTML = '<span class="closebtn" onclick="' + closing + '">&times;</span>';
+    var innerHTML = '<div align="center" style="margin:15px 0px 0px 0px;">'
+      + '<h2 style="cursor:default">Veuillez saisir votre identifiant :</h2>'
+      + '<div class="tooltip">'
+      + '<input id="userId" size="10" minlength="3" maxLength="10" type="text" placeholder="Identifiant"'
+      + getEditCellHandler("") + ' style="width:104px;text-align:center">'
+      + '<span class="tooltiptext">Echap pour effacer la saisie<br>Entrée pour valider</span></div>'
+      + '<br><br><button id="userIdButton" style="margin:0px 5px 0px 5px; width:62px" onclick="closePopup()">CANCEL</button>'
+      + '</div>';
     // for (var i = 0; i < contents.length; i++) {
     //   tableHTML += '<div ' + (i != 0 ? 'class="hidden"' : '') + 'id="rebal' + i + '">';
     //   tableHTML += '<table>';
@@ -134,11 +145,12 @@
     //   tableHTML += '</div>';
     // }
 
-    $("#popup").prop("innerHTML", tableHTML);
+    openPopup(innerHTML);
 
-    $('.contentOverlay').addClass("blur-filter");
-    displayElement('#popupOverlay', true);
+    $("#userId").keyup((event) => { if (event.keyCode == 13) { closePopup(); } $("#userIdButton").html($("#userId").val() ? "OK" : "CANCEL") });
+    $("#userId").focus();
   }
+
 
 
   // function updateDashboardTable(id, contents) {

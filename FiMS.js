@@ -53,6 +53,8 @@
     displayElement(".tabContent", false, 0);
 
     getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues);
+
+    $(document).ready(() => $("#mainFocus").focus());   // Set the main focus (replace autofocus attribute)
   });
 
   function rebalanceStocks() {
