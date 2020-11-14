@@ -31,30 +31,9 @@
    * Run initializations on web app load.
    */
   $(() => {
-    jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
-
-    displayElement('.contentOverlay', true, 0);
-    displayElement('.actionButton', false, 0);
-    // $('.actionButton').prop('disabled', true);
-    animateLoaderBar();
-
-    $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
-    $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
-
-    var tabContainerHTML = "";
-    for (var i = 0; i < GLOBAL.displayId.length; ++i) {
-      var id = GLOBAL.displayId[i];
-      GLOBAL.formula[id] = GLOBAL.displayFormula[i];
-      var tableHTML = getTableTitle(id, true);
-      setTable(id, tableHTML);
-      tabContainerHTML += getTitle(id);
-    }
-    setTabContainer(tabContainerHTML);
-    displayElement(".tabContent", false, 0);
+    init();
 
     getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues);
-
-    $(document).ready(() => $("#mainFocus").focus());   // Set the main focus (replace autofocus attribute)
   });
 
   function rebalanceStocks() {

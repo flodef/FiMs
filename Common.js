@@ -11,6 +11,32 @@ GLOBAL.tempInput = [];
 GLOBAL.currentLoadingId;
 GLOBAL.currentDisplayedId;
 
+function init() {
+  jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
+
+  displayElement('.contentOverlay', true, 0);
+  displayElement('.actionButton', false, 0);
+
+  animateLoaderBar();
+
+  $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
+  $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
+
+  var tabContainerHTML = "";
+  for (var i = 0; i < GLOBAL.displayId.length; ++i) {
+    var id = GLOBAL.displayId[i];
+    GLOBAL.formula[id] = GLOBAL.displayFormula[i];
+    var tableHTML = getTableTitle(id, true);
+    setTable(id, tableHTML);
+    tabContainerHTML += getTitle(id);
+  }
+  setTabContainer(tabContainerHTML);
+  displayElement(".tabContent", false, 0);
+
+
+  $(document).ready(() => $("#mainFocus").focus());   // Set the main focus (replace autofocus attribute)
+}
+
 function animateLoaderBar() {
   $("#loaderBar").prop("innerHTML", "<span></span>");
   $("#loaderBar > span")
@@ -101,7 +127,7 @@ function getEditCellHandler(expected, id, range, precision = 0) {
   return ' onfocusout="' + (range ? getUpdateContent(id, range, expected) : '') + '"'
        + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27)'
        + ' { this.value = \'' + expected + '\'; GLOBAL.tempInput[this.id] = \'' + expected + '\';} autoAdaptWidth(this, ' + precision + ');"'
-       + ' oninput="autoAdaptWidth(this, ' + precision + ');" type="text" value="' + expected + '"'
+       + ' type="text" value="' + expected + '"'
 }
 
 function getUpdateContent(id, range, expected) {

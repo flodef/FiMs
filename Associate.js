@@ -1,33 +1,9 @@
-  // GLOBAL.cost = "COST";
-  // GLOBAL.approv = "APPROVISIONNEMENT";
-  // GLOBAL.dummy = "XXXXXX";
-  // GLOBAL.dataPreloadRowLimit = 10;
-  // GLOBAL.timeBetweenReload = 60;
-  // GLOBAL.histoIdCol = 7;
-  // GLOBAL.rebalCol = 18;
-  // GLOBAL.tendencyCol = 22;
+  GLOBAL.account = "account";
+  GLOBAL.personal = "personal";
   GLOBAL.faq = "FAQ";
-  // GLOBAL.dashboard = "dashboard";
-  // GLOBAL.investment = "investment";
-  // GLOBAL.historic = "historic";
-  // GLOBAL.evolution = "evolution";
-  // GLOBAL.settings = "settings";
-  // GLOBAL.account = "account";
   GLOBAL.faqFormula = "FAQ!A:B";
-  // GLOBAL.dashboardFormula = "Dashboard!A:B";
-  // GLOBAL.investmentFormula = "Investment!A:AT";
-  // GLOBAL.historicFormula = restrainFormula("Historic!A:J");
-  // GLOBAL.evolutionFormula = restrainFormula("Evolution!A:J");
-  // GLOBAL.resultFormula = "Result!A:H";
-  // GLOBAL.accountFormula = "Account!A:L";
-  // GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
-  // GLOBAL.settingsFormula = "Settings!A:F";
-  // GLOBAL.allocationFormula = "Allocation!B14";
   GLOBAL.displayId = [GLOBAL.faq];
   GLOBAL.displayFormula = [GLOBAL.faqFormula];
-  // GLOBAL.rebalanceButtonToolTip = "Rebalance";
-  // GLOBAL.showAllButtonToolTip = "Show all";
-  // GLOBAL.requestedAllocation = "Requested allocation";
   GLOBAL.userId;
 
 //THIS PAGE SHORTENED URL : https://bit.ly/3eiucSP
@@ -36,38 +12,19 @@
    * Run initializations on web app load.
    */
   $(() => {
-    jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
-
-    displayElement('.contentOverlay', true, 0);
-    displayElement('.actionButton', true, 0);
-
-    animateLoaderBar();
-
-    $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
-    // $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
-
-    var tabContainerHTML = "";
-    for (var i = 0; i < GLOBAL.displayId.length; ++i) {
-      var id = GLOBAL.displayId[i];
-      GLOBAL.formula[id] = GLOBAL.displayFormula[i];
-      var tableHTML = getTableTitle(id, true);
-      setTable(id, tableHTML);
-      tabContainerHTML += getTitle(id);
-    }
-    setTabContainer(tabContainerHTML);
-    displayElement(".tabContent", false, 0);
+    init();
 
     updateAllValues();
 
-    $(document).ready(() => $("#mainFocus").focus());   // Set the main focus (replace autofocus attribute)
+    GLOBAL.userId = new URLSearchParams(location.search).get("id") ?? "";
   });
 
+  function onKeyUp(e) {}
+
   function updateTable(id, contents) {
-    var fn = id == GLOBAL.faq ? () => updateFaqTable(id, contents)
-           // : id == GLOBAL.dashboard ? () => updateDashboardTable(id, contents)
-           // : id == GLOBAL.investment ? () => updateInvestmentTable(id, contents)
-           // : id == GLOBAL.historic ? () => updateHistoricTable(id, contents)
-           // : id == GLOBAL.evolution ? () => updateEvolutionTable(id, contents)
+    var fn = id == GLOBAL.account ? () => updateAccountTable(id, contents)
+           : id == GLOBAL.personal ? () => updatePersonalTable(id, contents)
+           : id == GLOBAL.faq ? () => updateFaqTable(id, contents)
            : displayError("Update table id not recognised: " + id, false);
     fn();
   }
@@ -97,6 +54,7 @@
     if (isFirstLoading) {
       displayElement("#loaderBar", false, 0); // Hide the loader bar
       openTab(id, true);                      // Activate first tab as open by default
+      displayElement("#connectButton", true); // Show the connect button
     }
   }
 
@@ -107,10 +65,10 @@
     var innerHTML = '<div align="center" style="margin:15px 0px 0px 0px;">'
       + '<h2 style="cursor:default">Veuillez saisir votre identifiant :</h2>'
       + '<div class="tooltip">'
-      + '<input id="userId" size="10" minlength="3" maxLength="10" type="text" placeholder="Identifiant"'
-      + getEditCellHandler("") + ' style="width:104px;text-align:center">'
+      + '<input id="userId" size="10" minlength="3" maxLength="10" placeholder="Identifiant"'
+      + getEditCellHandler(GLOBAL.userId) + ' style="width:104px;text-align:center">'
       + '<span class="tooltiptext">Echap pour effacer la saisie<br>Entrée pour valider</span></div>'
-      + '<br><br><button id="userIdButton" style="margin:0px 5px 0px 5px; width:62px" onclick="closePopup()">CANCEL</button>'
+      + '<br><br><button id="userIdButton" style="margin:0px 5px 0px 5px; width:62px" onclick="setId()"></button>'
       + '</div>';
     // for (var i = 0; i < contents.length; i++) {
     //   tableHTML += '<div ' + (i != 0 ? 'class="hidden"' : '') + 'id="rebal' + i + '">';
@@ -147,11 +105,16 @@
 
     openPopup(innerHTML);
 
-    $("#userId").keyup((event) => { if (event.keyCode == 13) { closePopup(); } $("#userIdButton").html($("#userId").val() ? "OK" : "CANCEL") });
+    $("#userId").keyup((event) => { if (event.keyCode == 13) { setId(); } $("#userIdButton").html($("#userId").val() ? "OK" : "CANCEL") });
+    $("#userId").keyup();
     $("#userId").focus();
   }
 
-
+  function setId() {
+    GLOBAL.userId = $("#userId").val();
+    window.history.pushState('', '', GLOBAL.userId ? '?id=' + GLOBAL.userId : '');
+    closePopup();
+  }
 
   // function updateDashboardTable(id, contents) {
   //   var settings = GLOBAL.data[GLOBAL.settings];

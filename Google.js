@@ -49,6 +49,24 @@ class Run {
       this.sh(this._getData(range));
     }
   }
+  async getSheetValuesWithFilter(range, filter, column = 0) {
+    var content = [];
+    var temp = getSheetValues(range);
+
+    content.push(temp[0]);
+    for (var i = 1; i < temp.length; ++i) {
+      if (temp[i][column] == filter) {
+        var filterRow = [];
+        for (var j = 0; j < temp[i].length; ++j) {
+          filterRow.push(temp[i][j]);
+        }
+        content.push(filterRow);
+      }
+    }
+
+    return content;
+  }
+
   async setSheetValues(range, values) { this.sh(); }
   async clearSheetValues(range) { this.sh(); }
   async insertRows(sheetId, values, range) { this.sh(); }
