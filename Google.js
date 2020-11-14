@@ -61,7 +61,34 @@ class Run {
       this.#fh(error);
     }
   }
-  async getSheetValues(range) {
+  async getSheetValues(range, filter, column = 0) {
+    var content = this.#getSheetValues(range);
+    if (filter) {
+      var temp = content;
+
+      content = [];
+      content.push(temp[0]);
+      for (var i = 1; i < temp.length; ++i) {
+        if (temp[i][column] == filter) {
+          var filterRow = [];
+          for (var j = 0; j < temp[i].length; ++j) {
+            filterRow.push(temp[i][j]);
+          }
+          content.push(filterRow);
+        }
+      }
+    }
+
+    return content;
+  }
+
+  async setSheetValues(range, values) { this.#sh(); }
+  async clearSheetValues(range) { this.#sh(); }
+  async insertRows(sheetId, values, range) { this.#sh(); }
+  async deleteRows(sheetId, startIndex, endIndex) { this.#sh(); }
+  async sortColumn(sheetId, index, descending) { this.#sh(); }
+
+  async #getSheetValues(range) {
     if (!Run.#workbook) {
       var url = "Data/Finance Manager Spreadsheet.xlsx";
       // var url  = "https://rawgit.com/flodef/FM/master/Data/Finance Manager Spreadsheet.xlsx";
@@ -82,29 +109,6 @@ class Run {
       this.#sh(this.#getData(range));
     }
   }
-  async getSheetValuesWithFilter(range, filter, column = 0) {
-    var content = [];
-    var temp = getSheetValues(range);
-
-    content.push(temp[0]);
-    for (var i = 1; i < temp.length; ++i) {
-      if (temp[i][column] == filter) {
-        var filterRow = [];
-        for (var j = 0; j < temp[i].length; ++j) {
-          filterRow.push(temp[i][j]);
-        }
-        content.push(filterRow);
-      }
-    }
-
-    return content;
-  }
-
-  async setSheetValues(range, values) { this.#sh(); }
-  async clearSheetValues(range) { this.#sh(); }
-  async insertRows(sheetId, values, range) { this.#sh(); }
-  async deleteRows(sheetId, startIndex, endIndex) { this.#sh(); }
-  async sortColumn(sheetId, index, descending) { this.#sh(); }
 
   #getData(range) {
     var a = range.split("!");

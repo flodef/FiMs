@@ -21,8 +21,11 @@
   GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
   GLOBAL.settingsFormula = "Settings!A:F";
   GLOBAL.allocationFormula = "Allocation!B14";
-  GLOBAL.displayId = [GLOBAL.dashboard, GLOBAL.investment, GLOBAL.historic, GLOBAL.evolution];
-  GLOBAL.displayFormula = [GLOBAL.dashboardFormula, GLOBAL.investmentFormula, GLOBAL.historicFormula, GLOBAL.evolutionFormula];
+  GLOBAL.displayData =
+  { "dashboard": { formula:GLOBAL.dashboardFormula },
+    "investment": { formula:GLOBAL.investmentFormula},
+    "historic": { formula:GLOBAL.historicFormula},
+    "evolution": { formula:GLOBAL.evolutionFormula }];
   GLOBAL.rebalanceButtonToolTip = "Rebalance";
   GLOBAL.showAllButtonToolTip = "Show all";
   GLOBAL.requestedAllocation = "Requested allocation";

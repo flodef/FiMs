@@ -4,12 +4,12 @@
 
 window.GLOBAL = {};
 GLOBAL.data = [];
-GLOBAL.formula = [];
 GLOBAL.loadingQueueCount = 0;
 GLOBAL.hasAlreadyUpdated = [];
 GLOBAL.tempInput = [];
 GLOBAL.currentLoadingId;
 GLOBAL.currentDisplayedId;
+GLOBAL.displayId;
 
 function init() {
   jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
@@ -22,10 +22,11 @@ function init() {
   $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
   $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
+  GLOBAL.displayId = Object.keys(GLOBAL.displayData);   // Set the id in a normal array
+
   var tabContainerHTML = "";
   for (var i = 0; i < GLOBAL.displayId.length; ++i) {
     var id = GLOBAL.displayId[i];
-    GLOBAL.formula[id] = GLOBAL.displayFormula[i];
     var tableHTML = getTableTitle(id, true);
     setTable(id, tableHTML);
     tabContainerHTML += getTitle(id);
@@ -49,10 +50,9 @@ function openTab(id, isFirstLoading) {
   if (GLOBAL.currentDisplayedId != id) {
     GLOBAL.currentDisplayedId = id;
     GLOBAL.displayId.forEach(id => displayElement("#" + id + "Div", false, 0)); // Hide all tab content
-    // $(".tabLinks").each((i, item) => $(item).removeClass("active"));            // Remove the class "active" from all tabLinks"
-    $(".tabLinks").removeClass("active");                                       // Remove the class "active" from all tabLinks"
-    displayElement("#" + id + "Div", true);                                     // Show the current tab
-    $("#" + id + "Button").addClass("active");                                  // Add an "active" class to the button that opened the tab
+    $(".tabLinks").removeClass("active");                                          // Remove the class "active" from all tabLinks"
+    displayElement("#" + id + "Div", true);                                        // Show the current tab
+    $("#" + id + "Button").addClass("active");                                     // Add an "active" class to the button that opened the tab
 
     if (!isFirstLoading) {
       updateValues(id);
@@ -65,7 +65,7 @@ function updateAllValues() {
 }
 
 function updateValues(id, forceReload, success) {
-  getValue(GLOBAL.formula[id], updateTable, id, forceReload, success);
+  getValue(id, updateTable, forceReload, success);
 }
 
 function openPopup(innerHTML) {
@@ -134,7 +134,7 @@ function getUpdateContent(id, range, expected) {
   return 'if (this.value != \'' + expected + '\') '
        + '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]'
        + (id ? id != GLOBAL.settings ? ', () => updateValues(\'' + id + '\', true)'
-       : ', () => getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues)'
+       : ', () => getValue(GLOBAL.settings, null, true, updateAllValues)'
        : '') + '); }';
 }
 
@@ -282,11 +282,12 @@ function selectName(e, index) {
   displayElement("#transactionQuantityLabel", e.options[index].title);
 }
 
-function getValue(range, func, id, forceReload, success) {
+function getValue(id, func, forceReload, success) {
   if (!id || (id && $("#loading").text() == "")) {
     if (!id || forceReload || !GLOBAL.hasAlreadyUpdated[id]) {
       displayLoading(id, true);
 
+      const data = GLOBAL.displayData[id];
       google.script.run
                    .withSuccessHandler(contents => {
                      if (id) {
@@ -309,13 +310,13 @@ function getValue(range, func, id, forceReload, success) {
                      }
                    })
                    .withFailureHandler(displayError)
-                   .getSheetValues(range);
+                   .getSheetValues(data.formula, data.filter ? GLOBAL.userId : null, data.filter);
     }
   } else {
     ++GLOBAL.loadingQueueCount;
     setTimeout(() => {
       GLOBAL.loadingQueueCount = Math.max(GLOBAL.loadingQueueCount-1, 0);
-      getValue(range, func, id, forceReload, success)
+      getValue(id, func, forceReload, success)
     }, 100);
   }
 }
