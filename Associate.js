@@ -16,17 +16,10 @@
 
     updateAllValues();
 
-    GLOBAL.userId = new URLSearchParams(location.search).get("id") ?? "";
-
     google.script.run
-                 .withSuccessHandler(contents => { alert(contents); })
-                 .withFailureHandler(displayError)
-                 .getUserId();
-
-     google.script.run
-                  .withSuccessHandler(contents => { alert(contents); })
-                  .withFailureHandler(displayError)
-                  .setUserId("Toto");
+      .withSuccessHandler(contents => { GLOBAL.userId = contents; })
+      .withFailureHandler(displayError)
+      .getProperty("userId");
   });
 
   function onKeyUp(e) {}
@@ -122,7 +115,6 @@
 
   function setId() {
     GLOBAL.userId = $("#userId").val();
-    window.history.pushState('', '', GLOBAL.userId ? '?id=' + GLOBAL.userId : '');
     closePopup();
   }
 
