@@ -6,26 +6,18 @@
   GLOBAL.histoIdCol = 7;
   GLOBAL.rebalCol = 18;
   GLOBAL.tendencyCol = 22;
-  GLOBAL.dashboard = "dashboard";
-  GLOBAL.investment = "investment";
-  GLOBAL.historic = "historic";
-  GLOBAL.evolution = "evolution";
   GLOBAL.settings = "settings";
   GLOBAL.account = "account";
-  GLOBAL.dashboardFormula = "Dashboard!A:B";
-  GLOBAL.investmentFormula = "Investment!A:AT";
-  GLOBAL.historicFormula = restrainFormula("Historic!A:J");
-  GLOBAL.evolutionFormula = restrainFormula("Evolution!A:J");
   GLOBAL.resultFormula = "Result!A:H";
   GLOBAL.accountFormula = "Account!A:L";
   GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
-  GLOBAL.settingsFormula = "Settings!A:F";
   GLOBAL.allocationFormula = "Allocation!B14";
+  GLOBAL.settingsFormula = "Settings!A:F";
   GLOBAL.displayData =
-  { "dashboard": { formula:GLOBAL.dashboardFormula },
-    "investment": { formula:GLOBAL.investmentFormula},
-    "historic": { formula:GLOBAL.historicFormula},
-    "evolution": { formula:GLOBAL.evolutionFormula }];
+  { "dashboard": { id:"dashboard", formula:"Dashboard!A:B",updateTable:updateDashboardTable },
+    "investment": { id:"investment", formula:"Investment!A:AT",updateTable:updateInvestmentTable },
+    "historic": { id:"historic", formula:restrainFormula("Historic!A:J"),updateTable:updateHistoricTable },
+    "evolution": { id:"evolution", formula:restrainFormula("Evolution!A:J"),updateTable:updateEvolutionTable } };
   GLOBAL.rebalanceButtonToolTip = "Rebalance";
   GLOBAL.showAllButtonToolTip = "Show all";
   GLOBAL.requestedAllocation = "Requested allocation";
@@ -36,7 +28,7 @@
   $(() => {
     init();
 
-    getValue(GLOBAL.settingsFormula, null, GLOBAL.settings, true, updateAllValues);
+    getValue({ id:GLOBAL.settings, formula:GLOBAL.settingsFormula }, null, true, updateAllValues);
   });
 
   function rebalanceStocks() {
@@ -245,13 +237,16 @@
               google.script.run
                     .withSuccessHandler(function(contents) {
                       setValue("Account!A1", data);
-                      getValue(restrainFormula(GLOBAL.historicFormula, -1, -1), null, GLOBAL.historic, true,
-                        () => getValue(GLOBAL.resultFormula, compareResultData, GLOBAL.account, true, executionSuccess));
+
+                      const histoData = { id:GLOBAL.displayData.historic.id, formula:restrainFormula(GLOBAL.displayData.historic.formula, -1, -1) };
+                      const resultData = { id:GLOBAL.account, formula:GLOBAL.resultFormula };
+                      getValue(histoData, null, true, () => getValue(resultData, compareResultData, true, executionSuccess));
                     })
                     .withFailureHandler(displayError)
                     .clearSheetValues(GLOBAL.accountFormula);
             } else if (data[0][0] == "dateOp" && data[0][1] == "dateVal") {
-              getValue(GLOBAL.expHistoFormula, (id, contents) => insertExpensesRow(data, contents), GLOBAL.account, true, executionSuccess);
+              const data = { id:GLOBAL.account, formula:GLOBAL.expHistoFormula };
+              getValue(data, (id, contents) => insertExpensesRow(data, contents), true, executionSuccess);
             } else if (data[0][0] == "CA ID" && data[0][1] == "Produit") {
               insertDividendRow(data);
               executionSuccess();
@@ -338,7 +333,7 @@
         }
       }
     } else {
-      getValue(GLOBAL.resultFormula, compareResultData, null, true);
+      getValue({ formula:GLOBAL.resultFormula }, compareResultData, true);
     }
   }
 
@@ -512,15 +507,6 @@
     $('#transactionName').children('option').remove();
   }
 
-  function updateTable(id, contents) {
-    var fn = id == GLOBAL.dashboard ? () => updateDashboardTable(id, contents)
-           : id == GLOBAL.investment ? () => updateInvestmentTable(id, contents)
-           : id == GLOBAL.historic ? () => updateHistoricTable(id, contents)
-           : id == GLOBAL.evolution ? () => updateEvolutionTable(id, contents)
-           : displayError("Update table id not recognised: " + id, false);
-    fn();
-  }
-
   function updateDashboardTable(id, contents) {
     var settings = GLOBAL.data[GLOBAL.settings];
     var tableHTML = getTableTitle(id);
@@ -540,8 +526,8 @@
       }
       tableHTML += '</tr>';
     }
-    setTable(id, tableHTML);
-    activateButton(id);
+
+    processTable(id, tableHTML);
 
     // Set the scrolling panel
     tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
@@ -613,7 +599,7 @@
     addTransactionName("", GLOBAL.cost);
     addTransactionName("", GLOBAL.approv);
 
-    applyFilter(id, tableHTML);
+    processTable(id, tableHTML, true);
 
 //    $("#" + id + "Table th:first").addClass("sorttable_sorted");
     // sorttable.innerSortFunction.apply($("#" + id + "Table th:first")[0], []);
@@ -654,7 +640,7 @@
     }
     tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
 
-    applyFilter(id, tableHTML);
+    processTable(id, tableHTML, true);
 
     $(".validateButton").prop('disabled', false);
   }
@@ -675,5 +661,5 @@
     }
     tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
 
-    applyFilter(id, tableHTML);
+    processTable(id, tableHTML, true);
   }

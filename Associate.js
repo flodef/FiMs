@@ -1,16 +1,8 @@
-  GLOBAL.account = "account";
-  GLOBAL.historic = "historic";
-  GLOBAL.personal = "personal";
-  GLOBAL.faq = "FAQ";
-  GLOBAL.accountFormula = "!A:N";
-  GLOBAL.historicFormula = "AssociateHistoric!A:C"
-  GLOBAL.personalFormula = "Associate!A:V"
-  GLOBAL.faqFormula = "FAQ!A:B";
   GLOBAL.displayData =
-  { "account": { formula:GLOBAL.accountFormula },
-    "historic": { formula:GLOBAL.historicFormula, filter:1},
-    "personal": { formula:GLOBAL.personalFormula, filter:0},
-    "FAQ": { formula:GLOBAL.faqFormula } };
+  { "account": {id:"account", title:"Compte", formula:"!A:N", updateTable:updateAccountTable},
+    "historic": {id:"historic", title:"Historique", formula:"AssociateHistoric!A:C", updateTable:updateHistoricTable, filter:1},
+    "personal": {id:"personal", title:"Données perso", formula:"Associate!A:V", updateTable:updatePersonalTable, filter:0},
+    "FAQ": {id:"FAQ", formula:"FAQ!A:B", updateTable:updateFaqTable } };
   GLOBAL.userId;
 
 //THIS PAGE SHORTENED URL : https://bit.ly/3eiucSP
@@ -21,6 +13,8 @@
   $(() => {
     init();
 
+    GLOBAL.displayId.forEach(id => displayElement("#" + id + "Button", false, 0));  // Display/Hide all tab depending on the connection state
+
     google.script.run
       .withSuccessHandler(setUserId)
       .withFailureHandler(displayError)
@@ -29,25 +23,65 @@
 
   function onKeyUp(e) {}
 
-  function updateTable(id, contents) {
-    var fn = id == GLOBAL.account ? () => updateAccountTable(id, contents)
-           : id == GLOBAL.historic ? () => updateHistoricTable(id, contents)
-           : id == GLOBAL.personal ? () => updatePersonalTable(id, contents)
-           : id == GLOBAL.faq ? () => updateFaqTable(id, contents)
-           : displayError("Update table id not recognised: " + id, false);
-    fn();
-  }
-
   function updateAccountTable(id, contents) {
+    var tableHTML = getTableTitle(id);
+    if (contents) {
+      var row = contents.length;
+      var col = contents[0].length;
+      for (var i = 0; i < row; ++i) {
+        tableHTML += i==0 ? '<thead>' : '';
+        tableHTML += '<tr>';
+        for (var j = 0; j < col; ++j) {
+          tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+        }
+        tableHTML += '</tr>';
+        tableHTML += i==0 ? '</thead><tbody>'
+        : i==contents.length-1 ? '</tbody><tfoot>' : '';
+      }
+      tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
 
+    } else {
+      //TODO : set something
+    }
+    processTable(id, tableHTML);
   }
 
   function updateHistoricTable(id, contents) {
+    var row = contents.length;
+    var col = contents[0].length;
+    var tableHTML = getTableTitle(id);
+    for (var i = 0; i < row; ++i) {
+      tableHTML += i==0 ? '<thead>' : '';
+      tableHTML += '<tr>';
+      for (var j of [0, 2]) {
+        tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+      }
+      tableHTML += '</tr>';
+      tableHTML += i==0 ? '</thead><tbody>'
+      : i==contents.length-1 ? '</tbody><tfoot>' : '';
+    }
+    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
 
+    processTable(id, tableHTML);
   }
 
   function updatePersonalTable(id, contents) {
+    var row = contents.length;
+    var col = contents[0].length;
+    var tableHTML = getTableTitle(id);
+    for (var i = 0; i < row; ++i) {
+      tableHTML += i==0 ? '<thead>' : '';
+      tableHTML += '<tr>';
+      for (var j = 0; j < col; ++j) {
+        tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+      }
+      tableHTML += '</tr>';
+      tableHTML += i==0 ? '</thead><tbody>'
+      : i==contents.length-1 ? '</tbody><tfoot>' : '';
+    }
+    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
 
+    processTable(id, tableHTML);
   }
 
   function updateFaqTable(id, contents) {
@@ -69,8 +103,7 @@
     }
     tableHTML += '</div>';
 
-    setTable(id, tableHTML);
-    activateButton(id);
+    processTable(id, tableHTML);
 
     if (isFirstLoading) {
       displayElement("#loaderBar", false, 0); // Hide the loader bar
@@ -85,14 +118,15 @@
       + '<h2 style="cursor:default">Veuillez saisir votre identifiant :</h2>'
       + '<div class="tooltip">'
       + '<input id="userId" size="10" minlength="3" maxLength="10" placeholder="Identifiant"'
-      + getEditCellHandler(GLOBAL.userId) + ' style="width:104px;text-align:center">'
-      + '<span class="tooltiptext">Echap pour effacer la saisie<br>Entrée pour valider</span></div>'
+      + getEditCellHandler(GLOBAL.userId) + ' style="width:104px;text-align:center;line-height:45px">'
+      + '<span class="tooltiptext">Echap pour réinitialiser la saisie<br>Entrée pour valider</span></div>'
+      + '<span id="userErase" style="float:none;color:black;visibility:hidden" class="closebtn" onclick="$(\'#userId\').val(\'\');GLOBAL.tempInput[\'userId\']=\'\';$(\'#userId\').keyup();">&times;</span>'
       + '<br><br><button id="userIdButton" style="margin:0px 5px 0px 5px; width:62px" onclick="closeConnectionPopup()"></button>'
       + '</div>';
 
     openPopup(innerHTML);
 
-    $("#userId").keyup((event) => { if (event.keyCode == 13) { closeConnectionPopup(); } $("#userIdButton").html($("#userId").val() ? "OK" : "CANCEL") });
+    $("#userId").keyup((event) => { if (event.keyCode == 13) { closeConnectionPopup(); } $("#userIdButton").html($("#userId").val() ? "OK" : "CANCEL"); $("#userErase").css("visibility", $("#userId").val() ? "visible" : "hidden") });
     $("#userId").keyup();   // Trigger the Keyup event to display correct button text (OK or CANCEL)
     $("#userId").focus();
   }
@@ -106,21 +140,14 @@
     GLOBAL.userId = id;
     GLOBAL.displayId.forEach(id => displayElement("#" + id + "Button", GLOBAL.userId, 0));  // Display/Hide all tab depending on the connection state
     if (id) {
-      // GLOBAL.personal = "personal";
-      // getValue(id + GLOBAL.accountFormula, null, GLOBAL.account, true);
-      // getValue(id + GLOBAL.accountFormula, null, GLOBAL.account, true);
-      // getValue(id + GLOBAL.accountFormula, null, GLOBAL.account, true);
-      // getValue(range, func, id, forceReload, success)
-      // updateAllValues();
-
-      // function updateValues(id, forceReload, success) {
-      //   getValue(GLOBAL.formula[id], updateTable, id, forceReload, success);
-      // }
-
+      GLOBAL.displayData.account.formula = id + GLOBAL.displayData.account.formula;
+      updateAllValues();
     } else {    // No user
-      // GLOBAL.displayId.forEach(id => $("#" + id + "Div").prop("innerHTML", "")); // Clear all tab content
-      displayElement("#" + GLOBAL.faq + "Button", true, 0);                         // Display only the faq
-      updateValues(GLOBAL.faq);                                                     // Load only the faq
+      const faqId = GLOBAL.displayData.FAQ.id;
+      openTab(faqId);                                                            // Open first the faq tab (in case of disconnection)
+      GLOBAL.displayId.forEach(id => $("#" + id + "Div").prop("innerHTML", "")); // Clear all tab content
+      displayElement("#" + faqId + "Button", true, 0);                           // Display only the faq
+      updateValues(faqId);                                                       // Load only the faq
     }
   }
 
@@ -216,7 +243,7 @@
 //     addTransactionName("", GLOBAL.cost);
 //     addTransactionName("", GLOBAL.approv);
 //
-//     applyFilter(id, tableHTML);
+//     processTable(id, tableHTML);
 //
 // //    $("#" + id + "Table th:first").addClass("sorttable_sorted");
 //     // sorttable.innerSortFunction.apply($("#" + id + "Table th:first")[0], []);
@@ -257,7 +284,7 @@
   //   }
   //   tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
   //
-  //   applyFilter(id, tableHTML);
+  //   processTable(id, tableHTML);
   //
   //   $(".validateButton").prop('disabled', false);
   // }
@@ -278,5 +305,5 @@
   //   }
   //   tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
   //
-  //   applyFilter(id, tableHTML);
+  //   processTable(id, tableHTML);
   // }

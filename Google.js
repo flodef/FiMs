@@ -47,39 +47,46 @@ class Run {
             .setFaviconUrl('Img/Favicon.png');
   }
   getProperty(key) {
+    var p;
     try {
-      this.#sh(Run.#data[key]);
+      p = Run.#data[key];
     } catch (error) {
       this.#fh(error);
     }
+    this.#sh(p);
   }
   setProperty(key, value) {
     try {
       Run.#data[key] = value;
-      this.#sh();
     } catch (error) {
       this.#fh(error);
     }
+    this.#sh();
   }
   async getSheetValues(range, filter, column = 0) {
-    var content = this.#getSheetValues(range);
-    if (filter) {
-      var temp = content;
+    var content;
+    try {
+      content = await this.#getSheetValues(range);
+      if (filter) {
+        var temp = content;
 
-      content = [];
-      content.push(temp[0]);
-      for (var i = 1; i < temp.length; ++i) {
-        if (temp[i][column] == filter) {
-          var filterRow = [];
-          for (var j = 0; j < temp[i].length; ++j) {
-            filterRow.push(temp[i][j]);
+        content = [];
+        content.push(temp[0]);
+        for (var i = 1; i < temp.length; ++i) {
+          if (temp[i][column] == filter) {
+            var filterRow = [];
+            for (var j = 0; j < temp[i].length; ++j) {
+              filterRow.push(temp[i][j]);
+            }
+            content.push(filterRow);
           }
-          content.push(filterRow);
         }
       }
+    } catch (e) { // Don't send error in case that the sheet asked does not exist
+      content = null;
     }
 
-    return content;
+    this.#sh(content);
   }
 
   async setSheetValues(range, values) { this.#sh(); }
@@ -92,7 +99,6 @@ class Run {
     if (!Run.#workbook) {
       var url = "Data/Finance Manager Spreadsheet.xlsx";
       // var url  = "https://rawgit.com/flodef/FM/master/Data/Finance Manager Spreadsheet.xlsx";
-      var run = this;
 
       await fetch(url)
       .then((response) => {
@@ -103,29 +109,32 @@ class Run {
       }).then((buffer) => {
         var data = new Uint8Array(buffer);
         Run.#workbook = XLSX.read(data, {type:"array"});
-        run.#sh(run.#getData(range));
       }).catch(this.#fh);
-    } else {
-      this.#sh(this.#getData(range));
     }
+
+    return this.#getData(range);
   }
 
   #getData(range) {
     var a = range.split("!");
     var sheetName = a[0];
     var sheet = Run.#workbook.Sheets[sheetName];
-    var fullRange = sheet["!ref"];
-    var r = a.length >= 2 ? a[1] : fullRange;
-    var ar = r.split(':');
-    var sr = ar[0];
-    var er = ar[1] || ar[0];    // Set the starting range as the ending range if none (eg : sheet!A1)
-    var dr = XLSX.utils.decode_range(fullRange);
-    sr += !this.#hasNumber(sr) ? (dr.s.r+1) : "";
-    er += !this.#hasNumber(er) ? (dr.e.r+1) : "";
-    range = sr + ':' + er;
-    var array = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, range:range, defval:""});
+    if (sheet) {
+      var fullRange = sheet["!ref"];
+      var r = a.length >= 2 ? a[1] : fullRange;
+      var ar = r.split(':');
+      var sr = ar[0];
+      var er = ar[1] || ar[0];    // Set the starting range as the ending range if none (eg : sheet!A1)
+      var dr = XLSX.utils.decode_range(fullRange);
+      sr += !this.#hasNumber(sr) ? (dr.s.r+1) : "";
+      er += !this.#hasNumber(er) ? (dr.e.r+1) : "";
+      range = sr + ':' + er;
+      var array = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, range:range, defval:""});
 
-    return array;
+      return array;
+    } else {
+      return null;
+    }
   }
   #hasNumber(string) {
     return /\d/.test(string);

@@ -22,7 +22,7 @@ function init() {
   $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
   $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
-  GLOBAL.displayId = Object.keys(GLOBAL.displayData);   // Set the id in a normal array
+  GLOBAL.displayId = Object.keys(GLOBAL.displayData);   // Set the id to display in a normal array
 
   var tabContainerHTML = "";
   for (var i = 0; i < GLOBAL.displayId.length; ++i) {
@@ -49,10 +49,10 @@ function animateLoaderBar() {
 function openTab(id, isFirstLoading) {
   if (GLOBAL.currentDisplayedId != id) {
     GLOBAL.currentDisplayedId = id;
-    GLOBAL.displayId.forEach(id => displayElement("#" + id + "Div", false, 0)); // Hide all tab content
-    $(".tabLinks").removeClass("active");                                          // Remove the class "active" from all tabLinks"
-    displayElement("#" + id + "Div", true);                                        // Show the current tab
-    $("#" + id + "Button").addClass("active");                                     // Add an "active" class to the button that opened the tab
+    GLOBAL.displayId.forEach(id => displayElement("#" + id + "Div", false, 0));   // Hide all tab content
+    $(".tabLinks").removeClass("active");                                         // Remove the class "active" from all tabLinks"
+    displayElement("#" + id + "Div", true);                                       // Show the current tab
+    $("#" + id + "Button").addClass("active");                                    // Add an "active" class to the button that opened the tab
 
     if (!isFirstLoading) {
       updateValues(id);
@@ -65,7 +65,8 @@ function updateAllValues() {
 }
 
 function updateValues(id, forceReload, success) {
-  getValue(id, updateTable, forceReload, success);
+  const data = GLOBAL.displayData[id];
+  getValue(data, data.updateTable, forceReload, success);
 }
 
 function openPopup(innerHTML) {
@@ -78,11 +79,13 @@ function closePopup() {
   displayElement('#popupOverlay', false, () => { $('.contentOverlay').removeClass('blur-filter');$('#mainFocus').focus(); });
 }
 
-function applyFilter(id, tableHTML) {
+function processTable(id, tableHTML, shouldFilter) {
   setTable(id, tableHTML);
   activateButton(id);
   // sorttable.makeSortable($("#" + id + "Table").get(0));
-  filterTable(id);
+  if (shouldFilter) {
+    filterTable(id);
+  }
 }
 
 function getTableEditableCell(id, contents, index, range, precision, min, max) {
@@ -134,7 +137,7 @@ function getUpdateContent(id, range, expected) {
   return 'if (this.value != \'' + expected + '\') '
        + '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]'
        + (id ? id != GLOBAL.settings ? ', () => updateValues(\'' + id + '\', true)'
-       : ', () => getValue(GLOBAL.settings, null, true, updateAllValues)'
+       : ', () => getValue({ id:GLOBAL.settings, formula:GLOBAL.settingsFormula }, null, true, updateAllValues)'
        : '') + '); }';
 }
 
@@ -145,7 +148,7 @@ function getSubTableTitle(id, title, range) {
 
 function getTitle(id) {
   return '<button disabled id="' + id + 'Button" class="tabLinks" onclick="openTab(\'' + id + '\')">'
-        + id.charAt(0).toUpperCase() + id.slice(1) + '</button>';
+        + (GLOBAL.displayData[id].title ?? id.charAt(0).toUpperCase() + id.slice(1)) + '</button>';
 }
 
 function getTableTitle(id, disabled, tooltip, colspan) {
@@ -282,12 +285,12 @@ function selectName(e, index) {
   displayElement("#transactionQuantityLabel", e.options[index].title);
 }
 
-function getValue(id, func, forceReload, success) {
+function getValue(data, func, forceReload, success) {
+  const id = data.id;
   if (!id || (id && $("#loading").text() == "")) {
     if (!id || forceReload || !GLOBAL.hasAlreadyUpdated[id]) {
       displayLoading(id, true);
 
-      const data = GLOBAL.displayData[id];
       google.script.run
                    .withSuccessHandler(contents => {
                      if (id) {
@@ -310,13 +313,13 @@ function getValue(id, func, forceReload, success) {
                      }
                    })
                    .withFailureHandler(displayError)
-                   .getSheetValues(data.formula, data.filter ? GLOBAL.userId : null, data.filter);
+                   .getSheetValues(data.formula, data.filter != null ? GLOBAL.userId : null, data.filter);
     }
   } else {
     ++GLOBAL.loadingQueueCount;
     setTimeout(() => {
       GLOBAL.loadingQueueCount = Math.max(GLOBAL.loadingQueueCount-1, 0);
-      getValue(id, func, forceReload, success)
+      getValue(data, func, forceReload, success)
     }, 100);
   }
 }
@@ -329,17 +332,21 @@ function setValue(range, value, success) {
 }
 
 function filterTable(id, shouldReload) {
+  const histoId = GLOBAL.displayData.historic.id;
+  const investId = GLOBAL.displayData.investment.id;
+  const evolId = GLOBAL.displayData.evolution.id;
+
   var isChecked = $("#" + id + "Filter").is(':checked');
   var search = $('#' + id + 'Search').val() ? $('#' + id + 'Search').val().toUpperCase() : "";
-  var index = id == GLOBAL.historic ? 2 : 0;
+  var index = id == histoId ? 2 : 0;
   var searchFunc = item => $(item).children("td")[index] && $(item).children("td")[index].innerHTML.toUpperCase().includes(search);
-  var filterFunc = id == GLOBAL.investment ? (i, item) => (!isChecked || shouldRebalance($(item).children("td")[6] ? $(item).children("td")[6].innerHTML : null)) && searchFunc(item)
-                 : id == GLOBAL.historic || id == GLOBAL.evolution ? (i, item) => (isChecked || i < GLOBAL.dataPreloadRowLimit) && searchFunc(item)
+  var filterFunc = id == investId ? (i, item) => (!isChecked || shouldRebalance($(item).children("td")[6] ? $(item).children("td")[6].innerHTML : null)) && searchFunc(item)
+                 : id == histoId || id == evolId ? (i, item) => (isChecked || i < GLOBAL.dataPreloadRowLimit) && searchFunc(item)
                  : (i, item) => true;
   var displayFunc = (i, item) => { var fn = filterFunc(i, item) ? a => $(a).show() : a => $(a).hide(); fn(item); };
-  var loadFunc = (id == GLOBAL.historic || id == GLOBAL.evolution) && shouldReload && isChecked
-  ? null
-  : null;
+  var loadFunc = (id == histoId || id == evolId) && shouldReload && isChecked
+               ? null
+               : null;
 
   // $("#" + id + "Table tbody tr").each(displayFunc);
 
@@ -347,7 +354,7 @@ function filterTable(id, shouldReload) {
 }
 
 function refreshTotal(id) {
-  if (id == GLOBAL.historic) {
+  if (id == GLOBAL.displayData.historic.id) {
     var calculateFunc = (i, item) => {
       item = $(item).children("td");
       for (var j = 0; j < item.length; ++j) {
@@ -365,7 +372,7 @@ function refreshTotal(id) {
        + '<td title="' + toCurrency(a[6]/a[0]) + '">' + toCurrency(a[6]) + '</td>'
        + '<td title="' + toCurrency(a[7]/a[2]) + '">' + toCurrency(a[7]) + '</td>'
        + '<td title="' + toCurrency(a[8]/a[3]) + '">' + toCurrency(a[8]) + '</td>';
-  } else if (id == GLOBAL.evolution) {
+  } else if (id == GLOBAL.displayData.evolution.id) {
     var calculateFunc = (i, item) => {
       item = $(item).children("td");
       for (var j = 0; j < item.length; ++j) {
