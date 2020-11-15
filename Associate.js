@@ -41,26 +41,30 @@
       tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
 
     } else {
-      //TODO : set something
+      displayElement("#" + id + "Button", false, 0);  // Hide this tab if empty
     }
     processTable(id, tableHTML);
   }
 
   function updateHistoricTable(id, contents) {
-    var row = contents.length;
-    var col = contents[0].length;
-    var tableHTML = getTableTitle(id);
-    for (var i = 0; i < row; ++i) {
-      tableHTML += i==0 ? '<thead>' : '';
-      tableHTML += '<tr>';
-      for (var j of [0, 2]) {
-        tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+    if (contents && contents.length > 1) {
+      var row = contents.length;
+      var col = contents[0].length;
+      var tableHTML = getTableTitle(id);
+      for (var i = 0; i < row; ++i) {
+        tableHTML += i==0 ? '<thead>' : '';
+        tableHTML += '<tr>';
+        for (var j of [0, 2]) {
+          tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+        }
+        tableHTML += '</tr>';
+        tableHTML += i==0 ? '</thead><tbody>'
+        : i==contents.length-1 ? '</tbody><tfoot>' : '';
       }
-      tableHTML += '</tr>';
-      tableHTML += i==0 ? '</thead><tbody>'
-      : i==contents.length-1 ? '</tbody><tfoot>' : '';
+      tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
+    } else {
+      displayElement("#" + id + "Button", false, 0);  // Hide this tab if empty
     }
-    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
 
     processTable(id, tableHTML);
   }
