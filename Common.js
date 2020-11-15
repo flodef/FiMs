@@ -54,7 +54,7 @@ function openTab(id, isFirstLoading) {
     displayElement("#" + id + "Div", true);                                       // Show the current tab
     $("#" + id + "Button").addClass("active");                                    // Add an "active" class to the button that opened the tab
 
-    if (!isFirstLoading) {
+    if (!isFirstLoading && !GLOBAL.displayData[id].loadOnce) {
       updateValues(id);
     }
   }
@@ -104,12 +104,15 @@ function getTableReadOnlyCell(contents, index) {
 }
 
 function getTableReadOnlyContent(content = "", isHeader, isDisabled, color) {
-  var matches = /\(([^)]+)\)/.exec(content);
-  var value = matches ? matches[matches.length-1] : content;
-  var isCur = /(€|%|\$)/.test(value);
-  var color = getColor(value, isDisabled, isCur, color);
-  return isHeader ? '<th align="center">' + content + '</th>'
-                  : '<td align="center" style="color:' + color + '">' + content + '</td>';
+  if (!isHeader) {
+    var matches = /\(([^)]+)\)/.exec(content);
+    var value = matches ? matches[matches.length-1] : content;
+    var isCur = /(€|%|\$)/.test(value);
+    var color = getColor(value, isDisabled, isCur, color);
+    return '<td align="center" style="color:' + color + '">' + content + '</td>';
+  } else {
+    return '<th align="center">' + content + '</th>'
+  }
 }
 
 function getTableEditableContent(id, content, range, precision, min, max) {

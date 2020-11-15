@@ -1,8 +1,10 @@
+  GLOBAL.translation = "translation";
+  GLOBAL.translationFormula = "Translation!A:C";
   GLOBAL.displayData =
-  { "account": {id:"account", title:"Compte", formula:"!A:N", updateTable:updateAccountTable},
-    "historic": {id:"historic", title:"Historique", formula:"AssociateHistoric!A:C", updateTable:updateHistoricTable, filter:1},
-    "personal": {id:"personal", title:"Données perso", formula:"Associate!A:V", updateTable:updatePersonalTable, filter:0},
-    "FAQ": {id:"FAQ", formula:"FAQ!A:B", updateTable:updateFaqTable } };
+  { "account": {id:"account", title:"Compte", formula:"!A:N", updateTable:updateAccountTable, loadOnce:true},
+    "historic": {id:"historic", title:"Historique", formula:"AssociateHistoric!A:C", updateTable:updateHistoricTable, loadOnce:true, filter:1},
+    "personal": {id:"personal", title:"Données personnelles", formula:"Associate!A:V", updateTable:updatePersonalTable, loadOnce:true, filter:0},
+    "FAQ": {id:"FAQ", formula:"FAQ!A:B", updateTable:updateFaqTable, loadOnce:true } };
   GLOBAL.userId;
 
 //THIS PAGE SHORTENED URL : https://bit.ly/3eiucSP
@@ -32,7 +34,8 @@
         tableHTML += i==0 ? '<thead>' : '';
         tableHTML += '<tr>';
         for (var j = 0; j < col; ++j) {
-          tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+          const fn = i == 0 ? getTableHeader : getTableReadOnlyContent;
+          tableHTML += fn(contents[i][j]);
         }
         tableHTML += '</tr>';
         tableHTML += i==0 ? '</thead><tbody>'
@@ -55,7 +58,8 @@
         tableHTML += i==0 ? '<thead>' : '';
         tableHTML += '<tr>';
         for (var j of [0, 2]) {
-          tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+          const fn = i == 0 ? getTableHeader : getTableReadOnlyContent;
+          tableHTML += fn(contents[i][j]);
         }
         tableHTML += '</tr>';
         tableHTML += i==0 ? '</thead><tbody>'
@@ -77,7 +81,8 @@
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
       for (var j = 0; j < col; ++j) {
-        tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+        const fn = i == 0 ? getTableHeader : getTableReadOnlyContent;
+        tableHTML += fn(contents[i][j]);
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
@@ -144,16 +149,31 @@
     GLOBAL.userId = id;
     GLOBAL.displayId.forEach(id => displayElement("#" + id + "Button", GLOBAL.userId, 0));  // Display/Hide all tab depending on the connection state
     if (id) {
-      GLOBAL.displayData.account.formula = id + GLOBAL.displayData.account.formula;
-      updateAllValues();
+      GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1];
+      if (!GLOBAL.data[GLOBAL.translation]) {
+        getValue({ id:GLOBAL.translation, formula:GLOBAL.translationFormula }, null, true, updateAllValues)
+      } else {
+        updateAllValues();
+      }
     } else {    // No user
       const faqId = GLOBAL.displayData.FAQ.id;
       openTab(faqId);                                                            // Open first the faq tab (in case of disconnection)
       GLOBAL.displayId.forEach(id => $("#" + id + "Div").prop("innerHTML", "")); // Clear all tab content
       displayElement("#" + faqId + "Button", true, 0);                           // Display only the faq
-      updateValues(faqId);                                                       // Load only the faq
+      if (!GLOBAL.data[faqId]) {
+        updateValues(faqId);                                                       // Load only the faq
+      }
     }
   }
+
+  function getTableHeader(content) {
+    const a = GLOBAL.data[GLOBAL.translation];
+    const i = indexOf(a, content, 0, 1);
+
+    return '<th align="center"><div class="tooltip">' + a[i][1]
+      + '<span class="tooltiptext">' + a[i][2] + '</span></div></th>'
+  }
+
 
   // function updateDashboardTable(id, contents) {
   //   var settings = GLOBAL.data[GLOBAL.settings];
