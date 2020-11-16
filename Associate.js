@@ -26,16 +26,17 @@
   function onKeyUp(e) {}
 
   function updateAccountTable(id, contents) {
-    var tableHTML = getTableTitle(id);
     if (contents) {
       var row = contents.length;
       var col = contents[0].length;
+      var tableHTML = getTableTitle(id);
       for (var i = 0; i < row; ++i) {
         tableHTML += i==0 ? '<thead>' : '';
         tableHTML += '<tr>';
         for (var j = 0; j < col; ++j) {
           const fn = i == 0 ? getTableHeader : getTableReadOnlyContent;
-          tableHTML += fn(contents[i][j]);
+          const con = i != 0 ? translate(contents[i][j]) : contents[i][j];
+          tableHTML += fn(con);
         }
         tableHTML += '</tr>';
         tableHTML += i==0 ? '</thead><tbody>'
@@ -43,10 +44,11 @@
       }
       tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
 
+      processTable(id, tableHTML);
+      openTabAfterConnect(id);
     } else {
       displayElement("#" + id + "Button", false, 0);  // Hide this tab if empty
     }
-    processTable(id, tableHTML);
   }
 
   function updateHistoricTable(id, contents) {
@@ -59,18 +61,21 @@
         tableHTML += '<tr>';
         for (var j of [0, 2]) {
           const fn = i == 0 ? getTableHeader : getTableReadOnlyContent;
-          tableHTML += fn(contents[i][j]);
+          const con = i != 0 ? translate(contents[i][j]) : contents[i][j];
+          tableHTML += fn(con);
         }
         tableHTML += '</tr>';
         tableHTML += i==0 ? '</thead><tbody>'
         : i==contents.length-1 ? '</tbody><tfoot>' : '';
       }
       tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
+
+      processTable(id, tableHTML);
+      openTabAfterConnect(id);
     } else {
       displayElement("#" + id + "Button", false, 0);  // Hide this tab if empty
     }
 
-    processTable(id, tableHTML);
   }
 
   function updatePersonalTable(id, contents) {
@@ -82,7 +87,8 @@
       tableHTML += '<tr>';
       for (var j = 0; j < col; ++j) {
         const fn = i == 0 ? getTableHeader : getTableReadOnlyContent;
-        tableHTML += fn(contents[i][j]);
+        const con = i != 0 ? translate(contents[i][j]) : contents[i][j];
+        tableHTML += fn(con);
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
@@ -91,6 +97,7 @@
     tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
 
     processTable(id, tableHTML);
+    openTabAfterConnect(id);
   }
 
   function updateFaqTable(id, contents) {
@@ -116,7 +123,7 @@
 
     if (isFirstLoading) {
       displayElement("#loaderBar", false, 0); // Hide the loader bar
-      openTab(id, true);                      // Activate first tab as open by default
+      openTabAfterConnect(id)                 // Activate first tab as open by default
       displayElement("#connectButton", true); // Show the connect button
     }
   }
@@ -166,14 +173,25 @@
     }
   }
 
+  function openTabAfterConnect(id) {
+    if (!GLOBAL.currentDisplayedId || GLOBAL.currentDisplayedId == GLOBAL.displayData.FAQ.id) {
+      openTab(id);
+    }
+  }
+
   function getTableHeader(content) {
     const a = GLOBAL.data[GLOBAL.translation];
     const i = indexOf(a, content, 0, 1);
 
-    return '<th align="center"><div class="tooltip">' + a[i][1]
-      + '<span class="tooltiptext">' + a[i][2] + '</span></div></th>'
+    return '<th align="center"><div class="tooltip">' + (i ? a[i][1] : content)
+      + (i && a[i][2] ? '<span class="tooltiptext">' + a[i][2] + '</span>' : '') + '</div></th>'
   }
 
+  function translate(value) {
+    return value.includes("€") || value.includes("%") ? value.replace(',', ' ').replace(',', '.')
+      : value.includes("month") || value.includes("year") ? value.replace('months', 'mois').replace('month', 'mois').replace('year', 'an')
+      : value;
+  }
 
   // function updateDashboardTable(id, contents) {
   //   var settings = GLOBAL.data[GLOBAL.settings];
