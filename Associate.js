@@ -106,8 +106,6 @@
   }
 
   function updateFaqTable(id, contents) {
-    var isFirstLoading = $("#" + id + "Button").prop('disabled');
-
     var row = contents.length;
     var col = contents[0].length;
     var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col-1);
@@ -126,11 +124,8 @@
 
     processTable(id, tableHTML);
 
-    if (isFirstLoading) {
-      displayElement("#loaderBar", false, 0); // Hide the loader bar
-      openTabAfterConnect(id)                 // Activate first tab as open by default
-      displayElement("#connectButton", true); // Show the connect button
-    }
+    openTabAfterConnect(id)                 // Activate first tab as open by default
+    displayElement("#connectButton", true); // Show the connect button
   }
 
   function connect() {
@@ -181,6 +176,7 @@
 
   function openTabAfterConnect(id) {
     if (!GLOBAL.currentDisplayedId || GLOBAL.currentDisplayedId == GLOBAL.displayData.FAQ.id) {
+      displayElement("#loaderBar", false, 0); // Hide the loader bar
       openTab(id);
     }
   }
