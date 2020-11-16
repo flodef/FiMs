@@ -82,7 +82,7 @@
       for (var i of [0, 11, 12, 10, 13, 14, 15, 16, 17, 18, 19, 20, 21, 1, 2, 3, 4]) {
         tableHTML += '<tr>';
         tableHTML += getTranslatedContent(contents[0][i], true);
-        tableHTML += getTranslatedContent(contents[1][i]);
+        tableHTML += i!=21 ? getTranslatedContent(contents[1][i]) : getTableReadOnlyContent(getLink(contents[1][i]));
         //TODO : tableHTML += getTableEditableContent(id, contents[1][i], "Associate!A2");
         tableHTML += '</tr>';
       }
@@ -115,7 +115,7 @@
         var con = contents[i][j];
         var isQuestion = j == 0;
         var str = '';
-        con.split(' ').forEach(a => str += (a.slice(0, 4) == 'http' ? '<a href=' + a +  ' target="_blank">' + a + '</a>' : a) + ' ');
+        con.split(' ').forEach(a => str += getLink(a) + ' ');
         tableHTML += (isQuestion ? '<b>' : '') + str + (isQuestion ? '</b>' : '') + '<br>';
       }
       tableHTML += '<br><br>';
@@ -206,6 +206,10 @@
     const i = indexOf(a, content, 0, 1);
 
     return {text:i ? a[i][1] : null, tooltip:i ? a[i][2] : null};
+  }
+
+  function getLink(content) {
+    return content.slice(0, 4) == 'http' ? '<a href=' + content + ' target="_blank">' + content + '</a>' : content;
   }
 
   // function updateDashboardTable(id, contents) {

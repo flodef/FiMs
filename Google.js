@@ -144,8 +144,8 @@ class Run {
 class Template {
   static evaluate() {
     // SET HERE ALL THE STUFF RELATIVE TO GOOGLE APP SCRIPT INIT
-    var url = document.URL.split('/');
-    window.history.pushState('', '', url[url.length-1].split('?')[0]);   // Reset passed value to simulate google server behavior
+    // var url = document.URL.split('/');
+    // window.history.pushState('', '', url[url.length-1].split('?')[0]);   // Reset passed value to simulate google server behavior
     return Template;
   }
   static setTitle(title) {
