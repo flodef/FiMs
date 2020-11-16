@@ -136,15 +136,19 @@
       + '<input id="userId" size="10" minlength="3" maxLength="10" placeholder="Identifiant"'
       + getEditCellHandler(GLOBAL.userId) + ' style="width:104px;text-align:center;line-height:45px">'
       + '<span class="tooltiptext">Echap pour réinitialiser la saisie<br>Entrée pour valider</span></div>'
-      + '<span id="userErase" style="float:none;color:black;visibility:hidden" class="closebtn" onclick="$(\'#userId\').val(\'\');GLOBAL.tempInput[\'userId\']=\'\';$(\'#userId\').keyup();">&times;</span>'
+      + '<span id="userErase" style="float:none;color:black;visibility:hidden" class="closebtn" onclick="$(\'#userId\').val(\'\');GLOBAL.tempInput[\'userId\']=\'\';updateUserId();">&times;</span>'
       + '<br><br><button id="userIdButton" style="margin:0px 5px 0px 5px; width:62px" onclick="closeConnectionPopup()"></button>'
       + '</div>';
 
     openPopup(innerHTML);
 
     $("#userId").keyup((event) => { if (event.keyCode == 13) { closeConnectionPopup(); } $("#userIdButton").html($("#userId").val() ? "OK" : "CANCEL"); $("#userErase").css("visibility", $("#userId").val() ? "visible" : "hidden") });
+    updateUserId();
+  }
+
+  function updateUserId() {
     $("#userId").keyup();   // Trigger the Keyup event to display correct button text (OK or CANCEL)
-    $("#userId").focus();
+    $("#userId").focus();   // Set the focus to the input text
   }
 
   function closeConnectionPopup() {
