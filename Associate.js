@@ -165,10 +165,10 @@
     } else {    // No user
       const faqId = GLOBAL.displayData.FAQ.id;
       openTab(faqId);                                                            // Open first the faq tab (in case of disconnection)
-      GLOBAL.displayId.forEach(id => $("#" + id + "Div").prop("innerHTML", "")); // Clear all tab content
+      GLOBAL.displayId.forEach(id => { if (id != faqId) { $("#" + id + "Div").prop("innerHTML", ""); } }); // Clear all tab content except faq
       displayElement("#" + faqId + "Button", true, 0);                           // Display only the faq
-      if (!GLOBAL.data[faqId]) {
-        updateValues(faqId);                                                       // Load only the faq
+      if (!GLOBAL.data[faqId]) {                                                 // Don't load twice the faq
+        updateValues(faqId);                                                     // Load only the faq
       }
     }
   }
