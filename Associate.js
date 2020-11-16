@@ -75,22 +75,22 @@
   }
 
   function updatePersonalTable(id, contents) {
-    var row = contents.length;
-    var col = contents[0].length;
-    var tableHTML = getTableTitle(id);
-    for (var i of [0, 11, 12, 10, 13, 14, 15, 16, 17, 18, 19, 20, 21, 1, 2, 3, 4]) {
-      tableHTML += '<tr>';
-      tableHTML += getTranslatedContent(contents[0][i], true);
-      tableHTML += getTranslatedContent(contents[1][i]);
-      //TODO : tableHTML += getTableEditableContent(id, contents[1][i], "Associate!A2");
-      tableHTML += '</tr>';
-    }
-    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
-    processTable(id, tableHTML);
-    openTabAfterConnect(id);
-
-
     if (contents && contents.length > 1) {
+      var row = contents.length;
+      var col = contents[0].length;
+      var tableHTML = getTableTitle(id);
+      for (var i of [0, 11, 12, 10, 13, 14, 15, 16, 17, 18, 19, 20, 21, 1, 2, 3, 4]) {
+        tableHTML += '<tr>';
+        tableHTML += getTranslatedContent(contents[0][i], true);
+        tableHTML += getTranslatedContent(contents[1][i]);
+        //TODO : tableHTML += getTableEditableContent(id, contents[1][i], "Associate!A2");
+        tableHTML += '</tr>';
+      }
+      tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
+      processTable(id, tableHTML);
+      openTabAfterConnect(id);
+
+
       // Set the scrolling panel
       tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
       for (var i = 9; i >= 5; --i) {
