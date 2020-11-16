@@ -34,9 +34,7 @@
         tableHTML += i==0 ? '<thead>' : '';
         tableHTML += '<tr>';
         for (var j = 0; j < col; ++j) {
-          const fn = i == 0 ? getTableHeader : getTableReadOnlyContent;
-          const con = i != 0 ? translate(contents[i][j]) : contents[i][j];
-          tableHTML += fn(con);
+          tableHTML += getTranslatedContent(contents[i][j], i == 0);
         }
         tableHTML += '</tr>';
         tableHTML += i==0 ? '</thead><tbody>'
@@ -60,9 +58,7 @@
         tableHTML += i==0 ? '<thead>' : '';
         tableHTML += '<tr>';
         for (var j of [0, 2]) {
-          const fn = i == 0 ? getTableHeader : getTableReadOnlyContent;
-          const con = i != 0 ? translate(contents[i][j]) : contents[i][j];
-          tableHTML += fn(con);
+          tableHTML += getTranslatedContent(contents[i][j], i == 0);
         }
         tableHTML += '</tr>';
         tableHTML += i==0 ? '</thead><tbody>'
@@ -82,22 +78,31 @@
     var row = contents.length;
     var col = contents[0].length;
     var tableHTML = getTableTitle(id);
-    for (var i = 0; i < row; ++i) {
-      tableHTML += i==0 ? '<thead>' : '';
+    for (var i of [0, 11, 12, 10, 13, 14, 15, 16, 17, 18, 19, 20, 21, 1, 2, 3, 4]) {
       tableHTML += '<tr>';
-      for (var j = 0; j < col; ++j) {
-        const fn = i == 0 ? getTableHeader : getTableReadOnlyContent;
-        const con = i != 0 ? translate(contents[i][j]) : contents[i][j];
-        tableHTML += fn(con);
-      }
+      tableHTML += getTranslatedContent(contents[0][i], true);
+      tableHTML += getTranslatedContent(contents[1][i]);
+      //TODO : tableHTML += getTableEditableContent(id, contents[1][i], "Associate!A2");
       tableHTML += '</tr>';
-      tableHTML += i==0 ? '</thead><tbody>'
-      : i==contents.length-1 ? '</tbody><tfoot>' : '';
     }
     tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
-
     processTable(id, tableHTML);
     openTabAfterConnect(id);
+
+
+    if (contents && contents.length > 1) {
+      // Set the scrolling panel
+      tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
+      for (var i = 9; i >= 5; --i) {
+        tableHTML += '<tr>';
+        tableHTML += getTranslatedContent(contents[0][i]);
+        tableHTML += getTranslatedContent(contents[1][i]);
+        tableHTML += '</tr>';
+      }
+
+      tableHTML += '</table></marquee>';
+      $("#scrollDiv").prop("innerHTML", tableHTML);
+    }
   }
 
   function updateFaqTable(id, contents) {
@@ -179,18 +184,27 @@
     }
   }
 
-  function getTableHeader(content) {
+  function getTranslatedContent(content, isHeader)
+  {
+    const d = getTranslateData(content);
+
+    return getTableReadOnlyContent(content, isHeader).replace(content,
+      isHeader
+        ? '<div class="tooltip">' + (d.text ?? content) + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>'
+        : translate(content));
+  }
+
+  function translate(content) {
+    return content.includes("€") || content.includes("%") ? content.replace(',', ' ').replace('.', ',')
+      : content.includes("month") || content.includes("year") ? content.replace('months', 'mois').replace('month', 'mois').replace('year', 'an')
+      : getTranslateData(content).text ?? content;
+  }
+
+  function getTranslateData(content) {
     const a = GLOBAL.data[GLOBAL.translation];
     const i = indexOf(a, content, 0, 1);
 
-    return '<th align="center"><div class="tooltip">' + (i ? a[i][1] : content)
-      + (i && a[i][2] ? '<span class="tooltiptext">' + a[i][2] + '</span>' : '') + '</div></th>'
-  }
-
-  function translate(value) {
-    return value.includes("€") || value.includes("%") ? value.replace(',', ' ').replace(',', '.')
-      : value.includes("month") || value.includes("year") ? value.replace('months', 'mois').replace('month', 'mois').replace('year', 'an')
-      : value;
+    return {text:i ? a[i][1] : null, tooltip:i ? a[i][2] : null};
   }
 
   // function updateDashboardTable(id, contents) {
