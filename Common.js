@@ -133,7 +133,7 @@ function getEditCellHandler(expected, id, range, precision = 0) {
   return ' onfocusout="' + (range ? getUpdateContent(id, range, expected) : '') + '"'
        + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27)'
        + ' { this.value = \'' + expected + '\'; GLOBAL.tempInput[this.id] = \'' + expected + '\';} autoAdaptWidth(this, ' + precision + ');"'
-       + ' type="text" value="' + expected + '"'
+       + ' oninput="autoAdaptWidth(this, ' + precision + ');" type="text" value="' + expected + '"'
 }
 
 function getUpdateContent(id, range, expected) {

@@ -74,11 +74,7 @@ class Run {
         content.push(temp[0]);
         for (var i = 1; i < temp.length; ++i) {
           if (temp[i][column] == filter) {
-            var filterRow = [];
-            for (var j = 0; j < temp[i].length; ++j) {
-              filterRow.push(temp[i][j]);
-            }
-            content.push(filterRow);
+            content.push(temp[i]);
           }
         }
       }
