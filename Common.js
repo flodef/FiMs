@@ -88,9 +88,9 @@ function processTable(id, tableHTML, shouldFilter) {
   }
 }
 
-function getTableEditableCell(id, contents, index, range, precision, min, max) {
+function getTableEditableCell(contents, data) {
   return getTableReadOnlyContent(contents[index-1][0], false)
-       + getTableEditableContent(id, contents[index-1][1], range, precision, min, max);
+       + getTableEditableContent(contents[index-1][1], data);
 }
 
 function getTableValidatableCell(id, contents, index, range, expected) {
@@ -115,9 +115,30 @@ function getTableReadOnlyContent(content = "", isHeader, isDisabled, color) {
   }
 }
 
-function getTableEditableContent(id, content, range, precision, min, max) {
-  return '<td align="center"><input class="auto" min="' + min + '" max="' + max + '"'
-       + getEditCellHandler(toValue(content), id, range, precision) + '"> €</input></td>';
+function getTableEditableContent(content, data) {
+  var html = '';
+  var symbol = '';
+  if (data) {
+    var type = "text";
+    symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : "";
+    if (data.type == "number" || data.type == "euro" || data.type == "percent") {
+      const min = data.min ?? 0;
+      const max = data.max ?? 0;
+      data.precision = data.precision ?? (data.type == "euro" ? 2 : 0);
+      content = content ?? (data.required ? "0" : "");
+      html = 'min="' + min + '" max="' + max + '"';
+    } else if (data.type == "date") {
+      type = "date";
+    } else {
+      html = ' minlength="' + data.minlength + '" maxlength="' + data.maxLength + '"';
+    }
+    html += ' type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
+         + ' data-type="' + (data.type ?? 'text') + '" data-precision="' + (data.precision ?? '') + '"'
+         + (data.required ? ' required' : '') + ' pattern="' + (data.pattern ?? '') + '"';
+  }
+
+  return '<td align="center"><input class="auto"' + html
+       + getEditCellHandler(toValue(content), data) + '">' + symbol + '</input></td>';
 }
 
 function getTableValidatableContent(id, content, range, expected) {
@@ -129,11 +150,11 @@ function getTableValidatableContent(id, content, range, expected) {
        + '</div></div></td>';
 }
 
-function getEditCellHandler(expected, id, range, precision = 0) {
-  return ' onfocusout="' + (range ? getUpdateContent(id, range, expected) : '') + '"'
+function getEditCellHandler(expected, data) {
+  return ' onfocusout="' + (data && data.id && data.range ? getUpdateContent(data.id, data.range, expected) : '') + '"'
        + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27)'
-       + ' { this.value = \'' + expected + '\'; GLOBAL.tempInput[this.id] = \'' + expected + '\';} autoAdaptWidth(this, ' + precision + ');"'
-       + ' oninput="autoAdaptWidth(this, ' + precision + ');" type="text" value="' + expected + '"'
+       + ' { this.value = \'' + expected + '\'; GLOBAL.tempInput[this.id] = \'' + expected + '\';} autoAdaptWidth(this);"'
+       + ' oninput="autoAdaptWidth(this);" type="text" value="' + expected + '"'
 }
 
 function getUpdateContent(id, range, expected) {
@@ -146,7 +167,7 @@ function getUpdateContent(id, range, expected) {
 
 function getSubTableTitle(id, title, range) {
   return '<tr><td colspan="10"><input class="tableTitle auto" maxLength="30" style="font-size:16px;"'
-       + getEditCellHandler(title, id, range) + '"></input></td></tr>';
+       + getEditCellHandler(title, {id:id, range:range}) + '"></input></td></tr>';
 }
 
 function getTitle(id) {
@@ -220,7 +241,7 @@ function setTable(id, tableHTML) {
 }
 
 function setEvents() {
-  $(".auto").each((i, item) => autoAdaptWidth(item, 3));
+  $(".auto").each((i, item) => autoAdaptWidth(item));
 
   $(".checkmark")
     .on("click", e => $(e.target).addClass('draw'))
@@ -242,38 +263,47 @@ function toggleItem(id, item, shouldDisplay) {
   displayElement(item, shouldDisplay, isCurrentId ? 1000 : 0)
 }
 
-function autoAdaptWidth(e, precision = 0) {
-  var size = e.style.fontSize ? e.style.fontSize : "13.33px";
-  var step = parseFloat(size)/1.8;
-  var index = 1;
+function autoAdaptWidth(e) {
+  var type = e.dataset.type;
 
   // Filter the entered value through a regular expression if it's a number
-  if (e.max && e.min) {
+  if (type == "number" || type == "euro" || type == "percent") {
+    const precision = e.dataset.precision ?? 0;
     const maxLength = Math.max(String(e.min).length, String(e.max).length) + precision;
-    const patt = new RegExp("^" + (e.min < 0 ? e.max < 0 ? "-+" : "-?" : "") + "([0-9]*$"
-      + (precision > 0 ? "|[0-9]+\\.?[0-9]{0," + precision + "}$" : "") + ")");
+    const pattern = e.pattern || "^" + (e.min < 0 ? e.max < 0 ? "-+" : "-?" : "") + "([0-9]" + (e.required ? '+' : '*') + "$"
+      + (precision > 0 ? "|[0-9]+\\.?[0-9]{0," + precision + "}$" : "") + ")";
+    const regexp = new RegExp(pattern);
     var val = parseFloat(e.value);
-    while (e.value && (!patt.test(e.value) ||
+    while (e.value && (!regexp.test(e.value) ||
       (!isNaN(val) && (val > e.max || val < e.min || val * Math.pow(10, precision) % 1 !== 0 || String(e.value).length > maxLength)))) {
       e.value = e.value.slice(0, -1);
       val = parseFloat(e.value);
     }
-  } else if (e.maxLength || e.minlength) {
+  } else if (type != "date") {
     const id = e.id;
-    const minlength = e.minlength ?? 3;
+    const minlength = e.required ? 3 : e.minlength ?? 0;
     const maxLength = e.maxLength ?? 30;
-    if (e.value.length < minlength && GLOBAL.tempInput[id] && GLOBAL.tempInput[id].length >= minlength) {
-      e.value = GLOBAL.tempInput[id];
-    } else {
-      var patt = new RegExp("^\\w{0," + maxLength + "}$");
-      while (e.value && !patt.test(e.value)) {
-        e.value = e.value.slice(0, -1);
+    const pattern = e.pattern
+      || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
+      : type == "iban" ? "^([A-Z]{2}[ \-]?[0-9]{2})(?=(?:[ \-]?[A-Z0-9]){9,30}$)((?:[ \-]?[A-Z0-9]{3,5}){2,7})([ \-]?[A-Z0-9]{1,3})?$"
+      : type == "url" ? "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
+      : "^\\w{0," + maxLength + "}$");
+
+      if (e.value.length < minlength && GLOBAL.tempInput[id] && GLOBAL.tempInput[id].length >= minlength) {
+        e.value = GLOBAL.tempInput[id];
+      } else {
+        const regexp = new RegExp(pattern);
+        while (e.value && !regexp.test(e.value)) {
+          e.value = e.value.slice(0, -1);
+        }
+        GLOBAL.tempInput[id] = e.value;
       }
-      GLOBAL.tempInput[id] = e.value;
     }
-  }
 
   if (!e.placeholder) {
+    var size = e.style.fontSize ? e.style.fontSize : "13.33px";
+    var step = parseFloat(size)/1.8;
+    var index = 1;
     e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
   }
 }

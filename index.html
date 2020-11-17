@@ -83,9 +83,9 @@
         <tr>
           <td>Name:     <select id="transactionName" onchange="selectName(this)"></select></td>
           <td style="width:150px;" id="transactionQuantityLabel">Quantity: <input id="transactionQuantity" class="auto" oninput="autoAdaptWidth(this)"
-              min="-20000" max="20000" type="number" placeholder="0"></td>
+              min="-20000" max="20000" type="text" data-type="number" value="0"></td>
           <td style="width:150px;" id="transactionValueLabel">   Value:    <input id="transactionValue"    class="auto" oninput="autoAdaptWidth(this)"
-              min="-100000" max="100000" type="number" placeholder="0">€</td>
+              min="-100000" max="100000" type="text" data-type="euro" value="0"> €</td>
           <td style="padding: 0px 10px 0px 10px;">
             <div class="tooltip">
               <input src="Img/Validate.png"

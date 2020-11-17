@@ -583,7 +583,7 @@
           && !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
         tableHTML += j != 12 || i == 0 || i == row-1
           ? getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color)
-          : getTableEditableContent(id, con, "Investment!M" + (i+1), 3, 0, toValue(con)*1.25);
+          : getTableEditableContent(con, {id:id, range:"Investment!M" + (i+1), precision:3, min:0, max:toValue(con)*1.25, type:"euro" });
         // tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color);
       }
       tableHTML += '</tr>';
