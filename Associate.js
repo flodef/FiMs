@@ -157,7 +157,7 @@
     var innerHTML = '<div align="center" style="margin:15px 0px 0px 0px;">'
       + '<h2 style="cursor:default">Veuillez saisir votre identifiant :</h2>'
       + '<div class="tooltip">'
-      + '<input id="userId" size="10" minlength="3" maxLength="10" placeholder="Identifiant"'
+      + '<input id="userId" size="10" minLength="3" maxLength="10" placeholder="Identifiant"'
       + getEditCellHandler(GLOBAL.userId) + ' style="width:104px;text-align:center;line-height:45px">'
       + '<span class="tooltiptext">Echap pour réinitialiser la saisie<br>Entrée pour valider</span></div>'
       + '<span id="userErase" style="float:none;color:black;visibility:hidden" class="closebtn" onclick="$(\'#userId\').val(\'\');GLOBAL.tempInput[\'userId\']=\'\';updateUserId();">&times;</span>'

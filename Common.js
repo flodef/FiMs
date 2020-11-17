@@ -6,7 +6,6 @@ window.GLOBAL = {};
 GLOBAL.data = [];
 GLOBAL.loadingQueueCount = 0;
 GLOBAL.hasAlreadyUpdated = [];
-GLOBAL.tempInput = [];
 GLOBAL.currentLoadingId;
 GLOBAL.currentDisplayedId;
 GLOBAL.displayId;
@@ -130,7 +129,7 @@ function getTableEditableContent(content, data) {
     } else if (data.type == "date") {
       type = "date";
     } else {
-      html = ' minlength="' + data.minlength + '" maxlength="' + data.maxLength + '"';
+      html = ' minLength="' + data.minLength + '" maxLength="' + data.maxLength + '"';
     }
     html += ' type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
          + ' data-type="' + (data.type ?? 'text') + '" data-precision="' + (data.precision ?? '') + '"'
@@ -151,9 +150,10 @@ function getTableValidatableContent(id, content, range, expected) {
 }
 
 function getEditCellHandler(expected, data) {
-  return ' onfocusout="' + (data && data.id && data.range ? getUpdateContent(data.id, data.range, expected) : '') + '"'
+  return ' onfocusout="const error = getElementValidity(this); if (error) { $(this).focus(); showSnackBar(error); } else { '
+       + (data && data.id && data.range ? getUpdateContent(data.id, data.range, expected) : '') + ' }"'
        + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27)'
-       + ' { this.value = \'' + expected + '\'; GLOBAL.tempInput[this.id] = \'' + expected + '\';} autoAdaptWidth(this);"'
+       + ' { this.value = \'' + expected + '\'; } autoAdaptWidth(this);"'
        + ' oninput="autoAdaptWidth(this);" type="text" value="' + expected + '"'
 }
 
@@ -166,7 +166,7 @@ function getUpdateContent(id, range, expected) {
 }
 
 function getSubTableTitle(id, title, range) {
-  return '<tr><td colspan="10"><input class="tableTitle auto" maxLength="30" style="font-size:16px;"'
+  return '<tr><td colspan="10"><input class="tableTitle auto" minLength="3" maxLength="30" style="font-size:16px;"'
        + getEditCellHandler(title, {id:id, range:range}) + '"></input></td></tr>';
 }
 
@@ -264,43 +264,7 @@ function toggleItem(id, item, shouldDisplay) {
 }
 
 function autoAdaptWidth(e) {
-  var type = e.dataset.type;
-
-  // Filter the entered value through a regular expression if it's a number
-  if (type != "date") {
-    if (type == "number" || type == "euro" || type == "percent") {
-      const minLength = e.required ? 1 : 0;
-      if (hasMinLength(e, minLength) {
-        const precision = e.dataset.precision ?? 0;
-        const maxLength = Math.max(String(e.min).length, String(e.max).length) + precision;
-        const pattern = e.pattern || "^" + (e.min < 0 ? e.max < 0 ? "-+" : "-?" : "") + "([0-9]" + (e.required ? '+' : '*') + "$"
-          + (precision > 0 ? "|[0-9]+\\.?[0-9]{0," + precision + "}$" : "") + ")";
-        const regexp = new RegExp(pattern);
-        var val = parseFloat(e.value);
-        while (e.value && (!regexp.test(e.value) ||
-          (!isNaN(val) && (val > e.max || val < e.min || val * Math.pow(10, precision) % 1 !== 0 || e.value.length > maxLength)))) {
-          e.value = e.value.slice(0, -1);
-          val = parseFloat(e.value);
-        }
-      }
-    } else {
-      const minlength = e.required ? 3 : e.minlength ?? 0;
-      if (hasMinLength(e, minLength) {
-        const maxLength = e.maxLength ?? 30;
-        const pattern = e.pattern
-          || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
-          : type == "iban" ? "^([A-Z]{2}[ \-]?[0-9]{2})(?=(?:[ \-]?[A-Z0-9]){9,30}$)((?:[ \-]?[A-Z0-9]{3,5}){2,7})([ \-]?[A-Z0-9]{1,3})?$"
-          : type == "url" ? "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
-          : "^\\w{0," + maxLength + "}$");
-        const regexp = new RegExp(pattern);
-        while (e.value && (!regexp.test(e.value) || e.value.length > maxLength)) {
-          e.value = e.value.slice(0, -1);
-        }
-      }
-    }
-
-    GLOBAL.tempInput[e.id] = e.value;  // Save correct value into temp storage in case it need to be restored
-  }
+  checkElement(e);
 
   if (!e.placeholder) {
     var size = e.style.fontSize ? e.style.fontSize : "13.33px";
@@ -310,14 +274,46 @@ function autoAdaptWidth(e) {
   }
 }
 
-function hasMinLength(e, minLength) {
-  const id = e.id;
-  const result = e.value.length < minlength && GLOBAL.tempInput[id] && GLOBAL.tempInput[id].length >= minlength)
-  if (result) {
-    e.value = GLOBAL.tempInput[id];
-  }
+function checkElement(e) {
+  const type = e.dataset.type;
 
-  return !result;
+  // Filter the entered value through a regular expression
+  if (type == "number" || type == "euro" || type == "percent") {
+    const min = parseFloat(e.min);
+    const max = parseFloat(e.max);
+    const precision = parseInt(e.dataset.precision) || 0;
+    const maxLength = Math.max(String(parseInt(min)).length, String(parseInt(max)).length) + precision;
+    const pattern = e.pattern || "^" + (min < 0 ? max < 0 ? "-+" : "-?" : "") + "([0-9]" + (e.required ? '+' : '*') + "$"
+      + (precision > 0 ? "|[0-9]+\\.?[0-9]{0," + precision + "}$" : "") + ")";
+    const regexp = new RegExp(pattern);
+    var val = parseFloat(e.value);
+    while (e.value && (!regexp.test(e.value) ||
+      (!isNaN(val) && (val > max || val * Math.pow(10, precision) % 1 !== 0 || e.value.length > maxLength)))) {
+      e.value = e.value.slice(0, -1);
+      val = parseFloat(e.value);
+    }
+  } else if (type != "date") {
+    const maxLength = parseInt(e.maxLength) ?? 30;
+    const pattern = e.pattern
+      || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
+      : type == "iban" ? "^([A-Z]{2}[ \-]?[0-9]{2})(?=(?:[ \-]?[A-Z0-9]){9,30}$)((?:[ \-]?[A-Z0-9]{3,5}){2,7})([ \-]?[A-Z0-9]{1,3})?$"
+      : type == "url" ? "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
+      : "^\\w{0," + maxLength + "}$");
+    const regexp = new RegExp(pattern);
+    while (e.value && (!regexp.test(e.value) || e.value.length > maxLength)) {
+      e.value = e.value.slice(0, -1);
+    }
+  }
+}
+
+function getElementValidity(e) {
+  const type = e.dataset.type;
+  const minLength = type == "number" || type == "euro" || type == "percent" ? e.required ? 1 : 0
+   : type != "date" ? e.minLength || (e.required ? 3 : 0) : 0;
+
+  return e.value.length < minLength ? "Value should have at least " + minLength + " character(s) !"
+    : e.min && e.value && parseFloat(e.value) < parseFloat(e.min) ? "Value should exceed " + roundDown(e.min, parseInt(e.dataset.precision) || 2)
+    : null;
 }
 
 function selectName(e, index) {
