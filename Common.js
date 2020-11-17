@@ -267,38 +267,40 @@ function autoAdaptWidth(e) {
   var type = e.dataset.type;
 
   // Filter the entered value through a regular expression if it's a number
-  if (type == "number" || type == "euro" || type == "percent") {
-    const precision = e.dataset.precision ?? 0;
-    const maxLength = Math.max(String(e.min).length, String(e.max).length) + precision;
-    const pattern = e.pattern || "^" + (e.min < 0 ? e.max < 0 ? "-+" : "-?" : "") + "([0-9]" + (e.required ? '+' : '*') + "$"
-      + (precision > 0 ? "|[0-9]+\\.?[0-9]{0," + precision + "}$" : "") + ")";
-    const regexp = new RegExp(pattern);
-    var val = parseFloat(e.value);
-    while (e.value && (!regexp.test(e.value) ||
-      (!isNaN(val) && (val > e.max || val < e.min || val * Math.pow(10, precision) % 1 !== 0 || String(e.value).length > maxLength)))) {
-      e.value = e.value.slice(0, -1);
-      val = parseFloat(e.value);
-    }
-  } else if (type != "date") {
-    const id = e.id;
-    const minlength = e.required ? 3 : e.minlength ?? 0;
-    const maxLength = e.maxLength ?? 30;
-    const pattern = e.pattern
-      || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
-      : type == "iban" ? "^([A-Z]{2}[ \-]?[0-9]{2})(?=(?:[ \-]?[A-Z0-9]){9,30}$)((?:[ \-]?[A-Z0-9]{3,5}){2,7})([ \-]?[A-Z0-9]{1,3})?$"
-      : type == "url" ? "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
-      : "^\\w{0," + maxLength + "}$");
-
-      if (e.value.length < minlength && GLOBAL.tempInput[id] && GLOBAL.tempInput[id].length >= minlength) {
-        e.value = GLOBAL.tempInput[id];
-      } else {
+  if (type != "date") {
+    if (type == "number" || type == "euro" || type == "percent") {
+      const minLength = e.required ? 1 : 0;
+      if (hasMinLength(e, minLength) {
+        const precision = e.dataset.precision ?? 0;
+        const maxLength = Math.max(String(e.min).length, String(e.max).length) + precision;
+        const pattern = e.pattern || "^" + (e.min < 0 ? e.max < 0 ? "-+" : "-?" : "") + "([0-9]" + (e.required ? '+' : '*') + "$"
+          + (precision > 0 ? "|[0-9]+\\.?[0-9]{0," + precision + "}$" : "") + ")";
         const regexp = new RegExp(pattern);
-        while (e.value && !regexp.test(e.value)) {
+        var val = parseFloat(e.value);
+        while (e.value && (!regexp.test(e.value) ||
+          (!isNaN(val) && (val > e.max || val < e.min || val * Math.pow(10, precision) % 1 !== 0 || e.value.length > maxLength)))) {
+          e.value = e.value.slice(0, -1);
+          val = parseFloat(e.value);
+        }
+      }
+    } else {
+      const minlength = e.required ? 3 : e.minlength ?? 0;
+      if (hasMinLength(e, minLength) {
+        const maxLength = e.maxLength ?? 30;
+        const pattern = e.pattern
+          || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
+          : type == "iban" ? "^([A-Z]{2}[ \-]?[0-9]{2})(?=(?:[ \-]?[A-Z0-9]){9,30}$)((?:[ \-]?[A-Z0-9]{3,5}){2,7})([ \-]?[A-Z0-9]{1,3})?$"
+          : type == "url" ? "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
+          : "^\\w{0," + maxLength + "}$");
+        const regexp = new RegExp(pattern);
+        while (e.value && (!regexp.test(e.value) || e.value.length > maxLength)) {
           e.value = e.value.slice(0, -1);
         }
-        GLOBAL.tempInput[id] = e.value;
       }
     }
+
+    GLOBAL.tempInput[e.id] = e.value;  // Save correct value into temp storage in case it need to be restored
+  }
 
   if (!e.placeholder) {
     var size = e.style.fontSize ? e.style.fontSize : "13.33px";
@@ -306,6 +308,16 @@ function autoAdaptWidth(e) {
     var index = 1;
     e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
   }
+}
+
+function hasMinLength(e, minLength) {
+  const id = e.id;
+  const result = e.value.length < minlength && GLOBAL.tempInput[id] && GLOBAL.tempInput[id].length >= minlength)
+  if (result) {
+    e.value = GLOBAL.tempInput[id];
+  }
+
+  return !result;
 }
 
 function selectName(e, index) {
