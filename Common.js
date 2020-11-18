@@ -80,7 +80,10 @@ function closePopup() {
 
 function processTable(id, tableHTML, shouldFilter) {
   setTable(id, tableHTML);
-  activateButton(id);
+  $("#" + id + "Button").prop('disabled', false);     // Activate button
+  $(".auto").each((i, item) => autoAdaptWidth(item)); // Auto adapt all auto element
+
+
   // sorttable.makeSortable($("#" + id + "Table").get(0));
   if (shouldFilter) {
     filterTable(id);
@@ -117,8 +120,10 @@ function getTableReadOnlyContent(content = "", isHeader, isDisabled, color) {
 function getTableEditableContent(content, data) {
   var html = '';
   var symbol = '';
+  var erase = '';
   if (data) {
     var type = "text";
+    data.inputId = data.inputId || Math.random() * 10;  // Generates a random Id if it does not have any
     symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : "";
     if (data.type == "number" || data.type == "euro" || data.type == "percent") {
       const min = data.min ?? 0;
@@ -131,18 +136,26 @@ function getTableEditableContent(content, data) {
     } else {
       html = ' minLength="' + data.minLength + '" maxLength="' + data.maxLength + '"';
     }
-    html += ' type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
+    html += ' id="' + data.inputId + '" type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
          + ' data-type="' + (data.type ?? 'text') + '" data-precision="' + (data.precision ?? '') + '"'
-         + (data.required ? ' required' : '') + ' pattern="' + (data.pattern ?? '') + '"';
+         + ' style="' + (data.style ?? '') + '"' + (data.required ? ' required' : '')
+         + ' pattern="' + (data.pattern ?? '') + '"';
+
+    erase = data.erase
+      ? '<span id="' + data.inputId + 'Erase" style="float:none;color:black;visibility:hidden" class="closebtn"'
+        + ' onclick="$(\'#' + data.inputId + '\').val(\'\');$(\'#' + data.inputId + '\').keyup();$(\'#' + data.inputId + '\').focus();">&times;</span>'
+      : '';
   }
 
-  return '<td align="center"><input class="auto"' + html
-       + getEditCellHandler(toValue(content), data) + '">' + symbol + '</input></td>';
+  return '<td align="center"><div class="tooltip"><input class="auto"' + html
+       + getEditCellHandler(content, data) + '">' + symbol + '</input>'
+       + (data.tooltip ? '<span class="tooltiptext">' + data.tooltip + '</span>' : '')
+       + '</div>' + erase + '</td>';
 }
 
 function getTableValidatableContent(id, content, range, expected) {
   return '<td class="validateContent" align="center" style="font-style:italic;background-color:'
-       + (!expected ||content == expected ? 'transparent' : 'pink') + '">'
+       + (!expected || content == expected ? 'transparent' : 'pink') + '">'
        + '<div style="position:relative"><span>' + content + '</span>'
        + '<div style="position:absolute;left:35%;top:50%;" class="checkmark" value="' + toValue(content) + '"'
        + 'onclick="if(!$(this).hasClass(\'draw\')) { ' + getUpdateContent(id, range, GLOBAL.dummy) + ' }">'
@@ -153,8 +166,9 @@ function getEditCellHandler(expected, data) {
   return ' onfocusout="const error = getElementValidity(this); if (error) { $(this).focus(); showSnackBar(error); } else { '
        + (data && data.id && data.range ? getUpdateContent(data.id, data.range, expected) : '') + ' }"'
        + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27)'
-       + ' { this.value = \'' + expected + '\'; } autoAdaptWidth(this);"'
-       + ' oninput="autoAdaptWidth(this);" type="text" value="' + expected + '"'
+       + ' { this.value = \'' + expected + '\'; } autoAdaptWidth(this);'
+       + (data && data.inputId && data.erase ? ' $(\'#' + data.inputId + 'Erase\').css(\'visibility\', $(this).val() ? \'visible\' : \'hidden\')' : '')
+       + '" oninput="autoAdaptWidth(this);" type="text" value="' + expected + '"'
 }
 
 function getUpdateContent(id, range, expected) {
@@ -171,8 +185,9 @@ function getSubTableTitle(id, title, range) {
 }
 
 function getTitle(id) {
+  const title = translate(id);
   return '<button disabled id="' + id + 'Button" class="tabLinks" onclick="openTab(\'' + id + '\')">'
-        + (GLOBAL.displayData[id].title ?? id.charAt(0).toUpperCase() + id.slice(1)) + '</button>';
+        + title.charAt(0).toUpperCase() + title.slice(1) + '</button>';
 }
 
 function getTableTitle(id, disabled, tooltip, colspan) {
@@ -241,8 +256,6 @@ function setTable(id, tableHTML) {
 }
 
 function setEvents() {
-  $(".auto").each((i, item) => autoAdaptWidth(item));
-
   $(".checkmark")
     .on("click", e => $(e.target).addClass('draw'))
     .on("animationend", e => $(e.target).removeClass('draw'));
@@ -347,10 +360,6 @@ function getValue(data, func, forceReload, success) {
 
                      if (id && !GLOBAL.loadingQueueCount) {
                        setEvents();  // Set events when everything has been loaded
-
-                       if (GLOBAL.currentDisplayedId != id) {
-                         updateValues(GLOBAL.currentDisplayedId, true);   // Refresh current displayed tab if displayed before events has been set
-                       }
                      }
                    })
                    .withFailureHandler(displayError)
@@ -443,7 +452,7 @@ function refreshTotal(id) {
 
 function showSnackBar(text) {
   if (text) {
-    $("#snackbar").text(text);
+    $("#snackbar").text(translate(text));
   }
 
   // Shows the snackbar only if has text and is not already displayed
@@ -458,7 +467,7 @@ function showSnackBar(text) {
 function displayLoading(id, isDisplayed) {
   if (id) {
     GLOBAL.currentLoadingId = isDisplayed ? id : null;
-    $("#loading").text(isDisplayed ? "Loading " + id + " ..." : null);
+    $("#loading").text(isDisplayed ? translate("Loading") + " " + translate(id) + " ..." : null);
     if (isDisplayed || GLOBAL.loadingQueueCount) {
       GLOBAL.hasAlreadyUpdated[id] = true;
       setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false, GLOBAL.timeBetweenReload*1000);
@@ -503,8 +512,29 @@ function displayError(msg, isWarning) {
   displayElement("#updateButton", true);
 }
 
-function activateButton(id, isActivated = true) {
-  $("#" + id + "Button").prop('disabled', !isActivated);
+function translate(content) {
+  return content.includes("€") || content.includes("%") || !isNaN(content) ? batchTranslate(content, [',', '.'])  // Numbers
+    : content.includes("month") || content.includes("year") ? batchTranslate(content, ['months', 'year'])         // Duration
+    : getTranslateData(content).text;  // Text
+}
+
+function getTranslateData(content) {
+  const a = GLOBAL.data[GLOBAL.translation];
+  if (a && content) {
+    const num = content.replace(/^\D+|\D+$/g, "");            // Extranct number from content
+    const trans = num ? content.replace(num, '*') : content;  // Replace number by * to find translation
+
+    const i = indexOf(a, trans, 0, 1);
+
+    return {text:i ? a[i][1].replace('*', num) : content, tooltip:i ? a[i][2] : null};
+  } else {
+    return {text:content};
+  }
+}
+
+function batchTranslate(content, array) {
+  array.forEach(item => content = content.replace(item, getTranslateData(item).text));
+  return content;
 }
 
 function shouldRebalance(value) {
