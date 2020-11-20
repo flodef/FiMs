@@ -111,6 +111,7 @@
         tableHTML += '<tr>';
         tableHTML += getTranslatedContent(contents[0][i], true);
         tableHTML += item.type != "url" ? getTranslatedContent(contents[1][i]) : getTableReadOnlyContent(getLink(contents[1][i]));
+        // tableHTML += item.type != "url" ? getTranslatedContent(contents[1][i], false, item) : getTableReadOnlyContent(getLink(contents[1][i]));
         tableHTML += '</tr>';
       });
 
@@ -219,7 +220,9 @@
   }
 
   function getLink(content) {
-    return content.slice(0, 4) == 'http' ? '<a href=' + content + ' target="_blank">' + content + '</a>' : content;
+    return content && content.slice(0, 4) == 'http'
+      ? '<a href=' + content + ' target="_blank">' + content + '</a>'
+      : content;
   }
 
   function convertNumberToColumn(number){
