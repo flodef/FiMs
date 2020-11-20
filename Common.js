@@ -513,8 +513,8 @@ function displayError(msg, isWarning) {
 }
 
 function translate(content) {
-  return content.includes("€") || content.includes("%") || !isNaN(content) ? batchTranslate(content, [',', '.'])  // Numbers
-    : content.includes("month") || content.includes("year") ? batchTranslate(content, ['months', 'year'])         // Duration
+  return content && (content.includes("€") || content.includes("%") || !isNaN(content)) ? batchTranslate(content, [',', '.'])  // Numbers
+    : content && (content.includes("month") || content.includes("year")) ? batchTranslate(content, ['months', 'year'])         // Duration
     : getTranslateData(content).text;  // Text
 }
 
