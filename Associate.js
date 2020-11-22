@@ -1,17 +1,16 @@
   GLOBAL.translation = "translation";
-  GLOBAL.translationFormula = "Translation!A:C";
+  GLOBAL.translationFormula = "Translation!A:D";
   GLOBAL.displayData = {
     "account": {id:"account", formula:"!A:N", updateTable:updateAccountTable, loadOnce:true},
-    "historic": {id:"historic", formula:"AssociateHistoric!A:C", updateTable:updateHistoricTable, loadOnce:true, filter:1},
-    "personal": {id:"personal", formula:"Associate!A:X", updateTable:updatePersonalTable, loadOnce:true, filter:1},
+    "historic": {id:"historic", formula:"AssociateHistoric!A:D", updateTable:updateHistoricTable, loadOnce:true, filter:1},
+    "personal": {id:"personal", formula:"Associate!A:Y", updateTable:updatePersonalTable, loadOnce:true, filter:1},
     "FAQ": {id:"FAQ", formula:"FAQ!A:B", updateTable:updateFaqTable, loadOnce:true }
   };
   GLOBAL.personalData = [
     { index:1, type:"text", maxLength:10, required:true },
-    { index:12, type:"text", required:true },
     { index:13, type:"text", required:true },
-    { index:11, type:"email", required:true, maxLength:55 },
     { index:14, type:"date", required:true },
+    { index:12, type:"text", required:true },
     { index:15, type:"text", required:true },
     { index:16, type:"text", required:true, maxLength:55 },
     { index:17, type:"text", required:true, pattern:"[0-9]{5}" },
@@ -20,11 +19,13 @@
     { index:20, type:"text", required:true },
     { index:21, type:"text", required:true },
     { index:22, type:"url", maxLength:55 },
+    { index:23, type:"url", maxLength:55 },
     { index:2, type:"euro", min:-1000, max:0 },
     { index:3 },
     { index:4 },
     { index:5 },
-    { index:23, type:"url", readonly:true }
+    { index:6 },
+    { index:24, type:"url", readonly:true }
   ]
   GLOBAL.userId;
 
@@ -82,8 +83,8 @@
       for (var i = 0; i < row; ++i) {
         tableHTML += i==0 ? '<thead>' : '';
         tableHTML += '<tr>';
-        for (var j of [0, 2]) {
-          tableHTML += getTranslatedContent(contents[i][j], i == 0);
+        for (var j = 0; j < col; ++j) {
+          tableHTML += j != 1 ? getTranslatedContent(contents[i][j], i == 0) : '';  // Don't add the ID column
         }
         tableHTML += '</tr>';
         tableHTML += i==0 ? '</thead><tbody>'
@@ -121,7 +122,7 @@
 
       // Set the scrolling panel
       tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
-      for (var i = 10; i > 5; --i) {
+      for (var i = 11; i > 6; --i) {
         tableHTML += '<tr>';
         tableHTML += getTranslatedContent(contents[0][i]);
         tableHTML += getTranslatedContent(contents[1][i]);

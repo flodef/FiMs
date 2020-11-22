@@ -526,7 +526,7 @@ function getTranslateData(content) {
 
     const i = indexOf(a, trans, 0, 1);
 
-    return {text:i ? a[i][1].replace('*', num) : content, tooltip:i ? a[i][2] : null};
+    return {text:i ? a[i][2].replace('*', num) : content, tooltip:i ? a[i][3] : null};
   } else {
     return {text:content};
   }
