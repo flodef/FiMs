@@ -6,6 +6,7 @@
     "personal": {id:"personal", formula:"Associate!A:Y", updateTable:updatePersonalTable, loadOnce:true, filter:1},
     "FAQ": {id:"FAQ", formula:"FAQ!A:B", updateTable:updateFaqTable, loadOnce:true }
   };
+  GLOBAL.menuButton = ["deposit", "withdraw", "connect"];
   GLOBAL.personalData = [
     { index:1, type:"text", minLength:5, maxLength:10, required:true }, // ID
     { index:14, type:"text", required:true },                     // First name
@@ -178,6 +179,14 @@
   function closeConnectionPopup() {
     setUserId($("#userId").val());
     closePopup();
+  }
+
+  function deposit() {
+
+  }
+
+  function withdraw() {
+
   }
 
   function setUserId(id) {

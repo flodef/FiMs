@@ -19,6 +19,14 @@
     "historic": { id:"historic", formula:restrainFormula("Historic!A:J"),updateTable:updateHistoricTable },
     "evolution": { id:"evolution", formula:restrainFormula("Evolution!A:J"),updateTable:updateEvolutionTable }
   };
+  GLOBAL.menuButton = [
+    // {id:"rebalance", fn:rebalanceStocks},
+    {id:"refresh", fn:updateAllValues},
+    {id:"remove", fn:deleteTransaction},
+    {id:"add", fn:addTransaction},
+    {id:"upload", fn:uploadAccountFile},
+  ];
+
   GLOBAL.rebalanceButtonToolTip = "Rebalance";
   GLOBAL.showAllButtonToolTip = "Show all";
   GLOBAL.requestedAllocation = "Requested allocation";
@@ -28,6 +36,33 @@
    */
   $(() => {
     init();
+
+    var tableHTML = '<table id="addTransactionForm" class="topMenu hidden"><tr>'
+    + '<td>Name:     <select id="transactionName" onchange="selectName(this)"></select></td>'
+    + '<td style="width:150px;" id="transactionQuantityLabel">Quantity: <input id="transactionQuantity" class="auto" oninput="autoAdaptWidth(this)"'
+    + ' min="-20000" max="20000" type="text" data-type="number" value="0"></td>'
+    + '<td style="width:150px;" id="transactionValueLabel">   Value:    <input id="transactionValue"    class="auto" oninput="autoAdaptWidth(this)"'
+    + ' min="-100000" max="100000" type="text" data-type="euro" value="0"> €</td>'
+    + getButton({id:"validateAdd", img:"validate", fn:validateAddForm})
+    + getButton({id:"cancelAdd", img:"cancel", fn:cancelForm})
+    + '</tr></table>'
+    + '<table id="deleteTransactionForm" class="topMenu hidden"><tr>'
+    + '<td style="padding: 0px 10px 0px 10px; width:260px;"><strong style="font-size:larger">Are you sure you want to delete ?</strong></td>'
+    + getButton({id:"validateDelete", img:"validate", fn:validateDeleteForm})
+    + getButton({id:"cancelDelete", img:"cancel", fn:cancelForm})
+    + '</tr></table>'
+    + '<table id="uploadFileForm" class="topMenu hidden"><tr>'
+    + '<td><strong>Upload Account CSV File:</strong></td>'
+    + '<td><input id="fileUpload" type="file" accept=".csv" style="width:250px" /></td>'
+    + getButton({id:"validateUpload", img:"validate", fn:validateUploadForm})
+    + getButton({id:"cancelDelete", img:"cancel", fn:cancelForm})
+    + '</tr></table>';
+
+    tableHTML = $("#menuDiv").prop("innerHTML") + tableHTML;
+    $("#menuDiv").prop("innerHTML", tableHTML);
+    displayElement(".actionButton", false, 0);
+    displayElement("[id^=validate]", true, 0);
+    displayElement("[id^=cancel]", true, 0);
 
     getValue({ id:GLOBAL.settings, formula:GLOBAL.settingsFormula }, null, true, updateAllValues);
   });

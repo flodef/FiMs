@@ -9,6 +9,8 @@ GLOBAL.hasAlreadyUpdated = [];
 GLOBAL.currentLoadingId;
 GLOBAL.currentDisplayedId;
 GLOBAL.displayId;
+GLOBAL.isLocal;
+GLOBAL.serverUrl = "https://raw.githubusercontent.com/flodef/FiMS/master/";
 
 function init() {
   jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
@@ -21,8 +23,21 @@ function init() {
   $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
   $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
-  GLOBAL.displayId = Object.keys(GLOBAL.displayData);   // Set the id to display in a normal array
+  GLOBAL.isLocal = document.URL.includes(":8080");            // Whether the app is running in local mode
+  GLOBAL.serverUrl = GLOBAL.isLocal ? '' : GLOBAL.serverUrl;  // Remove the server URL if in local mode
+  GLOBAL.displayId = Object.keys(GLOBAL.displayData);         // Set the id to display in a normal array
 
+  // Set the app buttons
+  var tableHTML = '<table id="actionButton" class="topMenu">'
+  + '<div id="focus" style="height:0px;">'
+  + '<input id="mainFocus" type="image" src="' + GLOBAL.serverUrl + 'Img/0BYg1.png" style="height:0px;" tabindex="1">'
+  + '</div><tr>';
+  GLOBAL.menuButton.forEach(item => { tableHTML += getButton(item); });
+  tableHTML += '</tr>'
+  setTable("menu", tableHTML);
+  displayElement(".actionButton", false, 0);
+
+  // Set the tab containers
   var tabContainerHTML = "";
   for (var i = 0; i < GLOBAL.displayId.length; ++i) {
     var id = GLOBAL.displayId[i];
@@ -147,10 +162,10 @@ function getTableEditableContent(content, data) {
       : '';
   }
 
-  return '<td align="center"><div class="tooltip"><input class="auto"' + html
-       + getEditCellHandler(content, data) + '">' + symbol + '</input>'
-       + (data.tooltip ? '<span class="tooltiptext">' + data.tooltip + '</span>' : '')
-       + '</div>' + erase + '</td>';
+  const input = '<input class="auto"' + html + getEditCellHandler(content, data) + '">' + symbol + '</input>';
+  const tooltip = getTooltip(input, data.tooltip);
+
+  return '<td align="center">' + tooltip + erase + '</td>';
 }
 
 function getTableValidatableContent(id, content, range, expected) {
@@ -195,10 +210,10 @@ function getTableTitle(id, disabled, tooltip, colspan) {
        + '<tr style="background-color:white;"><td></td>'
        + (false ? '<td id="' + id + 'Switch" class="mainSwitch '
        + ($("#" + id + "Switch").is(":visible") ? '' : 'hidden') + '">'
-       + '<div class="tooltip"><label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
+       + getTooltip('<label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
        + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '')
        + ' onclick="filterTable(\'' + id + '\', true)">'
-       + '<div class="slider round"></div></label><span class="tooltiptext">' + tooltip + '</span></div></td></tr></table>'
+       + '<div class="slider round"></div></label>', tooltip) + '</td></tr></table>'
        + '<td colspan="' + colspan + '" align="right">'
        + '<input id="' + id + 'Search" type="text" placeholder="Search" class="mainSearch '
        + ($("#" + id + "Search").is(":visible") ? '' : 'hidden') + '" '
@@ -209,6 +224,17 @@ function getTableTitle(id, disabled, tooltip, colspan) {
 
 function getMainTableHead(id) {
   return '<table id="' + id + 'Table" class="sortable mainTable">';
+}
+
+function getButton(item) {
+  return '<td style="padding: 0px;">' + getTooltip('<input id="' + (item.id ?? item) + 'Button" class="actionButton"'
+    + ' src="' + GLOBAL.serverUrl + 'Img/' + (item.img ?? item.id ?? item) + '.png" type="image" tabindex="2" onclick="'
+    + (item.fn ? item.fn.name : item.id ?? item) + '()">', translate(item.img ?? item.id ?? item)) + '</td>';
+}
+
+function getTooltip(html, tooltip) {
+  return '<div class="tooltip">' + html
+    + (tooltip ? '<span class="tooltiptext">' + tooltip + '</span>' : '') + '</div>';
 }
 
 // function getTitle(id, disabled) {
@@ -471,9 +497,9 @@ function displayLoading(id, isDisplayed) {
     if (isDisplayed || GLOBAL.loadingQueueCount) {
       GLOBAL.hasAlreadyUpdated[id] = true;
       setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false, GLOBAL.timeBetweenReload*1000);
-      displayElement("#updateButton", false);
+      displayElement("#refreshButton", false);
     } else {
-      setTimeout(() => displayElement("#updateButton", !GLOBAL.loadingQueueCount), 100);  // Hack for local refresh because it loads everything in the same function
+      setTimeout(() => displayElement("#refreshButton", !GLOBAL.loadingQueueCount), 100);  // Hack for local refresh because it loads everything in the same function
     }
   }
 }
@@ -509,7 +535,7 @@ function displayError(msg, isWarning) {
   $("#alert").prop("innerHTML", '<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>'
                               + '<strong>' + (isWarning ? "WARNING" : "ALERT") + ':</strong> ' + msg);
   displayElement('#alertOverlay', true);
-  displayElement("#updateButton", true);
+  displayElement("#refreshButton", true);
 }
 
 function translate(content) {
@@ -524,7 +550,7 @@ function getTranslateData(content) {
     const num = content.replace(/^\D+|\D+$/g, "");            // Extranct number from content
     const trans = num ? content.replace(num, '*') : content;  // Replace number by * to find translation
 
-    const i = indexOf(a, trans, 0, 1);
+    const i = indexOf(a, trans, 0, 1, (a, b) => a.toLowerCase() == b.toLowerCase());
 
     return {text:i ? a[i][2].replace('*', num) : content, tooltip:i ? a[i][3] : null};
   } else {
