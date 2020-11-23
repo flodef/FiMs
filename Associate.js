@@ -7,25 +7,26 @@
     "FAQ": {id:"FAQ", formula:"FAQ!A:B", updateTable:updateFaqTable, loadOnce:true }
   };
   GLOBAL.personalData = [
-    { index:1, type:"text", maxLength:10, required:true },
-    { index:13, type:"text", required:true },
-    { index:14, type:"date", required:true },
-    { index:12, type:"text", required:true },
-    { index:15, type:"text", required:true },
-    { index:16, type:"text", required:true, maxLength:55 },
-    { index:17, type:"text", required:true, pattern:"[0-9]{5}" },
-    { index:18, type:"text", required:true },
-    { index:19, type:"iban", required:true },
-    { index:20, type:"text", required:true },
-    { index:21, type:"text", required:true },
-    { index:22, type:"url", maxLength:55 },
-    { index:23, type:"url", maxLength:55 },
-    { index:2, type:"euro", min:-1000, max:0 },
-    { index:3 },
-    { index:4 },
-    { index:5 },
-    { index:6 },
-    { index:24, type:"url", readonly:true }
+    { index:1, type:"text", minLength:5, maxLength:10, required:true }, // ID
+    { index:14, type:"text", required:true },                     // First name
+    { index:15, type:"text", required:true },                     // Family name
+    { index:13, type:"text", required:true },                     // Email
+    { index:16, type:"date", required:true },                     // Birth date
+    { index:17, type:"text", required:true },                     // Birth city
+    { index:18, type:"text", required:true, maxLength:55 },       // Adress
+    { index:19, type:"text", required:true, pattern:"[0-9]{5}" }, // Postal code
+    { index:20, type:"text", required:true },                     // City
+    { index:21, type:"iban", required:true },                     // IBAN
+    { index:22, type:"text", required:true },                     // Bank
+    { index:23, type:"text", required:true },                     // Association
+    { index:24, type:"url", maxLength:55 },                       // Web page
+    { index:2, type:"euro", min:-1000, max:0 },                   // Recurrent
+    { index:6 },                                                  // Current rate
+    { index:5 },                                                  // Financed project
+    { index:3 },                                                  // Charity
+    { index:4 },                                                  // Donated
+    { index:7 },                                                  // Duration
+    { index:25, type:"url", readonly:true }                       // Debt recognition
   ]
   GLOBAL.userId;
 
@@ -122,7 +123,7 @@
 
       // Set the scrolling panel
       tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
-      for (var i = 11; i > 6; --i) {
+      for (var i = 12; i > 7; --i) {
         tableHTML += '<tr>';
         tableHTML += getTranslatedContent(contents[0][i]);
         tableHTML += getTranslatedContent(contents[1][i]);
