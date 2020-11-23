@@ -202,7 +202,7 @@ function getSubTableTitle(id, title, range) {
 function getTitle(id) {
   const title = translate(id);
   return '<button disabled id="' + id + 'Button" class="tabLinks" onclick="openTab(\'' + id + '\')">'
-        + title.charAt(0).toUpperCase() + title.slice(1) + '</button>';
+        + toFirstUpperCase(title) + '</button>';
 }
 
 function getTableTitle(id, disabled, tooltip, colspan) {
@@ -227,9 +227,13 @@ function getMainTableHead(id) {
 }
 
 function getButton(item) {
-  return '<td style="padding: 0px;">' + getTooltip('<input id="' + (item.id ?? item) + 'Button" class="actionButton"'
-    + ' src="' + GLOBAL.serverUrl + 'Img/' + (item.img ?? item.id ?? item) + '.png" type="image" tabindex="2" onclick="'
-    + (item.fn ? item.fn.name : item.id ?? item) + '()">', translate(item.img ?? item.id ?? item)) + '</td>';
+  const id = item.id ?? item;
+  const img = toFirstUpperCase(item.img ?? id);
+  const fn = item.fn ? item.fn.name : id;
+
+  return '<td style="padding: 0px;">' + getTooltip('<input id="' + id + 'Button" class="actionButton"'
+    + ' src="' + GLOBAL.serverUrl + 'Img/' + img + '.png" type="image" tabindex="2" onclick="'
+    + fn + '()">', translate(img)) + '</td>';
 }
 
 function getTooltip(html, tooltip) {
@@ -641,4 +645,8 @@ function restrainFormula(formula, low, high) {
 
 function roundDown(value, precision = 0) {
   return (value * Math.pow(10, precision) | 0) / Math.pow(10, precision);
+}
+
+function toFirstUpperCase(item) {
+  return item.charAt(0).toUpperCase() + item.slice(1)
 }
