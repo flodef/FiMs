@@ -1,70 +1,75 @@
 // MAIN SPREADSHEET
-var SS = SpreadsheetApp.getActiveSpreadsheet();
+const SS = SpreadsheetApp.getActiveSpreadsheet();
 
 // DASHBOARD ROWS
-var MONPAY_ROW = 20;          // Should be the "Monthly payment" row
-var PORVAL_ROW = 37;          // Should be the "Current portfolio value" row
-var EONIA_ROW = 55;           // Should be the "EONIA" row
-var INTRAT_ROW = 56;          // Should be the "Interest rate (EONIA+1.25%)" row
-var MONINT_ROW = 57;          // Should be the "Monthly interest" row
+const MONPAY_ROW = 20;          // Should be the "Monthly payment" row
+const PORVAL_ROW = 37;          // Should be the "Current portfolio value" row
+const EONIA_ROW = 55;           // Should be the "EONIA" row
+const INTRAT_ROW = 56;          // Should be the "Interest rate (EONIA+1.25%)" row
+const MONINT_ROW = 57;          // Should be the "Monthly interest" row
 
 // INVESTMENT COLS
-var TYPE_COL = 1;             // Should be the "Type" column
-var TITLE_COL = 5;            // Should be the "Title" column
-var ISIN_COL = 6;             // Should be the "Isin" column
-var LABEL_COL = 8;            // Should be the "Label" column
-var PRICE_COL = 12;           // Should be the "Price" column
-var LASTUPD_COL = 43;         // Should be the "Last upd" column
-var NEXTDIV_COL = 45;         // Should be the "Next div" column
-var ESTDIV_COL = 47;          // Should be the "Est div" column
+const TYPE_COL = 1;             // Should be the "Type" column
+const TITLE_COL = 5;            // Should be the "Title" column
+const ISIN_COL = 6;             // Should be the "Isin" column
+const LABEL_COL = 8;            // Should be the "Label" column
+const PRICE_COL = 12;           // Should be the "Price" column
+const LASTUPD_COL = 43;         // Should be the "Last upd" column
+const NEXTDIV_COL = 45;         // Should be the "Next div" column
+const ESTDIV_COL = 47;          // Should be the "Est div" column
 
 // ALLOCATION ROWS
-var CURALL_ROW = 12;          // Should be the "Current allocation" row
-var AVAALL_ROW = 13;          // Should be the "Available allocation" row
-var REQALL_ROW = 14;          // Should be the "Requested allocation" row
+const CURALL_ROW = 12;          // Should be the "Current allocation" row
+const AVAALL_ROW = 13;          // Should be the "Available allocation" row
+const REQALL_ROW = 14;          // Should be the "Requested allocation" row
+
+// ASSOCIATE COLS
+const ASSNAME_COL = 2;          // Should be the "ID" column
+const ASSRECU_COL = 3;          // Should be the "Recurrent" column
+const ASSDEPO_COL = 8;          // Should be the "Deposit" column
 
 // SHEET NAMES
-var DASHBOARD = "Dashboard";   // The "Dashboard" sheet name
-var INVESTMENT = "Investment"; // The "Investment" sheet name
-var EXPENSES = "Expenses";     // The "Expenses" sheet name
-var EXPHISTO = "ExpensesHistoric"; // The "ExpensesHistoric" sheet name
-var HISTORIC = "Historic";     // The "Historic" sheet name
-var ALLOCATION = "Allocation"; // The "Allocation" sheet name
-var ALLOCHIST = "AllocationHistoric"; // The "AllocationHistoric" sheet name
-var EVOLUTION = "Evolution";   // The "Evolution" sheet name
-var SELECTION = "Selection";   // The "Selection" sheet name
-var ASSOCIATE = "Associate";      // The "Associate" sheet name
-var BANKACC = "BankAccount";   // The "BankAccount" sheet name
-var INTEREST = "Interest";     // The "Interest" sheet name
-var ALERT = "Alert";           // The "Alert" sheet name
-var PRICE = "Price";           // The "Price" sheet name
-var ASSMODEL = "AssociateModel";  // The "AssociateModel" sheet name
-var ASSHISTO = "AssociateHistoric";  // The "AssociateHistoric" sheet name
+const DASHBOARD = "Dashboard";   // The "Dashboard" sheet name
+const INVESTMENT = "Investment"; // The "Investment" sheet name
+const EXPENSES = "Expenses";     // The "Expenses" sheet name
+const EXPHISTO = "ExpensesHistoric"; // The "ExpensesHistoric" sheet name
+const HISTORIC = "Historic";     // The "Historic" sheet name
+const ALLOCATION = "Allocation"; // The "Allocation" sheet name
+const ALLOCHIST = "AllocationHistoric"; // The "AllocationHistoric" sheet name
+const EVOLUTION = "Evolution";   // The "Evolution" sheet name
+const SELECTION = "Selection";   // The "Selection" sheet name
+const ASSOCIATE = "Associate";      // The "Associate" sheet name
+const BANKACC = "BankAccount";   // The "BankAccount" sheet name
+const INTEREST = "Interest";     // The "Interest" sheet name
+const ALERT = "Alert";           // The "Alert" sheet name
+const PRICE = "Price";           // The "Price" sheet name
+const ASSMODEL = "AssociateModel";  // The "AssociateModel" sheet name
+const ASSHISTO = "AssociateHistoric";  // The "AssociateHistoric" sheet name
 
 // WEB LINKS
-var SSLINK = "https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw/edit#gid=";
-var DEGLINK = "https://trader.degiro.nl/login/fr#/login";
-var APPLINK = "https://goo.gl/amjmSv";
-var BLGLINK = "https://www.bloomberg.com/quote/";
+const SSLINK = "https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw/edit#gid=";
+const DEGLINK = "https://trader.degiro.nl/login/fr#/login";
+const APPLINK = "https://goo.gl/amjmSv";
+const BLGLINK = "https://www.bloomberg.com/quote/";
 
-// VARIOUS
-var MAIL = "fdefroco@gmail.com";
-var LOADING = "Loading...";
-var DUMMY = "XXXXXX";
-var OK = "OK";
-var FR = 2;
-var FC = 1;
-var FH = 9;
-var LH = 17;
-var FD = 1;
-var LD = 5;
-var FM = 0;
+// constIOUS
+const MAIL = "fdefroco@gmail.com";
+const LOADING = "Loading...";
+const DUMMY = "XXXXXX";
+const OK = "OK";
+const FR = 2;     // First Row
+const FC = 1;     // First Column
+const FH = 9;     // First working Hour
+const LH = 17;    // Last working hour
+const FD = 1;     // First working day
+const LD = 5;     // Last working day
+const FM = 0;     // First month (january)
 
 
 function dailyUpdate() {
   // Update only during the week
-  var x = new Date();
-  var d = x.getDay();
+  const x = new Date();
+  const d = x.getDay();
   if (d >= FD && d <= LD) {
     this._updateClosePrice();
     this._sendEvolution();
@@ -73,8 +78,8 @@ function dailyUpdate() {
 
 function nightlyUpdate() {
   // Update only during the week
-  var x = new Date();
-  var d = x.getDay();
+  const x = new Date();
+  const d = x.getDay();
   if (d >= FD && d <= LD) {      // dividend update should be processed on morning of the current day
       this._updateDividend();
   }
@@ -92,8 +97,8 @@ function monthlyUpdate() {
 }
 
 function yearlyUpdate() {
-  var x = new Date();
-  var m = x.getMonth();
+  const x = new Date();
+  const m = x.getMonth();
   if (m = FM) {
     this._sendCharity();
   }
@@ -601,16 +606,17 @@ function _updateExpense() {
 function _updateAssociate() {
   // Retrieve associate main data
   var associateSheet = this._getSheet(ASSOCIATE);
-  var associateArray = associateSheet.getSheetValues(FR, FC, -1, 2);
+  var associateArray = associateSheet.getSheetValues(FR, FC, -1, ASSDEPO_COL);
 
   for (var i = 0; i < associateArray.length; ++i) {
     // Retrieve associate account data
-    var name = associateArray[i][0];
-    var recu = associateArray[i][1];
+    var name = associateArray[i][ASSNAME_COL-1];
+    var recu = associateArray[i][ASSRECU_COL-1];
+    var depo = associateArray[i][ASSDEPO_COL-1];
     var sheet = this._getSheet(name);
 
     // If the sheet does not exist, create a new associate sheet from the model
-    if (!sheet) {
+    if (!sheet && depo > 0) {
       var modelSheet = this._getSheet(ASSMODEL);
       var sheet = modelSheet.copyTo(SS);
       sheet.setName(name);
