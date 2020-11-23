@@ -26,7 +26,7 @@ const REQALL_ROW = 14;          // Should be the "Requested allocation" row
 // ASSOCIATE COLS
 const ASSNAME_COL = 2;          // Should be the "ID" column
 const ASSRECU_COL = 3;          // Should be the "Recurrent" column
-const ASSDEPO_COL = 8;          // Should be the "Deposit" column
+const ASSDEPO_COL = 9;          // Should be the "Deposit" column
 
 // SHEET NAMES
 const DASHBOARD = "Dashboard";   // The "Dashboard" sheet name
