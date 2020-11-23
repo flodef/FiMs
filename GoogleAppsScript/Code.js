@@ -3,10 +3,10 @@ const SS = SpreadsheetApp.getActiveSpreadsheet();
 
 // DASHBOARD ROWS
 const MONPAY_ROW = 20;          // Should be the "Monthly payment" row
-const PORVAL_ROW = 37;          // Should be the "Current portfolio value" row
-const EONIA_ROW = 55;           // Should be the "EONIA" row
-const INTRAT_ROW = 56;          // Should be the "Interest rate (EONIA+1.25%)" row
-const MONINT_ROW = 57;          // Should be the "Monthly interest" row
+const PORVAL_ROW = 38;          // Should be the "Current portfolio value" row
+const EONIA_ROW = 56;           // Should be the "EONIA" row
+const INTRAT_ROW = 57;          // Should be the "Interest rate" row
+const MONINT_ROW = 58;          // Should be the "Monthly interest" row
 
 // INVESTMENT COLS
 const TYPE_COL = 1;             // Should be the "Type" column
@@ -99,7 +99,7 @@ function monthlyUpdate() {
 function yearlyUpdate() {
   const x = new Date();
   const m = x.getMonth();
-  if (m = FM) {
+  if (m == FM) {
     this._sendCharity();
   }
 }
