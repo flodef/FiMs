@@ -60,7 +60,9 @@ button {
   height: 38px;
   line-height: 22px;
   font-size: 11px;
+  width: 100px;
   cursor: pointer;
+  margin:0px 15px 0px 15px; 
 }
 
 marquee {

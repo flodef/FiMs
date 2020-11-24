@@ -11,6 +11,7 @@ GLOBAL.currentDisplayedId;
 GLOBAL.displayId;
 GLOBAL.isLocal;
 GLOBAL.serverUrl = "https://raw.githubusercontent.com/flodef/FiMS/master/";
+GLOBAL.handleEvent;
 
 function init() {
   jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
@@ -154,7 +155,7 @@ function getTableEditableContent(content, data) {
     html += ' id="' + data.inputId + '" type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
          + ' data-type="' + (data.type ?? 'text') + '" data-precision="' + (data.precision ?? '') + '"'
          + ' style="' + (data.style ?? '') + '"' + (data.required ? ' required' : '')
-         + ' pattern="' + (data.pattern ?? '') + '"';
+         + ' data-symbol="' + symbol + '" pattern="' + (data.pattern ?? '') + '"';
 
     erase = data.erase
       ? '<span id="' + data.inputId + 'Erase" style="float:none;color:black;visibility:hidden" class="closebtn"'
@@ -178,9 +179,9 @@ function getTableValidatableContent(id, content, range, expected) {
 }
 
 function getEditCellHandler(expected, data) {
-  return ' onfocusout="const error = getElementValidity(this); if (error) { $(this).focus(); showSnackBar(error); } else { '
+  return ' onfocusout="const error = getElementValidity(this); $(this).data(\'error\', error); if (error) { $(this).focus(); showSnackBar(error); } else { '
        + (data && data.id && data.range ? getUpdateContent(data.id, data.range, expected) : '') + ' }"'
-       + ' onkeyup="if (event.keyCode == 13) { $(this).blur() } else if (event.keyCode == 27)'
+       + ' onkeyup="if (event.which == 13) { $(this).blur() } else if (event.which == 27)'
        + ' { this.value = \'' + expected + '\'; } autoAdaptWidth(this);'
        + (data && data.inputId && data.erase ? ' $(\'#' + data.inputId + 'Erase\').css(\'visibility\', $(this).val() ? \'visible\' : \'hidden\')' : '')
        + '" oninput="autoAdaptWidth(this);" type="text" value="' + expected + '"'
@@ -356,7 +357,7 @@ function getElementValidity(e) {
    : type != "date" ? e.minLength || (e.required ? 3 : 0) : 0;
 
   return e.value.length < minLength ? "Value should have at least " + minLength + " character(s) !"
-    : e.min && e.value && parseFloat(e.value) < parseFloat(e.min) ? "Value should exceed " + roundDown(e.min, parseInt(e.dataset.precision) || 2)
+    : e.min && e.value && parseFloat(e.value) < parseFloat(e.min) ? "Value should be at least " + roundDown(e.min, parseInt(e.dataset.precision) || 2) + e.dataset.symbol
     : null;
 }
 
@@ -544,16 +545,16 @@ function displayError(msg, isWarning) {
 }
 
 function translate(content) {
-  return content && (content.includes("€") || content.includes("%") || !isNaN(content)) ? batchTranslate(content, [',', '.'])  // Numbers
-    : content && (content.includes("month") || content.includes("year")) ? batchTranslate(content, ['months', 'year'])         // Duration
+  return content && !isNaN(content.replace(/€|%|,/g, "")) ? batchTranslate(content, [',', '.'])                         // Numbers
+    : content && (content.includes("month") || content.includes("year")) ? batchTranslate(content, ['months', 'year'])  // Duration
     : getTranslateData(content).text;  // Text
 }
 
 function getTranslateData(content) {
   const a = GLOBAL.data[GLOBAL.translation];
   if (a && content) {
-    const num = content.replace(/^\D+|\D+$/g, "");            // Extranct number from content
-    const trans = num ? content.replace(num, '*') : content;  // Replace number by * to find translation
+    const num = content.replace(/^[^0-9€%]+|[^0-9€%]+$/g, "");  // Extranct number and symbols from content
+    const trans = num ? content.replace(num, '*') : content;    // Replace number by * to find translation
 
     const i = indexOf(a, trans, 0, 1, (a, b) => a.toLowerCase() == b.toLowerCase());
 
@@ -567,6 +568,24 @@ function batchTranslate(content, array) {
   array.forEach(item => content = content.replace(item, getTranslateData(item).text));
   return content;
 }
+
+function getPopupContent(id, content) {
+  return '<div align="center" style="margin:15px 0px 0px 0px;">'
+    + content + '<br><br>'
+    + '<button id="' + id + 'Button" onclick="' + id + 'Validation(this.innerHTML)"></button>'
+    + '</div>';
+}
+
+function addPopupButtonEvent(id) {
+  const fn = event => {
+    if (event && event.target.id == id && event.which == 13) { $("#" + id + "Button").click(); }
+    $("#" + id + "Button").html($("#" + id).val() ? translate("OK") : translate("CANCEL"));
+  };
+  fn();                  // Trigger the Keyup event to display correct button text (OK or CANCEL)
+  $("#" + id).focus();   // Set the focus to the input text
+  $("#" + id).keyup(fn); // Set the keyup trigger function
+}
+
 
 function shouldRebalance(value) {
   return value && !value.startsWith("HOLD");

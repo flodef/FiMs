@@ -2,7 +2,7 @@
   GLOBAL.translationFormula = "Translation!A:D";
   GLOBAL.displayData = {
     "account": {id:"account", formula:"!A:N", updateTable:updateAccountTable, loadOnce:true},
-    "historic": {id:"historic", formula:"AssociateHistoric!A:D", updateTable:updateHistoricTable, loadOnce:true, filter:1},
+    "historic": {id:"historic", formula:"AssociateHistoric!A:E", updateTable:updateHistoricTable, loadOnce:true, filter:1},
     "personal": {id:"personal", formula:"Associate!A:Y", updateTable:updatePersonalTable, loadOnce:true, filter:1},
     "FAQ": {id:"FAQ", formula:"FAQ!A:B", updateTable:updateFaqTable, loadOnce:true }
   };
@@ -166,32 +166,68 @@
 
   function connect() {
     const d = GLOBAL.personalData[0];
-    const innerHTML = '<div align="center" style="margin:15px 0px 0px 0px;">'
-      + getTranslatedContent("Enter your user id:", false,
-          {inputId:"userId", type:d.type, minLength:d.minLength, maxLength:d.maxLength, value:GLOBAL.userId, erase:true,
-          style:"width:104px;text-align:center;line-height:45px", placeholder:translate("User Id")})
-      + '<br><br><button id="userIdButton" style="margin:0px 5px 0px 5px; width:76px" onclick="closeConnectionPopup()"></button>'
-      + '</div>';
+    const id = "userId";
+    const content = getTranslatedContent("Enter your user id", false,
+        {inputId:id, type:d.type, minLength:d.minLength, maxLength:d.maxLength, value:GLOBAL.userId, erase:true,
+        style:"width:104px;text-align:center;line-height:45px", placeholder:translate("User Id")});
+    const innerHTML = getPopupContent(id, content);
 
     openPopup(innerHTML);
 
-    $("#userId").keyup((event) => { if (event.keyCode == 13) { closeConnectionPopup(); }
-      $("#userIdButton").html($("#userId").val() ? translate("OK") : translate("CANCEL")); });
-      $("#userId").keyup();   // Trigger the Keyup event to display correct button text (OK or CANCEL)
-      $("#userId").focus();   // Set the focus to the input text
+    addPopupButtonEvent(id);
   }
 
-  function closeConnectionPopup() {
-    setUserId($("#userId").val());
-    closePopup();
+  function userIdValidation(result) {
+    if ((result == translate("OK") && !$("#userId").data("error")) || result == translate("CANCEL")) {
+      setUserId($("#userId").val());
+      closePopup();
+    }
   }
 
   function deposit() {
+    const id = "depositAmount";
+    const content = getTranslatedContent("Amount to deposit", false,
+        {inputId:id, type:"euro", min:100, max:100000, erase:true,
+        style:"width:104px;text-align:center;line-height:45px", placeholder:translate("deposit")});
+    const innerHTML = getPopupContent(id, content);
 
+    openPopup(innerHTML);
+
+    addPopupButtonEvent(id);
+  }
+
+  function depositAmountValidation(result) {
+    if (result == translate("OK") && !$("#depositAmount").data("error")) {
+      const innerHTML = '<div align="center" style="margin:15px 0px 0px 0px;"><table><tr>'
+        + getTranslatedContent("Amount to deposit", true) + getTranslatedContent($("#depositAmount").val() + ' €') + '</tr><tr>'
+        + getTranslatedContent("Recipient", true) + getTranslatedContent("Mr DE FROCOURT F.") + '</tr><tr>'
+        + getTranslatedContent("IBAN", true) + getTranslatedContent("FR76 4061 8802 5000 0403 8167 244") + '</tr><tr>'
+        + getTranslatedContent("BIC", true) + getTranslatedContent("BOUS FRPP XXX") + '</tr><tr>'
+        + getTranslatedContent("Bank", true) + getTranslatedContent("Boursorama Banque") + '</tr><tr>'
+        + getTranslatedContent("Bank Adress", true) + getTranslatedContent("18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex") + '</tr><tr>'
+
+        + '</tr></table>'
+        + '<br><br>'
+        + '<button id="previousPopupButton" onclick="deposit()">' + translate("PREVIOUS") + '</button>'
+        + '<button id="validatePopupButton" onclick="closePopup()">' + translate("VALIDATE") + '</button>'
+        + '</div>';
+
+      openPopup(innerHTML);
+
+      $("#validatePopupButton").focus();
+      $("#popup").keyup(event => {
+        if (event.target.id != "depositAmount") {
+          event.Handled = true; event.preventDefault();
+          if (event.which == 13) { $("#validatePopupButton").click(); } else if (event.which == 27) { $("#previousPopupButton").click(); }
+        }
+      });
+
+    } else if (result == translate("CANCEL")) {
+      closePopup();
+    }
   }
 
   function withdraw() {
-
   }
 
   function setUserId(id) {
