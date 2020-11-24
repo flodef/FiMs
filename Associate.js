@@ -1,5 +1,8 @@
   GLOBAL.translation = "translation";
   GLOBAL.translationFormula = "Translation!A:D";
+  GLOBAL.depositAmount = "depositAmount";
+  GLOBAL.personalGID = 516322404;
+  GLOBAL.pendingStatus = "Pending ...";
   GLOBAL.displayData = {
     "account": {id:"account", formula:"!A:N", updateTable:updateAccountTable, loadOnce:true},
     "historic": {id:"historic", formula:"AssociateHistoric!A:E", updateTable:updateHistoricTable, loadOnce:true, filter:1},
@@ -170,10 +173,9 @@
     const content = getTranslatedContent("Enter your user id", false,
         {inputId:id, type:d.type, minLength:d.minLength, maxLength:d.maxLength, value:GLOBAL.userId, erase:true,
         style:"width:104px;text-align:center;line-height:45px", placeholder:translate("User Id")});
-    const innerHTML = getPopupContent(content, id);
+    const innerHTML = getPopupContent(id, content);
 
     openPopup(innerHTML);
-
     addPopupButtonEvent(id, true);
   }
 
@@ -185,39 +187,77 @@
   }
 
   function deposit() {
-    const id = "depositAmount";
+    const id = GLOBAL.depositAmount;
     const content = getTranslatedContent("Amount to deposit", false,
         {inputId:id, type:"euro", min:100, max:100000, erase:true,
         style:"width:104px;text-align:center;line-height:45px", placeholder:translate("deposit")});
-    const innerHTML = getPopupContent(content, id);
+    const innerHTML = getPopupContent(id, content);
 
     openPopup(innerHTML);
-
     addPopupButtonEvent(id, true);
   }
 
   function depositAmountValidation(result) {
-    if (result == translate("OK") && !$("#depositAmount").data("error")) {
+    const id = GLOBAL.depositAmount;
+    if (result == translate("OK") && !$("#" + id).data("error")) {
+      const data = $("#" + id).val();
       const content = '<table><tr>'
-        + getTranslatedContent("Amount to deposit", true) + getTranslatedContent($("#depositAmount").val() + ' €') + '</tr><tr>'
+        + getTranslatedContent("Amount to deposit", true) + getTranslatedContent(data + ' €') + '</tr><tr>'
         + getTranslatedContent("Recipient", true) + getTranslatedContent("Mr DE FROCOURT F.") + '</tr><tr>'
         + getTranslatedContent("IBAN", true) + getTranslatedContent("FR76 4061 8802 5000 0403 8167 244") + '</tr><tr>'
         + getTranslatedContent("BIC", true) + getTranslatedContent("BOUS FRPP XXX") + '</tr><tr>'
         + getTranslatedContent("Bank", true) + getTranslatedContent("Boursorama Banque") + '</tr><tr>'
         + getTranslatedContent("Bank Adress", true) + getTranslatedContent("18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex") + '</tr></table>'
 
-      const innerHTML = getPopupContent(content);
+      const innerHTML = getPopupContent(deposit.name, content, updateDeposit.name);
 
       openPopup(innerHTML);
+      addPopupButtonEvent("validatePopupButton", false);
 
-      addPopupButtonEvent(id);
+      $("#popup").data(id, data);
 
     } else if (result == translate("CANCEL")) {
       closePopup();
     }
   }
 
+  function updateDeposit() {
+    const title = "Deposit";
+    const id = GLOBAL.depositAmount;
+    const value = $("#popup").data(id);
+
+    const data = {movement:value};
+
+    const subject = title + ": " + value + " € for " + GLOBAL.userId;
+    google.script.run
+          .withSuccessHandler(contents => insertHistoricRow(data))
+          .withFailureHandler(displayError)
+          .sendEmail(subject);
+  }
+
   function withdraw() {
+  }
+
+  function insertHistoricRow(data) {
+    if (data && data.movement) {
+      data = [data.date ?? toStringDate(), GLOBAL.userId, toCurrency(data.movement), data.cost ?? '', GLOBAL.pendingStatus];
+
+      const insertRowIntoHtml = contents => {
+        const id = GLOBAL.displayData.historic.id;
+        closePopup();
+        openTab(id);
+        GLOBAL.data[id].splice(1, 0, data);
+        updateHistoricTable(id, GLOBAL.data[id]);
+      };
+
+      google.script.run
+      // .withSuccessHandler(contents => updateValues(GLOBAL.displayData.historic.id, true); closePopup(); }))
+      .withSuccessHandler(insertRowIntoHtml)
+      .withFailureHandler(displayError)
+      .insertRows(GLOBAL.personalGID, data, {startRow:1, endCol:data.length});
+    } else {
+      throw 'data is not set or incomplete';
+    }
   }
 
   function setUserId(id) {

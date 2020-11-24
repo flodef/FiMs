@@ -11,7 +11,7 @@ GLOBAL.currentDisplayedId;
 GLOBAL.displayId;
 GLOBAL.isLocal;
 GLOBAL.serverUrl = "https://raw.githubusercontent.com/flodef/FiMS/master/";
-GLOBAL.handleEvent;
+GLOBAL.handleEvent = true;
 
 function init() {
   jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
@@ -181,7 +181,7 @@ function getTableValidatableContent(id, content, range, expected) {
 function getEditCellHandler(expected, data) {
   return ' onfocusout="const error = getElementValidity(this); $(this).data(\'error\', error); if (error) { $(this).focus(); showSnackBar(error); } else { '
        + (data && data.id && data.range ? getUpdateContent(data.id, data.range, expected) : '') + ' }"'
-       + ' onkeyup="if (event.which == 13) { $(this).blur() } else if (event.which == 27)'
+       + ' onkeyup="if (!GLOBAL.handleEvent && event.which == 13) { $(this).blur() } else if (!GLOBAL.handleEvent && event.which == 27)'
        + ' { this.value = \'' + expected + '\'; } autoAdaptWidth(this);'
        + (data && data.inputId && data.erase ? ' $(\'#' + data.inputId + 'Erase\').css(\'visibility\', $(this).val() ? \'visible\' : \'hidden\')' : '')
        + '" oninput="autoAdaptWidth(this);" type="text" value="' + expected + '"'
@@ -569,41 +569,43 @@ function batchTranslate(content, array) {
   return content;
 }
 
-function getPopupContent(content, id) {
+function getPopupContent(id, content, validate) {
+  handleEvent(true);
   return '<div align="center" style="margin:15px 0px 0px 0px;">'
     + content + '<br><br>'
-    + (id
-      ? '<button id="' + id + 'Button" onclick="' + id + 'Validation(this.innerHTML)"></button>'
-      : '<button id="previousPopupButton" onclick="deposit()">' + translate("PREVIOUS") + '</button>'
-      + '<button id="validatePopupButton" onclick="closePopup()">' + translate("VALIDATE") + '</button>' )
+    + (!validate
+      ? '<button id="' + id + 'Button" onclick="handleEvent(true);' + id + 'Validation(this.innerHTML)"></button>'
+      : '<button id="previousPopupButton" onclick="handleEvent(true);' + id + '()">' + translate("PREVIOUS") + '</button>'
+      + '<button id="validatePopupButton" onclick="handleEvent(true);' + validate + '()">' + translate("VALIDATE") + '</button>' )
     + '</div>';
 }
 
 function addPopupButtonEvent(id, hasSingleButton) {
   if (hasSingleButton) {
-
     const fn = event => {
-      if (event && event.target.id == id && event.which == 13) {
-        event.Handled = true; event.preventDefault();
+      if (!GLOBAL.handleEvent && event && event.target.id == id && event.which == 13 && !$("#" + id).data("error")) {
         $("#" + id + "Button").click();
       }
       $("#" + id + "Button").html($("#" + id).val() ? translate("OK") : translate("CANCEL"));
     };
     fn();                  // Trigger the Keyup event to display correct button text (OK or CANCEL)
-    $("#" + id).focus();   // Set the focus to the input text
     $("#" + id).keyup(fn); // Set the keyup trigger function
   } else {
-    $("#popup").keyup(event => {
-      if (event && event.target.id != id) {
-        event.Handled = true; event.preventDefault();
+    $("#" + id).keyup(event => {
+      if (!GLOBAL.handleEvent && event && (event.which == 13 || event.which == 27)) {
         if (event.which == 13) { $("#validatePopupButton").click(); }
         else if (event.which == 27) { $("#previousPopupButton").click(); }
       }
     });
-    $("#validatePopupButton").focus();
   }
+  setTimeout(() => { handleEvent(false); $("#" + id).focus(); }, 300);  // Hack for key events to avoid handling same events for multiple forms
 }
 
+function handleEvent(isHandled) {
+  GLOBAL.handleEvent = isHandled;
+  // event.Handled = isHandled;
+  // if (isHandled) { event.preventDefault(); }
+}
 
 function shouldRebalance(value) {
   return value && !value.startsWith("HOLD");

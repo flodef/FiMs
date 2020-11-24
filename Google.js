@@ -46,6 +46,14 @@ class Run {
             .setTitle('Finance Manager')
             .setFaviconUrl('Img/Favicon.png');
   }
+  sendEmail(subject, message) {
+    try {
+      alert("Mail sent!\n\nSubject = " + subject + (message ? "\nMessage = " + message : ''));
+    } catch (error) {
+      this.#fh(error);
+    }
+    this.#sh();
+  }
   getProperty(key) {
     var p;
     try {
