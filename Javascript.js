@@ -21,7 +21,7 @@ var page = url[url.length-1].split('.')[0];
 loadScript(0);
 
 function loadScript(i) {
-    const link = src[i]
+    const link = src[i];
     var element = document.createElement('script');
     element.src = page == "index" ? link : link.replace("FiMS", "Associate");
     document.head.appendChild(element);

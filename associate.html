@@ -1,13 +1,22 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <base target="_top">
+    <base target="_blank">
+    <script>
+    if (document.URL.includes(":8080")) {
+      var element = document.createElement('link');
+      element.rel = "stylesheet";
+      element.href = "Stylesheet.css";
+      document.head.appendChild(element);
+    }
+    </script>
+
     <!-- <link rel="stylesheet" href="Lib/jquery-ui.css">    <!-- <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
     <!-- <link rel="stylesheet" href="Lib/easy-autocomplete.min.css">  <!-- http://easyautocomplete.com/dist/easy-autocomplete.min.css -->
 
     <!-- Use a templated HTML printing scriptlet to import common stylesheet -->
     <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
-    <link rel="stylesheet" href="Stylesheet.css">
+    <!-- <link rel="stylesheet" href="Stylesheet.css"> -->
   </head>
   <body>
     <div id="content" class="overlay contentOverlay hidden">
@@ -58,10 +67,17 @@
 
     <!-- Use a templated HTML printing scriptlet to import JavaScript. -->
     <?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
-    <script src="Javascript.js"></script>
+    <!-- <script src="Javascript.js"></script> -->
     <!-- <script async defer src="https://apis.google.com/js/api.js"
            onload="this.onload=function(){};handleClientLoad()"
            onreadystatechange="if (this.readyState === 'complete') this.onload()">
     </script> -->
+    <script>
+    if (document.URL.includes(":8080")) {
+      var element = document.createElement('script');
+      element.src = "JavaScript.js";
+      document.body.appendChild(element);
+    }
+    </script>
   </body>
 </html>
