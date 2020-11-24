@@ -8,18 +8,18 @@
   };
   GLOBAL.menuButton = ["deposit", "withdraw", "connect"];
   GLOBAL.personalData = [
-    { index:1, type:"text", minLength:5, maxLength:10, required:true }, // ID
-    { index:14, type:"text", required:true },                     // First name
-    { index:15, type:"text", required:true },                     // Family name
-    { index:13, type:"text", required:true },                     // Email
+    { index:1, type:"name", minLength:5, maxLength:10, required:true }, // ID
+    { index:14, type:"name", required:true },                     // First name
+    { index:15, type:"name", required:true },                     // Family name
+    { index:13, type:"email", required:true },                    // Email
     { index:16, type:"date", required:true },                     // Birth date
-    { index:17, type:"text", required:true },                     // Birth city
+    { index:17, type:"name", required:true },                     // Birth city
     { index:18, type:"text", required:true, maxLength:55 },       // Adress
     { index:19, type:"text", required:true, pattern:"[0-9]{5}" }, // Postal code
-    { index:20, type:"text", required:true },                     // City
+    { index:20, type:"name", required:true },                     // City
     { index:21, type:"iban", required:true },                     // IBAN
-    { index:22, type:"text", required:true },                     // Bank
-    { index:23, type:"text", required:true },                     // Association
+    { index:22, type:"name", required:true },                     // Bank
+    { index:23, type:"name", required:true },                     // Association
     { index:24, type:"url", maxLength:55 },                       // Web page
     { index:2, type:"euro", min:-1000, max:0 },                   // Recurrent
     { index:6 },                                                  // Current rate
@@ -29,6 +29,7 @@
     { index:7 },                                                  // Duration
     { index:25, type:"url", readonly:true }                       // Debt recognition
   ]
+  GLOBAL.withdrawCol = 8;
   GLOBAL.userId;
 
 //THIS PAGE SHORTENED URL : https://bit.ly/3eiucSP
@@ -103,7 +104,8 @@
   }
 
   function updatePersonalTable(id, contents) {
-    if (contents && contents.length > 1) {
+    const hasContent = contents && contents.length > 1;
+    if (hasContent) {
       const baseFormula = GLOBAL.displayData[id].formula.split('!')[0] + '!';
       var tableHTML = getTableTitle(id);
       GLOBAL.personalData.forEach(item => {
@@ -124,7 +126,7 @@
 
       // Set the scrolling panel
       tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
-      for (var i = 12; i > 7; --i) {
+      for (var i = GLOBAL.withdrawCol+4; i >= GLOBAL.withdrawCol; --i) {
         tableHTML += '<tr>';
         tableHTML += getTranslatedContent(contents[0][i]);
         tableHTML += getTranslatedContent(contents[1][i]);
@@ -134,6 +136,9 @@
       tableHTML += '</table></marquee>';
       $("#scrollDiv").prop("innerHTML", tableHTML);
     }
+
+    displayElement("#depositButton", hasContent); // Show the deposit button
+    displayElement("#withdrawButton", hasContent && parseFloat(contents[1][GLOBAL.withdrawCol]) > 0); // Show the withdraw button
   }
 
   function updateFaqTable(id, contents) {
@@ -160,10 +165,10 @@
   }
 
   function connect() {
-    // const d = getTranslateData("Enter your user id:");
+    const d = GLOBAL.personalData[0];
     const innerHTML = '<div align="center" style="margin:15px 0px 0px 0px;">'
       + getTranslatedContent("Enter your user id:", false,
-          {inputId:"userId", type:"text", minLength:3, maxLength:10, value:GLOBAL.userId, erase:true,
+          {inputId:"userId", type:d.type, minLength:d.minLength, maxLength:d.maxLength, value:GLOBAL.userId, erase:true,
           style:"width:104px;text-align:center;line-height:45px", placeholder:translate("User Id")})
       + '<br><br><button id="userIdButton" style="margin:0px 5px 0px 5px; width:76px" onclick="closeConnectionPopup()"></button>'
       + '</div>';
@@ -191,20 +196,28 @@
 
   function setUserId(id) {
     if (id != GLOBAL.userId) {
+      const faqId = GLOBAL.displayData.FAQ.id;
       GLOBAL.userId = id;
-      GLOBAL.displayId.forEach(id => displayElement("#" + id + "Button", GLOBAL.userId, 0));  // Display/Hide all tab depending on the connection state
+      GLOBAL.displayId.forEach(id => {
+        if (id != faqId) {
+          $("#" + id + "Div").prop("innerHTML", "");            // Clear all tab content except faq
+        }
+        displayElement("#" + id + "Button", GLOBAL.userId, 0);  // Display/Hide all tab depending on the connection state
+      });
+      GLOBAL.currentDisplayedId = null;                         // Unselect the current displayed tab
+
       if (id) {
         GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1];   // Create user account formula
-        updateAllValues();    // Load all data
+        updateAllValues();                                                        // Load all data
       } else {    // No user
-        const faqId = GLOBAL.displayData.FAQ.id;
-        openTab(faqId);                                                            // Open first the faq tab (in case of disconnection)
-        $("#scrollDiv").prop("innerHTML", "");                                     // Clear the scroll marquee content
-        GLOBAL.displayId.forEach(id => { if (id != faqId) { $("#" + id + "Div").prop("innerHTML", ""); } }); // Clear all tab content except faq
-        displayElement("#" + faqId + "Button", true, 0);                           // Display only the faq
-        if (!GLOBAL.data[faqId]) {                                                 // Don't load twice the faq
-          updateValues(faqId);                                                     // Load only the faq
+        openTab(faqId);                                                           // Open first the faq tab (in case of disconnection)
+        $("#scrollDiv").prop("innerHTML", "");                                    // Clear the scroll marquee content
+        displayElement("#" + faqId + "Button", true, 0);                          // Display only the faq
+        if (!GLOBAL.data[faqId]) {                                                // Don't load twice the faq
+          updateValues(faqId);                                                    // Load only the faq
         }
+        displayElement("#depositButton", false, 0);                               // Hide the deposit button
+        displayElement("#withdrawButton", false, 0);                              // Hide the withdraw button
       }
     }
   }
