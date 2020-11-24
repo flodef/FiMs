@@ -170,11 +170,11 @@
     const content = getTranslatedContent("Enter your user id", false,
         {inputId:id, type:d.type, minLength:d.minLength, maxLength:d.maxLength, value:GLOBAL.userId, erase:true,
         style:"width:104px;text-align:center;line-height:45px", placeholder:translate("User Id")});
-    const innerHTML = getPopupContent(id, content);
+    const innerHTML = getPopupContent(content, id);
 
     openPopup(innerHTML);
 
-    addPopupButtonEvent(id);
+    addPopupButtonEvent(id, true);
   }
 
   function userIdValidation(result) {
@@ -189,38 +189,28 @@
     const content = getTranslatedContent("Amount to deposit", false,
         {inputId:id, type:"euro", min:100, max:100000, erase:true,
         style:"width:104px;text-align:center;line-height:45px", placeholder:translate("deposit")});
-    const innerHTML = getPopupContent(id, content);
+    const innerHTML = getPopupContent(content, id);
 
     openPopup(innerHTML);
 
-    addPopupButtonEvent(id);
+    addPopupButtonEvent(id, true);
   }
 
   function depositAmountValidation(result) {
     if (result == translate("OK") && !$("#depositAmount").data("error")) {
-      const innerHTML = '<div align="center" style="margin:15px 0px 0px 0px;"><table><tr>'
+      const content = '<table><tr>'
         + getTranslatedContent("Amount to deposit", true) + getTranslatedContent($("#depositAmount").val() + ' €') + '</tr><tr>'
         + getTranslatedContent("Recipient", true) + getTranslatedContent("Mr DE FROCOURT F.") + '</tr><tr>'
         + getTranslatedContent("IBAN", true) + getTranslatedContent("FR76 4061 8802 5000 0403 8167 244") + '</tr><tr>'
         + getTranslatedContent("BIC", true) + getTranslatedContent("BOUS FRPP XXX") + '</tr><tr>'
         + getTranslatedContent("Bank", true) + getTranslatedContent("Boursorama Banque") + '</tr><tr>'
-        + getTranslatedContent("Bank Adress", true) + getTranslatedContent("18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex") + '</tr><tr>'
+        + getTranslatedContent("Bank Adress", true) + getTranslatedContent("18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex") + '</tr></table>'
 
-        + '</tr></table>'
-        + '<br><br>'
-        + '<button id="previousPopupButton" onclick="deposit()">' + translate("PREVIOUS") + '</button>'
-        + '<button id="validatePopupButton" onclick="closePopup()">' + translate("VALIDATE") + '</button>'
-        + '</div>';
+      const innerHTML = getPopupContent(content);
 
       openPopup(innerHTML);
 
-      $("#validatePopupButton").focus();
-      $("#popup").keyup(event => {
-        if (event.target.id != "depositAmount") {
-          event.Handled = true; event.preventDefault();
-          if (event.which == 13) { $("#validatePopupButton").click(); } else if (event.which == 27) { $("#previousPopupButton").click(); }
-        }
-      });
+      addPopupButtonEvent(id);
 
     } else if (result == translate("CANCEL")) {
       closePopup();

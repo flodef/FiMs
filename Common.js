@@ -569,21 +569,39 @@ function batchTranslate(content, array) {
   return content;
 }
 
-function getPopupContent(id, content) {
+function getPopupContent(content, id) {
   return '<div align="center" style="margin:15px 0px 0px 0px;">'
     + content + '<br><br>'
-    + '<button id="' + id + 'Button" onclick="' + id + 'Validation(this.innerHTML)"></button>'
+    + (id
+      ? '<button id="' + id + 'Button" onclick="' + id + 'Validation(this.innerHTML)"></button>'
+      : '<button id="previousPopupButton" onclick="deposit()">' + translate("PREVIOUS") + '</button>'
+      + '<button id="validatePopupButton" onclick="closePopup()">' + translate("VALIDATE") + '</button>' )
     + '</div>';
 }
 
-function addPopupButtonEvent(id) {
-  const fn = event => {
-    if (event && event.target.id == id && event.which == 13) { $("#" + id + "Button").click(); }
-    $("#" + id + "Button").html($("#" + id).val() ? translate("OK") : translate("CANCEL"));
-  };
-  fn();                  // Trigger the Keyup event to display correct button text (OK or CANCEL)
-  $("#" + id).focus();   // Set the focus to the input text
-  $("#" + id).keyup(fn); // Set the keyup trigger function
+function addPopupButtonEvent(id, hasSingleButton) {
+  if (hasSingleButton) {
+
+    const fn = event => {
+      if (event && event.target.id == id && event.which == 13) {
+        event.Handled = true; event.preventDefault();
+        $("#" + id + "Button").click();
+      }
+      $("#" + id + "Button").html($("#" + id).val() ? translate("OK") : translate("CANCEL"));
+    };
+    fn();                  // Trigger the Keyup event to display correct button text (OK or CANCEL)
+    $("#" + id).focus();   // Set the focus to the input text
+    $("#" + id).keyup(fn); // Set the keyup trigger function
+  } else {
+    $("#popup").keyup(event => {
+      if (event && event.target.id != id) {
+        event.Handled = true; event.preventDefault();
+        if (event.which == 13) { $("#validatePopupButton").click(); }
+        else if (event.which == 27) { $("#previousPopupButton").click(); }
+      }
+    });
+    $("#validatePopupButton").focus();
+  }
 }
 
 
