@@ -242,21 +242,20 @@
 
   function insertHistoricRow(data) {
     if (data && data.movement) {
-      data = [data.date ?? toStringDate(), GLOBAL.userId, toCurrency(data.movement), data.cost ?? '', GLOBAL.pendingStatus];
+      data = [[data.date ?? toStringDate(), GLOBAL.userId, toCurrency(data.movement), data.cost ?? '', GLOBAL.pendingStatus]];
 
-      const insertRowIntoHtml = contents => {
+      const insertRowIntoHtml = () => {
         const id = GLOBAL.displayData.historic.id;
         openTab(id);
         showLoader(false);
-        GLOBAL.data[id].splice(1, 0, data);
+        GLOBAL.data[id].splice(1, 0, data[0]);
         updateHistoricTable(id, GLOBAL.data[id]);
       };
 
       google.script.run
-      // .withSuccessHandler(contents => updateValues(GLOBAL.displayData.historic.id, true); closePopup(); }))
-      .withSuccessHandler(insertRowIntoHtml)
+      .withSuccessHandler(contents => setValue(GLOBAL.displayData.historic.formula.split('!')[0] + "!A2", data, insertRowIntoHtml))
       .withFailureHandler(displayError)
-      .insertRows(GLOBAL.personalGID, [data], {startRow:1, endCol:data.length});
+      .insertRows(GLOBAL.personalGID, data, {startRow:1, endCol:data.length});
     } else {
       throw 'data is not set or incomplete';
     }
