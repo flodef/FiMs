@@ -222,6 +222,8 @@
   }
 
   function updateDeposit() {
+    closePopup();
+    showLoader(true);
     const title = "Deposit";
     const id = GLOBAL.depositAmount;
     const value = $("#popup").data(id);
@@ -244,8 +246,8 @@
 
       const insertRowIntoHtml = contents => {
         const id = GLOBAL.displayData.historic.id;
-        closePopup();
         openTab(id);
+        showLoader(false);
         GLOBAL.data[id].splice(1, 0, data);
         updateHistoricTable(id, GLOBAL.data[id]);
       };
@@ -254,7 +256,7 @@
       // .withSuccessHandler(contents => updateValues(GLOBAL.displayData.historic.id, true); closePopup(); }))
       .withSuccessHandler(insertRowIntoHtml)
       .withFailureHandler(displayError)
-      .insertRows(GLOBAL.personalGID, data, {startRow:1, endCol:data.length});
+      .insertRows(GLOBAL.personalGID, [data], {startRow:1, endCol:data.length});
     } else {
       throw 'data is not set or incomplete';
     }

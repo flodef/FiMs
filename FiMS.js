@@ -207,7 +207,7 @@
       if (sid == "Historic") {
         id = GLOBAL.historic;
         gid = 9;
-        endCol = 15;
+        endCol = 10;
       } else if (sid == "ExpensesHistoric") {
         id = GLOBAL.dashboard;
         gid = 298395308;
