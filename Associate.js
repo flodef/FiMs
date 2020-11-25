@@ -8,7 +8,7 @@
   GLOBAL.displayData = {
     "account": {id:"account", formula:"!A:N", updateTable:updateAccountTable, loadOnce:true},
     "historic": {id:"historic", formula:"AssociateHistoric!A:E", updateTable:updateHistoricTable, loadOnce:true, filter:1},
-    "personal": {id:"personal", formula:"Associate!A:Y", updateTable:updatePersonalTable, loadOnce:true, filter:1},
+    "personal": {id:"personal", formula:"Associate!A:Z", updateTable:updatePersonalTable, loadOnce:true, filter:1},
     "FAQ": {id:"FAQ", formula:"FAQ!A:B", updateTable:updateFaqTable, loadOnce:true }
   };
   GLOBAL.menuButton = ["deposit", "withdraw", "connect"];
@@ -318,7 +318,7 @@
 
   function insertHistoricRow(data) {
     if (data && data.movement) {
-      data = [[data.date ?? toStringDate(), GLOBAL.userId, toCurrency(data.movement), data.cost ?? '', GLOBAL.pendingStatus]];
+      data = [[data.date ?? toStringDate(), GLOBAL.userId, toCurrency(data.movement), data.cost ?? 0, GLOBAL.pendingStatus]];
 
       const insertRowIntoHtml = () => {
         const id = GLOBAL.displayData.historic.id;
