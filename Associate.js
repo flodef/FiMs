@@ -4,6 +4,7 @@
   GLOBAL.withdrawAmount = "withdrawAmount";
   GLOBAL.personalGID = 516322404;
   GLOBAL.pendingStatus = "Pending ...";
+  GLOBAL.completedStatus = "Completed !";
   GLOBAL.displayData = {
     "account": {id:"account", formula:"!A:N", updateTable:updateAccountTable, loadOnce:true},
     "historic": {id:"historic", formula:"AssociateHistoric!A:E", updateTable:updateHistoricTable, loadOnce:true, filter:1},
@@ -89,11 +90,14 @@
       var row = contents.length;
       var col = contents[0].length;
       var tableHTML = getTableTitle(id);
+
       for (var i = 0; i < row; ++i) {
         tableHTML += i==0 ? '<thead>' : '';
         tableHTML += '<tr>';
         for (var j = 0; j < col; ++j) {
-          tableHTML += j != 1 ? getTranslatedContent(contents[i][j], i == 0) : '';  // Don't add the ID column
+          tableHTML += j == col-1 && i != 0
+            ? !contents[i][j] ? getTableCheckmark(GLOBAL.completedStatus) : getTableLoaderBar(contents[i][j])
+          : j != 1 ? getTranslatedContent(contents[i][j], i == 0) : '';  // Don't add the ID column
         }
         tableHTML += '</tr>';
         tableHTML += i==0 ? '</thead><tbody>'

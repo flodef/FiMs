@@ -33,7 +33,7 @@ function init() {
   + '<div id="focus" style="height:0px;">'
   + '<input id="mainFocus" type="image" src="' + GLOBAL.serverUrl + 'Img/0BYg1.png" style="height:0px;" tabindex="1">'
   + '</div><tr>';
-  GLOBAL.menuButton.forEach(item => { tableHTML += getButton(item); });
+  GLOBAL.menuButton.forEach(item => { tableHTML += getMenuButton(item); });
   tableHTML += '</tr>'
   setTable("menu", tableHTML);
   displayElement(".actionButton", false, 0);
@@ -54,11 +54,11 @@ function init() {
 }
 
 function animateLoaderBar() {
-  $("#loaderBar").prop("innerHTML", "<span></span>");
-  $("#loaderBar > span")
-      .data("origWidth", $("#loaderBar > span").width())
+  $(".loaderBar").prop("innerHTML", "<span></span>");
+  $(".loaderBar > span")
+      .data("origWidth", $(".loaderBar > span").width())
       .width(0)
-      .animate({width: $("#loaderBar > span").data("origWidth")}, 3000);
+      .animate({width: $(".loaderBar > span").data("origWidth")}, 3000);
 }
 
 function openTab(id, isFirstLoading) {
@@ -229,7 +229,17 @@ function getMainTableHead(id) {
   return '<table id="' + id + 'Table" class="sortable mainTable">';
 }
 
-function getButton(item) {
+function getTableCheckmark(content) {
+  return '<td align="center" style="height:27px;">' + getTooltip(
+  '<div style="position:absolute;left:35%;top:50%;display:block;margin:-4px -12px;" class="checkmark draw"></div>', translate(content)) + '</td>';
+}
+
+function getTableLoaderBar(content) {
+  return '<td align="center">' + getTooltip('<div class="loaderBar" style="padding:0px;margin:0px">'
+  + '<span style="width:80px;height:12px;top:3px;margin:5px 0px;"></span></div>', translate(content)) + '</td>';
+}
+
+function getMenuButton(item) {
   const id = item.id ?? item;
   const img = toFirstUpperCase(item.img ?? id);
   const fn = item.fn ? item.fn.name : id;
@@ -240,8 +250,7 @@ function getButton(item) {
 }
 
 function getTooltip(html, tooltip) {
-  return '<div class="tooltip">' + html
-    + (tooltip ? '<span class="tooltiptext">' + tooltip + '</span>' : '') + '</div>';
+  return tooltip ? '<div class="tooltip">' + html + '<span class="tooltiptext">' + tooltip + '</span></div>' : '';
 }
 
 // function getTitle(id, disabled) {
