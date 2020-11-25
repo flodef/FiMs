@@ -620,6 +620,11 @@ input:hover, input:focus {
   display: none;
 }
 
+@keyframes move {
+    0% { background-position: 0 0; }
+    100% { background-position: 50px 50px; }
+}
+
 @-webkit-keyframes move {
     0% { background-position: 0 0; }
     100% { background-position: 50px 50px; }
@@ -655,6 +660,13 @@ input:hover, input:focus {
   -webkit-animation: none;
   -moz-animation: none;
   background-image: none;
+}
+
+.drawlb {
+  animation-duration: 1000ms;
+  animation-timing-function: ease;
+  animation-name: move;
+  cursor: default;
 }
 
 

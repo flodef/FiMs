@@ -53,12 +53,15 @@ function init() {
   $(document).ready(() => $("#mainFocus").focus());   // Set the main focus (replace autofocus attribute)
 }
 
-function animateLoaderBar() {
-  $(".loaderBar").prop("innerHTML", "<span></span>");
-  $(".loaderBar > span")
-      .data("origWidth", $(".loaderBar > span").width())
+function animateLoaderBar(item, duration) {
+  item = item ? $(item) : $(".loaderBar");
+  duration = duration ?? 3000;
+  item.prop("innerHTML", item.prop("innerHTML") || "<span></span>");
+
+  const span = item.children("span");
+  span.data("origWidth", span.width())
       .width(0)
-      .animate({width: $(".loaderBar > span").data("origWidth")}, 3000);
+      .animate({width: span.data("origWidth")}, duration);
 }
 
 function openTab(id, isFirstLoading) {
@@ -139,7 +142,7 @@ function getTableEditableContent(content, data) {
   var erase = '';
   if (data) {
     var type = "text";
-    data.inputId = data.inputId || Math.random() * 10;  // Generates a random Id if it does not have any
+    data.inputId = data.inputId || getRandomId();  // Generates a random Id if it does not have any
     symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
     if (data.type == "number" || data.type == "euro" || data.type == "percent") {
       const min = data.min ?? 0;
@@ -235,8 +238,8 @@ function getTableCheckmark(content) {
 }
 
 function getTableLoaderBar(content) {
-  return '<td align="center">' + getTooltip('<div class="loaderBar" style="padding:0px;margin:0px">'
-  + '<span style="width:80px;height:12px;top:3px;margin:5px 0px;"></span></div>', translate(content)) + '</td>';
+  return '<td align="center">' + getTooltip('<div class="loaderBar drawlb" onclick="animateLoaderBar(this, 1000)" style="cursor:pointer;padding:0px;margin:0px">'
+  + '<span width="80px" style="width:80px;height:12px;top:3px;margin:5px 0px;"></span></div>', translate(content)) + '</td>';
 }
 
 function getMenuButton(item) {
@@ -700,4 +703,8 @@ function roundDown(value, precision = 0) {
 
 function toFirstUpperCase(item) {
   return item.charAt(0).toUpperCase() + item.slice(1).toLowerCase();
+}
+
+function getRandomId() {
+  return (Math.random() * 10).replace('.', '');
 }
