@@ -324,6 +324,7 @@
         const id = GLOBAL.displayData.historic.id;
         openTab(id);
         showLoader(false);
+        data[0][0] = toStringDate(data[0][0]);    // Reverse date as the format is incorrect
         GLOBAL.data[id].splice(1, 0, data[0]);
         updateHistoricTable(id, GLOBAL.data[id]);
       };
