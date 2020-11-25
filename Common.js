@@ -140,22 +140,24 @@ function getTableEditableContent(content, data) {
   if (data) {
     var type = "text";
     data.inputId = data.inputId || Math.random() * 10;  // Generates a random Id if it does not have any
-    symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : "";
+    symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
     if (data.type == "number" || data.type == "euro" || data.type == "percent") {
       const min = data.min ?? 0;
       const max = data.max ?? 0;
       data.precision = data.precision ?? (data.type == "euro" ? 2 : 0);
       content = content ?? (data.required ? "0" : "");
       html = 'min="' + min + '" max="' + max + '"';
-    } else if (data.type == "date") {
-      type = "date";
+    } else if (data.type == "date" || data.type == "radio") {
+      type = data.type;
     } else {
       html = ' minLength="' + data.minLength + '" maxLength="' + data.maxLength + '"';
     }
     html += ' id="' + data.inputId + '" type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
+         + ' name=' + (data.name ?? '') + ' pattern="' + (data.pattern ?? '') + '"'
+         + ' style="' + (data.style ?? '') + '"'
+         + (data.required ? ' required' : '') + (data.checked ? ' checked' : '')
          + ' data-type="' + (data.type ?? 'text') + '" data-precision="' + (data.precision ?? '') + '"'
-         + ' style="' + (data.style ?? '') + '"' + (data.required ? ' required' : '')
-         + ' data-symbol="' + symbol + '" pattern="' + (data.pattern ?? '') + '"';
+         + ' data-symbol="' + symbol + '"';
 
     erase = data.erase
       ? '<span id="' + data.inputId + 'Erase" style="float:none;color:black;visibility:hidden" class="closebtn"'
@@ -326,17 +328,17 @@ function checkElement(e) {
     const min = parseFloat(e.min);
     const max = parseFloat(e.max);
     const precision = parseInt(e.dataset.precision) || 0;
-    const maxLength = Math.max(String(parseInt(min)).length, String(parseInt(max)).length) + precision;
+    const maxLength = Math.max(String(parseInt(min)).length, String(parseInt(max)).length) + precision + 1;   // Don't forget the decimal separator
     const pattern = e.pattern || "^" + (min < 0 ? max < 0 ? "-+" : "-?" : "") + "([0-9]" + (e.required ? '+' : '*') + "$"
       + (precision > 0 ? "|[0-9]+\\.?[0-9]{0," + precision + "}$" : "") + ")";
     const regexp = new RegExp(pattern);
     var val = parseFloat(e.value);
     while (e.value && (!regexp.test(e.value) ||
-      (!isNaN(val) && (val > max || val * Math.pow(10, precision) % 1 !== 0 || e.value.length > maxLength)))) {
+      (!isNaN(val) && (val > max || e.value.length > maxLength)))) {
       e.value = e.value.slice(0, -1);
       val = parseFloat(e.value);
     }
-  } else if (type != "date") {
+  } else if (type != "date" && type != "radio") {
     const maxLength = parseInt(e.maxLength) ?? 30;
     const pattern = e.pattern
       || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
@@ -546,7 +548,7 @@ function displayError(msg, isWarning) {
 
 function translate(content) {
   return content && !isNaN(content.replace(/€|%|,/g, "")) ? batchTranslate(content, [',', '.'])                         // Numbers
-    : content && (content.includes("month") || content.includes("year")) ? batchTranslate(content, ['months', 'year'])  // Duration
+    : /\d/.test(content) && (content.includes("month") || content.includes("year")) ? batchTranslate(content, ['months', 'year'])  // Duration
     : getTranslateData(content).text;  // Text
 }
 
@@ -688,5 +690,5 @@ function roundDown(value, precision = 0) {
 }
 
 function toFirstUpperCase(item) {
-  return item.charAt(0).toUpperCase() + item.slice(1)
+  return item.charAt(0).toUpperCase() + item.slice(1).toLowerCase();
 }

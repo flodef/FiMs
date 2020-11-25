@@ -1,6 +1,7 @@
   GLOBAL.translation = "translation";
   GLOBAL.translationFormula = "Translation!A:D";
   GLOBAL.depositAmount = "depositAmount";
+  GLOBAL.withdrawAmount = "withdrawAmount";
   GLOBAL.personalGID = 516322404;
   GLOBAL.pendingStatus = "Pending ...";
   GLOBAL.displayData = {
@@ -32,7 +33,9 @@
     { index:7 },                                                  // Duration
     { index:25, type:"url", readonly:true }                       // Debt recognition
   ]
-  GLOBAL.withdrawCol = 8;
+  GLOBAL.depositCol = 8;
+  GLOBAL.totalCol = 12;
+  GLOBAL.totalValue = 0;
   GLOBAL.userId;
 
 //THIS PAGE SHORTENED URL : https://bit.ly/3eiucSP
@@ -129,7 +132,7 @@
 
       // Set the scrolling panel
       tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
-      for (var i = GLOBAL.withdrawCol+4; i >= GLOBAL.withdrawCol; --i) {
+      for (var i = GLOBAL.totalCol; i >= GLOBAL.depositCol; --i) {
         tableHTML += '<tr>';
         tableHTML += getTranslatedContent(contents[0][i]);
         tableHTML += getTranslatedContent(contents[1][i]);
@@ -138,10 +141,13 @@
 
       tableHTML += '</table></marquee>';
       $("#scrollDiv").prop("innerHTML", tableHTML);
+
+
+      GLOBAL.totalValue = toValue(contents[1][GLOBAL.totalCol]);
     }
 
     displayElement("#depositButton", hasContent); // Show the deposit button
-    displayElement("#withdrawButton", hasContent && parseFloat(contents[1][GLOBAL.withdrawCol]) > 0); // Show the withdraw button
+    displayElement("#withdrawButton", GLOBAL.totalValue > 0); // Show the withdraw button
   }
 
   function updateFaqTable(id, contents) {
@@ -180,8 +186,9 @@
   }
 
   function userIdValidation(result) {
-    if ((result == translate("OK") && !$("#userId").data("error")) || result == translate("CANCEL")) {
-      setUserId($("#userId").val());
+    const id = "userId";
+    if ((result == translate("OK") && !$("#" + id).data("error")) || result == translate("CANCEL")) {
+      setUserId($("#" + id).val());
       closePopup();
     }
   }
@@ -200,21 +207,21 @@
   function depositAmountValidation(result) {
     const id = GLOBAL.depositAmount;
     if (result == translate("OK") && !$("#" + id).data("error")) {
-      const data = $("#" + id).val();
+      const value = $("#" + id).val();
       const content = '<table><tr>'
-        + getTranslatedContent("Amount to deposit", true) + getTranslatedContent(data + ' €') + '</tr><tr>'
-        + getTranslatedContent("Recipient", true) + getTranslatedContent("Mr DE FROCOURT F.") + '</tr><tr>'
-        + getTranslatedContent("IBAN", true) + getTranslatedContent("FR76 4061 8802 5000 0403 8167 244") + '</tr><tr>'
-        + getTranslatedContent("BIC", true) + getTranslatedContent("BOUS FRPP XXX") + '</tr><tr>'
-        + getTranslatedContent("Bank", true) + getTranslatedContent("Boursorama Banque") + '</tr><tr>'
-        + getTranslatedContent("Bank Adress", true) + getTranslatedContent("18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex") + '</tr></table>'
+        + getTranslatedContent("Amount to deposit", true) + getTranslatedContent(value + ' €') + '</tr><tr>'
+        + getTranslatedContent("Recipient", true) + getTableReadOnlyContent("Mr DE FROCOURT F.") + '</tr><tr>'
+        + getTranslatedContent("IBAN", true) + getTableReadOnlyContent("FR76 4061 8802 5000 0403 8167 244") + '</tr><tr>'
+        + getTranslatedContent("BIC", true) + getTableReadOnlyContent("BOUS FRPP XXX") + '</tr><tr>'
+        + getTranslatedContent("Bank", true) + getTableReadOnlyContent("Boursorama Banque") + '</tr><tr>'
+        + getTranslatedContent("Bank Adress", true) + getTableReadOnlyContent("18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex") + '</tr></table>'
 
       const innerHTML = getPopupContent(deposit.name, content, updateDeposit.name);
 
       openPopup(innerHTML);
       addPopupButtonEvent("validatePopupButton", false);
 
-      $("#popup").data(id, data);
+      $("#popup").data(id, value);
 
     } else if (result == translate("CANCEL")) {
       closePopup();
@@ -224,8 +231,8 @@
   function updateDeposit() {
     closePopup();
     showLoader(true);
-    const title = "Deposit";
     const id = GLOBAL.depositAmount;
+    const title = toFirstUpperCase(id.replace("Amount", ""));
     const value = $("#popup").data(id);
 
     const data = {movement:value};
@@ -238,6 +245,71 @@
   }
 
   function withdraw() {
+    const id = GLOBAL.withdrawAmount;
+    const style = "margin:15px 10px;width:auto;";
+    const content = getTranslatedContent("Amount to withdraw", false,
+        {inputId:id, type:"euro", min:100, max:GLOBAL.totalValue, erase:true,
+        style:"width:104px;text-align:center;line-height:45px", placeholder:translate("withdraw")})
+        + getTranslatedContent("Withdraw period", false,
+            {name:"withdrawPeriod", type:"radio", value:"Periodic", checked:true, style:style})
+        + getTranslatedContent(null, false,
+            {name:"withdrawPeriod", type:"radio", value:"Recurrent", style:style})
+        + getTranslatedContent("Withdraw date", false,
+            {name:"withdrawDate", type:"radio", value:"End of month", checked:true, style:style})
+        + getTranslatedContent(null, false,
+            {name:"withdrawDate", type:"radio", value:"Immediat", style:style});
+
+    const innerHTML = getPopupContent(id, content);
+
+    openPopup(innerHTML);
+    addPopupButtonEvent(id, true);
+  }
+
+  function withdrawAmountValidation(result) {
+    const id = GLOBAL.withdrawAmount;
+    if (result == translate("OK") && !$("#" + id).data("error")) {
+      const value = $("#" + id).val();
+      const period = $("input[name='withdrawPeriod']:checked").val();
+      const date =  $("input[name='withdrawDate']:checked").val();
+      const cost = 0;
+
+      const data = GLOBAL.data[GLOBAL.displayData.personal.id];
+
+      const content = '<table><tr>'
+        + getTranslatedContent("Amount to withdraw", true) + getTranslatedContent(value + ' €') + '</tr><tr>'
+        + getTranslatedContent("Withdraw period", true) + getTranslatedContent(period) + '</tr><tr>'
+        + getTranslatedContent("Withdraw date", true) + getTranslatedContent(date) + '</tr><tr>'
+        + getTranslatedContent("Operation cost", true) + getTranslatedContent(cost + ' €') + '</tr><tr>'
+        + getTranslatedContent("Recipient", true) + getTableReadOnlyContent(data[1][15].toUpperCase() + ' ' + data[1][14]) + '</tr><tr>'
+        + getTranslatedContent("IBAN", true) + getTableReadOnlyContent(data[1][21]) + '</tr><tr>'
+        + getTranslatedContent("Bank", true) + getTableReadOnlyContent(data[1][22]) + '</tr></table>'
+
+      const innerHTML = getPopupContent(withdraw.name, content, updateWithdraw.name);
+
+      openPopup(innerHTML);
+      addPopupButtonEvent("validatePopupButton", false);
+
+      $("#popup").data(id, value);
+
+    } else if (result == translate("CANCEL")) {
+      closePopup();
+    }
+  }
+
+  function updateWithdraw() {
+    closePopup();
+    showLoader(true);
+    const id = GLOBAL.withdrawAmount;
+    const title = toFirstUpperCase(id.replace("Amount", ""));
+    const value = '-' + $("#popup").data(id);   // Withdraw value should be negative
+
+    const data = {movement:value};
+
+    const subject = title + ": " + value + " € for " + GLOBAL.userId;
+    google.script.run
+          .withSuccessHandler(contents => insertHistoricRow(data))
+          .withFailureHandler(displayError)
+          .sendEmail(subject);
   }
 
   function insertHistoricRow(data) {
@@ -307,7 +379,7 @@
       ? getTableReadOnlyContent(content, isHeader).replace(content, isHeader
         ? '<div class="tooltip">' + (d.text ?? content) + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>'
         : translate(content))
-      : '<h2 style="cursor:default">' + d.text + '</h2>' + getTableEditableContent(data.value, data);
+      : (d.text ? '<h2 style="cursor:default">' + d.text + '</h2>' : '') + getTableEditableContent(data.value, data);
   }
 
   function getLink(content) {
