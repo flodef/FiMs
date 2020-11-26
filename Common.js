@@ -158,18 +158,18 @@ function getTableEditableContent(content, data) {
     data.inputId = data.inputId || getRandomId();  // Generates a random Id if it does not have any
     symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
     if (data.type == "number" || data.type == "euro" || data.type == "percent") {
-      const min = data.min ?? 0;
-      const max = data.max ?? 0;
       data.precision = data.precision ?? (data.type == "euro" ? 2 : 0);
+      const min = roundDown(data.min, data.precision) ?? 0;
+      const max = roundDown(data.max, data.precision) ?? 0;
       content = content ?? (data.required ? "0" : "");
-      html = 'min="' + min + '" max="' + max + '"';
+      html = ' min="' + min + '" max="' + max + '"';
     } else if (data.type == "date" || data.type == "radio") {
       type = data.type;
     } else {
       html = ' minLength="' + data.minLength + '" maxLength="' + data.maxLength + '"';
     }
     html += ' id="' + data.inputId + '" type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
-         + ' name=' + (data.name ?? '') + ' pattern="' + (data.pattern ?? '') + '"'
+         + ' name="' + (data.name ?? '') + '" pattern="' + (data.pattern ?? '') + '"'
          + ' style="' + (data.style ?? '') + '"'
          + (data.required ? ' required' : '') + (data.checked ? ' checked' : '')
          + ' data-type="' + (data.type ?? 'text') + '" data-precision="' + (data.precision ?? '') + '"'
@@ -181,7 +181,7 @@ function getTableEditableContent(content, data) {
       : '';
   }
 
-  const input = '<input class="auto"' + html + getEditCellHandler(content, data) + '">' + symbol + '</input>';
+  const input = '<input class="auto"' + html + getEditCellHandler(content, data) + '>' + symbol + '</input>';
   const tooltip = getTooltip(input, data.tooltip);
 
   return '<td align="center">' + tooltip + erase + '</td>';
@@ -266,7 +266,7 @@ function getMenuButton(item) {
 }
 
 function getTooltip(html, tooltip) {
-  return tooltip ? '<div class="tooltip">' + html + '<span class="tooltiptext">' + tooltip + '</span></div>' : '';
+  return tooltip ? '<div class="tooltip">' + html + '<span class="tooltiptext">' + tooltip + '</span></div>' : html;
 }
 
 function getLink(content, title) {
