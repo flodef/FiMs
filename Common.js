@@ -621,7 +621,8 @@ function addPopupButtonEvent(id, hasSingleButton) {
       }
       $("#" + id + "Button").html($("#" + id).val() ? translate("OK") : translate("CANCEL"));
     };
-    fn();                  // Trigger the Keyup event to display correct button text (OK or CANCEL)
+    fn();                  // Call the trigger function to display correct button text (OK or CANCEL)
+    $("#" + id).keyup();   // Trigger the Keyup event to adjust the input (display the eraser) as if a value as been entered
     $("#" + id).keyup(fn); // Set the keyup trigger function
   } else {
     $("#" + id).keyup(event => {
