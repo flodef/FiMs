@@ -57,7 +57,7 @@ function init() {
 
   // Set the footer
   $("#footer").html('<table style="table-layout:fixed;"><tr>'
-  + '<td align="left">Contact, BUG, Questions ?!*%$^#@</td>'
+  + '<td align="left">' + getLink("https://forms.gle/ffTrJzALtKtBuh9U8", 'Contact, BUG, Questions ?!*%$^#@') + '</td>'
   + '<td align="center" id="loading"></td>'
   + '<td align="right">' + translate('Icon made by') + ' ' + getLink("https://www.flaticon.com/authors/pixel-buddha", 'Pixel Buddha')
   + ' ' + translate('from') + ' ' + getLink('https://www.flaticon.com') + '</td>'
