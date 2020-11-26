@@ -2,6 +2,9 @@
 <html>
   <head>
     <base target="_blank">
+    <!-- Use a templated HTML printing scriptlet to import common stylesheet -->
+    <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
+    <!-- <link rel="stylesheet" href="Stylesheet.css"> -->
     <script>
     if (document.URL.includes(":8080")) {
       var element = document.createElement('link');
@@ -13,33 +16,18 @@
 
     <!-- <link rel="stylesheet" href="Lib/jquery-ui.css">    <!-- <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
     <!-- <link rel="stylesheet" href="Lib/easy-autocomplete.min.css">  <!-- http://easyautocomplete.com/dist/easy-autocomplete.min.css -->
-
-    <!-- Use a templated HTML printing scriptlet to import common stylesheet -->
-    <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
-    <!-- <link rel="stylesheet" href="Stylesheet.css"> -->
   </head>
   <body>
     <div id="content" class="overlay contentOverlay hidden">
-      <div style="background:rgba(255,255,255,0.8);width:fit-content;"><h1 id="main-heading">Finance Manager</h1></div>
+      <div id="mainHeading"></div>
 
       <div id="tabContainer"></div>
 
       <div id="loaderBar" class="loaderBar"></div>
 
-      <div id="dashboardDiv"></div>
-      <div id="investmentDiv"></div>
-      <div id="historicDiv"></div>
-      <div id="evolutionDiv"></div>
+      <div id="mainContent"></div>
 
-      <div id="footer">
-        <table style="table-layout:fixed;">
-          <tr>
-            <td align="left">Data on <a href="Data/Finance Manager Spreadsheet.xlsx" target="_blank">Spreadsheet File</a></td>
-            <td align="center" id="loading"></td>
-            <td align="right">Icon made by <a href="https://www.flaticon.com/authors/pixel-buddha" target="_blank">Pixel Buddha</a> from <a href="https://www.flaticon.com" target="_blank">www.flaticon.com</a></td>
-          </tr>
-        </table>
-      </div>
+      <div id="footer"></div>
     </div>
 
     <div id="scrollDiv" align="center" class="overlay contentOverlay hidden"></div>
@@ -67,11 +55,7 @@
 
     <!-- Use a templated HTML printing scriptlet to import JavaScript. -->
     <?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
-    <script src="Javascript.js"></script>
-    <!-- <script async defer src="https://apis.google.com/js/api.js"
-           onload="this.onload=function(){};handleClientLoad()"
-           onreadystatechange="if (this.readyState === 'complete') this.onload()">
-    </script> -->
+    <!-- <script src="Javascript.js"></script> -->
     <script>
     if (document.URL.includes(":8080")) {
       var element = document.createElement('script');
@@ -79,5 +63,10 @@
       document.body.appendChild(element);
     }
     </script>
+
+    <!-- <script async defer src="https://apis.google.com/js/api.js"
+           onload="this.onload=function(){};handleClientLoad()"
+           onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script> -->
   </body>
 </html>

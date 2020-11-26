@@ -144,7 +144,7 @@
       }
 
       tableHTML += '</table></marquee>';
-      $("#scrollDiv").prop("innerHTML", tableHTML);
+      $("#scrollDiv").html(tableHTML);
 
 
       GLOBAL.totalValue = toValue(contents[1][GLOBAL.totalCol]);
@@ -214,7 +214,7 @@
       const value = $("#" + id).val();
       const content = '<table><tr>'
         + getTranslatedContent("Amount to deposit", true) + getTranslatedContent(value + ' €') + '</tr><tr>'
-        + getTranslatedContent("Recipient", true) + getTableReadOnlyContent("Mr DE FROCOURT F.") + '</tr><tr>'
+        + getTranslatedContent("Recipient", true) + getTableReadOnlyContent("DE FROCOURT F.") + '</tr><tr>'
         + getTranslatedContent("IBAN", true) + getTableReadOnlyContent("FR76 4061 8802 5000 0403 8167 244") + '</tr><tr>'
         + getTranslatedContent("BIC", true) + getTableReadOnlyContent("BOUS FRPP XXX") + '</tr><tr>'
         + getTranslatedContent("Bank", true) + getTableReadOnlyContent("Boursorama Banque") + '</tr><tr>'
@@ -318,7 +318,7 @@
 
   function insertHistoricRow(data) {
     if (data && data.movement) {
-      data = [[data.date ?? toStringDate(), GLOBAL.userId, toCurrency(data.movement), data.cost ?? 0, GLOBAL.pendingStatus]];
+      data = [[data.date ?? toStringDate(), GLOBAL.userId, toCurrency(data.movement), data.cost ?? toCurrency(0), GLOBAL.pendingStatus]];
 
       const insertRowIntoHtml = () => {
         const id = GLOBAL.displayData.historic.id;
@@ -344,7 +344,7 @@
       GLOBAL.userId = id;
       GLOBAL.displayId.forEach(id => {
         if (id != faqId) {
-          $("#" + id + "Div").prop("innerHTML", "");            // Clear all tab content except faq
+          $("#" + id + "Div").html("");                         // Clear all tab content except faq
         }
         displayElement("#" + id + "Button", GLOBAL.userId, 0);  // Display/Hide all tab depending on the connection state
       });
@@ -352,16 +352,16 @@
 
       if (id) {
         GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1];   // Create user account formula
-        updateAllValues();                                                        // Load all data
+        updateAllValues();                                      // Load all data
       } else {    // No user
-        openTab(faqId);                                                           // Open first the faq tab (in case of disconnection)
-        $("#scrollDiv").prop("innerHTML", "");                                    // Clear the scroll marquee content
-        displayElement("#" + faqId + "Button", true, 0);                          // Display only the faq
-        if (!GLOBAL.data[faqId]) {                                                // Don't load twice the faq
-          updateValues(faqId);                                                    // Load only the faq
+        openTab(faqId);                                         // Open first the faq tab (in case of disconnection)
+        $("#scrollDiv").html("");                               // Clear the scroll marquee content
+        displayElement("#" + faqId + "Button", true, 0);        // Display only the faq
+        if (!GLOBAL.data[faqId]) {                              // Don't load twice the faq
+          updateValues(faqId);                                  // Load only the faq
         }
-        displayElement("#depositButton", false, 0);                               // Hide the deposit button
-        displayElement("#withdrawButton", false, 0);                              // Hide the withdraw button
+        displayElement("#depositButton", false, 0);             // Hide the deposit button
+        displayElement("#withdrawButton", false, 0);            // Hide the withdraw button
       }
     }
   }
@@ -385,12 +385,6 @@
         ? '<div class="tooltip">' + (d.text ?? content) + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>'
         : translate(content))
       : (d.text ? '<h2 style="cursor:default">' + d.text + '</h2>' : '') + getTableEditableContent(data.value, data);
-  }
-
-  function getLink(content) {
-    return content && content.slice(0, 4) == 'http'
-      ? '<a href=' + content + ' target="_blank">' + content + '</a>'
-      : content;
   }
 
   function convertNumberToColumn(number){

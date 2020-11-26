@@ -28,6 +28,8 @@ function init() {
   GLOBAL.serverUrl = GLOBAL.isLocal ? '' : GLOBAL.serverUrl;  // Remove the server URL if in local mode
   GLOBAL.displayId = Object.keys(GLOBAL.displayData);         // Set the id to display in a normal array
 
+  $("#mainHeading").html('<h1>' + document.title + '</h1>');  // Set the app main heading to the web page title
+
   // Set the app buttons
   var tableHTML = '<table id="actionButton" class="topMenu">'
   + '<div id="focus" style="height:0px;">'
@@ -38,17 +40,28 @@ function init() {
   setTable("menu", tableHTML);
   displayElement(".actionButton", false, 0);
 
-  // Set the tab containers
+  // Set the main content and tab containers
+  var mainContentHTML = "";
   var tabContainerHTML = "";
-  for (var i = 0; i < GLOBAL.displayId.length; ++i) {
-    var id = GLOBAL.displayId[i];
-    var tableHTML = getTableTitle(id, true);
+  GLOBAL.displayId.forEach(id => {
+    mainContentHTML += '<div id="' + id + 'Div"></div>';
+    const tableHTML = getTableTitle(id, true);
     setTable(id, tableHTML);
     tabContainerHTML += getTitle(id);
-  }
+  });
+
+  $("#mainContent").html(mainContentHTML);  // Set the app main content
+
   setTabContainer(tabContainerHTML);
   displayElement(".tabContent", false, 0);
 
+  // Set the footer
+  $("#footer").html('<table style="table-layout:fixed;"><tr>'
+  + '<td align="left">Contact, BUG, Questions ?!*%$^#@</td>'
+  + '<td align="center" id="loading"></td>'
+  + '<td align="right">' + translate('Icon made by') + ' ' + getLink("https://www.flaticon.com/authors/pixel-buddha", 'Pixel Buddha')
+  + ' ' + translate('from') + ' ' + getLink('https://www.flaticon.com') + '</td>'
+  + '</tr></table>');
 
   $(document).ready(() => $("#mainFocus").focus());   // Set the main focus (replace autofocus attribute)
 }
@@ -56,7 +69,7 @@ function init() {
 function animateLoaderBar(item, duration) {
   item = item ? $(item) : $(".loaderBar");
   duration = duration ?? 3000;
-  item.prop("innerHTML", item.prop("innerHTML") || "<span></span>");
+  item.html(item.html() || "<span></span>");
 
   const span = item.children("span");
   span.data("origWidth", span.width())
@@ -88,7 +101,7 @@ function updateValues(id, forceReload, success) {
 }
 
 function openPopup(innerHTML) {
-  $("#popup").prop("innerHTML", innerHTML);
+  $("#popup").html(innerHTML);
   $(".contentOverlay").addClass("blur-filter");
   displayElement('#popupOverlay', true);
 }
@@ -238,7 +251,7 @@ function getTableCheckmark(content) {
 }
 
 function getTableLoaderBar(content) {
-  return '<td align="center">' + getTooltip('<div class="loaderBar drawlb" onclick="animateLoaderBar(this, 1000)" style="cursor:pointer;padding:0px;margin:0px">'
+  return '<td align="center" style="width:100px;">' + getTooltip('<div class="loaderBar drawlb" onclick="animateLoaderBar(this, 1000)" style="cursor:pointer;padding:0px;margin:0px">'
   + '<span width="80px" style="width:80px;height:12px;top:3px;margin:5px 0px;"></span></div>', translate(content)) + '</td>';
 }
 
@@ -254,6 +267,12 @@ function getMenuButton(item) {
 
 function getTooltip(html, tooltip) {
   return tooltip ? '<div class="tooltip">' + html + '<span class="tooltiptext">' + tooltip + '</span></div>' : '';
+}
+
+function getLink(content, title) {
+  return content && content.slice(0, 4) == 'http'
+    ? '<a href=' + content + ' target="_blank">' + title || content + '</a>'
+    : content;
 }
 
 // function getTitle(id, disabled) {
@@ -297,7 +316,7 @@ function getColor(value, isDisabled = false, isCur = true, forcedColor) {
 
 function setTable(id, tableHTML) {
   tableHTML += '</table>';
-  $("#" + id + "Div").prop("innerHTML", tableHTML);
+  $("#" + id + "Div").html(tableHTML);
 }
 
 function setEvents() {
@@ -311,7 +330,7 @@ function setEvents() {
 }
 
 function setTabContainer(innerHTML) {
-  $("#tabContainer").prop("innerHTML", innerHTML);  // Set the tab buttons content
+  $("#tabContainer").html(innerHTML);  // Set the tab buttons content
   $(".tabLinks").css("width", 100/GLOBAL.displayId.length + "%");   // Tab buttons should be centered
 }
 
@@ -492,7 +511,7 @@ function refreshTotal(id) {
              : $("#" + id + "Table tbody tr:visible");
     var a = new Array(elem.length).fill(0);
     elem.each(calculateFunc);
-    $("#" + id + "Footer").prop("innerHTML", '<td>TOTAL</td>' + footerFunc());
+    $("#" + id + "Footer").html('<td>TOTAL</td>' + footerFunc());
   }
 }
 
@@ -552,8 +571,8 @@ function displayError(msg, isWarning) {
   displayLoading(GLOBAL.currentLoadingId, false);
 
   $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
-  $("#alert").prop("innerHTML", '<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>'
-                              + '<strong>' + (isWarning ? "WARNING" : "ALERT") + ':</strong> ' + msg);
+  $("#alert").html('<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>'
+   + '<strong>' + (isWarning ? "WARNING" : "ALERT") + ':</strong> ' + msg);
   displayElement('#alertOverlay', true);
   displayElement("#refreshButton", true);
 }
@@ -706,5 +725,5 @@ function toFirstUpperCase(item) {
 }
 
 function getRandomId() {
-  return (Math.random() * 10).replace('.', '');
+  return (Math.random() * 10).toString().replace('.', '');
 }

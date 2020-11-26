@@ -58,8 +58,7 @@
     + getMenuButton({id:"cancelDelete", img:"cancel", fn:cancelForm})
     + '</tr></table>';
 
-    tableHTML = $("#menuDiv").prop("innerHTML") + tableHTML;
-    $("#menuDiv").prop("innerHTML", tableHTML);
+    $("#menuDiv").html($("#menuDiv").html() + tableHTML);
     displayElement(".actionButton", false, 0);
     displayElement("[id^=validate]", true, 0);
     displayElement("[id^=cancel]", true, 0);
@@ -138,7 +137,7 @@
   //     tableHTML += '</div>';
   //   }
   //
-  //   $("#popup").prop("innerHTML", tableHTML);
+  //   $("#popup").html(tableHTML);
   //
   //   $('.contentOverlay').addClass("blur-filter");
   //   displayElement('#popupOverlay', true);
@@ -576,7 +575,7 @@
     }
 
     tableHTML += '</table></marquee>';
-    $("#scrollDiv").prop("innerHTML", tableHTML);
+    $("#scrollDiv").html(tableHTML);
 
     if (isFirstLoading) {
       displayElement("#loaderBar", false, 0); // Hide the loader bar

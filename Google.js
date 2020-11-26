@@ -43,7 +43,7 @@ class Run {
     this.setProperty("userId", e.get("id") ?? "");
 
     Template.evaluate()
-            .setTitle('Finance Manager')
+            .setTitle()
             .setFaviconUrl('Img/Favicon.png');
   }
   sendEmail(subject, message) {
@@ -155,7 +155,7 @@ class Template {
   static setTitle(title) {
     var url = document.URL.split('/');
     var page = url[url.length-1].split('.')[0];
-    document.title = page == "index" ? title : 'FiMs Associé';
+    document.title = title || page == "index" ? 'Finance Manager' : 'FiMs Associé';
     return Template;
   }
   static setFaviconUrl(url) {
@@ -167,3 +167,5 @@ class Template {
     return Template;
   }
 }
+
+google.script.run;    // Initialize google service mock up

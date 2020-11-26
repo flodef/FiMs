@@ -9,17 +9,12 @@ var src = ["Lib/jquery.min.js",                       // https://ajax.googleapis
            "FiMS.js",
          ];
 
+
 var url = document.URL.split('/');
 var page = url[url.length-1].split('.')[0];
 
-// src.forEach(element => {
-//   var imp = document.createElement('script');
-//   imp.src = page == "index" ? element : element.replace("FiMS", "Associate");
-//   document.head.appendChild(imp);
-// });
-
+// Load every script one after the other
 loadScript(0);
-
 function loadScript(i) {
     const link = src[i];
     var element = document.createElement('script');
@@ -27,6 +22,6 @@ function loadScript(i) {
     document.head.appendChild(element);
 
     if (++i < src.length) {
-      setTimeout(() => loadScript(i), 100);
+      setTimeout(() => loadScript(i), 100);  // Hack to avoid script loading in wrong order
     }
 }
