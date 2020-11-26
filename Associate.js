@@ -255,13 +255,13 @@
         {inputId:id, type:"euro", min:100, max:GLOBAL.totalValue, erase:true,
         style:"width:104px;text-align:center;line-height:45px", placeholder:translate("withdraw")})
         + getTranslatedContent("Withdraw period", false,
-            {name:"withdrawPeriod", type:"radio", value:"Periodic", checked:true, style:style})
+            {name:"withdrawPeriod", type:"radio", value:translate("Periodic"), checked:true, style:style})
         + getTranslatedContent(null, false,
-            {name:"withdrawPeriod", type:"radio", value:"Recurrent", style:style})
+            {name:"withdrawPeriod", type:"radio", value:translate("Recurrent"), style:style})
         + getTranslatedContent("Withdraw date", false,
-            {name:"withdrawDate", type:"radio", value:"End of month", checked:true, style:style})
+            {name:"withdrawDate", type:"radio", value:translate("Start of next month"), checked:true, style:style})
         + getTranslatedContent(null, false,
-            {name:"withdrawDate", type:"radio", value:"Immediat", style:style});
+            {name:"withdrawDate", type:"radio", value:translate("Immediat"), style:style});
 
     const innerHTML = getPopupContent(id, content);
 
@@ -281,8 +281,8 @@
 
       const content = '<table><tr>'
         + getTranslatedContent("Amount to withdraw", true) + getTranslatedContent(value + ' €') + '</tr><tr>'
-        + getTranslatedContent("Withdraw period", true) + getTranslatedContent(period) + '</tr><tr>'
-        + getTranslatedContent("Withdraw date", true) + getTranslatedContent(date) + '</tr><tr>'
+        + getTranslatedContent("Withdraw period", true) + getTableReadOnlyContent(period) + '</tr><tr>'
+        + getTranslatedContent("Withdraw date", true) + getTableReadOnlyContent(date) + '</tr><tr>'
         + getTranslatedContent("Operation cost", true) + getTranslatedContent(cost + ' €') + '</tr><tr>'
         + getTranslatedContent("Recipient", true) + getTableReadOnlyContent(data[1][15].toUpperCase() + ' ' + data[1][14]) + '</tr><tr>'
         + getTranslatedContent("IBAN", true) + getTableReadOnlyContent(data[1][21]) + '</tr><tr>'
