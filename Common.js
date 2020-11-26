@@ -271,7 +271,7 @@ function getTooltip(html, tooltip) {
 
 function getLink(content, title) {
   return content && content.slice(0, 4) == 'http'
-    ? '<a href=' + content + ' target="_blank">' + title || content + '</a>'
+    ? '<a href=' + content + ' target="_blank">' + (title || content) + '</a>'
     : content;
 }
 
