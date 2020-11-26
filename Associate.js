@@ -8,34 +8,40 @@
   GLOBAL.displayData = {
     "account": {id:"account", formula:"!A:N", updateTable:updateAccountTable, loadOnce:true},
     "historic": {id:"historic", formula:"AssociateHistoric!A:E", updateTable:updateHistoricTable, loadOnce:true, filter:1},
-    "personal": {id:"personal", formula:"Associate!A:Z", updateTable:updatePersonalTable, loadOnce:true, filter:1},
+    "personal": {id:"personal", formula:"Associate!A:AA", updateTable:updatePersonalTable, loadOnce:true, filter:1},
     "FAQ": {id:"FAQ", formula:"FAQ!A:B", updateTable:updateFaqTable, loadOnce:true }
   };
   GLOBAL.menuButton = ["deposit", "withdraw", "connect"];
   GLOBAL.personalData = [
     { index:1, type:"name", minLength:5, maxLength:10, required:true }, // ID
-    { index:14, type:"name", required:true },                     // First name
-    { index:15, type:"name", required:true },                     // Family name
-    { index:13, type:"email", required:true },                    // Email
-    { index:16, type:"date", required:true },                     // Birth date
-    { index:17, type:"name", required:true },                     // Birth city
-    { index:18, type:"text", required:true, maxLength:55 },       // Adress
-    { index:19, type:"text", required:true, pattern:"[0-9]{5}" }, // Postal code
-    { index:20, type:"name", required:true },                     // City
-    { index:21, type:"iban", required:true },                     // IBAN
-    { index:22, type:"name", required:true },                     // Bank
-    { index:23, type:"name", required:true },                     // Association
-    { index:24, type:"url", maxLength:55 },                       // Web page
+    { index:15, type:"name", required:true },                     // First name
+    { index:16, type:"name", required:true },                     // Family name
+    { index:14, type:"email", required:true },                    // Email
+    { index:17, type:"date", required:true },                     // Birth date
+    { index:18, type:"name", required:true },                     // Birth city
+    { index:19, type:"text", required:true, maxLength:55 },       // Adress
+    { index:20, type:"text", required:true, pattern:"[0-9]{5}" }, // Postal code
+    { index:21, type:"name", required:true },                     // City
+    { index:22, type:"iban", required:true },                     // IBAN
+    { index:23, type:"name", required:true },                     // Bank
+    { index:24, type:"name", required:true },                     // Association
+    { index:25, type:"url", maxLength:55 },                       // Web page
     { index:2, type:"euro", min:-1000, max:0 },                   // Recurrent
-    { index:6 },                                                  // Current rate
+    { index:6 },                                                  // Estimate rate
+    { index:7 },                                                  // Estimate gain
     { index:5 },                                                  // Financed project
     { index:3 },                                                  // Charity
     { index:4 },                                                  // Donated
-    { index:7 },                                                  // Duration
-    { index:25, type:"url", readonly:true }                       // Debt recognition
+    { index:8 },                                                  // Duration
+    { index:26, type:"url", readonly:true }                       // Debt recognition
   ]
-  GLOBAL.depositCol = 8;
-  GLOBAL.totalCol = 12;
+  GLOBAL.depositCol = 9;
+  GLOBAL.totalCol = 13;
+  GLOBAL.firstNameCol = 15;
+  GLOBAL.familyNameCol = 16;
+  GLOBAL.IBANCol = 22;
+  GLOBAL.BankCol = 23;
+
   GLOBAL.totalValue = 0;
   GLOBAL.userId;
 
@@ -284,9 +290,9 @@
         + getTranslatedContent("Withdraw period", true) + getTableReadOnlyContent(period) + '</tr><tr>'
         + getTranslatedContent("Withdraw date", true) + getTableReadOnlyContent(date) + '</tr><tr>'
         + getTranslatedContent("Operation cost", true) + getTranslatedContent(cost + ' €') + '</tr><tr>'
-        + getTranslatedContent("Recipient", true) + getTableReadOnlyContent(data[1][15].toUpperCase() + ' ' + data[1][14]) + '</tr><tr>'
-        + getTranslatedContent("IBAN", true) + getTableReadOnlyContent(data[1][21]) + '</tr><tr>'
-        + getTranslatedContent("Bank", true) + getTableReadOnlyContent(data[1][22]) + '</tr></table>'
+        + getTranslatedContent("Recipient", true) + getTableReadOnlyContent(data[1][GLOBAL.familyNameCol].toUpperCase() + ' ' + data[1][GLOBAL.firstNameCol]) + '</tr><tr>'
+        + getTranslatedContent("IBAN", true) + getTableReadOnlyContent(data[1][GLOBAL.IBANCol]) + '</tr><tr>'
+        + getTranslatedContent("Bank", true) + getTableReadOnlyContent(data[1][GLOBAL.BankCol]) + '</tr></table>'
 
       const innerHTML = getPopupContent(withdraw.name, content, updateWithdraw.name);
 
