@@ -67,9 +67,9 @@
   });
 
   function rebalanceStocks() {
-  //   updateValues(GLOBAL.investment);
+  //   updateValues(GLOBAL.displayData.investment.id);
   //
-  //   var investmentData = GLOBAL.data[GLOBAL.investment];
+  //   var investmentData = GLOBAL.data[GLOBAL.displayData.investment.id];
   //   var tRow = investmentData.length - 1;
   //   var contents = [];
   //   var rank = 0;
@@ -204,11 +204,11 @@
       var gid;
       var endCol;
       if (sid == "Historic") {
-        id = GLOBAL.historic;
+        id = GLOBAL.displayData.historic.id;
         gid = 9;
         endCol = 10;
       } else if (sid == "ExpensesHistoric") {
-        id = GLOBAL.dashboard;
+        id = GLOBAL.displayData.dashboard.id;
         gid = 298395308;
         endCol = 4;
       }
@@ -236,7 +236,7 @@
   }
 
   function validateDeleteForm(index, rowCnt, func = () => {}) {
-    var index = index ? index : indexOf(GLOBAL.data[GLOBAL.historic], GLOBAL.dummy, GLOBAL.histoIdCol);
+    var index = index ? index : indexOf(GLOBAL.data[GLOBAL.displayData.historic.id], GLOBAL.dummy, GLOBAL.histoIdCol);
     var rowCnt = rowCnt ? rowCnt : 1;
 
     if (index !== null && index*rowCnt > 0) {
@@ -245,7 +245,7 @@
       // showLoader(true);
 
       google.script.run
-                   .withSuccessHandler(contents => { func(); executionSuccess(); updateValues(GLOBAL.historic, true); })
+                   .withSuccessHandler(contents => { func(); executionSuccess(); updateValues(GLOBAL.displayData.historic.id, true); })
                    .withFailureHandler(displayError)
                    .deleteRows(9, index, index + rowCnt);
     } else {
@@ -308,7 +308,7 @@
       // Preparing data
       var dupCnt = 0;
       var errCnt = 0;
-      var historicData = GLOBAL.data[GLOBAL.historic];
+      var historicData = GLOBAL.data[GLOBAL.displayData.historic.id];
       var data = [];
       for (var i = contents.length - 1; i > 0; --i) {   // Don't insert the header and reverse loop
         var row = contents[i];
@@ -432,7 +432,7 @@
       var id = label + "@" + transaction + "@@" + row[5].replace(",", ".");
 
       if (!isError) {
-        var historicData = GLOBAL.data[GLOBAL.historic];
+        var historicData = GLOBAL.data[GLOBAL.displayData.historic.id];
         var index = indexOf(historicData, value, 6);
 
         if (index === null || (index !== null &&
