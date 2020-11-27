@@ -93,15 +93,6 @@ function nightlyUpdate() {
 function monthlyUpdate() {
   this._updateAllocation();
   this._updateExpense();
-  this._updateAssociate();
-}
-
-function yearlyUpdate() {
-  const x = new Date();
-  const m = x.getMonth();
-  if (m == FM) {
-    this._sendCharity();
-  }
 }
 
 function updatePrice() {
@@ -601,90 +592,6 @@ function _updateExpense() {
     var array = sheet.getSheetValues(FR+1, lc, -1, 1);
     this._setRangeValues(sheet, FR+1, lc, array);    // Copy only values into previous row (archive)
  }
-}
-
-function _updateAssociate() {
-  // Retrieve associate main data
-  var associateSheet = this._getSheet(ASSOCIATE);
-  var associateArray = associateSheet.getSheetValues(FR, FC, -1, ASSDEPO_COL);
-
-  for (var i = 0; i < associateArray.length; ++i) {
-    // Retrieve associate account data
-    var name = associateArray[i][ASSNAME_COL-1];
-    var recu = associateArray[i][ASSRECU_COL-1];
-    var depo = associateArray[i][ASSDEPO_COL-1];
-    var sheet = this._getSheet(name);
-
-    // If the sheet does not exist, create a new associate sheet from the model
-    if (!sheet && depo > 0) {
-      var modelSheet = this._getSheet(ASSMODEL);
-      var sheet = modelSheet.copyTo(SS);
-      sheet.setName(name);
-      var index = sheet.getIndex();
-      SS.setActiveSheet(sheet);
-      SS.moveActiveSheet(index - 1);
-      sheet.setFrozenRows(1);
-      sheet.protect().setWarningOnly(true);
-    }
-
-    var array = sheet.getSheetValues(FR, FC, 1, -1);
-
-    // Add monthly associate profit
-    if (!_isCurrentMonth(array)) {
-      this._copyFirstRow(sheet, array);
-
-      // Add recurrent withdrawal to associate historic
-      if (recu < 0) {
-        var histoSheet = this._getSheet(ASSHISTO);
-        var d = this._toDate();      // Get date without hours to match range's date
-        d.setDate(d.getDate() + 10); // Take around 10 days to make a bank transfer
-
-        var data = [[d, name, recu]];
-        this._insertFirstRow(histoSheet, data);
-      }
-    }
-  }
-}
-
-function _sendCharity() {
-  // Retrieve associate main data
-  var associateSheet = this._getSheet(ASSOCIATE);
-  var associateArray = associateSheet.getSheetValues(FR, FC, -1, -1);
-
-  var object = "Don annuel à une oeuvre de charité";
-  var recap = "Liste des dons :\n";
-  for (var i = 0; i < associateArray.length; ++i) {
-    // Retrieve associate account data
-    var name = associateArray[i][0];
-    var char = associateArray[i][2];
-    var mail = associateArray[i][10];
-    var assoc = associateArray[i][20];
-    var link = associateArray[i][21];
-
-    // Send charity message if amount < 1
-    if (char <= -1) {
-      var money = this._round(-char, 2, " €");
-      var message = "Cher(e) " + name + ",\n\n"
-        + "Tout d'abord, mes meilleurs voeux pour cette nouvelle année qui commence, je l'espère, le plus magnifiquement pour toi.\n\n"
-        + "Comme chaque année, je tiens tout particulièrement à reverser 5,5% des gains récoltés par notre projet de financement participatif.\n"
-        + "Cette année, ce pourcentage représente la somme de " + money + " !\n\n"
-        + (assoc
-          ? "C'est déjà ça de gagné pour l'association \"" + assoc + "\", que tu as choisie. Un énorme merci pour elle.\n"
-          + "J'attends le justificatif de ton don, don que tu peux faire grâce au lien suivant : " + link + "\n"
-          : "Malheureusement, tu n'as pas (encore) choisie d'association à qui effectuer un don ... N'hésite pas à me contacter sous peu afin de changer ça !\n")
-        + "Sans réponse de ta part, je ferai ce don à ta place pour l'association de mon choix (Les Restos du Coeur) d'ici le 31 janvier.\n\n"
-        + "Enfin, toute ma reconnaissance pour ta confiance et ton investissement qui aide, à notre échelle, l'épanouissement de l'économie locale et solidaire.\n\n"
-        + "Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n"
-        + "Flo"
-
-      MailApp.sendEmail(mail, object, message);
-
-      recap += " - " + name + " (" + mail + ") : don de "+ money + (assoc ? " à \"" + assoc + "\" (" + link + ")" : "") + "\n";
-    }
-  }
-
-  // Recap message send to myself
-  this._sendMessage(object, recap);
 }
 
 function _insertHistoricRow(date, type, label, trans, quantity, price, value, tag) {
