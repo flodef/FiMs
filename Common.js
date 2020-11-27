@@ -689,15 +689,15 @@ function toStringDate(date) {
 }
 
 function indexOf(array, value, index, start, compare) {
-  var index = index >= 0 ? index : null;
-  var x = Number.isInteger(start) ? start : 0;
-  var fn = compare ? compare : (a, b) => a == b;
+  var x = Number.isInteger(start) ? start : 0
+  const y = Number.isInteger(index) && index >= 0 || isString(index) ? index : null;
+  const fn = compare ? compare : (a, b) => a == b;
 
   var i;
   if (Array.isArray(array)) {
     while(x < array.length
-       && ((index == null && !fn(array[x], value))
-        || (index != null && !fn(array[x][index], value)))) { ++x; }
+       && ((y == null && !fn(array[x], value))
+        || (y != null && !fn(array[x][y], value)))) { ++x; }
 
     i = x < array.length ? x : null;
   }
@@ -727,4 +727,8 @@ function toFirstUpperCase(item) {
 
 function getRandomId() {
   return (Math.random() * 10).toString().replace('.', '');
+}
+
+function isString(item) {
+  return typeof item === 'string' || item instanceof String;
 }

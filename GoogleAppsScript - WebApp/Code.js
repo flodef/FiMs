@@ -1,7 +1,6 @@
 const pageTitle = 'Finance Manager';
 const spreadsheetId = '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw';
-const ownEmail = 'fdefroco@gmail.com';
-const favicon = 'https://raw.githubusercontent.com/flodef/FiMS/master/Img/Favicon2.png'
+const favIcon = 'https://raw.githubusercontent.com/flodef/FiMS/master/Img/Favicon2.png'
 
 /**
  * https://script.google.com/macros/s/AKfycbw1nj4Vi29hGeU9Ju74r_hTfX1ZwwsJiW86ygvqguyQ/dev
@@ -15,18 +14,18 @@ function doGet(e) {
 //  return ContentService.createTextOutput(output);
 
   setProperty("userId", e && e.parameter && e.parameter.id ? e.parameter.id : "");
-  
+
   var template = HtmlService.createTemplateFromFile('Index');
 
   // Build and return HTML in IFRAME sandbox mode.
   return template.evaluate()
                  .setTitle(pageTitle)
-                 .setFaviconUrl(favicon);
+                 .setFaviconUrl(favIcon);
 }
 
 /**
  */
-function getProperty(key) {  
+function getProperty(key) {
   return PropertiesService.getScriptProperties().getProperty(key);
 }
 
@@ -36,8 +35,8 @@ function setProperty(key, value) {
   PropertiesService.getScriptProperties().setProperty(key, value);
 }
 
-function sendEmail(subject, message) {
-  MailApp.sendEmail(ownEmail, subject, message);
+function sendEmail(recipient, subject, message) {
+  MailApp.sendEmail(recipient, subject, message);
 }
 
 /**
@@ -47,7 +46,7 @@ function getSheetValues(range, filter, column = 0) {
     var content = Sheets.Spreadsheets.Values.get(spreadsheetId, range).values;
     if (filter) {
       var temp = content;
-      
+
       content = [];
       content.push(temp[0]);
       for (var i = 1; i < temp.length; ++i) {
@@ -56,7 +55,7 @@ function getSheetValues(range, filter, column = 0) {
         }
       }
     }
-    
+
     return content;
   } catch (e) {
     return null;
@@ -65,7 +64,7 @@ function getSheetValues(range, filter, column = 0) {
 
 /**
  */
-function setSheetValues(range, values) {  
+function setSheetValues(range, values) {
   return Sheets.Spreadsheets.Values.update({
     "range": range,
     "majorDimension": 'ROWS',
@@ -75,13 +74,13 @@ function setSheetValues(range, values) {
 
 /**
  */
-function clearSheetValues(range) {  
+function clearSheetValues(range) {
   return Sheets.Spreadsheets.Values.clear({}, spreadsheetId, range);
 }
 
 /**
  */
-function insertRows(sheetId, values, range) {  
+function insertRows(sheetId, values, range) {
   return Sheets.Spreadsheets.batchUpdate({
     "requests": [{
       "insertDimension": {

@@ -13,37 +13,36 @@
   };
   GLOBAL.menuButton = ["deposit", "withdraw", "connect"];
   GLOBAL.personalData = [
-    { index:1, type:"name", minLength:5, maxLength:10, required:true }, // ID
-    { index:15, type:"name", required:true },                     // First name
-    { index:16, type:"name", required:true },                     // Family name
-    { index:14, type:"email", required:true },                    // Email
-    { index:17, type:"date", required:true },                     // Birth date
-    { index:18, type:"name", required:true },                     // Birth city
-    { index:19, type:"text", required:true, maxLength:55 },       // Adress
-    { index:20, type:"text", required:true, pattern:"[0-9]{5}" }, // Postal code
-    { index:21, type:"name", required:true },                     // City
-    { index:22, type:"iban", required:true },                     // IBAN
-    { index:23, type:"name", required:true },                     // Bank
-    { index:24, type:"name", required:true },                     // Association
-    { index:25, type:"url", maxLength:55 },                       // Web page
-    { index:2, type:"euro", min:-1000, max:0 },                   // Recurrent
-    { index:6 },                                                  // Estimate rate
-    { index:7 },                                                  // Estimate gain
-    { index:5 },                                                  // Financed project
-    { index:3 },                                                  // Charity
-    { index:4 },                                                  // Donated
-    { index:8 },                                                  // Duration
-    { index:26, type:"url", readonly:true }                       // Debt recognition
+    { index:1, label:"ID", type:"name", minLength:5, maxLength:10, required:true }, // ID
+    { index:15, label:"First name", type:"name", required:true },                   // First name
+    { index:16, label:"Family name", type:"name", required:true },                  // Family name
+    { index:14, label:"Email", type:"email", required:true },                       // Email
+    { index:17, label:"Birth date", type:"date", required:true },                   // Birth date
+    { index:18, label:"Birth city", type:"name", required:true },                   // Birth city
+    { index:19, label:"Adress", type:"text", required:true, maxLength:55 },         // Adress
+    { index:20, label:"Postal code", type:"text", required:true, pattern:"[0-9]{5}" }, // Postal code
+    { index:21, label:"City", type:"name", required:true },                         // City
+    { index:22, label:"IBAN", type:"iban", required:true },                         // IBAN
+    { index:23, label:"Bank", type:"name", required:true },                         // Bank
+    { index:24, label:"Association", type:"name", required:true },                  // Association
+    { index:25, label:"Web page", type:"url", maxLength:55 },                       // Web page
+    { index:2, label:"Recurrent", type:"euro", min:-1000, max:0 },                  // Recurrent
+    { index:6, label:"Estimate rate" },                                             // Estimate rate
+    { index:7, label:"Estimate gain" },                                             // Estimate gain
+    { index:5, label:"Financed project" },                                          // Financed project
+    { index:3, label:"Charity" },                                                   // Charity
+    { index:4, label:"Donated" },                                                   // Donated
+    { index:8, label:"Duration" },                                                  // Duration
+    { index:26, label:"Debt recognition", type:"url", readonly:true }               // Debt recognition
   ]
   GLOBAL.depositCol = 9;
   GLOBAL.totalCol = 13;
-  GLOBAL.firstNameCol = 15;
-  GLOBAL.familyNameCol = 16;
-  GLOBAL.IBANCol = 22;
-  GLOBAL.BankCol = 23;
 
   GLOBAL.totalValue = 0;
   GLOBAL.userId;
+  GLOBAL.userFullName;
+  GLOBAL.userEmail;
+  GLOBAL.ownMail = "fdefroco@gmail.com";
 
 //THIS PAGE SHORTENED URL : https://bit.ly/3eiucSP
 
@@ -152,8 +151,10 @@
       tableHTML += '</table></marquee>';
       $("#scrollDiv").html(tableHTML);
 
-
       GLOBAL.totalValue = toValue(contents[1][GLOBAL.totalCol]);
+      GLOBAL.userEmail = contents[1][indexOf(contents[0], "Email")];
+      GLOBAL.userFullName = contents[1][indexOf(contents[0], "Family Name")].toUpperCase()
+        + ' ' + contents[1][indexOf(contents[0], "First Name")];
     }
 
     displayElement("#depositButton", hasContent); // Show the deposit button
@@ -239,8 +240,8 @@
   }
 
   function updateDeposit() {
-    closePopup();
-    showLoader(true);
+    confirmation();
+
     const id = GLOBAL.depositAmount;
     const title = toFirstUpperCase(id.replace("Amount", ""));
     const value = $("#popup").data(id);
@@ -251,7 +252,7 @@
     google.script.run
           .withSuccessHandler(contents => insertHistoricRow(data))
           .withFailureHandler(displayError)
-          .sendEmail(subject);
+          .sendEmail(GLOBAL.ownMail, subject);
   }
 
   function withdraw() {
@@ -290,9 +291,9 @@
         + getTranslatedContent("Withdraw period", true) + getTableReadOnlyContent(period) + '</tr><tr>'
         + getTranslatedContent("Withdraw date", true) + getTableReadOnlyContent(date) + '</tr><tr>'
         + getTranslatedContent("Operation cost", true) + getTranslatedContent(cost + ' €') + '</tr><tr>'
-        + getTranslatedContent("Recipient", true) + getTableReadOnlyContent(data[1][GLOBAL.familyNameCol].toUpperCase() + ' ' + data[1][GLOBAL.firstNameCol]) + '</tr><tr>'
-        + getTranslatedContent("IBAN", true) + getTableReadOnlyContent(data[1][GLOBAL.IBANCol]) + '</tr><tr>'
-        + getTranslatedContent("Bank", true) + getTableReadOnlyContent(data[1][GLOBAL.BankCol]) + '</tr></table>'
+        + getTranslatedContent("Recipient", true) + getTableReadOnlyContent(GLOBAL.userFullName) + '</tr><tr>'
+        + getTranslatedContent("IBAN", true) + getTableReadOnlyContent(data[1][indexOf(data[0], "IBAN")]) + '</tr><tr>'
+        + getTranslatedContent("Bank", true) + getTableReadOnlyContent(data[1][indexOf(data[0], "Bank")]) + '</tr></table>'
 
       const innerHTML = getPopupContent(withdraw.name, content, updateWithdraw.name);
 
@@ -307,8 +308,8 @@
   }
 
   function updateWithdraw() {
-    closePopup();
-    showLoader(true);
+    confirmation();
+
     const id = GLOBAL.withdrawAmount;
     const title = toFirstUpperCase(id.replace("Amount", ""));
     const value = '-' + $("#popup").data(id);   // Withdraw value should be negative
@@ -319,24 +320,35 @@
     google.script.run
           .withSuccessHandler(contents => insertHistoricRow(data))
           .withFailureHandler(displayError)
-          .sendEmail(subject);
+          .sendEmail(GLOBAL.ownMail, subject);
+  }
+
+  function confirmation(text) {
+    // Display confirmation message on popup with a close button
+    closePopup();
+
+    // Send explicit Email to user
+    const subject = "";
+    const message = "";
+
+    // google.script.run
+    //       .withSuccessHandler()
+    //       .withFailureHandler(displayError)
+    //       .sendEmail(GLOBAL.userEmail, subject, message);
   }
 
   function insertHistoricRow(data) {
     if (data && data.movement) {
       data = [[data.date ?? toStringDate(), GLOBAL.userId, toCurrency(data.movement), data.cost ?? toCurrency(0), GLOBAL.pendingStatus]];
 
-      const insertRowIntoHtml = () => {
-        const id = GLOBAL.displayData.historic.id;
-        openTab(id);
-        showLoader(false);
-        data[0][0] = toStringDate(data[0][0]);    // Reverse date as the format is incorrect
-        GLOBAL.data[id].splice(1, 0, data[0]);
-        updateHistoricTable(id, GLOBAL.data[id]);
-      };
+      const id = GLOBAL.displayData.historic.id;
+      openTab(id);
+      data[0][0] = toStringDate(data[0][0]);    // Reverse date as the format is incorrect
+      GLOBAL.data[id].splice(1, 0, data[0]);
+      updateHistoricTable(id, GLOBAL.data[id]);
 
       google.script.run
-      .withSuccessHandler(contents => setValue(GLOBAL.displayData.historic.formula.split('!')[0] + "!A2", data, insertRowIntoHtml))
+      .withSuccessHandler(contents => setValue(GLOBAL.displayData.historic.formula.split('!')[0] + "!A2", data))
       .withFailureHandler(displayError)
       .insertRows(GLOBAL.personalGID, data, {startRow:1, endCol:data.length});
     } else {
@@ -348,6 +360,9 @@
     if (id != GLOBAL.userId) {
       const faqId = GLOBAL.displayData.FAQ.id;
       GLOBAL.userId = id;
+      GLOBAL.userEmail = null;
+      GLOBAL.userFullName = null;
+
       GLOBAL.displayId.forEach(id => {
         if (id != faqId) {
           $("#" + id + "Div").html("");                         // Clear all tab content except faq

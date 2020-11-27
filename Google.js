@@ -23,32 +23,35 @@ class Run {
   static #singleton;
   static #data = [];
   static #workbook;
+  static #pageTitle;
+  static #favIcon = 'Img/Favicon.png';
   #sh = () => {};
   #fh = (error) => {};
   constructor() {
     if (!Run.#singleton) {    // Run only once
-      this.doGet(new URLSearchParams(location.search));
       Run.#singleton = true;
+      Run.#pageTitle = this.#isMainApp() ? 'Finance Manager' : 'FiMs Associé';
+      this.doGet(new URLSearchParams(location.search));
     }
   }
   withSuccessHandler(func) {
-    this.#sh = func;
+    this.#sh = func ?? (() => {});
     return this;
   }
   withFailureHandler(func) {
-    this.#fh = func;
+    this.#fh = func ?? (() => {});
     return this;
   }
   doGet(e) {
     this.setProperty("userId", e.get("id") ?? "");
 
     Template.evaluate()
-            .setTitle()
-            .setFaviconUrl('Img/Favicon.png');
+            .setTitle(Run.#pageTitle)
+            .setFaviconUrl(Run.#favIcon);
   }
-  sendEmail(subject, message) {
+  sendEmail(recipient, subject, message) {
     try {
-      alert("Mail sent!\n\nSubject = " + subject + (message ? "\nMessage = " + message : ''));
+      alert("Mail sent to " + recipient + " !\n\nSubject = " + subject + (message ? "\nMessage = " + message : ''));
     } catch (error) {
       this.#fh(error);
     }
@@ -101,7 +104,7 @@ class Run {
 
   async #getSheetValues(range) {
     if (!Run.#workbook) {
-      var url = "Data/Finance Manager Spreadsheet.xlsx";
+      var url = "Data/" + (this.#isMainApp() ? "Finance Manager Spreadsheet" : "FiMs Associate") + ".xlsx";
       // var url  = "https://rawgit.com/flodef/FM/master/Data/Finance Manager Spreadsheet.xlsx";
 
       await fetch(url)
@@ -143,6 +146,11 @@ class Run {
   #hasNumber(string) {
     return /\d/.test(string);
   }
+  #isMainApp() {
+    var url = document.URL.split('/');
+    var page = url[url.length-1].split('.')[0];
+    return page == "index";
+  }
 }
 
 class Template {
@@ -153,9 +161,7 @@ class Template {
     return Template;
   }
   static setTitle(title) {
-    var url = document.URL.split('/');
-    var page = url[url.length-1].split('.')[0];
-    document.title = title || page == "index" ? 'Finance Manager' : 'FiMs Associé';
+    document.title = title;
     return Template;
   }
   static setFaviconUrl(url) {
