@@ -47,6 +47,18 @@ class Run {
 });
   }
 
+  const pageTitle = 'Finance Manager';
+  const spreadsheetId = '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw';
+  const ownEmail = 'fdefroco@gmail.com';
+  const favicon = 'https://raw.githubusercontent.com/flodef/FiMS/master/Img/Favicon2.png'
+
+  /**
+   * https://script.google.com/macros/s/AKfycbw1nj4Vi29hGeU9Ju74r_hTfX1ZwwsJiW86ygvqguyQ/dev
+   * Serves HTML of the application for HTTP GET requests.
+   *
+   * @param {Object} e event parameter that can contain information
+   *     about any URL parameters provided.
+   */
   function doGet(e) {
   //  const output = 'Hello ' + userId;
   //  return ContentService.createTextOutput(output);
@@ -57,8 +69,8 @@ class Run {
 
     // Build and return HTML in IFRAME sandbox mode.
     return template.evaluate()
-                   .setTitle('FiMs Associé')
-                   .setFaviconUrl('https://raw.githubusercontent.com/flodef/FiMS/master/Img/Favicon2.png');
+                   .setTitle(pageTitle)
+                   .setFaviconUrl(favicon);
   }
 
   /**
@@ -73,30 +85,31 @@ class Run {
     PropertiesService.getScriptProperties().setProperty(key, value);
   }
 
-  /**
-   */
-  function getSheetValues(range) {
-    return Sheets.Spreadsheets.Values.get(spreadsheetId, range).values;
+  function sendEmail(subject, message) {
+    MailApp.sendEmail(ownEmail, subject, message);
   }
 
   /**
    */
-  function getSheetValuesWithFilter(range, filter = userId, column = 0) {
-    var content = [];
-    var temp = getSheetValues(range);
+  function getSheetValues(range, filter, column = 0) {
+    try {
+      var content = Sheets.Spreadsheets.Values.get(spreadsheetId, range).values;
+      if (filter) {
+        var temp = content;
 
-    content.push(temp[0]);
-    for (var i = 1; i < temp.length; ++i) {
-      if (temp[i][column] == filter) {
-        var filterRow = [];
-        for (var j = 0; j < temp[i].length; ++j) {
-          filterRow.push(temp[i][j]);
+        content = [];
+        content.push(temp[0]);
+        for (var i = 1; i < temp.length; ++i) {
+          if (temp[i][column] == filter) {
+            content.push(temp[i]);
+          }
         }
-        content.push(filterRow);
       }
-    }
 
-    return content;
+      return content;
+    } catch (e) {
+      return null;
+    }
   }
 
   /**

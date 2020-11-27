@@ -52,7 +52,7 @@ const DEGLINK = "https://trader.degiro.nl/login/fr#/login";
 const APPLINK = "https://goo.gl/amjmSv";
 const BLGLINK = "https://www.bloomberg.com/quote/";
 
-// constIOUS
+// VARIOUS
 const MAIL = "fdefroco@gmail.com";
 const LOADING = "Loading...";
 const DUMMY = "XXXXXX";
@@ -687,7 +687,43 @@ function _sendCharity() {
   this._sendMessage(object, recap);
 }
 
+function _insertHistoricRow(date, type, label, trans, quantity, price, value, tag) {
+  var sheet = this._getSheet(HISTORIC);
 
+  date = date ? date : this._toDate();
+  type = type ? type : "";
+  label = label ? label : "";
+  trans = trans ? trans : "COST";
+  quantity = quantity ? quantity : "";
+  price = price ? price : "";
+  value = value ? value : 0;
+  tag = tag ? tag : label + "@" + trans + "@" + quantity + "@" + value; //Vanguard S&P 500 UCITS ETF@COST@@-3.69
+
+  var data = [[date, type, label, trans, quantity, price, value, tag]];
+  this._insertFirstRow(sheet, data, true);
+}
+
+function _importXml(row, table) {
+  return '=IMPORTXML("' + BLGLINK + '" & A' + row + ' & ":" & C' + row + ', "' + table + '")';
+}
+
+function _checkPriceDiff(array) {
+  // Check for difference
+  var lc = (array[0].length-1)/2;
+  var i = 0;    // Skip first column which is the date
+  var isDiff = false;
+  while (!isDiff && ++i <= lc) {
+    isDiff = array[0][i] != array[1][i] ? true : isDiff;
+  }
+
+  return isDiff;
+}
+
+
+
+// ************************************
+// ***** COMMON LIBRARY FUNCTIONS *****
+// ************************************
 
 function _getSheet(sheetName) {
 //  var sheet = SpreadsheetApp.getActiveSheet();
@@ -725,38 +761,6 @@ function _insertFirstRow(sheet, data, isFast, lc) {
   }
 
   this._setRangeValues(sheet, FR, FC, data);
-}
-
-function _insertHistoricRow(date, type, label, trans, quantity, price, value, tag) {
-  var sheet = this._getSheet(HISTORIC);
-
-  date = date ? date : this._toDate();
-  type = type ? type : "";
-  label = label ? label : "";
-  trans = trans ? trans : "COST";
-  quantity = quantity ? quantity : "";
-  price = price ? price : "";
-  value = value ? value : 0;
-  tag = tag ? tag : label + "@" + trans + "@" + quantity + "@" + value; //Vanguard S&P 500 UCITS ETF@COST@@-3.69
-
-  var data = [[date, type, label, trans, quantity, price, value, tag]];
-  this._insertFirstRow(sheet, data, true);
-}
-
-function _importXml(row, table) {
-  return '=IMPORTXML("' + BLGLINK + '" & A' + row + ' & ":" & C' + row + ', "' + table + '")';
-}
-
-function _checkPriceDiff(array) {
-  // Check for difference
-  var lc = (array[0].length-1)/2;
-  var i = 0;    // Skip first column which is the date
-  var isDiff = false;
-  while (!isDiff && ++i <= lc) {
-    isDiff = array[0][i] != array[1][i] ? true : isDiff;
-  }
-
-  return isDiff;
 }
 
 function _copyFirstRow(sheet, array) {

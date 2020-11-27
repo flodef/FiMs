@@ -65,6 +65,15 @@ button {
   margin:0px 15px 0px 15px;
 }
 
+a.button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    text-decoration: none;
+    color: initial;
+}
+
 marquee {
   background-color: rgba(255,255,255,0.8);
 }
