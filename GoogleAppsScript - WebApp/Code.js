@@ -1,3 +1,6 @@
+var spreadsheetId;
+const workInProgress = true;
+
 /**
  * https://script.google.com/macros/s/AKfycbw1nj4Vi29hGeU9Ju74r_hTfX1ZwwsJiW86ygvqguyQ/dev
  * Serves HTML of the application for HTTP GET requests.
@@ -6,8 +9,6 @@
  *     about any URL parameters provided.
  */
 
-var spreadsheetId;
-
 function doGet(e) {
 //  const output = 'Hello ' + userId;
 //  return ContentService.createTextOutput(output);
@@ -15,13 +16,20 @@ function doGet(e) {
   const isMain = userId == "Flodef";
   const favIcon = 'https://raw.githubusercontent.com/flodef/FiMS/master/Img/Favicon2.png';
   const pageTitle = isMain ? 'FiMs Main' : 'FiMs Associate';
-  spreadsheetId = isMain ? '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw' : '1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU';
+  var fileName;
 
-  setProperty("userId", userId);
-  setProperty("pageTitle", pageTitle);
-  setProperty("spreadsheetId", spreadsheetId);
+  if (!workInProgress) {
+    spreadsheetId = isMain ? '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw' : '1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU';
 
-  var template = HtmlService.createTemplateFromFile('Index');
+    setProperty("userId", userId);
+    setProperty("pageTitle", pageTitle);
+    setProperty("spreadsheetId", spreadsheetId);
+
+    fileName = 'Index';
+  } else {
+    fileName = 'WorkInProgress'
+  }
+  var template = HtmlService.createTemplateFromFile(fileName);
 
   // Build and return HTML in IFRAME sandbox mode.
   return template.evaluate()
