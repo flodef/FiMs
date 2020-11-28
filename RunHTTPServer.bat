@@ -1,5 +1,5 @@
 @ECHO off
-SET url="C:\Users\fdefr\Downloads\Finance Manager Spreadsheet.xlsx"
+SET url="C:\Users\fdefr\Downloads\FiMs Main.xlsx"
 SET goo="https://docs.google.com/spreadsheets/d/e/2PACX-1vQOD1ZjNIwHLYr7Qft0UzPCAvYLlVW8kmDu8cvG6RPqtrBw5sIYkigiKDBONUfcVcL6g4Xb_j0oeZla/pub?output=xlsx"
 
 :lo

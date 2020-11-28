@@ -23,14 +23,12 @@ class Run {
   static #singleton;
   static #data = [];
   static #workbook;
-  static #pageTitle;
-  static #favIcon = 'Img/Favicon.png';
+  static #spreadsheetId;
   #sh = () => {};
   #fh = (error) => {};
   constructor() {
     if (!Run.#singleton) {    // Run only once
       Run.#singleton = true;
-      Run.#pageTitle = this.#isMainApp() ? 'Finance Manager' : 'FiMs Associé';
       this.doGet(new URLSearchParams(location.search));
     }
   }
@@ -43,11 +41,21 @@ class Run {
     return this;
   }
   doGet(e) {
-    this.setProperty("userId", e.get("id") ?? "");
+    const userId = e.get("id") ?? "";
+    const isMain = userId == "Flodef";
+    const favIcon = 'Img/Favicon.png';
+    const pageTitle = isMain ? 'FiMs Main' : 'FiMs Associate';
+    Run.#spreadsheetId = isMain ? "Data/FiMs Main.xlsx" : "Data/FiMs Associate.xlsx";
 
-    Template.evaluate()
-            .setTitle(Run.#pageTitle)
-            .setFaviconUrl(Run.#favIcon);
+    this.setProperty("userId", userId);
+    this.setProperty("spreadsheetId", Run.#spreadsheetId);
+
+    var template = HtmlService.createTemplateFromFile('Index');
+
+    // Build and return HTML in IFRAME sandbox mode.
+    return template.evaluate()
+                   .setTitle(pageTitle)
+                   .setFaviconUrl(favIcon);
   }
   sendEmail(recipient, subject, message) {
     try {
@@ -104,10 +112,7 @@ class Run {
 
   async #getSheetValues(range) {
     if (!Run.#workbook) {
-      var url = "Data/" + (this.#isMainApp() ? "Finance Manager Spreadsheet" : "FiMs Associate") + ".xlsx";
-      // var url  = "https://rawgit.com/flodef/FM/master/Data/Finance Manager Spreadsheet.xlsx";
-
-      await fetch(url)
+      await fetch(Run.#spreadsheetId)
       .then((response) => {
         if(response.ok) {
           return response.arrayBuffer();
@@ -146,31 +151,32 @@ class Run {
   #hasNumber(string) {
     return /\d/.test(string);
   }
-  #isMainApp() {
-    var url = document.URL.split('/');
-    var page = url[url.length-1].split('.')[0];
-    return page == "index";
+}
+
+class HtmlService{
+  static createTemplateFromFile(page) {
+    return new Template(page);
   }
 }
 
 class Template {
-  static evaluate() {
+  evaluate() {
     // SET HERE ALL THE STUFF RELATIVE TO GOOGLE APP SCRIPT INIT
     // var url = document.URL.split('/');
     // window.history.pushState('', '', url[url.length-1].split('?')[0]);   // Reset passed value to simulate google server behavior
-    return Template;
+    return this;
   }
-  static setTitle(title) {
+  setTitle(title) {
     document.title = title;
-    return Template;
+    return this;
   }
-  static setFaviconUrl(url) {
+  setFaviconUrl(url) {
     var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
         link.type = 'image/png';
         link.rel = 'icon';
         link.href = url;
     document.head.appendChild(link);
-    return Template;
+    return this;
   }
 }
 

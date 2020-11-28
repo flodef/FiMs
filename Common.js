@@ -2,15 +2,12 @@
 * Functions that are shared between main app and associate app.
 */
 
-window.GLOBAL = {};
 GLOBAL.data = [];
 GLOBAL.loadingQueueCount = 0;
 GLOBAL.hasAlreadyUpdated = [];
 GLOBAL.currentLoadingId;
 GLOBAL.currentDisplayedId;
 GLOBAL.displayId;
-GLOBAL.isLocal;
-GLOBAL.serverUrl = "https://raw.githubusercontent.com/flodef/FiMS/master/";
 GLOBAL.handleEvent = true;
 
 function init() {
@@ -28,7 +25,7 @@ function init() {
   GLOBAL.serverUrl = GLOBAL.isLocal ? '' : GLOBAL.serverUrl;  // Remove the server URL if in local mode
   GLOBAL.displayId = Object.keys(GLOBAL.displayData);         // Set the id to display in a normal array
 
-  $("#mainHeading").html('<h1>' + document.title + '</h1>');  // Set the app main heading to the web page title
+  $("#mainHeading").html('<h1>' + translate(document.title) + '</h1>');  // Set the app main heading to the web page title
 
   // Set the app buttons
   var tableHTML = '<table id="actionButton" class="topMenu">'
