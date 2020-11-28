@@ -24,14 +24,6 @@ $(() => {
   displayElement('.actionButton', false, 0);
 
   animateLoaderBar();
-
-  // Load main app script
-  const fn = () => {
-    var element = document.createElement('script');
-    element.src = GLOBAL.serverUrl + document.title.replace("FiMs ", "") + ".js";
-    document.head.appendChild(element);
-  }
-  setTimeout(fn, 100);  // Hack to avoid script loading in wrong order
 });
 
 function loadPage() {

@@ -9,16 +9,24 @@ const src = ["Lib/jquery.min.js",                       // https://ajax.googleap
           ];
 
 const serverUrl = !document.URL.includes(":8080") ? "https://raw.githubusercontent.com/flodef/FiMS/master/" : ''; // Remove the server URL if in local mode
+const fn = src => {
+  var element = document.createElement('script');
+  element.src = serverUrl + src;
+  document.head.appendChild(element);
+}
 
 // Load every script one after the other
 loadScript(0);
 function loadScript(i) {
-  var element = document.createElement('script');
-  element.src = serverUrl + src[i];
-  document.head.appendChild(element);
+  fn(src[i]);
 
   // Load next library
   if (++i < src.length) {
     setTimeout(() => loadScript(i), 100);  // Hack to avoid script loading in wrong order
+  } else {
+    google.script.run
+                 .withSuccessHandler(pageTitle => setTimeout(() => fn(pageTitle.replace("FiMs ", "") + ".js"), 100))
+                 .withFailureHandler(alert)
+                 .getProperty("pageTitle");
   }
 }
