@@ -2,6 +2,9 @@
 * Functions that are shared between main app and associate app.
 */
 
+window.GLOBAL = {};
+GLOBAL.isLocal = document.URL.includes(":8080");                                                  // Whether the app is running in local mode
+GLOBAL.serverUrl = GLOBAL.isLocal ? '' : "https://raw.githubusercontent.com/flodef/FiMS/master/"; // Remove the server URL if in local mode
 GLOBAL.data = [];
 GLOBAL.loadingQueueCount = 0;
 GLOBAL.hasAlreadyUpdated = [];
@@ -10,7 +13,8 @@ GLOBAL.currentDisplayedId;
 GLOBAL.displayId;
 GLOBAL.handleEvent = true;
 
-function init() {
+}
+$(() => {
   jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
 
   displayElement('.contentOverlay', true, 0);
@@ -21,10 +25,17 @@ function init() {
   $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
   $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
-  GLOBAL.isLocal = document.URL.includes(":8080");            // Whether the app is running in local mode
-  GLOBAL.serverUrl = GLOBAL.isLocal ? '' : GLOBAL.serverUrl;  // Remove the server URL if in local mode
   GLOBAL.displayId = Object.keys(GLOBAL.displayData);         // Set the id to display in a normal array
 
+  // Load main app script
+  var element = document.createElement('script');
+  element.src = GLOBAL.serverUrl + document.title.replace("FiMs ", "") + ".js";
+  document.head.appendChild(element);
+
+  loadTranslation();
+}
+
+function loadPage() {
   $("#mainHeading").html('<h1>' + translate(document.title) + '</h1>');  // Set the app main heading to the web page title
 
   // Set the app buttons
@@ -61,6 +72,8 @@ function init() {
   + '</tr></table>');
 
   $(document).ready(() => $("#mainFocus").focus());   // Set the main focus (replace autofocus attribute)
+
+  init();   // Call init() proper to specialized script (Main or Associate)
 }
 
 function animateLoaderBar(item, duration) {
