@@ -197,7 +197,10 @@ table.sortable tr.header, table.sortable tr:hover {
 
 
 /* Loader and Overlay */
+.contentOverlay,
+.shadeOverlay,
 .overlay {
+  /* visibility: hidden; */
   position: fixed;
   width: 100%;
   height: 100%;
@@ -210,6 +213,10 @@ table.sortable tr.header, table.sortable tr:hover {
 
 .contentOverlay {
   height: 60px;
+}
+
+.shadeOverlay {
+  background-color: rgba(0,0,0,0.3);
 }
 
 #popup {

@@ -2,71 +2,14 @@
 <html>
   <head>
     <base target="_blank">
-    <!-- Use a templated HTML printing scriptlet to import common stylesheet -->
-    <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
-    <!-- <link rel="stylesheet" href="Stylesheet.css"> -->
-    <script>
-    if (document.URL.includes(":8080")) {
-      var element = document.createElement('link');
-      element.rel = "stylesheet";
-      element.href = "Stylesheet.css";
-      document.head.appendChild(element);
-    }
-    </script>
-
-    <!-- <link rel="stylesheet" href="Lib/jquery-ui.css">    <!-- <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
-    <!-- <link rel="stylesheet" href="Lib/easy-autocomplete.min.css">  <!-- http://easyautocomplete.com/dist/easy-autocomplete.min.css -->
+    <script src="Javascript.js"></script>
+    <!--  <link rel="stylesheet" href="Lib/jquery-ui.css">     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
+    <!--  <link rel="stylesheet" href="Lib/easy-autocomplete.min.css">  http://easyautocomplete.com/dist/easy-autocomplete.min.css -->
   </head>
   <body>
-    <div id="content" class="overlay contentOverlay hidden">
-      <div id="mainHeading"></div>
-
-      <div id="tabContainer"></div>
-
-      <div id="loaderBar" class="loaderBar"></div>
-
-      <div id="mainContent"></div>
-
-      <div id="footer"></div>
-    </div>
-
-    <div id="scrollDiv" align="center" class="overlay contentOverlay hidden"></div>
-
-    <div id="menuDiv" align="right" class="overlay contentOverlay hidden"></div>
-
-    <div id="loaderOverlay" class="overlay hidden" style="background-color:rgba(0,0,0,0.3);">
-      <div id="loader"></div>
-    </div>
-
-    <div id="popupOverlay" class="overlay hidden" style="background-color:rgba(0,0,0,0.3);">
-      <div id="popup"></div>
-    </div>
-
-    <div id="alertOverlay" class="overlay hidden">
-      <div id="alert" align="center"></div>
-    </div>
-
-    <div id="snackbar"></div>
-
-    <!-- Store data passed to template here, so it is available to the
-     imported JavaScript. -->
-    <script>
-    </script>
-
-    <!-- Use a templated HTML printing scriptlet to import JavaScript. -->
-    <?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
-    <!-- <script src="Javascript.js"></script> -->
-    <script>
-    if (document.URL.includes(":8080")) {
-      var element = document.createElement('script');
-      element.src = "JavaScript.js";
-      document.body.appendChild(element);
-    }
-    </script>
-
     <!-- <script async defer src="https://apis.google.com/js/api.js"
-           onload="this.onload=function(){};handleClientLoad()"
-           onreadystatechange="if (this.readyState === 'complete') this.onload()">
+            onload="this.onload=function(){};handleClientLoad()"
+            onreadystatechange="if (this.readyState === 'complete') this.onload()">
     </script> -->
   </body>
 </html>

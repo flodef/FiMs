@@ -20,10 +20,11 @@ class Script {
 }
 
 class Run {
+  static #spreadsheetId;
+  static #workInProgress = false;
   static #singleton;
   static #data = [];
   static #workbook;
-  static #spreadsheetId;
   #sh = () => {};
   #fh = (error) => {};
   constructor() {
@@ -45,13 +46,14 @@ class Run {
     const isMain = userId == "Flodef";
     const favIcon = 'Img/Favicon.png';
     const pageTitle = isMain ? 'FiMs Main' : 'FiMs Associate';
+    const fileName = !Run.#workInProgress ? isMain ? 'Main' : 'Associate' : 'WorkInProgress';
     Run.#spreadsheetId = isMain ? "Data/FiMs Main.xlsx" : "Data/FiMs Associate.xlsx";
 
     this.setProperty("userId", userId);
-    this.setProperty("pageTitle", pageTitle);
+    this.setProperty("fileName", fileName);
     this.setProperty("spreadsheetId", Run.#spreadsheetId);
 
-    var template = HtmlService.createTemplateFromFile('Index');
+    var template = HtmlService.createTemplateFromFile(fileName);
 
     // Build and return HTML in IFRAME sandbox mode.
     return template.evaluate()

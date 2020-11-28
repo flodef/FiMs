@@ -16,19 +16,13 @@ function doGet(e) {
   const isMain = userId == "Flodef";
   const favIcon = 'https://raw.githubusercontent.com/flodef/FiMS/master/Img/Favicon2.png';
   const pageTitle = isMain ? 'FiMs Main' : 'FiMs Associate';
-  var fileName;
+  const fileName = !workInProgress ? isMain ? 'Main' : 'Associate' : 'WorkInProgress';
+  spreadsheetId = isMain ? '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw' : '1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU';
 
-  if (!workInProgress) {
-    spreadsheetId = isMain ? '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw' : '1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU';
+  setProperty("userId", userId);
+  setProperty("fileName", fileName);
+  setProperty("spreadsheetId", spreadsheetId);
 
-    setProperty("userId", userId);
-    setProperty("pageTitle", pageTitle);
-    setProperty("spreadsheetId", spreadsheetId);
-
-    fileName = 'Index';
-  } else {
-    fileName = 'WorkInProgress'
-  }
   var template = HtmlService.createTemplateFromFile(fileName);
 
   // Build and return HTML in IFRAME sandbox mode.

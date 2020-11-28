@@ -18,15 +18,32 @@ GLOBAL.handleEvent = true;
  * Run initializations on web app load.
  */
 $(() => {
+  addCSS('Stylesheet');
+
+  const body =
+    getDiv("content", "contentOverlay", null,
+      getDiv("mainHeading") +
+      getDiv("tabContainer") +
+      getDiv("loaderBar", "loaderBar") +
+      getDiv("mainContent") +
+      getDiv("footer"))
+    + getDiv("scrollDiv", "contentOverlay", "center")
+    + getDiv("menuDiv", "contentOverlay", "right")
+    + getOverlayDiv("loader", "shadeOverlay")
+    + getOverlayDiv("popupOverlay", "shadeOverlay")
+    + getOverlayDiv("alertOverlay")
+    + getDiv("snackbar")
+  $('body').html(body);
+});
+
+function loadPage() {
   jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
 
   displayElement('.contentOverlay', true, 0);
   displayElement('.actionButton', false, 0);
 
   animateLoaderBar();
-});
 
-function loadPage() {
   $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
   $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
@@ -279,6 +296,23 @@ function getLink(content, title) {
   return content && content.slice(0, 4) == 'http'
     ? '<a href=' + content + ' target="_blank">' + (title || content) + '</a>'
     : content;
+}
+
+function getDiv(id, cssClass, align, content) {
+  return '<div id="' + (id ?? '') + '" align="' + (align ?? '') + '" class="'
+    + (cssClass ? cssClass + (cssClass.toLowerCase().endsWith("overlay") ? ' hidden' : '') : '') + '">'
+    + (content ?? '') + '</div>';
+}
+
+function getOverlayDiv(id, cssClass) {
+  return getDiv(id + "Overlay", cssClass ?? "overlay", null, getDiv(id));
+}
+
+function addCSS(stylesheetName) {
+  var element = document.createElement('link');
+  element.rel = "stylesheet";
+  element.href = stylesheetName + ".css";
+  document.head.appendChild(element);
 }
 
 // function getTitle(id, disabled) {
