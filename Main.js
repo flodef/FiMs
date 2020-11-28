@@ -31,10 +31,12 @@ GLOBAL.rebalanceButtonToolTip = "Rebalance";
 GLOBAL.showAllButtonToolTip = "Show all";
 GLOBAL.requestedAllocation = "Requested allocation";
 
-function loadTranslation() {
-  //No translation
+/**
+ * Run initializations on web app load.
+ */
+$(() => {
   loadPage();
-}
+});
 
 function init() {
   var tableHTML = '<table id="addTransactionForm" class="topMenu hidden"><tr>'
@@ -64,7 +66,7 @@ function init() {
   displayElement("[id^=cancel]", true, 0);
 
   getValue({ id:GLOBAL.settings, formula:GLOBAL.settingsFormula }, null, true, updateAllValues);
-});
+}
 
 function rebalanceStocks() {
 //   updateValues(GLOBAL.displayData.investment.id);

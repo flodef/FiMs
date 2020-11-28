@@ -49,9 +49,9 @@ GLOBAL.ownMail = "fdefroco@gmail.com";
 /**
  * Run initializations on web app load.
  */
-function loadTranslation() {
+$(() => {
   getValue({ id:GLOBAL.translation, formula:GLOBAL.translationFormula }, null, true, loadPage);
-}
+});
 
 function init() {
   GLOBAL.displayId.forEach(id => displayElement("#" + id + "Button", false, 0));  // Hide all tab on init

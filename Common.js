@@ -25,20 +25,18 @@ $(() => {
 
   animateLoaderBar();
 
+  // Load main app script
+  var element = document.createElement('script');
+  element.src = GLOBAL.serverUrl + document.title.replace("FiMs ", "") + ".js";
+  document.head.appendChild(element);
+});
+
+function loadPage() {
   $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
   $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
   GLOBAL.displayId = Object.keys(GLOBAL.displayData);         // Set the id to display in a normal array
 
-  // Load main app script
-  var element = document.createElement('script');
-  element.src = GLOBAL.serverUrl + document.title.replace("FiMs ", "") + ".js";
-  document.head.appendChild(element);
-
-  loadTranslation();
-}
-
-function loadPage() {
   $("#mainHeading").html('<h1>' + translate(document.title) + '</h1>');  // Set the app main heading to the web page title
 
   // Set the app buttons

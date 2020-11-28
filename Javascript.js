@@ -8,11 +8,13 @@ const src = ["Lib/jquery.min.js",                       // https://ajax.googleap
            "Common.js",
           ];
 
+const serverUrl = !document.URL.includes(":8080") ? "https://raw.githubusercontent.com/flodef/FiMS/master/" : ''; // Remove the server URL if in local mode
+
 // Load every script one after the other
 loadScript(0);
 function loadScript(i) {
   var element = document.createElement('script');
-  element.src = GLOBAL.serverUrl + src[i];
+  element.src = serverUrl + src[i];
   document.head.appendChild(element);
 
   // Load next library
