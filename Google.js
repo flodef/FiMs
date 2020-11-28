@@ -48,6 +48,7 @@ class Run {
     Run.#spreadsheetId = isMain ? "Data/FiMs Main.xlsx" : "Data/FiMs Associate.xlsx";
 
     this.setProperty("userId", userId);
+    this.setProperty("pageTitle", pageTitle);
     this.setProperty("spreadsheetId", Run.#spreadsheetId);
 
     var template = HtmlService.createTemplateFromFile('Index');

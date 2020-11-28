@@ -5,7 +5,7 @@
 <script src="https://flodef.github.io/FiMS/Common.js"></script>
 <script src="https://flodef.github.io/FiMS/Main.js"></script> -->
 <script>
-  var src = ["Lib/jquery.min.js",                       // https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js
+  const src = ["Lib/jquery.min.js",                       // https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js
              "Lib/jquery-ui.js",                        // https://code.jquery.com/ui/1.12.1/jquery-ui.js
              "Lib/jquery.csv.min.js",                   // https://raw.githubusercontent.com/typeiii/jquery-csv/master/src/jquery.csv.min.js
              "Lib/sorttable.js",                        // https://www.kryogenix.org/code/browser/sorttable/sorttable.js
@@ -29,10 +29,17 @@
 
     // Load main app script as last one
     if (i == src.length - 1) {
-      const mainSrc = document.title.replace("FiMs ", "") + ".js";
-      if (src[i] != mainSrc) {
-        src.push(mainSrc);
-      }
+      const fn = pageTitle => {
+        const mainSrc = pagetitle.replace("FiMs ", "") + ".js";
+        var element = document.createElement('script');
+        element.src = GLOBAL.serverUrl + mainSrc;
+        document.head.appendChild(element);
+      };
+
+      google.script.run
+        .withSuccessHandler(fn)
+        .withFailureHandler(alert)
+        .getProperty("pageTitle");
     }
 
     // Load next library

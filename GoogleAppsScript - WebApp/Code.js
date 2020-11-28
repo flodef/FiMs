@@ -18,6 +18,7 @@ function doGet(e) {
   spreadsheetId = isMain ? '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw' : '1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU';
 
   setProperty("userId", userId);
+  setProperty("pageTitle", pageTitle);
   setProperty("spreadsheetId", spreadsheetId);
 
   var template = HtmlService.createTemplateFromFile('Index');
