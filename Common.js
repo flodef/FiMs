@@ -13,7 +13,10 @@ GLOBAL.currentDisplayedId;
 GLOBAL.displayId;
 GLOBAL.handleEvent = true;
 
-}
+
+/**
+ * Run initializations on web app load.
+ */
 $(() => {
   jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
 
