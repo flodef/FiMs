@@ -1,4 +1,3 @@
-var spreadsheetId;
 const workInProgress = false;
 
 /**
@@ -17,7 +16,7 @@ function doGet(e) {
   const favIcon = 'https://raw.githubusercontent.com/flodef/FiMS/master/Img/Favicon2.png';
   const pageTitle = isMain ? 'FiMs Main' : 'FiMs Associate';
   const fileName = !workInProgress ? isMain ? 'Main' : 'Associate' : 'WorkInProgress';
-  spreadsheetId = isMain ? '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw' : '1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU';
+  const spreadsheetId = isMain ? '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw' : '1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU';
 
   setProperty("userId", userId);
   setProperty("fileName", fileName);
@@ -50,6 +49,7 @@ function sendEmail(recipient, subject, message) {
 /**
  */
 function getSheetValues(range, filter, column = 0) {
+  const spreadsheetId = getProperty("spreadsheetId");
   try {
     var content = Sheets.Spreadsheets.Values.get(spreadsheetId, range).values;
     if (filter) {
@@ -73,6 +73,7 @@ function getSheetValues(range, filter, column = 0) {
 /**
  */
 function setSheetValues(range, values) {
+  const spreadsheetId = getProperty("spreadsheetId");
   return Sheets.Spreadsheets.Values.update({
     "range": range,
     "majorDimension": 'ROWS',
@@ -83,12 +84,14 @@ function setSheetValues(range, values) {
 /**
  */
 function clearSheetValues(range) {
+  const spreadsheetId = getProperty("spreadsheetId");
   return Sheets.Spreadsheets.Values.clear({}, spreadsheetId, range);
 }
 
 /**
  */
 function insertRows(sheetId, values, range) {
+  const spreadsheetId = getProperty("spreadsheetId");
   return Sheets.Spreadsheets.batchUpdate({
     "requests": [{
       "insertDimension": {
@@ -153,6 +156,7 @@ function insertRows(sheetId, values, range) {
 /**
  */
 function deleteRows(sheetId, startIndex, endIndex) {
+  const spreadsheetId = getProperty("spreadsheetId");
   return Sheets.Spreadsheets.batchUpdate({
     "requests": [{
       "deleteDimension": {
@@ -173,6 +177,7 @@ function deleteRows(sheetId, startIndex, endIndex) {
 /**
  */
 function sortColumn(sheetId, index, descending) {
+  const spreadsheetId = getProperty("spreadsheetId");
   return Sheets.Spreadsheets.batchUpdate({
     "requests": [{
       "sortRange": {

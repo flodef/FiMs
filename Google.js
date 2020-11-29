@@ -20,7 +20,6 @@ class Script {
 }
 
 class Run {
-  static #spreadsheetId;
   static #workInProgress = false;
   static #singleton;
   static #data = [];
@@ -47,11 +46,11 @@ class Run {
     const favIcon = 'Img/Favicon.png';
     const pageTitle = isMain ? 'FiMs Main' : 'FiMs Associate';
     const fileName = !Run.#workInProgress ? isMain ? 'Main' : 'Associate' : 'WorkInProgress';
-    Run.#spreadsheetId = isMain ? "Data/FiMs Main.xlsx" : "Data/FiMs Associate.xlsx";
+    const spreadsheetId = isMain ? "Data/FiMs Main.xlsx" : "Data/FiMs Associate.xlsx";
 
     this.setProperty("userId", userId);
     this.setProperty("fileName", fileName);
-    this.setProperty("spreadsheetId", Run.#spreadsheetId);
+    this.setProperty("spreadsheetId", spreadsheetId);
 
     var template = HtmlService.createTemplateFromFile(fileName);
 
@@ -76,6 +75,7 @@ class Run {
       this.#fh(error);
     }
     this.#sh(p);
+    return p;
   }
   setProperty(key, value) {
     try {
@@ -105,6 +105,7 @@ class Run {
     }
 
     this.#sh(content);
+    return content;
   }
 
   async setSheetValues(range, values) { this.#sh(); }
@@ -115,7 +116,7 @@ class Run {
 
   async #getSheetValues(range) {
     if (!Run.#workbook) {
-      await fetch(Run.#spreadsheetId)
+      await fetch(this.getProperty("spreadsheetId"))
       .then((response) => {
         if(response.ok) {
           return response.arrayBuffer();
