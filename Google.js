@@ -76,7 +76,6 @@ class Run {
       this.#fh(error);
     }
     this.#sh(p);
-    return p;
   }
   setProperty(key, value) {
     try {
@@ -106,7 +105,6 @@ class Run {
     }
 
     this.#sh(content);
-    return content;
   }
 
   async setSheetValues(range, values) { this.#sh(); }
@@ -117,7 +115,7 @@ class Run {
 
   async #getSheetValues(range) {
     if (!Run.#workbook) {
-      await fetch(this.getProperty("spreadsheetId"))
+      await fetch(Run.#data["spreadsheetId"])
       .then((response) => {
         if(response.ok) {
           return response.arrayBuffer();
