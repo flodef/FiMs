@@ -3,7 +3,7 @@ const src = ["Lib/jquery.min",                       // https://ajax.googleapis.
              "Lib/jquery.csv.min",                   // https://raw.githubusercontent.com/typeiii/jquery-csv/master/src/jquery.csv.min.js
              "Lib/sorttable",                        // https://www.kryogenix.org/code/browser/sorttable/sorttable.js
              // "Lib/jquery.easy-autocomplete.min",  // https://raw.githubusercontent.com/pawelczak/EasyAutocomplete/master/dist/jquery.easy-autocomplete.min.js
-             "Lib/xlsx.full.min",                 // https://raw.githubusercontent.com/SheetJS/sheetjs/master/dist/xlsx.full.min.js
+             "Lib/xlsx.full.min",                    // https://raw.githubusercontent.com/SheetJS/sheetjs/master/dist/xlsx.full.min.js
              "Google",
              "Common",
             ];
