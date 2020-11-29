@@ -50,6 +50,7 @@ class Run {
 
     this.setProperty("userId", userId);
     this.setProperty("fileName", fileName);
+    this.setProperty("pageTitle", pageTitle);
     this.setProperty("spreadsheetId", spreadsheetId);
 
     var template = HtmlService.createTemplateFromFile(fileName);

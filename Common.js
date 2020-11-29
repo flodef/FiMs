@@ -28,8 +28,8 @@ $(() => {
     + getDiv("scrollDiv", "contentOverlay", "center")
     + getDiv("menuDiv", "contentOverlay", "right")
     + getOverlayDiv("loader", "shadeOverlay")
-    + getOverlayDiv("popupOverlay", "shadeOverlay")
-    + getOverlayDiv("alertOverlay")
+    + getOverlayDiv("popup", "shadeOverlay")
+    + getOverlayDiv("alert")
     + getDiv("snackbar")
   $('body').html(body);
 });
@@ -47,7 +47,11 @@ function loadPage() {
 
   GLOBAL.displayId = Object.keys(GLOBAL.displayData);         // Set the id to display in a normal array
 
-  $("#mainHeading").html('<h1>' + translate(document.title) + '</h1>');  // Set the app main heading to the web page title
+  // Set the app main heading to the web page title
+  google.script.run
+               .withSuccessHandler(title => $("#mainHeading").html('<h1>' + translate(title) + '</h1>'))
+               .withFailureHandler(displayError)
+               .getProperty("pageTitle");
 
   // Set the app buttons
   var tableHTML = '<table id="actionButton" class="topMenu">'

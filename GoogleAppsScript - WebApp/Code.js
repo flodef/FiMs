@@ -20,6 +20,7 @@ function doGet(e) {
 
   setProperty("userId", userId);
   setProperty("fileName", fileName);
+  setProperty("pageTitle", pageTitle);
   setProperty("spreadsheetId", spreadsheetId);
 
   var template = HtmlService.createTemplateFromFile(fileName);
