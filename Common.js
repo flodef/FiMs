@@ -18,8 +18,6 @@ GLOBAL.handleEvent = true;
  * Run initializations on web app load.
  */
 $(() => {
-  addCSS('Stylesheet');
-
   const body =
     getDiv("content", "contentOverlay", null,
       getDiv("mainHeading") +
@@ -306,13 +304,6 @@ function getDiv(id, cssClass, align, content) {
 
 function getOverlayDiv(id, cssClass) {
   return getDiv(id + "Overlay", cssClass ?? "overlay", null, getDiv(id));
-}
-
-function addCSS(stylesheetName) {
-  var element = document.createElement('link');
-  element.rel = "stylesheet";
-  element.href = stylesheetName + ".css";
-  document.head.appendChild(element);
 }
 
 // function getTitle(id, disabled) {

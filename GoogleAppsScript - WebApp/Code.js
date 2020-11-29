@@ -1,5 +1,5 @@
 var spreadsheetId;
-const workInProgress = true;
+const workInProgress = false;
 
 /**
  * https://script.google.com/macros/s/AKfycbw1nj4Vi29hGeU9Ju74r_hTfX1ZwwsJiW86ygvqguyQ/dev
