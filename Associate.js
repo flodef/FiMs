@@ -3,11 +3,13 @@ GLOBAL.translationFormula = "Translation!A:D";
 GLOBAL.depositAmount = "depositAmount";
 GLOBAL.withdrawAmount = "withdrawAmount";
 GLOBAL.personalGID = 911574160;
-GLOBAL.pendingStatus = "Pending ...";
+GLOBAL.Status = "Status"
 GLOBAL.completedStatus = "Completed !";
+GLOBAL.pendingStatus = "Pending ...";
+GLOBAL.DonationStatus = "Donation";
 GLOBAL.displayData = {
   "account": {id:"account", formula:"!A:N", updateTable:updateAccountTable, loadOnce:true},
-  "historic": {id:"historic", formula:"AssociateHistoric!A:E", updateTable:updateHistoricTable, loadOnce:true, filter:1},
+  "historic": {id:"historic", formula:"AssociateHistoric!A:D", updateTable:updateHistoricTable, loadOnce:true, filter:1},
   "personal": {id:"personal", formula:"Associate!A:AA", updateTable:updatePersonalTable, loadOnce:true, filter:1},
   "FAQ": {id:"FAQ", formula:"FAQ!A:B", updateTable:updateFaqTable, loadOnce:true }
 };
@@ -98,9 +100,14 @@ function updateHistoricTable(id, contents) {
       tableHTML += i==0 ? '<thead>' : '';
       tableHTML += '<tr>';
       for (var j = 0; j < col; ++j) {
-        tableHTML += j == col-1 && i != 0
-          ? !contents[i][j] ? getTableCheckmark(GLOBAL.completedStatus) : getTableLoaderBar(contents[i][j])
-        : j != 1 ? getTranslatedContent(contents[i][j], i == 0) : '';  // Don't add the ID column
+        tableHTML += j != 1 ? getTranslatedContent(contents[i][j], i == 0) : '';  // Don't add the ID column
+        tableHTML += j == col-1
+          ? i == 0 ? getTranslatedContent(GLOBAL.Status, true)                    // Add a status column
+            : contents[i][0] ? parseFloat(contents[i][j]) <= 0
+              ? getTableCheckmark(GLOBAL.completedStatus)                         // Completed
+              : getTableImage(GLOBAL.DonationStatus)                              // Donation
+            : getTableLoaderBar(GLOBAL.pendingStatus)                             // Pending
+          : '';
       }
       tableHTML += '</tr>';
       tableHTML += i==0 ? '</thead><tbody>'
@@ -312,7 +319,7 @@ function updateWithdraw() {
   const title = toFirstUpperCase(id.replace("Amount", ""));
   const value = '-' + $("#popup").data(id);   // Withdraw value should be negative
 
-  const data = {movement:value};
+  const data = {date:toStringDate(), movement:value};
 
   const subject = title + ": " + value + " € for " + GLOBAL.userId;
   google.script.run
@@ -337,11 +344,11 @@ function confirmation(text) {
 
 function insertHistoricRow(data) {
   if (data && data.movement) {
-    data = [[data.date ?? toStringDate(), GLOBAL.userId, toCurrency(data.movement), data.cost ?? toCurrency(0), GLOBAL.pendingStatus]];
+    data = [[data.date ?? '', GLOBAL.userId, toCurrency(data.movement), data.cost ?? toCurrency(0)]];
 
     const id = GLOBAL.displayData.historic.id;
     openTab(id);
-    data[0][0] = toStringDate(data[0][0]);    // Reverse date as the format is incorrect
+    data[0][0] = data[0][0] ? toStringDate(data[0][0]) : '';    // Reverse date as the format is incorrect
     GLOBAL.data[id].splice(1, 0, data[0]);
     updateHistoricTable(id, GLOBAL.data[id]);
 

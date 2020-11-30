@@ -280,6 +280,12 @@ function getTableLoaderBar(content) {
   + '<span width="80px" style="width:80px;height:12px;top:3px;margin:5px 0px;"></span></div>', translate(content)) + '</td>';
 }
 
+function getTableImage(content) {
+  return '<td align="center">' + getTooltip(
+  '<img src="' + GLOBAL.serverUrl + 'Img/' + content + '.png" '
+  + ' onclick="displayElement(this, false, 0);displayElement(this, true, 3000)">', translate(content)) + '</td>';
+}
+
 function getMenuButton(item) {
   const id = item.id ?? item;
   const img = toFirstUpperCase(item.img ?? id);
