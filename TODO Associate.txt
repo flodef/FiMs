@@ -1,6 +1,8 @@
+-------------TEST-------------
 - Date is reversed + 
 - Date is missing 0
-- Status should be pending if date is < today()
+- Status should be pending if date is > today()
+-------------TEST-------------
 
 DO ENDING MONTH CHECK VALUE !!!
 

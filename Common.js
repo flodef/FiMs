@@ -710,11 +710,11 @@ function toCurrency(content, precision = 2, symbol = '€') {
        : str;
 }
 
-function toStringDate(date, reverse) {
+function toStringDate(date, isMDY) {
   if (typeof(date) == "string") {
     return date && date.split("/").length == 3
-    ? date.replace(/(^|\/)0+/g, "$1").split("/")[reverse ? 1 : 0] + "/"
-    + date.replace(/(^|\/)0+/g, "$1").split("/")[reverse ? 0 : 1] + "/"
+    ? date.replace(/(^|\/)0+/g, "$1").split("/")[isMDY ? 1 : 0] + "/"
+    + date.replace(/(^|\/)0+/g, "$1").split("/")[isMDY ? 0 : 1] + "/"
     + date.split("/")[2]
     : null;
   } else if (typeof(date) == "object") {
@@ -723,9 +723,9 @@ function toStringDate(date, reverse) {
     var year = date.getFullYear();
     day = day < 10 ? '0' + day : day;
     month = month < 10 ? '0' + month : month;
-    return reverse ? month + "/" + day + "/" + year : day + "/" + month + "/" + year;
+    return isMDY ? month + "/" + day + "/" + year : day + "/" + month + "/" + year;
   } else {
-    return toStringDate(new Date());
+    return toStringDate(new Date(), isMDY);
   }
 }
 

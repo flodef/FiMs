@@ -103,8 +103,9 @@ function updateHistoricTable(id, contents) {
         tableHTML += j != 1 ? getTranslatedContent(contents[i][j], i == 0) : '';  // Don't add the ID column
         tableHTML += j == col-1
           ? i == 0 ? getTranslatedContent(GLOBAL.Status, true)                    // Add a status column
-            : contents[i][0] ? parseFloat(contents[i][j]) <= 0
-              ? getTableCheckmark(GLOBAL.completedStatus)                         // Completed
+            : contents[i][0] && new Date(toStringDate(contents[i][0], true)) <= new Date()
+              ? parseFloat(contents[i][j]) <= 0
+                ? getTableCheckmark(GLOBAL.completedStatus)                       // Completed
               : getTableImage(GLOBAL.DonationStatus)                              // Donation
             : getTableLoaderBar(GLOBAL.pendingStatus)                             // Pending
           : '';
