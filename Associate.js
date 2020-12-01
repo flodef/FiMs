@@ -346,11 +346,14 @@ function insertHistoricRow(data) {
   if (data && data.movement) {
     data = [[data.date ?? '', GLOBAL.userId, toCurrency(data.movement), data.cost ?? toCurrency(0)]];
 
+    // Display added data in the historic tab
     const id = GLOBAL.displayData.historic.id;
     openTab(id);
     GLOBAL.data[id].splice(1, 0, data[0]);
     updateHistoricTable(id, GLOBAL.data[id]);
 
+    // Add data to the database
+    data[0][0] = toStringDate(data[0][0], true);    // Reverse date as the format is incorrect
     google.script.run
     .withSuccessHandler(contents => setValue(GLOBAL.displayData.historic.formula.split('!')[0] + "!A2", data))
     .withFailureHandler(displayError)
