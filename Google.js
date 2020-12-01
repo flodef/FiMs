@@ -45,11 +45,10 @@ class Run {
     const isMain = userId == "Flodef";
     const favIcon = 'Img/Favicon.png';
     const pageTitle = isMain ? 'FiMs Main' : 'FiMs Associate';
-    const fileName = !Run.#workInProgress ? isMain ? 'Main' : 'Associate' : 'WorkInProgress';
+    const fileName = !Run.#workInProgress ? 'Index' : 'WorkInProgress';
     const spreadsheetId = isMain ? "Data/FiMs Main.xlsx" : "Data/FiMs Associate.xlsx";
 
     this.setProperty("userId", userId);
-    this.setProperty("fileName", fileName);
     this.setProperty("pageTitle", pageTitle);
     this.setProperty("spreadsheetId", spreadsheetId);
 

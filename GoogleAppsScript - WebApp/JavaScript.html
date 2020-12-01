@@ -4,10 +4,6 @@
 <script src="https://flodef.github.io/FiMS/Lib/sorttable.js"></script>
 <script src="https://flodef.github.io/FiMS/Common.js"></script>
 <script>
-  const fn = pageTitle => {
-    var element = document.createElement('script');
-    element.src = 'https://flodef.github.io/FiMS/' + pageTitle.replace('FiMs ', '') + ".js";
-    document.head.appendChild(element);
-  };
+  const fn = pageTitle => addScript(pageTitle.replace('FiMs ', ''));
   google.script.run.withSuccessHandler(fn).withFailureHandler(alert).getProperty("pageTitle");
 </script>

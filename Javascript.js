@@ -17,15 +17,10 @@ function loadScript(i) {
   if (++i < src.length) {
     setTimeout(() => loadScript(i), 100); // Hack to avoid script loading in wrong order
   } else {
+    const fn = pageTitle => addScript(pageTitle.replace('FiMs ', ''));
     setTimeout(() => google.script.run
-      .withSuccessHandler(addScript)
+      .withSuccessHandler(fn)
       .withFailureHandler(alert)
-      .getProperty("fileName"), 100);     // Hack to avoid script loading in wrong order
+      .getProperty("pageTitle"), 100);     // Hack to avoid script loading in wrong order
   }
-}
-
-function addScript(scriptName) {
-  var element = document.createElement('script');
-  element.src = scriptName + ".js";
-  document.head.appendChild(element);
 }

@@ -5,6 +5,7 @@
 window.GLOBAL = {};
 GLOBAL.isLocal = document.URL.includes(":8080");                                                  // Whether the app is running in local mode
 GLOBAL.serverUrl = GLOBAL.isLocal ? '' : "https://raw.githubusercontent.com/flodef/FiMS/master/"; // Remove the server URL if in local mode
+GLOBAL.scriptUrl = GLOBAL.isLocal ? '' : "https://flodef.github.io/FiMS/";                        // Remove the server URL if in local mode
 GLOBAL.data = [];
 GLOBAL.loadingQueueCount = 0;
 GLOBAL.hasAlreadyUpdated = [];
@@ -680,6 +681,12 @@ function handleEvent(isHandled) {
   GLOBAL.handleEvent = isHandled;
   // event.Handled = isHandled;
   // if (isHandled) { event.preventDefault(); }
+}
+
+function addScript(scriptName) {
+  var element = document.createElement('script');
+  element.src = GLOBAL.scriptUrl + scriptName + ".js";
+  document.head.appendChild(element);
 }
 
 function shouldRebalance(value) {
