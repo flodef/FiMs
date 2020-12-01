@@ -67,7 +67,8 @@ function init() {
 function onKeyUp(e) {}
 
 function updateAccountTable(id, contents) {
-  if (contents) {
+  const hasContent = contents;
+  if (hasContent) {
     var row = contents.length;
     var col = contents[0].length;
     var tableHTML = getTableTitle(id);
@@ -85,13 +86,14 @@ function updateAccountTable(id, contents) {
 
     processTable(id, tableHTML);
     openTabAfterConnect(id);
-  } else {
-    displayElement("#" + id + "Button", false, 0);  // Hide this tab if empty
   }
+
+  displayElement("#" + id + "Button", hasContent, 0);  // Hide this tab if empty
 }
 
 function updateHistoricTable(id, contents) {
-  if (contents && contents.length > 1) {
+  const hasContent = contents && contents.length > 1;
+  if (hasContent) {
     var row = contents.length;
     var col = contents[0].length;
     var tableHTML = getTableTitle(id);
@@ -118,10 +120,9 @@ function updateHistoricTable(id, contents) {
 
     processTable(id, tableHTML);
     openTabAfterConnect(id);
-  } else {
-    displayElement("#" + id + "Button", false, 0);  // Hide this tab if empty
   }
 
+  displayElement("#" + id + "Button", hasContent, 0);  // Hide this tab if empty
 }
 
 function updatePersonalTable(id, contents) {

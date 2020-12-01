@@ -11,6 +11,11 @@ const src = ["Lib/jquery.min",                       // https://ajax.googleapis.
 // Load every script one after the other
 loadScript(0);
 function loadScript(i) {
+  const addScript = scriptName => {
+    var element = document.createElement('script');
+    element.src = scriptName + ".js";
+    document.head.appendChild(element);
+  }
   addScript(src[i]);
 
   // Load next library, and the main app script as last one
