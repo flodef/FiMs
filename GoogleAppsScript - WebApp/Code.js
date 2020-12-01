@@ -15,11 +15,10 @@ function doGet(e) {
   const isMain = userId == "Flodef";
   const favIcon = 'https://raw.githubusercontent.com/flodef/FiMS/master/Img/Favicon2.png';
   const pageTitle = isMain ? 'FiMs Main' : 'FiMs Associate';
-  const fileName = !workInProgress ? isMain ? 'Main' : 'Associate' : 'WorkInProgress';
+  const fileName = !workInProgress ? 'Index' : 'WorkInProgress';
   const spreadsheetId = isMain ? '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw' : '1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU';
 
   setProperty("userId", userId);
-  setProperty("fileName", fileName);
   setProperty("pageTitle", pageTitle);
   setProperty("spreadsheetId", spreadsheetId);
 

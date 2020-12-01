@@ -4,10 +4,6 @@
 
 DO ENDING MONTH CHECK VALUE !!!
 
-- Simplify server side (one page instead of - Main/Associate => loading in JavaScript with Google.script.run.getProperty(fileName))
-
-- Send mail to everybody (philip + pac) => mise à jour de l'appli et FAQ
-
 - Add an explicit message when deposit / withdraw has been done! + send email with rib and other goodies
 - Add historic if new row after a new deposit
 
@@ -39,7 +35,7 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 - Add new data (new user data)
 
 
-- Graphic of investments
+- Graphic of investments (https://www.chartjs.org/)
 - Select language (EN / FR)
 - Set key events for button (+, -, about, connect)
 
