@@ -31,43 +31,50 @@ const FM = 0;     // First month (january)
 
 function updateAssociate() {
   // Retrieve associate main data
-  var associateSheet = this._getSheet(ASSOCIATE);
-  var associateArray = associateSheet.getSheetValues(FR, FC, -1, ASSDEPO_COL);
+  const associateSheet = this._getSheet(ASSOCIATE);
+  const associateArray = associateSheet.getSheetValues(FR, FC, -1, ASSDEPO_COL);
 
   for (var i = 0; i < associateArray.length; ++i) {
     // Retrieve associate account data
-    var depo = associateArray[i][ASSDEPO_COL-1];
+    const depo = associateArray[i][ASSDEPO_COL-1];
 
     if (depo > 0) {
-      var name = associateArray[i][ASSNAME_COL-1];
-      var recu = associateArray[i][ASSRECU_COL-1];
+      const name = associateArray[i][ASSNAME_COL-1];
+      const recu = associateArray[i][ASSRECU_COL-1];
 
       // If the sheet does not exist, create a new associate sheet from the model
       var sheet = this._getSheet(name);
       if (!sheet) {
-        var modelSheet = this._getSheet(ASSMODEL);
-        var sheet = modelSheet.copyTo(SS);
+        const modelSheet = this._getSheet(ASSMODEL);
+        sheet = modelSheet.copyTo(SS);
+        const lc = modelSheet.getMaxColumns();
+
         sheet.setName(name);
-        var index = sheet.getIndex();
+        const index = sheet.getIndex();
         SS.setActiveSheet(sheet);
         SS.moveActiveSheet(index - 1);
+        const range = sheet.getRange(FR, lc);
+        const value = range.getValue();
+        range.setValue(value.replace("SheetName", name));
+        sheet.getRange(FR, lc).setValue('=IF(ROW()=2,"' + name + '",ROW()-1)');
+        sheet.hideColumns(lc);
         sheet.setFrozenRows(1);
         sheet.protect().setWarningOnly(true);
       }
-      
-      var array = sheet.getSheetValues(FR, FC, 1, -1);
-      
+
+      const array = sheet.getSheetValues(FR, FC, 1, -1);
+
       // Add monthly associate profit
       if (!_isCurrentMonth(array)) {
         this._copyFirstRow(sheet, array);
-        
+
         // Add recurrent withdrawal to associate historic
         if (recu < 0) {
-          var histoSheet = this._getSheet(ASSHISTO);
+          const histoSheet = this._getSheet(ASSHISTO);
           var d = this._toDate();      // Get date without hours to match range's date
-          d.setDate(d.getDate() + 10); // Take around 10 days to make a bank transfer
-          
-          var data = [[d, name, recu]];
+          d.setDate(d.getDate() + 5);  // Take around 5 days to make a bank transfer
+
+          const data = [[d, name, recu]];
           this._insertFirstRow(histoSheet, data);
         }
       }
@@ -80,23 +87,23 @@ function sendCharity() {
   const m = x.getMonth();
   if (m == FM) {
     // Retrieve associate main data
-    var associateSheet = this._getSheet(ASSOCIATE);
-    var associateArray = associateSheet.getSheetValues(FR, FC, -1, -1);
-    
-    var object = "Don annuel à une oeuvre de charité";
+    const associateSheet = this._getSheet(ASSOCIATE);
+    const associateArray = associateSheet.getSheetValues(FR, FC, -1, -1);
+
+    const object = "Don annuel à une oeuvre de charité";
     var recap = "Liste des dons :\n";
     for (var i = 0; i < associateArray.length; ++i) {
       // Retrieve associate account data
-      var name = associateArray[i][ASSNAME_COL-1];
-      var char = associateArray[i][ASSCHAR_COL-1];
-      var mail = associateArray[i][ASSMAIL_COL-1];
-      var assoc = associateArray[i][ASSASSO_COL-1];
-      var link = associateArray[i][ASSLINK_COL-1];
-      
+      const name = associateArray[i][ASSNAME_COL-1];
+      const char = associateArray[i][ASSCHAR_COL-1];
+      const mail = associateArray[i][ASSMAIL_COL-1];
+      const assoc = associateArray[i][ASSASSO_COL-1];
+      const link = associateArray[i][ASSLINK_COL-1];
+
       // Send charity message if amount < 1
       if (char <= -1) {
-        var money = this._round(-char, 2, " €");
-        var message = "Cher(e) " + name + ",\n\n"
+        const money = this._round(-char, 2, " €");
+        const message = "Cher(e) " + name + ",\n\n"
         + "Tout d'abord, mes meilleurs voeux pour cette nouvelle année qui commence, je l'espère, le plus magnifiquement pour toi.\n\n"
         + "Comme chaque année, je tiens tout particulièrement à reverser 5,5% des gains récoltés par notre projet de financement participatif.\n"
         + "Cette année, ce pourcentage représente la somme de " + money + " !\n\n"
@@ -108,13 +115,13 @@ function sendCharity() {
         + "Enfin, toute ma reconnaissance pour ta confiance et ton investissement qui aide, à notre échelle, l'épanouissement de l'économie locale et solidaire.\n\n"
         + "Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n"
         + "Flo"
-        
+
         MailApp.sendEmail(mail, object, message);
-        
+
         recap += " - " + name + " (" + mail + ") : don de "+ money + (assoc ? " à \"" + assoc + "\" (" + link + ")" : "") + "\n";
       }
     }
-    
+
     // Recap message send to myself
     this._sendMessage(object, recap);
   }
@@ -266,24 +273,4 @@ function _archiveMessage(thread, shouldDelete) {
 
 function _sendMessage(object, message) {
   MailApp.sendEmail(MAIL, object, message);
-}
-
-/**
- * Gets the current sheet name.
- *
- * @return The current sheet name.
- * @customfunction
- */
-function SHEETNAME() {
-  return SS.getActiveSheet().getSheetName();
-}
-
-/**
- * Gets the interest rate.
- *
- * @return The interest rate.
- * @customfunction
- */
-function INTERESTRATE() {
-  return 1.25/100;
 }

@@ -1,6 +1,4 @@
 -------------TEST-------------
-- Date is reversed + 
-- Date is missing 0
 - Status should be pending if date is > today()
 -------------TEST-------------
 
