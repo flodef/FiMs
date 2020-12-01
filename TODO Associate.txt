@@ -1,0 +1,54 @@
+- Date is reversed + 
+- Date is missing 0
+- Status should be pending if date is < today()
+
+DO ENDING MONTH CHECK VALUE !!!
+
+- Simplify server side (one page instead of - Main/Associate => loading in JavaScript with Google.script.run.getProperty(fileName))
+
+- Set a picture for Donation
+- Send mail to everybody (philip + pac) => mise à jour de l'appli et FAQ
+
+- Add an explicit message when deposit / withdraw has been done! + send email with rib and other goodies
+- Add historic if new row
+
+- Add client handling directly to Main app (remove / accept withdraw/deposit, add donation)
+
+- Add "how-to" make an app from web page in mobile & computer
+
+- Contact form directly in the app(ou encore mieux, directement sur <a href="https://github.com/flodef/FiMS/issues/new" target="_blank">github</a> (nécessite un compte grauit)</td>)
+
+
+CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
+
+- When asking for withdraw, specify there is recurrent if at the end of the month & periodic
+- Use options (immediat/endofmonth, recurrent/periodic)
+- Calculate cost
+- Set Tooltip for radio
+- Decrease withdraw limit after a sucessfull withdraw in personal data + reload
+- Withdraw (single or recurrent, date immediately = cost vs at the begin of next month)
+- Contact page with :
+	- BUG (inside or with github)
+	- Idea
+	- New question in FAQ
+- Loading bar should be display at first !
+- Withdraw options should be checker button
+
+- Don't display the tab since the beginning if no user identified
+
+
+- Editable personal Table
+- Add new data (new user data)
+
+
+- Graphic of investments
+- Select language (EN / FR)
+- Set key events for button (+, -, about, connect)
+
+- Set the google_online.js to be able to run the server from GitHub
+
+- Cancel a pending withdraw/deposit ?
+- Have a dev & prod SS (with fake infos) ?
+- Monthly current rate ==> yearly rate ?
+- Add a keypress event for number up & down to increase/decrease numbers ?
+- When connecting, get the link with a href top + display in the FAQ <a href="https://bit.ly/FiMsAssocie?id=XXX" class="button" target="_top">Test</a>

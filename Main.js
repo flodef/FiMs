@@ -158,7 +158,7 @@ function uploadAccountFile() {
 }
 
 function validateAddForm() {
-  var tDate = toStringDate();
+  var tDate = toStringDate(null, true);   // Current date, reversed
 
   var tType = $("#transactionName").children(":selected").attr("title");
 
@@ -328,7 +328,7 @@ function compareResultData(id, contents) {
               ++errCnt;
             }
             isFound = true;
-          } else if (row[0] == toStringDate(historicData[index][0])) {
+          } else if (row[0] == toStringDate(historicData[index][0], true)) {
             ++dupCnt;
             isFound = true;
           } else {
@@ -440,7 +440,7 @@ function insertDividendRow(contents) {
       if (index === null || (index !== null &&
                             (historicData[index][GLOBAL.histoIdCol] != GLOBAL.dummy
                           || historicData[index][GLOBAL.histoIdCol] != id))) {
-          data.push([toStringDate(), type, label, transaction, "", "", value, GLOBAL.dummy]);
+          data.push([toStringDate(null, true), type, label, transaction, "", "", value, GLOBAL.dummy]);
       } else {
           ++dupCnt;
       }
