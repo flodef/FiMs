@@ -18,6 +18,8 @@ GLOBAL.handleEvent = true;
  * Run initializations on web app load.
  */
 $(() => {
+  jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
+
   const body =
     getDiv("content", "contentOverlay", null,
       getDiv("mainHeading") +
@@ -32,16 +34,14 @@ $(() => {
     + getOverlayDiv("alert")
     + getDiv("snackbar")
   $('body').html(body);
-});
-
-function loadPage() {
-  jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
 
   displayElement('.contentOverlay', true, 0);
   displayElement('.actionButton', false, 0);
 
   animateLoaderBar();
+});
 
+function loadPage() {
   $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
   $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
 
