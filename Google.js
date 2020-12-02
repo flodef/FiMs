@@ -59,9 +59,10 @@ class Run {
                    .setTitle(pageTitle)
                    .setFaviconUrl(favIcon);
   }
-  sendEmail(recipient, subject, message) {
+  sendEmail(recipient, subject, message, options) {
     try {
-      alert("Mail sent to " + recipient + " !\n\nSubject = " + subject + (message ? "\nMessage = " + message : ''));
+      alert("Mail sent to " + recipient + " !\n\nSubject = " + subject
+       + (message ? "\nMessage = " + message : '') + (options ? "\nOptions = " + options : ''));
     } catch (error) {
       this.#fh(error);
     }

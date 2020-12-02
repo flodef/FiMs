@@ -2,6 +2,10 @@ GLOBAL.translation = "translation";
 GLOBAL.translationFormula = "Translation!A:D";
 GLOBAL.depositAmount = "depositAmount";
 GLOBAL.withdrawAmount = "withdrawAmount";
+GLOBAL.depositConfirmation = "Deposit confirmation";
+GLOBAL.newDeposit = "New deposit";
+GLOBAL.nextDeposit = "Next deposit";
+GLOBAL.validatePopupButton = "validatePopupButton";
 GLOBAL.personalGID = 911574160;
 GLOBAL.Status = "Status"
 GLOBAL.completedStatus = "Completed !";
@@ -21,7 +25,7 @@ GLOBAL.personalData = [
   { index:14, label:"Email", type:"email", required:true },                       // Email
   { index:17, label:"Birth date", type:"date", required:true },                   // Birth date
   { index:18, label:"Birth city", type:"name", required:true },                   // Birth city
-  { index:19, label:"Adress", type:"text", required:true, maxLength:55 },         // Adress
+  { index:19, label:"Address", type:"text", required:true, maxLength:55 },        // Address
   { index:20, label:"Postal code", type:"text", required:true, pattern:"[0-9]{5}" }, // Postal code
   { index:21, label:"City", type:"name", required:true },                         // City
   { index:22, label:"IBAN", type:"iban", required:true },                         // IBAN
@@ -232,14 +236,14 @@ function depositAmountValidation(result) {
       + getTranslatedContent("IBAN", true) + getTableReadOnlyContent("FR76 4061 8802 5000 0403 8167 244") + '</tr><tr>'
       + getTranslatedContent("BIC", true) + getTableReadOnlyContent("BOUS FRPP XXX") + '</tr><tr>'
       + getTranslatedContent("Bank", true) + getTableReadOnlyContent("Boursorama Banque") + '</tr><tr>'
-      + getTranslatedContent("Bank Adress", true) + getTableReadOnlyContent("18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex") + '</tr></table>'
+      + getTranslatedContent("Bank Address", true) + getTableReadOnlyContent("18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex") + '</tr></table>'
 
     const innerHTML = getPopupContent(deposit.name, content, updateDeposit.name);
 
     openPopup(innerHTML);
-    addPopupButtonEvent("validatePopupButton", false);
+    addPopupButtonEvent(GLOBAL.validatePopupButton, false);
 
-    $("#popup").data(id, value);
+    $("#popup").data(id, {value:value, content:content});
 
   } else if (result == translate("CANCEL")) {
     closePopup();
@@ -247,14 +251,24 @@ function depositAmountValidation(result) {
 }
 
 function updateDeposit() {
-  confirmation();
-
+  // Get overall data
   const id = GLOBAL.depositAmount;
   const title = toFirstUpperCase(id.replace("Amount", ""));
-  const value = $("#popup").data(id);
-
+  const popup = $("#popup").data(id);
+  const value = popup.value;
   const data = {movement:value};
 
+  // Get confirmation data ready
+  const contents = GLOBAL.data[GLOBAL.displayData.historic.id];
+  const hasContent = contents && contents.length > 1;
+
+  const a = getTranslateData(GLOBAL.depositConfirmation);
+  const b = getTranslateData(!hasContent ? GLOBAL.newDeposit : GLOBAL.nextDeposit);
+  const content = {title:a.text, main:b.tooltip, inst:a.tooltip, content:popup.content};
+
+  confirmation(content);
+
+  // Send email reminder to myself
   const subject = title + ": " + value + " € for " + GLOBAL.userId;
   google.script.run
         .withSuccessHandler(contents => insertHistoricRow(data))
@@ -305,9 +319,9 @@ function withdrawAmountValidation(result) {
     const innerHTML = getPopupContent(withdraw.name, content, updateWithdraw.name);
 
     openPopup(innerHTML);
-    addPopupButtonEvent("validatePopupButton", false);
+    addPopupButtonEvent(GLOBAL.validatePopupButton, false);
 
-    $("#popup").data(id, value);
+    $("#popup").data(id, {value:value, period:period, date:date, content:content});
 
   } else if (result == translate("CANCEL")) {
     closePopup();
@@ -319,9 +333,12 @@ function updateWithdraw() {
 
   const id = GLOBAL.withdrawAmount;
   const title = toFirstUpperCase(id.replace("Amount", ""));
-  const value = '-' + $("#popup").data(id);   // Withdraw value should be negative
+  const popup = $("#popup").data(id);
+  const value = '-' + popup.value;   // Withdraw value should be negative
+  const period = popup.period;
+  const date = popup.date;
 
-  const data = {date:toStringDate(), movement:value};
+  const data = {date:toStringDate(addDaysToDate(5)), movement:value};
 
   const subject = title + ": " + value + " € for " + GLOBAL.userId;
   google.script.run
@@ -330,18 +347,41 @@ function updateWithdraw() {
         .sendEmail(GLOBAL.ownMail, subject);
 }
 
-function confirmation(text) {
+function confirmation(content) {
   // Display confirmation message on popup with a close button
-  closePopup();
+  const id = "confirmation";
+
+  const text = '<h2>' + content.title + '</h2><br>' + content.main + '<br><br>' + content.inst
+    .replace('<' + GLOBAL.completedStatus.split(' ')[0] + '>', '<div style="position:relative;left:80px;top:13px;height:13px;">' + getTableCheckmark() + '</div><br>')
+    .replace('<' + GLOBAL.pendingStatus.split(' ')[0] + '>', getTableLoaderBar());
+  const innerHTML = getPopupContent(id, text);
+  openPopup(innerHTML);
+  setEvents();
+
+  $("#" + id + "Button").html(translate("OK"));
+  $("#" + id + "Button").focus();
 
   // Send explicit Email to user
-  const subject = "";
-  const message = "";
+  const subject = content.title;
+  const html = '<p>' + content.main + '</p><br><br>' + getTranslateData("Deposit mail").tooltip + ' :<br><br>' + content.content;
+  // const message = $(html).text();
+  var message = html
+    .replace(getTranslateData("Enter your user id").tooltip, '')
+    .replace(/(<br>)/ig, '\n')
+    .replace(/(<span)/ig, ' (<')
+    .replace(/(<\/span>)/ig, ')')
+    .replace(/(<\/tr>)/ig, '\n')
+    .replace(/(<\/th>)/ig, ' : ')
+    .replace(/(<([^>]+)>)/ig, '')
+    .replace(/\s\(\)/ig, '');
+  google.script.run
+        .withSuccessHandler()
+        .withFailureHandler(displayError)
+        .sendEmail(GLOBAL.userEmail, subject, message, {htmlBody:html});
+}
 
-  // google.script.run
-  //       .withSuccessHandler()
-  //       .withFailureHandler(displayError)
-  //       .sendEmail(GLOBAL.userEmail, subject, message);
+function confirmationValidation(result) {
+  closePopup();
 }
 
 function insertHistoricRow(data) {
@@ -353,6 +393,7 @@ function insertHistoricRow(data) {
     openTab(id);
     GLOBAL.data[id].splice(1, 0, data[0]);
     updateHistoricTable(id, GLOBAL.data[id]);
+    setEvents();
 
     // Add data to the database
     data[0][0] = toStringDate(data[0][0], true);    // Reverse date as the format is incorrect

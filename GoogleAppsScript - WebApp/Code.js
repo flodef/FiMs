@@ -42,8 +42,8 @@ function setProperty(key, value) {
   PropertiesService.getScriptProperties().setProperty(key, value);
 }
 
-function sendEmail(recipient, subject, message) {
-  MailApp.sendEmail(recipient, subject, message);
+function sendEmail(recipient, subject, message, options) {
+  MailApp.sendEmail(recipient, subject, message, options);
 }
 
 /**

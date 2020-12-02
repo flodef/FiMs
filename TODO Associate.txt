@@ -4,14 +4,18 @@
 
 DO ENDING MONTH CHECK VALUE !!!
 
-- Add an explicit message when deposit / withdraw has been done! + send email with rib and other goodies
-- Add historic if new row after a new deposit
+- Add an explicit message when withdraw has been done! + send email with rib and other goodies
+
 
 - Add client handling directly to Main app (remove / accept withdraw/deposit, add donation)
 
 - Add "how-to" make an app from web page in mobile & computer
 
-- Contact form directly in the app(ou encore mieux, directement sur <a href="https://github.com/flodef/FiMS/issues/new" target="_blank">github</a> (nécessite un compte grauit)</td>)
+- Contact form directly in the app(ou encore mieux, directement sur <a href="https://github.com/flodef/FiMS/issues/new" target="_blank">github</a> (nécessite un compte grauit)</td>) with : 
+	- BUG (inside or with github)
+	- Idea
+	- New question in FAQ
+	- What's new
 
 
 CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
@@ -22,10 +26,6 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 - Set Tooltip for radio
 - Decrease withdraw limit after a sucessfull withdraw in personal data + reload
 - Withdraw (single or recurrent, date immediately = cost vs at the begin of next month)
-- Contact page with :
-	- BUG (inside or with github)
-	- Idea
-	- New question in FAQ
 - Withdraw options should be checker button
 
 - Don't display the tab since the beginning if no user identified

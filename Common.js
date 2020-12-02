@@ -273,11 +273,12 @@ function getMainTableHead(id) {
 
 function getTableCheckmark(content) {
   return '<td align="center" style="height:27px;">' + getTooltip(
-  '<div style="position:absolute;left:35%;top:50%;display:block;margin:-4px -12px;" class="checkmark draw"></div>', translate(content)) + '</td>';
+  '<div style="position:absolute;left:35%;top:50%;display:block;margin:-4px -12px;" class="checkmark"></div>', translate(content)) + '</td>';
 }
 
 function getTableLoaderBar(content) {
-  return '<td align="center" style="width:100px;">' + getTooltip('<div class="loaderBar drawlb" onclick="animateLoaderBar(this, 1000)" style="cursor:pointer;padding:0px;margin:0px">'
+  return '<td align="center" style="width:100px;">' + getTooltip('<div class="loaderBar drawlb"'
+  + ' onclick="animateLoaderBar(this, 1000)" style="cursor:pointer;padding:0px;margin:0px">'
   + '<span width="80px" style="width:80px;height:12px;top:3px;margin:5px 0px;"></span></div>', translate(content)) + '</td>';
 }
 
@@ -734,6 +735,13 @@ function toStringDate(date, isMDY) {
   } else {
     return toStringDate(new Date(), isMDY);
   }
+}
+
+function addDaysToDate(daysToAdd = 0, date) {
+  var date = typeof(date) == "object" ? date : new Date();
+  date.setDate(date.getDate() + daysToAdd);
+
+  return date;
 }
 
 function indexOf(array, value, index, start, compare) {
