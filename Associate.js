@@ -362,18 +362,17 @@ function confirmation(content) {
   $("#" + id + "Button").focus();
 
   // Send explicit Email to user
-  const subject = content.title;
-  const html = '<p>' + content.main + '</p><br><br>' + getTranslateData("Deposit mail").tooltip + ' :<br><br>' + content.content;
-  // const message = $(html).text();
-  var message = html
+  const details = content.content
     .replace(getTranslateData("Enter your user id").tooltip, '')
+    .replace(getTranslateData("IBAN").tooltip, '')
+    .replace(getTranslateData("Bank").tooltip, '')
+  const subject = content.title;
+  const html = '<p>' + content.main + '</p><br><br>' + getTranslateData("Deposit mail").tooltip + ' :<br><br>' + details;
+  var message = html
     .replace(/(<br>)/ig, '\n')
-    .replace(/(<span)/ig, ' (<')
-    .replace(/(<\/span>)/ig, ')')
     .replace(/(<\/tr>)/ig, '\n')
     .replace(/(<\/th>)/ig, ' : ')
     .replace(/(<([^>]+)>)/ig, '')
-    .replace(/\s\(\)/ig, '');
   google.script.run
         .withSuccessHandler()
         .withFailureHandler(displayError)
