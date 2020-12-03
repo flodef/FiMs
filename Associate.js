@@ -366,9 +366,9 @@ function confirmation(content) {
     .replace(getTranslateData("IBAN").tooltip, '')
     .replace(getTranslateData("Bank").tooltip, '')
   const subject = content.title;
-  const html = '<p>' + content.main + '</p><br><br>' + getTranslateData("Deposit mail").tooltip + ' :<br><br>' + details;
+  const html = '<p>' + content.main + '</p><p>' + getTranslateData("Deposit mail").tooltip + ' :</p>' + details;
   var message = html
-    .replace(/(<br>)/ig, '\n')
+    .replace(/(<\/p>)/ig, '\n\n')
     .replace(/(<\/tr>)/ig, '\n')
     .replace(/(<\/th>)/ig, ' : ')
     .replace(/(<([^>]+)>)/ig, '')
