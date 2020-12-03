@@ -48,7 +48,6 @@ GLOBAL.totalValue = 0;
 GLOBAL.userId;
 GLOBAL.userFullName;
 GLOBAL.userEmail;
-GLOBAL.ownMail = "fdefroco@gmail.com";
 
 //THIS PAGE SHORTENED URL : https://bit.ly/3eiucSP
 
@@ -273,7 +272,7 @@ function updateDeposit() {
   google.script.run
         .withSuccessHandler(contents => insertHistoricRow(data))
         .withFailureHandler(displayError)
-        .sendEmail(GLOBAL.ownMail, subject);
+        .sendRecapEmail(subject);
 }
 
 function withdraw() {
@@ -344,7 +343,7 @@ function updateWithdraw() {
   google.script.run
         .withSuccessHandler(contents => insertHistoricRow(data))
         .withFailureHandler(displayError)
-        .sendEmail(GLOBAL.ownMail, subject);
+        .sendRecapEmail(subject);
 }
 
 function confirmation(content) {

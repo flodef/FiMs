@@ -1,4 +1,5 @@
 const workInProgress = false;
+const ownEmail = "fdefroco@gmail.com";
 
 /**
  * https://script.google.com/macros/s/AKfycbw1nj4Vi29hGeU9Ju74r_hTfX1ZwwsJiW86ygvqguyQ/dev
@@ -42,7 +43,11 @@ function setProperty(key, value) {
   PropertiesService.getScriptProperties().setProperty(key, value);
 }
 
-function sendEmail(recipient, subject = "(no subject)", message = "", options) {
+function sendRecapEmail(subject) {
+  MailApp.sendEmail(ownEmail, subject, "");
+}
+
+function sendEmail(recipient, subject, message, options) {
   MailApp.sendEmail(recipient, subject, message, options);
 }
 

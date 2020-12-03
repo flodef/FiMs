@@ -59,10 +59,18 @@ class Run {
                    .setTitle(pageTitle)
                    .setFaviconUrl(favIcon);
   }
+  sendRecapEmail(subject) {
+    try {
+      alert("Mail sent to myself !\n\nSubject = " + subject);
+    } catch (error) {
+      this.#fh(error);
+    }
+    this.#sh();
+  }
   sendEmail(recipient, subject, message, options) {
     try {
       alert("Mail sent to " + recipient + " !\n\nSubject = " + subject
-       + (message ? "\nMessage = " + message : '') + (options ? "\nOptions = " + options : ''));
+       + (message ? "\nMessage = " + message : '') + (options ? "\nOptions = " + options.htmlBody : ''));
     } catch (error) {
       this.#fh(error);
     }
