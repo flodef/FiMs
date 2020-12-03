@@ -394,7 +394,7 @@ function insertHistoricRow(data) {
     setEvents();
 
     // Add data to the database
-    data[0][0] = toStringDate(data[0][0], true);    // Reverse date as the format is incorrect
+    data[0][0] = data[0][0] ? toStringDate(data[0][0], true) : '';    // Reverse date as the format is incorrect
     google.script.run
     .withSuccessHandler(contents => setValue(GLOBAL.displayData.historic.formula.split('!')[0] + "!A2", data))
     .withFailureHandler(displayError)
