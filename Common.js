@@ -176,41 +176,57 @@ function getTableReadOnlyContent(content = "", isHeader, isDisabled, color) {
 }
 
 function getTableEditableContent(content, data) {
-  var html = '';
+  var attr = '';
+  var label = '';
   var symbol = '';
-  var erase = '';
+  var post = '';
+  var classText = '';
+  var handler = '';
   if (data) {
     var type = "text";
     data.inputId = data.inputId || getRandomId();  // Generates a random Id if it does not have any
+    classText = data.class || '';
     symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
+    const isToggle = data.class && data.class.includes("toggle");
+    label = data.label
+      ? '<div id="' + data.inputId + 'Span" style="top:55px;left:-320px;position:relative;text-align:right;">'
+        + getLabel(data.inputId, Array.isArray(data.label) ? data.label[data.checked ? 0 : 1] : data.label, isToggle) + '</div>'
+      : '';
+
+    handler = isToggle ? ' onclick="$(\'#' + data.inputId + 'Span\').html(getLabel(\'' + data.inputId
+      + '\', $(this).is(\':checked\') ? \'' + data.label[0] + '\' : \'' + data.label[1] + '\', true));"' : '';
+
     if (data.type == "number" || data.type == "euro" || data.type == "percent") {
       data.precision = data.precision ?? (data.type == "euro" ? 2 : 0);
       const min = roundDown(data.min, data.precision) ?? 0;
       const max = roundDown(data.max, data.precision) ?? 0;
       content = content ?? (data.required ? "0" : "");
-      html = ' min="' + min + '" max="' + max + '"';
-    } else if (data.type == "date" || data.type == "radio") {
+      classText += ' auto';
+      attr = ' min="' + min + '" max="' + max + '"';
+    } else if (data.type == "date" || data.type == "radio" || data.type == "checkbox") {
       type = data.type;
     } else {
-      html = ' minLength="' + data.minLength + '" maxLength="' + data.maxLength + '"';
+      classText += ' auto';
+      attr = ' minLength="' + data.minLength + '" maxLength="' + data.maxLength + '"';
     }
-    html += ' id="' + data.inputId + '" type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
+    attr += ' id="' + data.inputId + '" type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
          + ' name="' + (data.name ?? '') + '" pattern="' + (data.pattern ?? '') + '"'
          + ' style="' + (data.style ?? '') + '"'
          + (data.required ? ' required' : '') + (data.checked ? ' checked' : '')
          + ' data-type="' + (data.type ?? 'text') + '" data-precision="' + (data.precision ?? '') + '"'
          + ' data-symbol="' + symbol + '"';
 
-    erase = data.erase
+    post = data.erase
       ? '<span id="' + data.inputId + 'Erase" style="float:none;color:black;visibility:hidden" class="closebtn"'
         + ' onclick="$(\'#' + data.inputId + '\').val(\'\');$(\'#' + data.inputId + '\').keyup();$(\'#' + data.inputId + '\').focus();">&times;</span>'
       : '';
   }
 
-  const input = '<input class="auto"' + html + getEditCellHandler(content, data) + '>' + symbol + '</input>';
-  const tooltip = getTooltip(input, data.tooltip);
+  const input = '<input class="' + classText + '"' + attr
+    + (type == "text" ? getEditCellHandler(content, data) : handler) + '>' + symbol + '</input>';
+  const tooltip = getTooltip(label + input, data.tooltip);
 
-  return '<td align="center">' + tooltip + erase + '</td>';
+  return '<td align="center">' + tooltip + post + '</td>';
 }
 
 function getTableValidatableContent(id, content, range, expected) {
@@ -296,6 +312,13 @@ function getMenuButton(item) {
   return '<td style="padding: 0px;">' + getTooltip('<input id="' + id + 'Button" class="actionButton"'
     + ' src="' + GLOBAL.serverUrl + 'Img/' + img + '.png" type="image" tabindex="2" onclick="'
     + fn + '()">', translate(img)) + '</td>';
+}
+
+function getLabel(id, content, isToggle) {
+  const d = getTranslateData(content);
+  return getTooltip('<label id="' + id + 'Label" for="' + id + '" '
+    + (isToggle ? 'style="top:-20px;position:relative;"' : '') + '>'
+    + d.text + '</label>', d.tooltip);
 }
 
 function getTooltip(html, tooltip) {
@@ -412,7 +435,7 @@ function checkElement(e) {
       e.value = e.value.slice(0, -1);
       val = parseFloat(e.value);
     }
-  } else if (type != "date" && type != "radio") {
+  } else if (type != "date" && type != "radio" && type != "checkbox") {
     const maxLength = parseInt(e.maxLength) ?? 30;
     const pattern = e.pattern
       || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"

@@ -11,6 +11,9 @@ GLOBAL.Status = "Status"
 GLOBAL.completedStatus = "Completed !";
 GLOBAL.pendingStatus = "Pending ...";
 GLOBAL.DonationStatus = "Donation";
+GLOBAL.withdrawPeriodOption = ["Periodic", "Recurrent"];
+GLOBAL.withdrawDateOption = ["Start of next month", "Immediat"];
+
 GLOBAL.displayData = {
   "account": {id:"account", formula:"!A:N", updateTable:updateAccountTable, loadOnce:true},
   "historic": {id:"historic", formula:"AssociateHistoric!A:D", updateTable:updateHistoricTable, loadOnce:true, filter:1},
@@ -282,13 +285,9 @@ function withdraw() {
       {inputId:id, type:"euro", min:100, max:GLOBAL.totalValue, erase:true,
       style:"width:104px;text-align:center;line-height:45px", placeholder:translate("withdraw")})
       + getTranslatedContent("Withdraw period", false,
-          {name:"withdrawPeriod", type:"radio", value:translate("Periodic"), checked:true, style:style})
-      + getTranslatedContent(null, false,
-          {name:"withdrawPeriod", type:"radio", value:translate("Recurrent"), style:style})
+          {name:"withdrawPeriod", type:"checkbox", class:"toggle", label:GLOBAL.withdrawPeriodOption, checked:true})
       + getTranslatedContent("Withdraw date", false,
-          {name:"withdrawDate", type:"radio", value:translate("Start of next month"), checked:true, style:style})
-      + getTranslatedContent(null, false,
-          {name:"withdrawDate", type:"radio", value:translate("Immediat"), style:style});
+          {name:"withdrawDate", type:"checkbox", class:"toggle", label:GLOBAL.withdrawDateOption, checked:true});
 
   const innerHTML = getPopupContent(id, content);
 
@@ -300,16 +299,16 @@ function withdrawAmountValidation(result) {
   const id = GLOBAL.withdrawAmount;
   if (result == translate("OK") && !$("#" + id).data("error")) {
     const value = $("#" + id).val();
-    const period = $("input[name='withdrawPeriod']:checked").val();
-    const date =  $("input[name='withdrawDate']:checked").val();
+    const period = GLOBAL.withdrawPeriodOption[$("input[name='withdrawPeriod']").is(':checked') ? 0 : 1];
+    const date =  GLOBAL.withdrawDateOption[$("input[name='withdrawDate']").is(':checked') ? 0 : 1];
     const cost = 0;
 
     const data = GLOBAL.data[GLOBAL.displayData.personal.id];
 
     const content = '<table><tr>'
       + getTranslatedContent("Amount to withdraw", true) + getTranslatedContent(value + ' €') + '</tr><tr>'
-      + getTranslatedContent("Withdraw period", true) + getTableReadOnlyContent(period) + '</tr><tr>'
-      + getTranslatedContent("Withdraw date", true) + getTableReadOnlyContent(date) + '</tr><tr>'
+      + getTranslatedContent("Withdraw period", true) + getTranslatedContent(period) + '</tr><tr>'
+      + getTranslatedContent("Withdraw date", true) + getTranslatedContent(date) + '</tr><tr>'
       + getTranslatedContent("Operation cost", true) + getTranslatedContent(cost + ' €') + '</tr><tr>'
       + getTranslatedContent("Recipient", true) + getTableReadOnlyContent(GLOBAL.userFullName) + '</tr><tr>'
       + getTranslatedContent("IBAN", true) + getTableReadOnlyContent(data[1][indexOf(data[0], "IBAN")]) + '</tr><tr>'

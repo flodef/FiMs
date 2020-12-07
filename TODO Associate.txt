@@ -3,7 +3,12 @@
 -------------TEST-------------
 
 DO ENDING MONTH CHECK VALUE !!!
-
+- If Recurrent, remove withdraw date
+- Calculate cost
+- When asking for withdraw, specify if there is recurrent if at the end of the month & periodic
+- Use options (immediat/endofmonth, recurrent/periodic)
+- Decrease withdraw limit after a sucessfull withdraw in personal data + reload
+- Withdraw (single or recurrent, date immediately = cost vs at the begin of next month)
 - Add an explicit message when withdraw has been done! + send email with rib and other goodies
 
 
@@ -19,14 +24,6 @@ DO ENDING MONTH CHECK VALUE !!!
 
 
 CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
-
-- When asking for withdraw, specify if there is recurrent if at the end of the month & periodic
-- Use options (immediat/endofmonth, recurrent/periodic)
-- Calculate cost
-- Set Tooltip for radio
-- Decrease withdraw limit after a sucessfull withdraw in personal data + reload
-- Withdraw (single or recurrent, date immediately = cost vs at the begin of next month)
-- Withdraw options should be checker button
 
 - Don't display the tab since the beginning if no user identified
 
