@@ -3,7 +3,6 @@
 -------------TEST-------------
 
 DO ENDING MONTH CHECK VALUE !!!
-- If Recurrent, remove withdraw date
 - Calculate cost
 - When asking for withdraw, specify if there is recurrent if at the end of the month & periodic
 - Use options (immediat/endofmonth, recurrent/periodic)

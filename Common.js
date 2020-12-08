@@ -189,11 +189,11 @@ function getTableEditableContent(content, data) {
     symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
     const isToggle = data.class && data.class.includes("toggle");
     label = data.label
-      ? '<div id="' + data.inputId + 'Span" style="top:55px;left:-320px;position:relative;text-align:right;">'
+      ? '<div id="' + data.inputId + 'Div" style="top:55px;left:-320px;position:relative;text-align:right;">'
         + getLabel(data.inputId, Array.isArray(data.label) ? data.label[data.checked ? 0 : 1] : data.label, isToggle) + '</div>'
       : '';
 
-    handler = isToggle ? ' onclick="$(\'#' + data.inputId + 'Span\').html(getLabel(\'' + data.inputId
+    handler = isToggle ? ' onclick="$(\'#' + data.inputId + 'Div\').html(getLabel(\'' + data.inputId
       + '\', $(this).is(\':checked\') ? \'' + data.label[0] + '\' : \'' + data.label[1] + '\', true));"' : '';
 
     if (data.type == "number" || data.type == "euro" || data.type == "percent") {

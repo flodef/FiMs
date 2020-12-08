@@ -2,6 +2,8 @@ GLOBAL.translation = "translation";
 GLOBAL.translationFormula = "Translation!A:D";
 GLOBAL.depositAmount = "depositAmount";
 GLOBAL.withdrawAmount = "withdrawAmount";
+GLOBAL.withdrawPeriod = "withdrawPeriod";
+GLOBAL.withdrawDate = "withdrawDate";
 GLOBAL.depositConfirmation = "Deposit confirmation";
 GLOBAL.newDeposit = "New deposit";
 GLOBAL.nextDeposit = "Next deposit";
@@ -285,22 +287,27 @@ function withdraw() {
       {inputId:id, type:"euro", min:100, max:GLOBAL.totalValue, erase:true,
       style:"width:104px;text-align:center;line-height:45px", placeholder:translate("withdraw")})
       + getTranslatedContent("Withdraw period", false,
-          {name:"withdrawPeriod", type:"checkbox", class:"toggle", label:GLOBAL.withdrawPeriodOption, checked:true})
-      + getTranslatedContent("Withdraw date", false,
-          {name:"withdrawDate", type:"checkbox", class:"toggle", label:GLOBAL.withdrawDateOption, checked:true});
+          {inputId:GLOBAL.withdrawPeriod, type:"checkbox", class:"toggle", label:GLOBAL.withdrawPeriodOption, checked:true})
+      + getDiv(GLOBAL.withdrawDate + "All", null, null,
+        getTranslatedContent("Withdraw date", false,
+          {inputId:GLOBAL.withdrawDate, type:"checkbox", class:"toggle", label:GLOBAL.withdrawDateOption, checked:true}));
 
   const innerHTML = getPopupContent(id, content);
 
   openPopup(innerHTML);
   addPopupButtonEvent(id, true);
+
+  const fn = () => displayElement('#' + GLOBAL.withdrawDate + "All", $('#' + GLOBAL.withdrawPeriod).is(':checked'), 0);
+  $('#' + GLOBAL.withdrawPeriod).change(fn);
+  fn();
 }
 
 function withdrawAmountValidation(result) {
   const id = GLOBAL.withdrawAmount;
   if (result == translate("OK") && !$("#" + id).data("error")) {
     const value = $("#" + id).val();
-    const period = GLOBAL.withdrawPeriodOption[$("input[name='withdrawPeriod']").is(':checked') ? 0 : 1];
-    const date =  GLOBAL.withdrawDateOption[$("input[name='withdrawDate']").is(':checked') ? 0 : 1];
+    const period = GLOBAL.withdrawPeriodOption[$('#' + GLOBAL.withdrawPeriod).is(':checked') ? 0 : 1];
+    const date =  GLOBAL.withdrawDateOption[$('#' + GLOBAL.withdrawDate).is(':checked') ? 0 : 1];
     const cost = 0;
 
     const data = GLOBAL.data[GLOBAL.displayData.personal.id];
