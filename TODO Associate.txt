@@ -1,10 +1,18 @@
 -------------TEST-------------
 - Status should be pending if date is > today()
+- When withdraw is done at the end of the month, it should display the end of the month (not +5)
 -------------TEST-------------
 
 DO ENDING MONTH CHECK VALUE !!!
-- Calculate cost
-- When asking for withdraw, specify if there is recurrent if at the end of the month & periodic
+- Calculate cost + display
+- Calculate date + display
+- Don't add in Historic if Recurrent
+
+--> BUG : Cost disappear when getting the focus
+--> BUG : Added operation date becomes inverted
+--> BUG : buttons have now a border when focus
+- Change recurrent value
+- When choosing recurrent, specify the previous recurrent value
 - Use options (immediat/endofmonth, recurrent/periodic)
 - Decrease withdraw limit after a sucessfull withdraw in personal data + reload
 - Withdraw (single or recurrent, date immediately = cost vs at the begin of next month)
@@ -32,7 +40,7 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 
 
 - Graphic of investments (https://www.chartjs.org/)
-- Select language (EN / FR)
+- Select language (EN / FR) ==> translate date
 - Set key events for button (+, -, about, connect)
 
 

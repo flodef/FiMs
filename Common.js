@@ -212,6 +212,7 @@ function getTableEditableContent(content, data) {
     attr += ' id="' + data.inputId + '" type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
          + ' name="' + (data.name ?? '') + '" pattern="' + (data.pattern ?? '') + '"'
          + ' style="' + (data.style ?? '') + '"'
+         + (data.readonly ? ' readonly' : '') + (data.disabled ? ' disabled' : '')
          + (data.required ? ' required' : '') + (data.checked ? ' checked' : '')
          + ' data-type="' + (data.type ?? 'text') + '" data-precision="' + (data.precision ?? '') + '"'
          + ' data-symbol="' + symbol + '"';
@@ -223,7 +224,8 @@ function getTableEditableContent(content, data) {
   }
 
   const input = '<input class="' + classText + '"' + attr
-    + (type == "text" ? getEditCellHandler(content, data) : handler) + '>' + symbol + '</input>';
+    + (type == "text" && !data.readonly && !data.disabled ? getEditCellHandler(content, data) : handler)
+    + '>' + symbol + '</input>';
   const tooltip = getTooltip(label + input, data.tooltip);
 
   return '<td align="center">' + tooltip + post + '</td>';
@@ -766,6 +768,17 @@ function addDaysToDate(daysToAdd = 0, date) {
 
   return date;
 }
+
+function getNextMonthDate(dayCount = 1) { // 0 = end of this month, 1 (default) = start of next month, x = x of next month
+  var now = new Date();
+  return new Date(now.getFullYear(), now.getMonth()+1, dayCount);
+}
+
+function getDaysBetweenDate(startDate, endDate) {
+    var millisecondsPerDay = 24 * 60 * 60 * 1000;
+    return Math.round((endDate - startDate) / millisecondsPerDay);
+}
+
 
 function indexOf(array, value, index, start, compare) {
   var x = Number.isInteger(start) ? start : 0

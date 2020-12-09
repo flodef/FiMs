@@ -4,7 +4,8 @@ GLOBAL.depositAmount = "depositAmount";
 GLOBAL.withdrawAmount = "withdrawAmount";
 GLOBAL.withdrawPeriod = "withdrawPeriod";
 GLOBAL.withdrawDate = "withdrawDate";
-GLOBAL.depositConfirmation = "Deposit confirmation";
+GLOBAL.withdrawCost = "withdrawCost";
+GLOBAL.confirmation = "confirmation";
 GLOBAL.newDeposit = "New deposit";
 GLOBAL.nextDeposit = "Next deposit";
 GLOBAL.validatePopupButton = "validatePopupButton";
@@ -266,9 +267,9 @@ function updateDeposit() {
   const contents = GLOBAL.data[GLOBAL.displayData.historic.id];
   const hasContent = contents && contents.length > 1;
 
-  const a = getTranslateData(GLOBAL.depositConfirmation);
+  const a = getTranslateData(title + ' ' + GLOBAL.confirmation);
   const b = getTranslateData(!hasContent ? GLOBAL.newDeposit : GLOBAL.nextDeposit);
-  const content = {title:a.text, main:b.tooltip, inst:a.tooltip, content:popup.content};
+  const content = {ope:title, title:a.text, main:b.tooltip, inst:a.tooltip, content:popup.content};
 
   confirmation(content);
 
@@ -290,16 +291,28 @@ function withdraw() {
           {inputId:GLOBAL.withdrawPeriod, type:"checkbox", class:"toggle", label:GLOBAL.withdrawPeriodOption, checked:true})
       + getDiv(GLOBAL.withdrawDate + "All", null, null,
         getTranslatedContent("Withdraw date", false,
-          {inputId:GLOBAL.withdrawDate, type:"checkbox", class:"toggle", label:GLOBAL.withdrawDateOption, checked:true}));
+          {inputId:GLOBAL.withdrawDate, type:"checkbox", class:"toggle", label:GLOBAL.withdrawDateOption, checked:true}))
+      + getDiv(GLOBAL.withdrawCost + "All", null, null,
+        getTranslatedContent("Operation cost", false,
+          {inputId:GLOBAL.withdrawCost, disabled:true}, true));
+
 
   const innerHTML = getPopupContent(id, content);
 
   openPopup(innerHTML);
   addPopupButtonEvent(id, true);
 
-  const fn = () => displayElement('#' + GLOBAL.withdrawDate + "All", $('#' + GLOBAL.withdrawPeriod).is(':checked'), 0);
-  $('#' + GLOBAL.withdrawPeriod).change(fn);
-  fn();
+  const fna = () => [GLOBAL.withdrawDate, GLOBAL.withdrawCost].forEach(item =>
+    displayElement('#' + item + "All", $('#' + GLOBAL.withdrawPeriod).is(':checked'), 0));
+  $('#' + GLOBAL.withdrawPeriod).change(fna);
+  fna();
+  const fnb = () => displayElement('#' + GLOBAL.withdrawCost + "All", !$('#' + GLOBAL.withdrawDate).is(':checked'), 0);
+  $('#' + GLOBAL.withdrawDate).change(fnb);
+  fnb();
+  const fnc = () => $('#' + GLOBAL.withdrawCost).val(() =>
+    translate(toCurrency(getDaysBetweenDate(new Date(), getNextMonthDate()) * 4/100/365 * $("#" + id).val() || 0)));
+  $('#' + GLOBAL.withdrawAmount).keyup(fnc);
+  fnc()
 }
 
 function withdrawAmountValidation(result) {
@@ -307,16 +320,17 @@ function withdrawAmountValidation(result) {
   if (result == translate("OK") && !$("#" + id).data("error")) {
     const value = $("#" + id).val();
     const period = GLOBAL.withdrawPeriodOption[$('#' + GLOBAL.withdrawPeriod).is(':checked') ? 0 : 1];
-    const date =  GLOBAL.withdrawDateOption[$('#' + GLOBAL.withdrawDate).is(':checked') ? 0 : 1];
-    const cost = 0;
+    const isNextMonth = $('#' + GLOBAL.withdrawDate).is(':checked') || !$('#' + GLOBAL.withdrawPeriod).is(':checked');
+    const date = toStringDate(!isNextMonth ? new Date(Math.min(addDaysToDate(5), getNextMonthDate(0))) : getNextMonthDate(5));
+    const cost = !isNextMonth ? $("#" + GLOBAL.withdrawCost).val() : toCurrency(0);
 
     const data = GLOBAL.data[GLOBAL.displayData.personal.id];
 
     const content = '<table><tr>'
       + getTranslatedContent("Amount to withdraw", true) + getTranslatedContent(value + ' €') + '</tr><tr>'
       + getTranslatedContent("Withdraw period", true) + getTranslatedContent(period) + '</tr><tr>'
-      + getTranslatedContent("Withdraw date", true) + getTranslatedContent(date) + '</tr><tr>'
-      + getTranslatedContent("Operation cost", true) + getTranslatedContent(cost + ' €') + '</tr><tr>'
+      + getTranslatedContent("Withdraw date", true) + getTableReadOnlyContent(date) + '</tr><tr>'
+      + getTranslatedContent("Operation cost", true) + getTableReadOnlyContent(cost) + '</tr><tr>'
       + getTranslatedContent("Recipient", true) + getTableReadOnlyContent(GLOBAL.userFullName) + '</tr><tr>'
       + getTranslatedContent("IBAN", true) + getTableReadOnlyContent(data[1][indexOf(data[0], "IBAN")]) + '</tr><tr>'
       + getTranslatedContent("Bank", true) + getTableReadOnlyContent(data[1][indexOf(data[0], "Bank")]) + '</tr></table>'
@@ -326,7 +340,7 @@ function withdrawAmountValidation(result) {
     openPopup(innerHTML);
     addPopupButtonEvent(GLOBAL.validatePopupButton, false);
 
-    $("#popup").data(id, {value:value, period:period, date:date, content:content});
+    $("#popup").data(id, {value:value, period:period, date:date, cost:cost, content:content});
 
   } else if (result == translate("CANCEL")) {
     closePopup();
@@ -334,29 +348,37 @@ function withdrawAmountValidation(result) {
 }
 
 function updateWithdraw() {
-  confirmation();
-
+  // Get overall data
   const id = GLOBAL.withdrawAmount;
   const title = toFirstUpperCase(id.replace("Amount", ""));
   const popup = $("#popup").data(id);
   const value = '-' + popup.value;   // Withdraw value should be negative
   const period = popup.period;
   const date = popup.date;
+  const cost = popup.cost;
 
-  const data = {date:toStringDate(addDaysToDate(5)), movement:value};
+  // Get confirmation data ready
+  const a = getTranslateData(title + ' ' + GLOBAL.confirmation);
+  const content = {ope:title, title:a.text, inst:a.tooltip};
 
-  const subject = title + ": " + value + " € for " + GLOBAL.userId;
-  google.script.run
-        .withSuccessHandler(contents => insertHistoricRow(data))
-        .withFailureHandler(displayError)
-        .sendRecapEmail(subject);
+  confirmation(content);
+
+  // Send email reminder to myself
+  const data = {date:date, movement:value, cost:cost};
+  const isPeriodic = period == GLOBAL.withdrawPeriodOption[0];
+
+  const subject = period + ' ' + title + ": " + value + " € for " + GLOBAL.userId + " for the " + date;
+    google.script.run
+    .withSuccessHandler(contents => isPeriodic ? insertHistoricRow(data) : () => {}) // TODO
+    .withFailureHandler(displayError)
+    .sendRecapEmail(subject);
 }
 
 function confirmation(content) {
   // Display confirmation message on popup with a close button
-  const id = "confirmation";
+  const id = GLOBAL.confirmation;
 
-  const text = '<h2>' + content.title + '</h2><br>' + content.main + '<br><br>' + content.inst
+  const text = '<h2>' + content.title + '</h2><br>' + (content.main ? content.main + '<br><br>' : '') + content.inst
     .replace('<' + GLOBAL.completedStatus.split(' ')[0] + '>', '<div style="position:relative;left:80px;top:13px;height:13px;">' + getTableCheckmark() + '</div><br>')
     .replace('<' + GLOBAL.pendingStatus.split(' ')[0] + '>', getTableLoaderBar());
   const innerHTML = getPopupContent(id, text);
@@ -368,11 +390,13 @@ function confirmation(content) {
 
   // Send explicit Email to user
   const details = content.content
-    .replace(getTranslateData("Enter your user id").tooltip, '')
-    .replace(getTranslateData("IBAN").tooltip, '')
-    .replace(getTranslateData("Bank").tooltip, '')
+    ? content.content
+      .replace(getTranslateData("Enter your user id").tooltip, '')
+      .replace(getTranslateData("IBAN").tooltip, '')
+      .replace(getTranslateData("Bank").tooltip, '')
+    : '';
   const subject = content.title;
-  const html = '<p>' + content.main + '</p><p>' + getTranslateData("Deposit mail").tooltip + ' :</p>' + details;
+  const html = '<p>' + content.main + '</p><p>' + getTranslateData(content.ope + " mail").tooltip + ' :</p>' + details;
   var message = html
     .replace(/(<\/p>)/ig, '\n\n')
     .replace(/(<\/tr>)/ig, '\n')
@@ -395,7 +419,10 @@ function insertHistoricRow(data) {
     // Display added data in the historic tab
     const id = GLOBAL.displayData.historic.id;
     openTab(id);
-    GLOBAL.data[id].splice(1, 0, data[0]);
+    var d = []
+    data[0].forEach(item => d.push(item));  // Make a copy of data to not be modified by other operation on data
+    GLOBAL.data[id].splice(1, 0, d);
+    // GLOBAL.data[id].splice(1, 0, data.slice(0, 1)[0]);
     updateHistoricTable(id, GLOBAL.data[id]);
     setEvents();
 
@@ -448,18 +475,17 @@ function openTabAfterConnect(id) {
   }
 }
 
-function getTranslatedContent(content, isHeader, data)
-{
+function getTranslatedContent(content, isHeader, data) {
   const d = getTranslateData(content);
   if (data) {
     data.tooltip = d.tooltip;
   }
 
-  return (isHeader || !data || !data.type || data.readonly)
+  return !data || isHeader
     ? getTableReadOnlyContent(content, isHeader).replace(content, isHeader
-      ? '<div class="tooltip">' + (d.text ?? content) + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>'
-      : translate(content))
-    : (d.text ? '<h2 style="cursor:default">' + d.text + '</h2>' : '') + getTableEditableContent(data.value, data);
+      ? '<div class="tooltip">' + d.text + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>'
+      : d.text)
+    : '<h2 style="cursor:default">' + d.text + '</h2>' + getTableEditableContent(data.value, data);
 }
 
 function convertNumberToColumn(number){
