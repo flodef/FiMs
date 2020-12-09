@@ -4,12 +4,6 @@
 -------------TEST-------------
 
 DO ENDING MONTH CHECK VALUE !!!
-- Calculate cost + display
-- Calculate date + display
-- Don't add in Historic if Recurrent
-
---> BUG : Cost disappear when getting the focus
---> BUG : Added operation date becomes inverted
 --> BUG : buttons have now a border when focus
 - Change recurrent value
 - When choosing recurrent, specify the previous recurrent value

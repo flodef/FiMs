@@ -359,7 +359,7 @@ function updateWithdraw() {
 
   // Get confirmation data ready
   const a = getTranslateData(title + ' ' + GLOBAL.confirmation);
-  const content = {ope:title, title:a.text, inst:a.tooltip};
+  const content = {ope:title, title:a.text, inst:a.tooltip, content:popup.content};
 
   confirmation(content);
 
@@ -394,9 +394,11 @@ function confirmation(content) {
       .replace(getTranslateData("Enter your user id").tooltip, '')
       .replace(getTranslateData("IBAN").tooltip, '')
       .replace(getTranslateData("Bank").tooltip, '')
+      .replace(getTranslateData("Operation cost").tooltip, '')
     : '';
   const subject = content.title;
-  const html = '<p>' + content.main + '</p><p>' + getTranslateData(content.ope + " mail").tooltip + ' :</p>' + details;
+  const html = (content.main ? '<p>' + content.main + '</p>' : '') + '<p>'
+    + getTranslateData(content.ope + " mail").tooltip + ' :</p>' + details;
   var message = html
     .replace(/(<\/p>)/ig, '\n\n')
     .replace(/(<\/tr>)/ig, '\n')
