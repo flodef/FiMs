@@ -68,7 +68,7 @@ function loadPage() {
   var mainContentHTML = "";
   var tabContainerHTML = "";
   GLOBAL.displayId.forEach(id => {
-    mainContentHTML += '<div id="' + id + 'Div"></div>';
+    mainContentHTML += getDiv(id + 'Div');
     const tableHTML = getTableTitle(id, true);
     setTable(id, tableHTML);
     tabContainerHTML += getTitle(id);
@@ -92,9 +92,8 @@ function loadPage() {
   init();   // Call init() proper to specialized script (Main or Associate)
 }
 
-function animateLoaderBar(item, duration) {
+function animateLoaderBar(item, duration = 3000) {
   item = item ? $(item) : $(".loaderBar");
-  duration = duration ?? 3000;
   item.html(item.html() || "<span></span>");
 
   const span = item.children("span");
@@ -202,20 +201,19 @@ function getTableEditableContent(content, data) {
       const max = roundDown(data.max, data.precision) ?? 0;
       content = content ?? (data.required ? "0" : "");
       classText += ' auto';
-      attr = ' min="' + min + '" max="' + max + '"';
-    } else if (data.type == "date" || data.type == "radio" || data.type == "checkbox") {
+      attr = addAttr("min", min) + addAttr("max", max);
+    } else if (!isEditableInput(data.type)) {
       type = data.type;
     } else {
       classText += ' auto';
-      attr = ' minLength="' + data.minLength + '" maxLength="' + data.maxLength + '"';
+      attr = addAttr("minLength", data.minLength) + addAttr("maxLength", data.maxLength);
     }
-    attr += ' id="' + data.inputId + '" type="' + type + '" placeholder="' + (data.placeholder ?? '') + '"'
-         + ' name="' + (data.name ?? '') + '" pattern="' + (data.pattern ?? '') + '"'
-         + ' style="' + (data.style ?? '') + '"'
-         + (data.readonly ? ' readonly' : '') + (data.disabled ? ' disabled' : '')
-         + (data.required ? ' required' : '') + (data.checked ? ' checked' : '')
-         + ' data-type="' + (data.type ?? 'text') + '" data-precision="' + (data.precision ?? '') + '"'
-         + ' data-symbol="' + symbol + '"';
+    attr += addAttr("id", data.inputId) + addAttr("type", type) + addAttr("placeholder", data.placeholder)
+         + addAttr("name", data.name) + addAttr("pattern", data.pattern) + addAttr("style", data.style)
+         + addAttr("value", data.value) + addAttr("data-symbol", symbol) + addAttr("data-type", data.type || 'text')
+         + addAttr("data-precision", data.precision) + addAttr("readonly", data.readonly, true)
+         + addAttr("disabled", data.disabled, true) + addAttr("required", data.required, true)
+         + addAttr("checked", data.checked);
 
     post = data.erase
       ? '<span id="' + data.inputId + 'Erase" style="float:none;color:black;visibility:hidden" class="closebtn"'
@@ -333,14 +331,14 @@ function getLink(content, title) {
     : content;
 }
 
-function getDiv(id, cssClass, align, content) {
-  return '<div id="' + (id ?? '') + '" align="' + (align ?? '') + '" class="'
-    + (cssClass ? cssClass + (cssClass.toLowerCase().endsWith("overlay") ? ' hidden' : '') : '') + '">'
-    + (content ?? '') + '</div>';
+function getDiv(id, cssClass, align, content = '') {
+  return '<div' + addAttr("id", id) + addAttr("align", align)
+    + addAttr("class", cssClass ? cssClass + (cssClass.toLowerCase().endsWith("overlay") ? ' hidden' : '') : '') + '>'
+    + content + '</div>';
 }
 
-function getOverlayDiv(id, cssClass) {
-  return getDiv(id + "Overlay", cssClass ?? "overlay", null, getDiv(id));
+function getOverlayDiv(id, cssClass = "overlay") {
+  return getDiv(id + "Overlay", cssClass, null, getDiv(id));
 }
 
 // function getTitle(id, disabled) {
@@ -437,7 +435,7 @@ function checkElement(e) {
       e.value = e.value.slice(0, -1);
       val = parseFloat(e.value);
     }
-  } else if (type != "date" && type != "radio" && type != "checkbox") {
+  } else if (isEditableInput(type)) {
     const maxLength = parseInt(e.maxLength) ?? 30;
     const pattern = e.pattern
       || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
@@ -823,4 +821,12 @@ function getRandomId() {
 
 function isString(item) {
   return typeof item === 'string' || item instanceof String;
+}
+
+function isEditableInput(type) {
+  return type != "date" && type != "radio" && type != "checkbox";
+}
+
+function addAttr(name, value, isSingle) {
+  return value ? ' ' + name + (!isSingle ? '="' + value + '"' : '') : '';
 }

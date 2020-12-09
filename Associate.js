@@ -5,6 +5,7 @@ GLOBAL.withdrawAmount = "withdrawAmount";
 GLOBAL.withdrawPeriod = "withdrawPeriod";
 GLOBAL.withdrawDate = "withdrawDate";
 GLOBAL.withdrawCost = "withdrawCost";
+GLOBAL.withdrawRecurrent = "withdrawRecurrent";
 GLOBAL.confirmation = "confirmation";
 GLOBAL.newDeposit = "New deposit";
 GLOBAL.nextDeposit = "Next deposit";
@@ -14,7 +15,7 @@ GLOBAL.Status = "Status"
 GLOBAL.completedStatus = "Completed !";
 GLOBAL.pendingStatus = "Pending ...";
 GLOBAL.DonationStatus = "Donation";
-GLOBAL.withdrawPeriodOption = ["Periodic", "Recurrent"];
+GLOBAL.withdrawPeriodOption = ["Unique", "Recurrent"];
 GLOBAL.withdrawDateOption = ["Start of next month", "Immediat"];
 
 GLOBAL.displayData = {
@@ -47,8 +48,6 @@ GLOBAL.personalData = [
   { index:8, label:"Duration" },                                                  // Duration
   { index:26, label:"Debt recognition", type:"url", readonly:true }               // Debt recognition
 ]
-GLOBAL.depositCol = 9;
-GLOBAL.totalCol = 13;
 
 GLOBAL.totalValue = 0;
 GLOBAL.userId;
@@ -157,7 +156,9 @@ function updatePersonalTable(id, contents) {
 
     // Set the scrolling panel
     tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
-    for (var i = GLOBAL.totalCol; i >= GLOBAL.depositCol; --i) {
+    const totalCol = indexOf(contents[0], "Total");
+    const depositCol = indexOf(contents[0], "Deposit");
+    for (var i = totalCol; i >= depositCol; --i) {
       tableHTML += '<tr>';
       tableHTML += getTranslatedContent(contents[0][i]);
       tableHTML += getTranslatedContent(contents[1][i]);
@@ -167,7 +168,7 @@ function updatePersonalTable(id, contents) {
     tableHTML += '</table></marquee>';
     $("#scrollDiv").html(tableHTML);
 
-    GLOBAL.totalValue = toValue(contents[1][GLOBAL.totalCol]);
+    GLOBAL.totalValue = toValue(contents[1][totalCol]);
     GLOBAL.userEmail = contents[1][indexOf(contents[0], "Email")];
     GLOBAL.userFullName = contents[1][indexOf(contents[0], "Family Name")].toUpperCase()
       + ' ' + contents[1][indexOf(contents[0], "First Name")];
@@ -204,8 +205,8 @@ function connect() {
   const d = GLOBAL.personalData[0];
   const id = "userId";
   const content = getTranslatedContent("Enter your user id", false,
-      {inputId:id, type:d.type, minLength:d.minLength, maxLength:d.maxLength, value:GLOBAL.userId, erase:true,
-      style:"width:104px;text-align:center;line-height:45px", placeholder:translate("User Id")});
+      {inputId:id, type:d.type, minLength:d.minLength, maxLength:d.maxLength, value:GLOBAL.userId,
+      erase:true, placeholder:translate("User Id")});
   const innerHTML = getPopupContent(id, content);
 
   openPopup(innerHTML);
@@ -223,8 +224,7 @@ function userIdValidation(result) {
 function deposit() {
   const id = GLOBAL.depositAmount;
   const content = getTranslatedContent("Amount to deposit", false,
-      {inputId:id, type:"euro", min:100, max:100000, erase:true,
-      style:"width:104px;text-align:center;line-height:45px", placeholder:translate("deposit")});
+      {inputId:id, type:"euro", min:100, max:100000, erase:true, placeholder:translate("deposit")});
   const innerHTML = getPopupContent(id, content);
 
   openPopup(innerHTML);
@@ -283,10 +283,9 @@ function updateDeposit() {
 
 function withdraw() {
   const id = GLOBAL.withdrawAmount;
-  const style = "margin:15px 10px;width:auto;";
+  const d = GLOBAL.data[GLOBAL.displayData.personal.id];
   const content = getTranslatedContent("Amount to withdraw", false,
-      {inputId:id, type:"euro", min:100, max:GLOBAL.totalValue, erase:true,
-      style:"width:104px;text-align:center;line-height:45px", placeholder:translate("withdraw")})
+      {inputId:id, type:"euro", min:100, max:GLOBAL.totalValue, erase:true, placeholder:translate("withdraw")})
       + getTranslatedContent("Withdraw period", false,
           {inputId:GLOBAL.withdrawPeriod, type:"checkbox", class:"toggle", label:GLOBAL.withdrawPeriodOption, checked:true})
       + getDiv(GLOBAL.withdrawDate + "All", null, null,
@@ -294,25 +293,33 @@ function withdraw() {
           {inputId:GLOBAL.withdrawDate, type:"checkbox", class:"toggle", label:GLOBAL.withdrawDateOption, checked:true}))
       + getDiv(GLOBAL.withdrawCost + "All", null, null,
         getTranslatedContent("Operation cost", false,
-          {inputId:GLOBAL.withdrawCost, disabled:true}, true));
-
+          {inputId:GLOBAL.withdrawCost, disabled:true}, true))
+      + getDiv(GLOBAL.withdrawRecurrent + "All", null, null,
+        getTranslatedContent("Current reccurent amount", false,
+          {inputId:GLOBAL.withdrawRecurrent, disabled:true, value:translate(d[1][indexOf(d[0], "Recurrent")])}, true));
 
   const innerHTML = getPopupContent(id, content);
 
   openPopup(innerHTML);
   addPopupButtonEvent(id, true);
 
-  const fna = () => [GLOBAL.withdrawDate, GLOBAL.withdrawCost].forEach(item =>
-    displayElement('#' + item + "All", $('#' + GLOBAL.withdrawPeriod).is(':checked'), 0));
-  $('#' + GLOBAL.withdrawPeriod).change(fna);
-  fna();
-  const fnb = () => displayElement('#' + GLOBAL.withdrawCost + "All", !$('#' + GLOBAL.withdrawDate).is(':checked'), 0);
-  $('#' + GLOBAL.withdrawDate).change(fnb);
-  fnb();
+  // Events
   const fnc = () => $('#' + GLOBAL.withdrawCost).val(() =>
-    translate(toCurrency(getDaysBetweenDate(new Date(), getNextMonthDate()) * 4/100/365 * $("#" + id).val() || 0)));
+  translate(toCurrency(getDaysBetweenDate(new Date(), getNextMonthDate()) * 4/100/365 * $("#" + id).val() || 0)));
   $('#' + GLOBAL.withdrawAmount).keyup(fnc);
   fnc()
+  const fnb = () => displayElement('#' + GLOBAL.withdrawCost + "All",
+  !$('#' + GLOBAL.withdrawDate).is(':checked') && $('#' + GLOBAL.withdrawPeriod).is(':checked'), 0);
+  $('#' + GLOBAL.withdrawDate).change(fnb);
+  fnb();
+  const fna = () => {
+    const isChecked = $('#' + GLOBAL.withdrawPeriod).is(':checked');
+    [GLOBAL.withdrawDate, GLOBAL.withdrawRecurrent].forEach(item =>
+      displayElement('#' + item + "All", (item == GLOBAL.withdrawRecurrent && !isChecked) || (item != GLOBAL.withdrawRecurrent && isChecked), 0));
+    fnb();
+  };
+  $('#' + GLOBAL.withdrawPeriod).change(fna);
+  fna();
 }
 
 function withdrawAmountValidation(result) {
@@ -365,11 +372,11 @@ function updateWithdraw() {
 
   // Send email reminder to myself
   const data = {date:date, movement:value, cost:cost};
-  const isPeriodic = period == GLOBAL.withdrawPeriodOption[0];
+  const isUnique = period == GLOBAL.withdrawPeriodOption[0];
 
   const subject = period + ' ' + title + ": " + value + " € for " + GLOBAL.userId + " for the " + date;
     google.script.run
-    .withSuccessHandler(contents => isPeriodic ? insertHistoricRow(data) : () => {}) // TODO
+    .withSuccessHandler(contents => isUnique ? insertHistoricRow(data) : () => {}) // TODO
     .withFailureHandler(displayError)
     .sendRecapEmail(subject);
 }
@@ -478,12 +485,14 @@ function openTabAfterConnect(id) {
 }
 
 function getTranslatedContent(content, isHeader, data) {
+  const isReadOnly = !data || isHeader;
   const d = getTranslateData(content);
-  if (data) {
+  if (!isReadOnly) {
     data.tooltip = d.tooltip;
+    data.style = (isEditableInput(data.type) ? "width:104px;text-align:center;line-height:45px;" : "") + (data.style ?? '');
   }
 
-  return !data || isHeader
+  return isReadOnly
     ? getTableReadOnlyContent(content, isHeader).replace(content, isHeader
       ? '<div class="tooltip">' + d.text + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>'
       : d.text)

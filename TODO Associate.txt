@@ -5,12 +5,8 @@
 
 DO ENDING MONTH CHECK VALUE !!!
 --> BUG : buttons have now a border when focus
-- Change recurrent value
-- When choosing recurrent, specify the previous recurrent value
-- Use options (immediat/endofmonth, recurrent/periodic)
+- Change recurrent value in database and personal data
 - Decrease withdraw limit after a sucessfull withdraw in personal data + reload
-- Withdraw (single or recurrent, date immediately = cost vs at the begin of next month)
-- Add an explicit message when withdraw has been done! + send email with rib and other goodies
 
 
 - Add client handling directly to Main app (remove / accept withdraw/deposit, add donation)
