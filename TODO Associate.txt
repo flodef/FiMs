@@ -1,15 +1,10 @@
 -------------TEST-------------
 - Status should be pending if date is > today()
 - When withdraw is done at the end of the month, it should display the end of the month (not +5)
+CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 -------------TEST-------------
 
 --> BUG : buttons have now a border when focus
-- Decrease withdraw limit after a sucessfull withdraw in personal data + reload
-
-
-- Add client handling directly to Main app (remove / accept withdraw/deposit, add donation)
-
-- Add "how-to" make an app from web page in mobile & computer
 
 - Contact form directly in the app(ou encore mieux, directement sur <a href="https://github.com/flodef/FiMS/issues/new" target="_blank">github</a> (nécessite un compte grauit)</td>) with : 
 	- BUG (inside or with github)
@@ -17,20 +12,18 @@
 	- New question in FAQ
 	- What's new
 
-
-CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
-
 - Don't display the tab since the beginning if no user identified
-
 
 - Editable personal Table
 - Add new data (new user data)
-
 
 - Graphic of investments (https://www.chartjs.org/)
 - Select language (EN / FR) ==> translate date
 - Set key events for button (+, -, about, connect)
 
+- Add client handling directly to Main app (remove / accept withdraw/deposit, add donation)
+
+- Add "how-to" make an app from web page in mobile & computer
 
 - Set the google_online.js to be able to run the server from GitHub ? (look in test)
 - Cancel a pending withdraw/deposit ?

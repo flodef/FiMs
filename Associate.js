@@ -286,7 +286,7 @@ function withdraw() {
   const id = GLOBAL.withdrawAmount;
   const d = GLOBAL.data[GLOBAL.displayData.personal.id];
   const content = getTranslatedContent("Amount to withdraw", false,
-      {inputId:id, type:"euro", min:100, max:GLOBAL.totalValue, erase:true, placeholder:translate("withdraw")})
+      {inputId:id, type:"euro", min:Math.min(100, GLOBAL.totalValue), max:GLOBAL.totalValue, erase:true, placeholder:translate("withdraw")})
       + getTranslatedContent("Withdraw period", false,
           {inputId:GLOBAL.withdrawPeriod, type:"checkbox", class:"toggle", label:GLOBAL.withdrawPeriodOption, checked:true})
       + getDiv(GLOBAL.withdrawDate + "All", null, null,
@@ -378,6 +378,15 @@ function updateWithdraw() {
   // Send email reminder to myself
   const data = {date:date, movement:value, cost:cost};
   const isUnique = period == GLOBAL.withdrawPeriodOption[0];
+
+  if (isUnique) {
+    // Display modified value in the personal tab
+    const id = GLOBAL.displayData.personal.id;
+    var d = GLOBAL.data[id];
+    const i = indexOf(d[0], "Total");
+    d[1][i] = toCurrency(roundDown(toValue(d[1][i]) + toValue(value), 2));
+    updatePersonalTable(id, GLOBAL.data[id]);
+  }
 
   const subject = period + ' ' + title + ": " + value + " for " + GLOBAL.userId + " for the " + date;
     google.script.run
