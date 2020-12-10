@@ -472,7 +472,7 @@ input:checked + .slider:before {
 img:hover {
   -webkit-filter: blur(1px);
   filter: blur(1px);
-  /*box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);*/
+  /* box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); */
   cursor: pointer;
 }
 
@@ -509,17 +509,15 @@ input[type="image"] {
   height: 48px;
   min-width: 0px;
   min-height: 0px;
-  border: 0px;
   padding: 0px 10px 0px 0px;
   background: transparent;
+  outline: transparent;
 }
 
 input[type="image"]:focus, input[type="image"]:hover {
   -webkit-filter: blur(1px);
   filter: blur(1px);
   cursor: pointer;
-  border: 0px;
-  background: transparent;
 }
 
 input[type="image"]:disabled, button:disabled {

@@ -4,8 +4,6 @@
 CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 -------------TEST-------------
 
---> BUG : buttons have now a border when focus
-
 - Contact form directly in the app(ou encore mieux, directement sur <a href="https://github.com/flodef/FiMS/issues/new" target="_blank">github</a> (nécessite un compte grauit)</td>) with : 
 	- BUG (inside or with github)
 	- Idea
