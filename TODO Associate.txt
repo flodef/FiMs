@@ -3,9 +3,7 @@
 - When withdraw is done at the end of the month, it should display the end of the month (not +5)
 -------------TEST-------------
 
-DO ENDING MONTH CHECK VALUE !!!
 --> BUG : buttons have now a border when focus
-- Change recurrent value in database and personal data
 - Decrease withdraw limit after a sucessfull withdraw in personal data + reload
 
 

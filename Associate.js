@@ -50,6 +50,7 @@ GLOBAL.personalData = [
 ]
 
 GLOBAL.totalValue = 0;
+GLOBAL.recurrentValue = 0;
 GLOBAL.userId;
 GLOBAL.userFullName;
 GLOBAL.userEmail;
@@ -169,6 +170,7 @@ function updatePersonalTable(id, contents) {
     $("#scrollDiv").html(tableHTML);
 
     GLOBAL.totalValue = toValue(contents[1][totalCol]);
+    GLOBAL.recurrentValue = contents[1][indexOf(contents[0], "Recurrent")];
     GLOBAL.userEmail = contents[1][indexOf(contents[0], "Email")];
     GLOBAL.userFullName = contents[1][indexOf(contents[0], "Family Name")].toUpperCase()
       + ' ' + contents[1][indexOf(contents[0], "First Name")];
@@ -234,9 +236,9 @@ function deposit() {
 function depositAmountValidation(result) {
   const id = GLOBAL.depositAmount;
   if (result == translate("OK") && !$("#" + id).data("error")) {
-    const value = $("#" + id).val();
+    const value = toCurrency($("#" + id).val());
     const content = '<table><tr>'
-      + getTranslatedContent("Amount to deposit", true) + getTranslatedContent(value + ' €') + '</tr><tr>'
+      + getTranslatedContent("Amount to deposit", true) + getTranslatedContent(value) + '</tr><tr>'
       + getTranslatedContent("Recipient", true) + getTableReadOnlyContent("DE FROCOURT F.") + '</tr><tr>'
       + getTranslatedContent("IBAN", true) + getTableReadOnlyContent("FR76 4061 8802 5000 0403 8167 244") + '</tr><tr>'
       + getTranslatedContent("BIC", true) + getTableReadOnlyContent("BOUS FRPP XXX") + '</tr><tr>'
@@ -249,7 +251,6 @@ function depositAmountValidation(result) {
     addPopupButtonEvent(GLOBAL.validatePopupButton, false);
 
     $("#popup").data(id, {value:value, content:content});
-
   } else if (result == translate("CANCEL")) {
     closePopup();
   }
@@ -274,7 +275,7 @@ function updateDeposit() {
   confirmation(content);
 
   // Send email reminder to myself
-  const subject = title + ": " + value + " € for " + GLOBAL.userId;
+  const subject = title + ": " + value + " for " + GLOBAL.userId;
   google.script.run
         .withSuccessHandler(contents => insertHistoricRow(data))
         .withFailureHandler(displayError)
@@ -295,8 +296,8 @@ function withdraw() {
         getTranslatedContent("Operation cost", false,
           {inputId:GLOBAL.withdrawCost, disabled:true}, true))
       + getDiv(GLOBAL.withdrawRecurrent + "All", null, null,
-        getTranslatedContent("Current reccurent amount", false,
-          {inputId:GLOBAL.withdrawRecurrent, disabled:true, value:translate(d[1][indexOf(d[0], "Recurrent")])}, true));
+        getTranslatedContent("Current recurrent amount", false,
+          {inputId:GLOBAL.withdrawRecurrent, disabled:true, value:translate(GLOBAL.recurrentValue)}, true));
 
   const innerHTML = getPopupContent(id, content);
 
@@ -325,16 +326,17 @@ function withdraw() {
 function withdrawAmountValidation(result) {
   const id = GLOBAL.withdrawAmount;
   if (result == translate("OK") && !$("#" + id).data("error")) {
-    const value = $("#" + id).val();
+    const value = toCurrency($("#" + id).val());
     const period = GLOBAL.withdrawPeriodOption[$('#' + GLOBAL.withdrawPeriod).is(':checked') ? 0 : 1];
-    const isNextMonth = $('#' + GLOBAL.withdrawDate).is(':checked') || !$('#' + GLOBAL.withdrawPeriod).is(':checked');
-    const date = toStringDate(!isNextMonth ? new Date(Math.min(addDaysToDate(5), getNextMonthDate(0))) : getNextMonthDate(5));
-    const cost = !isNextMonth ? $("#" + GLOBAL.withdrawCost).val() : toCurrency(0);
+    if (period != GLOBAL.withdrawPeriodOption[1] || -parseFloat(toValue(value)) != parseFloat(toValue(GLOBAL.recurrentValue))) {
+      const isNextMonth = $('#' + GLOBAL.withdrawDate).is(':checked') || !$('#' + GLOBAL.withdrawPeriod).is(':checked');
+      const date = toStringDate(!isNextMonth ? new Date(Math.min(addDaysToDate(5), getNextMonthDate(0))) : getNextMonthDate(5));
+      const cost = !isNextMonth ? $("#" + GLOBAL.withdrawCost).val() : toCurrency(0);
 
-    const data = GLOBAL.data[GLOBAL.displayData.personal.id];
+      const data = GLOBAL.data[GLOBAL.displayData.personal.id];
 
-    const content = '<table><tr>'
-      + getTranslatedContent("Amount to withdraw", true) + getTranslatedContent(value + ' €') + '</tr><tr>'
+      const content = '<table><tr>'
+      + getTranslatedContent("Amount to withdraw", true) + getTranslatedContent(value) + '</tr><tr>'
       + getTranslatedContent("Withdraw period", true) + getTranslatedContent(period) + '</tr><tr>'
       + getTranslatedContent("Withdraw date", true) + getTableReadOnlyContent(date) + '</tr><tr>'
       + getTranslatedContent("Operation cost", true) + getTableReadOnlyContent(cost) + '</tr><tr>'
@@ -342,13 +344,16 @@ function withdrawAmountValidation(result) {
       + getTranslatedContent("IBAN", true) + getTableReadOnlyContent(data[1][indexOf(data[0], "IBAN")]) + '</tr><tr>'
       + getTranslatedContent("Bank", true) + getTableReadOnlyContent(data[1][indexOf(data[0], "Bank")]) + '</tr></table>'
 
-    const innerHTML = getPopupContent(withdraw.name, content, updateWithdraw.name);
+      const innerHTML = getPopupContent(withdraw.name, content, updateWithdraw.name);
 
-    openPopup(innerHTML);
-    addPopupButtonEvent(GLOBAL.validatePopupButton, false);
+      openPopup(innerHTML);
+      addPopupButtonEvent(GLOBAL.validatePopupButton, false);
 
-    $("#popup").data(id, {value:value, period:period, date:date, cost:cost, content:content});
-
+      $("#popup").data(id, {value:value, period:period, date:date, cost:cost, content:content});
+    } else {
+      showSnackBar("The asked recurrent withdraw amount is the same as the current one !");
+      withdraw();
+    }
   } else if (result == translate("CANCEL")) {
     closePopup();
   }
@@ -374,9 +379,9 @@ function updateWithdraw() {
   const data = {date:date, movement:value, cost:cost};
   const isUnique = period == GLOBAL.withdrawPeriodOption[0];
 
-  const subject = period + ' ' + title + ": " + value + " € for " + GLOBAL.userId + " for the " + date;
+  const subject = period + ' ' + title + ": " + value + " for " + GLOBAL.userId + " for the " + date;
     google.script.run
-    .withSuccessHandler(contents => isUnique ? insertHistoricRow(data) : () => {}) // TODO
+    .withSuccessHandler(contents => isUnique ? insertHistoricRow(data) : changeRecurrent(value))
     .withFailureHandler(displayError)
     .sendRecapEmail(subject);
 }
@@ -431,19 +436,31 @@ function insertHistoricRow(data) {
     var d = []
     data[0].forEach(item => d.push(item));  // Make a copy of data to not be modified by other operation on data
     GLOBAL.data[id].splice(1, 0, d);
-    // GLOBAL.data[id].splice(1, 0, data.slice(0, 1)[0]);
     updateHistoricTable(id, GLOBAL.data[id]);
     setEvents();
 
     // Add data to the database
     data[0][0] = data[0][0] ? toStringDate(data[0][0], true) : '';    // Reverse date as the format is incorrect
     google.script.run
-    .withSuccessHandler(contents => setValue(GLOBAL.displayData.historic.formula.split('!')[0] + "!A2", data))
-    .withFailureHandler(displayError)
-    .insertRows(GLOBAL.personalGID, data, {startRow:1, endCol:data.length});
+      .withSuccessHandler(contents => setValue(GLOBAL.displayData.historic.formula.split('!')[0] + "!A2", data))
+      .withFailureHandler(displayError)
+      .insertRows(GLOBAL.personalGID, data, {startRow:1, endCol:data.length});
   } else {
     throw 'data is not set or incomplete';
   }
+}
+
+function changeRecurrent(value) {
+  // Display modified value in the personal tab
+  const id = GLOBAL.displayData.personal.id;
+  var d = GLOBAL.data[id];
+  const i = indexOf(d[0], "Recurrent");
+  d[1][i] = toCurrency(value);
+  updatePersonalTable(id, GLOBAL.data[id]);
+
+  // Add data to the database
+  const baseFormula = GLOBAL.displayData[id].formula.split('!')[0] + '!';
+  setValue(baseFormula + convertNumberToColumn(i) + d[1][0], [[toValue(value)]]);
 }
 
 function setUserId(id) {
@@ -499,16 +516,16 @@ function getTranslatedContent(content, isHeader, data) {
     : '<h2 style="cursor:default">' + d.text + '</h2>' + getTableEditableContent(data.value, data);
 }
 
-function convertNumberToColumn(number){
+function convertNumberToColumn(number) {    // 0 => A, 1 => B, etc
   var t;
   var s = '';
   while (number > 0) {
     t = (number - 1) % 26;
-    s = String.fromCharCode(65 + t) + s;
+    s = String.fromCharCode(66 + t) + s;
     number = (number - t)/26 | 0;
   }
 
-  return s || undefined;
+  return s;
 }
 
 function validateIbanChecksum(iban) {

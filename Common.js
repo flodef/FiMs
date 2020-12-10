@@ -644,28 +644,34 @@ function displayError(msg, isWarning) {
 }
 
 function translate(content) {
-  return content && !isNaN(content.replace(/€|%|,/g, "")) ? batchTranslate(content, [',', '.'])                         // Numbers
-    : /\d/.test(content) && (content.includes("month") || content.includes("year")) ? batchTranslate(content, ['months', 'year'])  // Duration
-    : getTranslateData(content).text;  // Text
+  return getTranslateData(content).text;
 }
 
 function getTranslateData(content) {
-  const a = GLOBAL.data[GLOBAL.translation];
-  if (a && content) {
-    const num = content.replace(/^[^0-9€%]+|[^0-9€%]+$/g, "");  // Extranct number and symbols from content
-    const trans = num ? content.replace(num, '*') : content;    // Replace number by * to find translation
+  var text = content;
+  var tooltip = null;
 
-    const i = indexOf(a, trans, 0, 1, (a, b) => a.toLowerCase() == b.toLowerCase());
+  const d = GLOBAL.data[GLOBAL.translation];
+  if (d && content) {
+    const fna = item => { return indexOf(d, item, 0, 1, (a, b) => a.toLowerCase() == b.toLowerCase()) };
+    const fnb = item => { text = text.replace(item, d[fna(item)][2]); };
+    if (!isNaN(content.replace(/€|%|,/g, ""))) {                                                   // Numbers
+      [',', '.'].forEach(fnb);
+    } else if (/\d/.test(content) && (content.includes("month") || content.includes("year"))) {   // Duration
+      ['months', 'year'].forEach(fnb);
+    } else {                                                                                      // Text
+      const num = content.replace(/^[^0-9€%]+|[^0-9€%]+$/g, "");  // Extranct number and symbols from content
+      const trans = num ? content.replace(num, '*') : content;    // Replace number by * to find translation
 
-    return {text:i ? a[i][2].replace('*', num) : content, tooltip:i ? a[i][3] : null};
-  } else {
-    return {text:content};
+      const i = fna(trans);
+      if (i) {
+        text = d[i][2].replace('*', num);
+        tooltip = d[i][3];
+      }
+    }
   }
-}
 
-function batchTranslate(content, array) {
-  array.forEach(item => content = content.replace(item, getTranslateData(item).text));
-  return content;
+  return {text:text, tooltip:tooltip};
 }
 
 function getPopupContent(id, content, validate) {

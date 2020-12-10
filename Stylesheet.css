@@ -200,7 +200,6 @@ table.sortable tr.header, table.sortable tr:hover {
 .contentOverlay,
 .shadeOverlay,
 .overlay {
-  /* visibility: hidden; */
   position: fixed;
   width: 100%;
   height: 100%;
@@ -208,7 +207,6 @@ table.sortable tr.header, table.sortable tr:hover {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 2;
 }
 
 .contentOverlay {
