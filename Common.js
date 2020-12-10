@@ -814,7 +814,7 @@ function restrainFormula(formula, low, high) {
 }
 
 function roundDown(value, precision = 0) {
-  return (value * Math.pow(10, precision) | 0) / Math.pow(10, precision);
+  return Math.round(value * Math.pow(10, precision) | 0) / Math.pow(10, precision);
 }
 
 function toFirstUpperCase(item) {
