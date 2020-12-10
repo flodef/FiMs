@@ -19,7 +19,7 @@ IF %retry%==Y GOTO lo
 REM CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 REM SET do=%ERRORLEVEL%
 REM IF %do% EQU 1 MOVE %url% .\Data
-TIMEOUT /t 1 /nobreak>nul
+TIMEOUT /t 2 /nobreak>nul
 MOVE %url% .\Data
 CLS
 
@@ -43,7 +43,7 @@ IF %retry%==Y GOTO ab
 REM CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 REM SET do=%ERRORLEVEL%
 REM IF %do% EQU 1 MOVE %url% .\Data
-TIMEOUT /t 1 /nobreak>nul
+TIMEOUT /t 2 /nobreak>nul
 MOVE %url% .\Data
 CLS
 
