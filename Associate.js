@@ -352,7 +352,6 @@ function withdrawAmountValidation(result) {
       $("#popup").data(id, {value:value, period:period, date:date, cost:cost, content:content});
     } else {
       showSnackBar("The asked recurrent withdraw amount is the same as the current one !");
-      // withdraw();
     }
   } else if (result == translate("CANCEL")) {
     closePopup();

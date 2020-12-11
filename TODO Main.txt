@@ -6,8 +6,8 @@ APP : Set buttons in historic to either delete a dummy (eg : dividend not receiv
 APP : Set the toolbar when loading from account file
 
 
-APP : Make a confirmation popup
+APP : Make a confirmation popup ??
 
 
 APP : Add a filter to tables
-APP : Add the price table
+APP : Table have an option to see all table

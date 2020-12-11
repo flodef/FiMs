@@ -15,9 +15,10 @@ GLOBAL.allocationFormula = "Allocation!B14";
 GLOBAL.settingsFormula = "Settings!A:F";
 GLOBAL.displayData = {
   "dashboard": { id:"dashboard", formula:"Dashboard!A:B",updateTable:updateDashboardTable },
-  "investment": { id:"investment", formula:"Investment!A:AT",updateTable:updateInvestmentTable },
+  "investment": { id:"investment", formula:"Investment!A:AV",updateTable:updateInvestmentTable },
   "historic": { id:"historic", formula:restrainFormula("Historic!A:J"),updateTable:updateHistoricTable },
-  "evolution": { id:"evolution", formula:restrainFormula("Evolution!A:J"),updateTable:updateEvolutionTable }
+  "evolution": { id:"evolution", formula:restrainFormula("Evolution!A:J"),updateTable:updateStandardTable },
+  "price": { id:"price", formula:restrainFormula("Price!A:F"),updateTable:updateStandardTable }
 };
 GLOBAL.menuButton = [
   // {id:"rebalance", fn:rebalanceStocks},
@@ -605,10 +606,11 @@ function updateInvestmentTable(id, contents) {
     tableHTML += i==0 ? '<tr>' : '<tr title="' + contents[i][0] + '"' +
       (bgcolor ? 'style="background-color:' + bgcolor + ';color:' + color + ';font-weight:bold;"' : '') + '>';
     //for (var j = 0; j < contents[i].length; ++j)
-    for (var j of [7, 10, 12, 14, 18, 19, 22, 32, 23, 29, 34, 36, 45]) {   // Select only the interesting columns
+    for (var j of [7, 10, 12, 14, 18, 19, 22, 32, 23, 29, 34, 36, 45, 46, 47]) {   // Select only the interesting columns
       // Name = 7, Shares = 10, Price = 12, Sell = 14, Rebalance = 18, Provision = 19, Tendency = 22,
       // Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 23 to 29, Trans profit = 32,
-      // Dist gap = 33, Avg price = 34, Avg gap = 35, Avg lm price = 36, Avg lm progress = 37, Next div dur = 45
+      // Dist gap = 33, Avg price = 34, Avg gap = 35, Avg lm price = 36, Avg lm progress = 37,
+      // Next div dur = 45, Est div = 46, Div / month = 47
       var con =  i == 0 || j != 12
                   ? i == 0 || j < 23 || j > 37
                     ? contents[i][j]
@@ -682,15 +684,17 @@ function updateHistoricTable(id, contents) {
   $(".validateButton").prop('disabled', false);
 }
 
-function updateEvolutionTable(id, contents) {
-  var row = contents.length;
-  var col = contents[0].length;
+function updateStandardTable(id, contents) {
+  const row = contents.length;
+  const col = contents[0].length;
   var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col-1);
   for (var i = 0; i < row; ++i) {
     tableHTML += i==0 ? '<thead>' : '';
     tableHTML += '<tr>';
     for (var j = 0; j < col; ++j) {
-      tableHTML += getTableReadOnlyContent(contents[i][j], i == 0);
+      const c = contents[i][j];
+      const t = /(€|%|\$|\/|[^\.\d])/.test(c) ? c : toCurrency(c, 4);   // Transform to currency numbers without currency symbol
+      tableHTML += getTableReadOnlyContent(t , i == 0);
     }
     tableHTML += '</tr>';
     tableHTML += i==0 ? '</thead><tbody>'
