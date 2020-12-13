@@ -10,4 +10,4 @@ APP : Make a confirmation popup ??
 
 
 APP : Add a filter to tables
-APP : Table have an option to see all table
+APP : Table have an option to see all the table

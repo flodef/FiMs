@@ -4,6 +4,15 @@
 CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 -------------TEST-------------
 
+- Editable personal Table
+	- Date is not updated when selected
+	- Postal code / Email / IBAN not working when editing
+	- Test all values (especially recurrent)
+	- Make Web page url editable
+	- URL pattern not working
+	- Send mail if personal data has been modified
+	- Add erase button to editable text
+
 - Contact form directly in the app(ou encore mieux, directement sur <a href="https://github.com/flodef/FiMS/issues/new" target="_blank">github</a> (nécessite un compte grauit)</td>) with : 
 	- BUG (inside or with github)
 	- Idea
@@ -12,7 +21,6 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 
 - Don't display the tab since the beginning if no user identified
 
-- Editable personal Table
 - Add new data (new user data)
 
 - Graphic of investments (https://www.chartjs.org/)
@@ -21,8 +29,8 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 
 - Add client handling directly to Main app (remove / accept withdraw/deposit, add donation)
 
-- Add "how-to" make an app from web page in mobile & computer
-
+- Add "how-to" make an app from web page in mobile & computer ??
+- Change UserId ?? (means changing sheetname + historic +  formula at sheet edge)
 - Set the google_online.js to be able to run the server from GitHub ? (look in test)
 - Cancel a pending withdraw/deposit ?
 - Have a dev & prod SS (with fake infos) ?

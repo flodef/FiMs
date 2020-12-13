@@ -26,27 +26,27 @@ GLOBAL.displayData = {
 };
 GLOBAL.menuButton = ["deposit", "withdraw", "connect"];
 GLOBAL.personalData = [
-  { index:1, label:"ID", type:"name", minLength:5, maxLength:10, required:true }, // ID
-  { index:15, label:"First name", type:"name", required:true },                   // First name
-  { index:16, label:"Family name", type:"name", required:true },                  // Family name
-  { index:14, label:"Email", type:"email", required:true },                       // Email
-  { index:17, label:"Birth date", type:"date", required:true },                   // Birth date
-  { index:18, label:"Birth city", type:"name", required:true },                   // Birth city
-  { index:19, label:"Address", type:"text", required:true, maxLength:55 },        // Address
-  { index:20, label:"Postal code", type:"text", required:true, pattern:"[0-9]{5}" }, // Postal code
-  { index:21, label:"City", type:"name", required:true },                         // City
-  { index:22, label:"IBAN", type:"iban", required:true },                         // IBAN
-  { index:23, label:"Bank", type:"name", required:true },                         // Bank
-  { index:24, label:"Association", type:"name", required:true },                  // Association
-  { index:25, label:"Web page", type:"url", maxLength:55 },                       // Web page
-  { index:2, label:"Recurrent", type:"euro", min:-1000, max:0 },                  // Recurrent
-  { index:6, label:"Estimate rate" },                                             // Estimate rate
-  { index:7, label:"Estimate gain" },                                             // Estimate gain
-  { index:5, label:"Financed project" },                                          // Financed project
-  { index:3, label:"Charity" },                                                   // Charity
-  { index:4, label:"Donated" },                                                   // Donated
-  { index:8, label:"Duration" },                                                  // Duration
-  { index:26, label:"Debt recognition", type:"url", readonly:true }               // Debt recognition
+  { index:1, readonly:true, type:"name", minLength:5, maxLength:10, required:true }, // ID
+  { index:15, readonly:true, type:"name", required:true },                           // First name
+  { index:16, readonly:true, type:"name", required:true },                           // Family name
+  { index:14, readonly:true, type:"email", required:true },                          // Email
+  { index:17, disabled:true, type:"date", required:true },                           // Birth date
+  { index:18, readonly:true, type:"text", required:true },                           // Birth city
+  { index:19, readonly:true, type:"text", required:true, maxLength:100 },            // Address
+  { index:20, readonly:true, type:"text", required:true, pattern:"^[0-9]{5}$" },     // Postal code
+  { index:21, readonly:true, type:"name", required:true },                           // City
+  { index:22, readonly:true, type:"iban", required:true },                           // IBAN
+  { index:23, readonly:true, type:"name", required:true },                           // Bank
+  { index:24, readonly:true, type:"name", required:true },                           // Association
+  { index:25, readonly:true, type:"url" },                            // Web page
+  { index:2, type:"euro", min:-1000, max:0 },                         // Recurrent
+  { index:6, disabled:true },                                         // Estimate rate
+  { index:7, disabled:true },                                         // Estimate gain
+  { index:5, disabled:true },                                         // Financed project
+  { index:3, disabled:true },                                         // Charity
+  { index:4, disabled:true },                                         // Donated
+  { index:8, disabled:true },                                         // Duration
+  { index:26, type:"url", disabled:true }                             // Debt recognition
 ]
 
 GLOBAL.totalValue = 0;
@@ -143,11 +143,10 @@ function updatePersonalTable(id, contents) {
       const i = item.index;
       item.id = id;
       item.range = baseFormula + convertNumberToColumn(i) + contents[1][0];
+      item.value = item.readonly || item.disabled ? translate(contents[1][i]) : contents[1][i];
 
       tableHTML += '<tr>';
-      tableHTML += getTranslatedContent(contents[0][i], true);
-      tableHTML += item.type != "url" ? getTranslatedContent(contents[1][i]) : getTableReadOnlyContent(getLink(contents[1][i]));
-      // tableHTML += item.type != "url" ? getTranslatedContent(contents[1][i], false, item) : getTableReadOnlyContent(getLink(contents[1][i]));
+      tableHTML += getTranslatedContent(contents[0][i], false, item);
       tableHTML += '</tr>';
     });
 
@@ -203,6 +202,13 @@ function updateFaqTable(id, contents) {
   displayElement("#connectButton", true); // Show the connect button
 }
 
+function openTabAfterConnect(id) {
+  if (!GLOBAL.currentDisplayedId || GLOBAL.currentDisplayedId == GLOBAL.displayData.FAQ.id) {
+    displayElement("#loaderBar", false, 0); // Hide the loader bar
+    openTab(id);
+  }
+}
+
 function connect() {
   const d = GLOBAL.personalData[0];
   const id = "userId";
@@ -220,6 +226,37 @@ function userIdValidation(result) {
   if ((result == translate("OK") && !$("#" + id).data("error")) || result == translate("CANCEL")) {
     setUserId($("#" + id).val());
     closePopup();
+  }
+}
+
+function setUserId(id) {
+  if (id != GLOBAL.userId) {
+    const faqId = GLOBAL.displayData.FAQ.id;
+    GLOBAL.userId = id;
+    GLOBAL.userEmail = null;
+    GLOBAL.userFullName = null;
+
+    GLOBAL.displayId.forEach(id => {
+      if (id != faqId) {
+        $("#" + id + "Div").html("");                         // Clear all tab content except faq
+      }
+      displayElement("#" + id + "Button", GLOBAL.userId, 0);  // Display/Hide all tab depending on the connection state
+    });
+    GLOBAL.currentDisplayedId = null;                         // Unselect the current displayed tab
+
+    if (id) {
+      GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1];   // Create user account formula
+      updateAllValues();                                      // Load all data
+    } else {    // No user
+      openTab(faqId);                                         // Open first the faq tab (in case of disconnection)
+      $("#scrollDiv").html("");                               // Clear the scroll marquee content
+      displayElement("#" + faqId + "Button", true, 0);        // Display only the faq
+      if (!GLOBAL.data[faqId]) {                              // Don't load twice the faq
+        updateValues(faqId);                                  // Load only the faq
+      }
+      displayElement("#depositButton", false, 0);             // Hide the deposit button
+      displayElement("#withdrawButton", false, 0);            // Hide the withdraw button
+    }
   }
 }
 
@@ -294,10 +331,10 @@ function withdraw() {
           {inputId:GLOBAL.withdrawDate, type:"checkbox", class:"toggle", label:GLOBAL.withdrawDateOption, checked:true}))
       + getDiv(GLOBAL.withdrawCost + "All", null, null,
         getTranslatedContent("Operation cost", false,
-          {inputId:GLOBAL.withdrawCost, disabled:true}, true))
+          {inputId:GLOBAL.withdrawCost, disabled:true}))
       + getDiv(GLOBAL.withdrawRecurrent + "All", null, null,
         getTranslatedContent("Current recurrent amount", false,
-          {inputId:GLOBAL.withdrawRecurrent, disabled:true, value:translate(GLOBAL.recurrentValue)}, true));
+          {inputId:GLOBAL.withdrawRecurrent, disabled:true, value:translate(GLOBAL.recurrentValue)}));
 
   const innerHTML = getPopupContent(id, content);
 
@@ -471,57 +508,21 @@ function changeRecurrent(value) {
   setValue(baseFormula + convertNumberToColumn(i) + d[1][0], [[toValue(value)]]);
 }
 
-function setUserId(id) {
-  if (id != GLOBAL.userId) {
-    const faqId = GLOBAL.displayData.FAQ.id;
-    GLOBAL.userId = id;
-    GLOBAL.userEmail = null;
-    GLOBAL.userFullName = null;
-
-    GLOBAL.displayId.forEach(id => {
-      if (id != faqId) {
-        $("#" + id + "Div").html("");                         // Clear all tab content except faq
-      }
-      displayElement("#" + id + "Button", GLOBAL.userId, 0);  // Display/Hide all tab depending on the connection state
-    });
-    GLOBAL.currentDisplayedId = null;                         // Unselect the current displayed tab
-
-    if (id) {
-      GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1];   // Create user account formula
-      updateAllValues();                                      // Load all data
-    } else {    // No user
-      openTab(faqId);                                         // Open first the faq tab (in case of disconnection)
-      $("#scrollDiv").html("");                               // Clear the scroll marquee content
-      displayElement("#" + faqId + "Button", true, 0);        // Display only the faq
-      if (!GLOBAL.data[faqId]) {                              // Don't load twice the faq
-        updateValues(faqId);                                  // Load only the faq
-      }
-      displayElement("#depositButton", false, 0);             // Hide the deposit button
-      displayElement("#withdrawButton", false, 0);            // Hide the withdraw button
-    }
-  }
-}
-
-function openTabAfterConnect(id) {
-  if (!GLOBAL.currentDisplayedId || GLOBAL.currentDisplayedId == GLOBAL.displayData.FAQ.id) {
-    displayElement("#loaderBar", false, 0); // Hide the loader bar
-    openTab(id);
-  }
-}
-
 function getTranslatedContent(content, isHeader, data) {
   const isReadOnly = !data || isHeader;
   const d = getTranslateData(content);
   if (!isReadOnly) {
     data.tooltip = d.tooltip;
-    data.style = (isEditableInput(data.type) ? "width:104px;text-align:center;line-height:45px;" : "") + (data.style ?? '');
+    data.style = (isEditableInput(data.type) ? "width:104px;" : '')
+      + (data.readonly || data.disabled ? "background:transparent;" : '')
+      + 'text-align:center;line-height:45px;border:transparent;' + (data.style ?? '');
   }
 
   return isReadOnly
     ? getTableReadOnlyContent(content, isHeader).replace(content, isHeader
       ? '<div class="tooltip">' + d.text + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>'
       : d.text)
-    : '<h2 style="cursor:default">' + d.text + '</h2>' + getTableEditableContent(data.value, data);
+    : '<td><h2 style="cursor:default">' + d.text + '</h2></td>' + getTableEditableContent(data.value, data);
 }
 
 function convertNumberToColumn(number) {    // 0 => A, 1 => B, etc

@@ -175,14 +175,8 @@ function getTableReadOnlyContent(content = "", isHeader, isDisabled, color) {
 }
 
 function getTableEditableContent(content, data) {
-  var attr = '';
-  var label = '';
-  var symbol = '';
-  var post = '';
-  var classText = '';
-  var handler = '';
+  var label = '', post = '', classText = '', handler = '';
   if (data) {
-    var type = "text";
     data.inputId = data.inputId || getRandomId();  // Generates a random Id if it does not have any
     classText = data.class || '';
     symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
@@ -195,25 +189,15 @@ function getTableEditableContent(content, data) {
     handler = isToggle ? ' onclick="$(\'#' + data.inputId + 'Div\').html(getLabel(\'' + data.inputId
       + '\', $(this).is(\':checked\') ? \'' + data.label[0] + '\' : \'' + data.label[1] + '\', true));"' : '';
 
-    if (data.type == "number" || data.type == "euro" || data.type == "percent") {
+    if (isNumberInput(data.type)) {
       data.precision = data.precision ?? (data.type == "euro" ? 2 : 0);
-      const min = roundDown(data.min, data.precision) ?? 0;
-      const max = roundDown(data.max, data.precision) ?? 0;
-      content = content ?? (data.required ? "0" : "");
-      classText += ' auto';
-      attr = addAttr("min", min) + addAttr("max", max);
-    } else if (!isEditableInput(data.type)) {
-      type = data.type;
-    } else {
-      classText += ' auto';
-      attr = addAttr("minLength", data.minLength) + addAttr("maxLength", data.maxLength);
+      content = content ? toValue(content) : data.required ? "0" : "";
+    } else if (data.type == "date") {
+      content = toJQueryDate(content, true);
     }
-    attr += addAttr("id", data.inputId) + addAttr("type", type) + addAttr("placeholder", data.placeholder)
-         + addAttr("name", data.name) + addAttr("pattern", data.pattern) + addAttr("style", data.style)
-         + addAttr("value", data.value) + addAttr("data-symbol", symbol) + addAttr("data-type", data.type || 'text')
-         + addAttr("data-precision", data.precision) + addAttr("readonly", data.readonly, true)
-         + addAttr("disabled", data.disabled, true) + addAttr("required", data.required, true)
-         + addAttr("checked", data.checked);
+    data.value = content;
+
+    classText += isEditableInput(data.type) ? ' auto' : '';
 
     post = data.erase
       ? '<span id="' + data.inputId + 'Erase" style="float:none;color:black;visibility:hidden" class="closebtn"'
@@ -221,12 +205,46 @@ function getTableEditableContent(content, data) {
       : '';
   }
 
-  const input = '<input class="' + classText + '"' + attr
-    + (type == "text" && !data.readonly && !data.disabled ? getEditCellHandler(content, data) : handler)
-    + '>' + symbol + '</input>';
+  const input = data && data.type == "url"
+    ? splice(getLink(content), getAttributesFromData(data), 3)
+    : '<input' + addAttr("class", classText) + getAttributesFromData(data)
+      + (isEditableInput(data.type) && !data.readonly && !data.disabled ? getEditCellHandler(content, data) : handler)
+      + '>' + data.symbol + '</input>';
   const tooltip = getTooltip(label + input, data.tooltip);
 
   return '<td align="center">' + tooltip + post + '</td>';
+}
+
+function getAttributesFromData(data) {
+  var attr = '';
+  var type = "text";  // Type is text by default
+  if (data) {
+    data.symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
+    if (isNumberInput(data.type)) {
+      const min = roundDown(data.min, data.precision) ?? 0;
+      const max = roundDown(data.max, data.precision) ?? 0;
+      attr = addAttr("min", min) + addAttr("max", max);
+    } else if (!isEditableInput(data.type)) {
+      type = data.type || type;
+    } else {
+      const max = parseInt(data.maxLength);
+      const maxLength = !isNaN(max) && max > 0 ? max : data.type == "url" ? 256 : 30;
+      const min = parseInt(data.minLength);
+      const minLength = !isNaN(min) && min > 0 ? min : null;
+      attr = addAttr("minLength", minLength) + addAttr("maxLength", maxLength);
+    }
+
+    attr += addAttr("id", data.inputId) + addAttr("placeholder", data.placeholder)
+          + addAttr("name", data.name) + addAttr("pattern", data.pattern) + addAttr("style", data.style)
+          + addAttr("value", data.value) + addAttr("data-symbol", data.symbol) + addAttr("data-type", data.type || 'text')
+          + addAttr("data-precision", data.precision) + addAttr("readonly", data.readonly, true)
+          + addAttr("disabled", data.disabled, true) + addAttr("required", data.required, true)
+          + addAttr("checked", data.checked);
+  }
+
+  attr += addAttr("type", type);  // Type is universal
+
+  return attr;
 }
 
 function getTableValidatableContent(id, content, range, expected) {
@@ -244,7 +262,7 @@ function getEditCellHandler(expected, data) {
        + ' onkeyup="if (!GLOBAL.handleEvent && event.which == 13) { $(this).blur() } else if (!GLOBAL.handleEvent && event.which == 27)'
        + ' { this.value = \'' + expected + '\'; } autoAdaptWidth(this);'
        + (data && data.inputId && data.erase ? ' $(\'#' + data.inputId + 'Erase\').css(\'visibility\', $(this).val() ? \'visible\' : \'hidden\')' : '')
-       + '" oninput="autoAdaptWidth(this);" type="text" value="' + expected + '"'
+       + '" oninput="autoAdaptWidth(this);"';
 }
 
 function getUpdateContent(id, range, expected) {
@@ -256,8 +274,9 @@ function getUpdateContent(id, range, expected) {
 }
 
 function getSubTableTitle(id, title, range) {
-  return '<tr><td colspan="10"><input class="tableTitle auto" minLength="3" maxLength="30" style="font-size:16px;"'
-       + getEditCellHandler(title, {id:id, range:range}) + '"></input></td></tr>';
+  return '<tr><td colspan="10"><input value="' + title + '" class="tableTitle auto" minLength="3"'
+    + ' maxLength="30" style="font-size:16px;"' + getEditCellHandler(title, {id:id, range:range})
+    + '"></input></td></tr>';
 }
 
 function getTitle(id) {
@@ -412,7 +431,7 @@ function autoAdaptWidth(e) {
   if (!e.placeholder) {
     var size = e.style.fontSize ? e.style.fontSize : "13.33px";
     var step = parseFloat(size)/1.8;
-    var index = 1;
+    var index = 4;
     e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
   }
 }
@@ -421,9 +440,9 @@ function checkElement(e) {
   const type = e.dataset.type;
 
   // Filter the entered value through a regular expression
-  if (type == "number" || type == "euro" || type == "percent") {
-    const min = parseFloat(e.min);
-    const max = parseFloat(e.max);
+  if (isNumberInput(type)) {
+    const min = !isNaN(parseFloat(e.min)) ? parseFloat(e.min) : Number.MIN_SAFE_INTEGER;
+    const max = !isNaN(parseFloat(e.max)) ? parseFloat(e.max) : Number.MAX_SAFE_INTEGER;
     const precision = parseInt(e.dataset.precision) || 0;
     const maxLength = Math.max(String(parseInt(min)).length, String(parseInt(max)).length) + precision + 1;   // Don't forget the decimal separator
     const pattern = e.pattern || "^" + (min < 0 ? max < 0 ? "-+" : "-?" : "") + "([0-9]" + (e.required ? '+' : '*') + "$"
@@ -431,18 +450,20 @@ function checkElement(e) {
     const regexp = new RegExp(pattern);
     var val = parseFloat(e.value);
     while (e.value && (!regexp.test(e.value) ||
-      (!isNaN(val) && (val > max || e.value.length > maxLength)))) {
+      (!isNaN(val) && (val > max || (min < 0 && val < min) || e.value.length > maxLength)))) {
       e.value = e.value.slice(0, -1);
       val = parseFloat(e.value);
     }
-  } else if (isEditableInput(type)) {
-    const maxLength = parseInt(e.maxLength) ?? 30;
+  } else if (isEditableInput(type) && !e.readonly && !e.disabled) {
+    const m = parseInt(e.maxLength);
+    const maxLength = !isNaN(m) && m > 0 ? m : 30;
     const pattern = e.pattern
       || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
       : type == "iban" ? "^([A-Z]{2}[ \-]?[0-9]{2})(?=(?:[ \-]?[A-Z0-9]){9,30}$)((?:[ \-]?[A-Z0-9]{3,5}){2,7})([ \-]?[A-Z0-9]{1,3})?$"
-      : type == "url" ? "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
-      : type == "name" ? "^[A-zÀ-ú]{0," + maxLength + "}$"
-      : "^[A-zÀ-ú0-9,\s]{0," + maxLength + "}$");
+      // : type == "url" ? "^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$"
+      : type == "url" ? "."
+      : type == "name" ? "^[A-zÀ-ú -]{0," + maxLength + "}$"
+      : "^[A-zÀ-ú0-9, ()]{0," + maxLength + "}$");
     const regexp = new RegExp(pattern);
     while (e.value && (!regexp.test(e.value) || e.value.length > maxLength)) {
       e.value = e.value.slice(0, -1);
@@ -452,8 +473,8 @@ function checkElement(e) {
 
 function getElementValidity(e) {
   const type = e.dataset.type;
-  const minLength = type == "number" || type == "euro" || type == "percent" ? e.required ? 1 : 0
-   : type != "date" ? e.minLength || (e.required ? 3 : 0) : 0;
+  const minLength = isNumberInput(type) ? e.required ? 1 : 0
+   : isEditableInput(type) && !e.readonly && !e.disabled ? e.minLength || (e.required ? 3 : 0) : 0;
 
   return e.value.length < minLength ? "Value should have at least " + minLength + " character(s) !"
     : e.min && e.value && parseFloat(e.value) < parseFloat(e.min) ? "Value should be at least " + roundDown(e.min, parseInt(e.dataset.precision) || 2) + e.dataset.symbol
@@ -751,19 +772,27 @@ function toStringDate(date, isMDY) {
   if (typeof(date) == "string") {
     return date && date.split("/").length == 3
     ? date.replace(/(^|\/)0+/g, "$1").split("/")[isMDY ? 1 : 0] + "/"
-    + date.replace(/(^|\/)0+/g, "$1").split("/")[isMDY ? 0 : 1] + "/"
-    + date.split("/")[2]
+      + date.replace(/(^|\/)0+/g, "$1").split("/")[isMDY ? 0 : 1] + "/"
+      + date.split("/")[2]
     : null;
   } else if (typeof(date) == "object") {
-    var day = date.getDate();
-    var month = date.getMonth() + 1;   //January is 0!
-    var year = date.getFullYear();
+    let day = date.getDate();
+    let month = date.getMonth() + 1;   //January is 0!
+    const year = date.getFullYear();
     day = day < 10 ? '0' + day : day;
     month = month < 10 ? '0' + month : month;
     return isMDY ? month + "/" + day + "/" + year : day + "/" + month + "/" + year;
   } else {
     return toStringDate(new Date(), isMDY);
   }
+}
+
+function toJQueryDate(date, isMDY) {  // yyyy-MM-dd
+  if(!isMDY) {
+    date = toStringDate(date, true);
+  }
+  const d = new Date(date);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000).toISOString().split('T')[0];
 }
 
 function addDaysToDate(daysToAdd = 0, date) {
@@ -801,6 +830,20 @@ function indexOf(array, value, index, start, compare) {
   return i;
 }
 
+/**
+   * Splices text within a string.
+   * @param {string} original The original text to modify
+   * @param {string} text The text to insert
+   * @param {int} offset The position to insert the text at (before)
+   * @param {int} [removeCount=0] An optional number of characters to overwrite
+   * @returns {string} A modified string containing the spliced text.
+   */
+function splice(original, text, offset = 0, removeCount = 0) {
+  let calculatedOffset = offset < 0 ? original.length + offset : offset;
+  return original.substring(0, calculatedOffset) +
+    text + original.substring(calculatedOffset + removeCount);
+};
+
 function restrainFormula(formula, low, high) {
   formula = formula.replace(/\d+/g, '');
   if (low != -1 && high != -1) {
@@ -830,9 +873,13 @@ function isString(item) {
 }
 
 function isEditableInput(type) {
-  return type != "date" && type != "radio" && type != "checkbox";
+  return type && (type != "date" && type != "radio" && type != "checkbox");
+}
+
+function isNumberInput(type) {
+  return type && (type == "number" || type == "euro" || type == "percent");
 }
 
 function addAttr(name, value, isSingle) {
-  return value ? ' ' + name + (!isSingle ? '="' + value + '"' : '') : '';
+  return name && value != null ? ' ' + name + (!isSingle ? '="' + value.toString().trim() + '"' : '') : '';
 }
