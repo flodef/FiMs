@@ -217,7 +217,7 @@ function _processAccountBalance(thread) {
   var sheet = this._getSheet(BANKACC);
   var range = sheet.getDataRange();
   var label = range.getNotes();
-  var lr = label.length;
+  // var lr = label.length;
   var lc = label[0].length;
 
   var messages = thread.getMessages();
@@ -307,11 +307,10 @@ function _processStockTrade(thread) {
   var array = sheet.getSheetValues(FR, FC, -1, Math.max(TYPE_COL, ISIN_COL, LABEL_COL));
 
   // Add historic from stock trade mail
-  var sheet = this._getSheet(HISTORIC);
   var pdl = 15;     // Length of data to process
   var hea = 6;      // Length of the header
   var foo = 28;     // Length of the footer
-  var ta = 0        // Number of transaction added
+  var ta = 0;       // Number of transaction added
 
   var messages = thread.getMessages();
   for (var j = 0 ; j < messages.length; j++) {
@@ -377,7 +376,6 @@ function _updateClosePrice() {
 
   this._copyFormula(formula, range);
 
-  var j = 0;
   for (var i = 0; i < mr; ++i) {
     var v;
     var r = sheet.getRange(i+FR, PRICE_COL);

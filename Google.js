@@ -96,7 +96,7 @@ class Run {
   async getSheetValues(range, filter, column = 0) {
     var content;
     try {
-      content = await this.#getSheetValues(range);
+      content = await this._getSheetValues(range);
       if (filter) {
         var temp = content;
 
@@ -121,7 +121,7 @@ class Run {
   async deleteRows(sheetId, startIndex, endIndex) { this.#sh(); }
   async sortColumn(sheetId, index, descending) { this.#sh(); }
 
-  async #getSheetValues(range) {
+  async _getSheetValues(range) {
     if (!Run.#workbook) {
       await fetch(Run.#data["spreadsheetId"])
       .then((response) => {
@@ -135,10 +135,10 @@ class Run {
       }).catch(this.#fh);
     }
 
-    return this.#getData(range);
+    return this._getData(range);
   }
 
-  #getData(range) {
+  _getData(range) {
     var a = range.split("!");
     var sheetName = a[0];
     var sheet = Run.#workbook.Sheets[sheetName];
@@ -149,8 +149,8 @@ class Run {
       var sr = ar[0];
       var er = ar[1] || ar[0];    // Set the starting range as the ending range if none (eg : sheet!A1)
       var dr = XLSX.utils.decode_range(fullRange);
-      sr += !this.#hasNumber(sr) ? (dr.s.r+1) : "";
-      er += !this.#hasNumber(er) ? (dr.e.r+1) : "";
+      sr += !this._hasNumber(sr) ? (dr.s.r+1) : "";
+      er += !this._hasNumber(er) ? (dr.e.r+1) : "";
       range = sr + ':' + er;
       var array = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, range:range, defval:""});
 
@@ -159,14 +159,14 @@ class Run {
       return null;
     }
   }
-  #hasNumber(string) {
+  _hasNumber(string) {
     return /\d/.test(string);
   }
 }
 
 class HtmlService{
   static createTemplateFromFile(page) {
-    return new Template(page);
+    return new Template();
   }
 }
 
@@ -190,5 +190,3 @@ class Template {
     return this;
   }
 }
-
-google.script.run;    // Initialize google service mock up

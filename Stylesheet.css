@@ -185,12 +185,12 @@ marquee {
   width: 250px;
 }
 
-table.sortable tr {
+table tr {
   /* Add a bottom border to all table rows */
   border-bottom: 1px solid #ddd;
 }
 
-table.sortable tr.header, table.sortable tr:hover {
+table tr.header, table tr:hover {
   /* Add a grey background color to the table header and on hover */
   background-color: #f1f1f1;
 }

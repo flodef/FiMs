@@ -11,7 +11,7 @@ GLOBAL.newDeposit = "New deposit";
 GLOBAL.nextDeposit = "Next deposit";
 GLOBAL.validatePopupButton = "validatePopupButton";
 GLOBAL.personalGID = 911574160;
-GLOBAL.Status = "Status"
+GLOBAL.Status = "Status";
 GLOBAL.completedStatus = "Completed !";
 GLOBAL.pendingStatus = "Pending ...";
 GLOBAL.DonationStatus = "Donation";
@@ -47,13 +47,10 @@ GLOBAL.personalData = [
   { index:4, disabled:true },                                         // Donated
   { index:8, disabled:true },                                         // Duration
   { index:26, type:"url", disabled:true }                             // Debt recognition
-]
+];
 
 GLOBAL.totalValue = 0;
 GLOBAL.recurrentValue = 0;
-GLOBAL.userId;
-GLOBAL.userFullName;
-GLOBAL.userEmail;
 
 //THIS PAGE SHORTENED URL : https://bit.ly/3eiucSP
 
@@ -91,7 +88,7 @@ function updateAccountTable(id, contents) {
       tableHTML += i==0 ? '</thead><tbody>'
       : i==contents.length-1 ? '</tbody><tfoot>' : '';
     }
-    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
+    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>';
 
     processTable(id, tableHTML);
     openTabAfterConnect(id);
@@ -125,7 +122,7 @@ function updateHistoricTable(id, contents) {
       tableHTML += i==0 ? '</thead><tbody>'
       : i==contents.length-1 ? '</tbody><tfoot>' : '';
     }
-    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
+    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>';
 
     processTable(id, tableHTML);
     openTabAfterConnect(id);
@@ -150,7 +147,7 @@ function updatePersonalTable(id, contents) {
       tableHTML += '</tr>';
     });
 
-    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
+    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>';
     processTable(id, tableHTML);
     openTabAfterConnect(id);
 
@@ -166,7 +163,7 @@ function updatePersonalTable(id, contents) {
     }
 
     tableHTML += '</table></marquee>';
-    $("#scrollDiv").html(tableHTML);
+    setHtml("#scrollDiv", tableHTML);
 
     GLOBAL.totalValue = toValue(contents[1][totalCol]);
     GLOBAL.recurrentValue = contents[1][indexOf(contents[0], "Recurrent")];
@@ -198,7 +195,7 @@ function updateFaqTable(id, contents) {
 
   processTable(id, tableHTML);
 
-  openTabAfterConnect(id)                 // Activate first tab as open by default
+  openTabAfterConnect(id);                // Activate first tab as open by default
   displayElement("#connectButton", true); // Show the connect button
 }
 
@@ -321,7 +318,6 @@ function updateDeposit() {
 
 function withdraw() {
   const id = GLOBAL.withdrawAmount;
-  const d = GLOBAL.data[GLOBAL.displayData.personal.id];
   const content = getTranslatedContent("Amount to withdraw", false,
       {inputId:id, type:"euro", min:Math.min(100, GLOBAL.totalValue), max:GLOBAL.totalValue, erase:true, placeholder:translate("withdraw")})
       + getTranslatedContent("Withdraw period", false,
@@ -345,7 +341,7 @@ function withdraw() {
   const fnc = () => $('#' + GLOBAL.withdrawCost).val(() =>
   translate(toCurrency(getDaysBetweenDate(new Date(), getNextMonthDate()) * 4/100/365 * $("#" + id).val() || 0)));
   $('#' + GLOBAL.withdrawAmount).keyup(fnc);
-  fnc()
+  fnc();
   const fnb = () => displayElement('#' + GLOBAL.withdrawCost + "All",
   !$('#' + GLOBAL.withdrawDate).is(':checked') && $('#' + GLOBAL.withdrawPeriod).is(':checked'), 0);
   $('#' + GLOBAL.withdrawDate).change(fnb);
@@ -379,7 +375,7 @@ function withdrawAmountValidation(result) {
       + getTranslatedContent("Operation cost", true) + getTableReadOnlyContent(cost) + '</tr><tr>'
       + getTranslatedContent("Recipient", true) + getTableReadOnlyContent(GLOBAL.userFullName) + '</tr><tr>'
       + getTranslatedContent("IBAN", true) + getTableReadOnlyContent(data[1][indexOf(data[0], "IBAN")]) + '</tr><tr>'
-      + getTranslatedContent("Bank", true) + getTableReadOnlyContent(data[1][indexOf(data[0], "Bank")]) + '</tr></table>'
+      + getTranslatedContent("Bank", true) + getTableReadOnlyContent(data[1][indexOf(data[0], "Bank")]) + '</tr></table>';
 
       const innerHTML = getPopupContent(withdraw.name, content, updateWithdraw.name);
 
@@ -460,7 +456,7 @@ function confirmation(content) {
     .replace(/(<\/p>)/ig, '\n\n')
     .replace(/(<\/tr>)/ig, '\n')
     .replace(/(<\/th>)/ig, ' : ')
-    .replace(/(<([^>]+)>)/ig, '')
+    .replace(/(<([^>]+)>)/ig, '');
   google.script.run
         .withSuccessHandler()
         .withFailureHandler(displayError)
@@ -478,7 +474,7 @@ function insertHistoricRow(data) {
     // Display added data in the historic tab
     const id = GLOBAL.displayData.historic.id;
     openTab(id);
-    var d = []
+    var d = [];
     data[0].forEach(item => d.push(item));  // Make a copy of data to not be modified by other operation on data
     GLOBAL.data[id].splice(1, 0, d);
     updateHistoricTable(id, GLOBAL.data[id]);

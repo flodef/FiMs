@@ -114,7 +114,7 @@ function sendCharity() {
         + "Sans réponse de ta part, je ferai ce don à ta place pour l'association de mon choix (Les Restos du Coeur) d'ici le 31 janvier.\n\n"
         + "Enfin, toute ma reconnaissance pour ta confiance et ton investissement qui aide, à notre échelle, l'épanouissement de l'économie locale et solidaire.\n\n"
         + "Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n"
-        + "Flo"
+        + "Flo";
 
         MailApp.sendEmail(mail, object, message);
 

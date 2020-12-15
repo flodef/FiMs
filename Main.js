@@ -425,7 +425,7 @@ function insertDividendRow(contents) {
       label = "ISHARES US T 7-10";
     } else if (row[1].includes("S&P")) {
       type = "Stocks";
-      label = "VANGUARD S&P500"
+      label = "VANGUARD S&P500";
     } else {
       isError = true;
     }
@@ -438,7 +438,7 @@ function insertDividendRow(contents) {
       var historicData = GLOBAL.data[GLOBAL.displayData.historic.id];
       var index = indexOf(historicData, value, 6);
 
-      if (index === null || (index !== null &&
+      if (index == null || (index != null &&
                             (historicData[index][GLOBAL.histoIdCol] != GLOBAL.dummy
                           || historicData[index][GLOBAL.histoIdCol] != id))) {
           data.push([toStringDate(null, true), type, label, transaction, "", "", value, GLOBAL.dummy]);
@@ -677,7 +677,7 @@ function updateHistoricTable(id, contents) {
     tableHTML += i==0 ? '</thead><tbody>'
     : i==contents.length-1 ? '</tbody><tfoot>' : '';
   }
-  tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
+  tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>';
 
   processTable(id, tableHTML, true);
 
@@ -700,7 +700,7 @@ function updateStandardTable(id, contents) {
     tableHTML += i==0 ? '</thead><tbody>'
     : i==contents.length-1 ? '</tbody><tfoot>' : '';
   }
-  tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>'
+  tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>';
 
   processTable(id, tableHTML, true);
 }

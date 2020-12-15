@@ -9,9 +9,6 @@ GLOBAL.scriptUrl = GLOBAL.isLocal ? '' : "https://flodef.github.io/FiMS/";      
 GLOBAL.data = [];
 GLOBAL.loadingQueueCount = 0;
 GLOBAL.hasAlreadyUpdated = [];
-GLOBAL.currentLoadingId;
-GLOBAL.currentDisplayedId;
-GLOBAL.displayId;
 GLOBAL.handleEvent = true;
 
 
@@ -60,7 +57,7 @@ function loadPage() {
   + '<input id="mainFocus" type="image" src="' + GLOBAL.serverUrl + 'Img/0BYg1.png" style="height:0px;" tabindex="1">'
   + '</div><tr>';
   GLOBAL.menuButton.forEach(item => { tableHTML += getMenuButton(item); });
-  tableHTML += '</tr>'
+  tableHTML += '</tr>';
   setTable("menu", tableHTML);
   displayElement(".actionButton", false, 0);
 
@@ -126,7 +123,7 @@ function updateValues(id, forceReload, success) {
 }
 
 function openPopup(innerHTML) {
-  $("#popup").html(innerHTML);
+  setHtml("#popup", innerHTML);
   $(".contentOverlay").addClass("blur-filter");
   displayElement('#popupOverlay', true);
 }
@@ -140,8 +137,6 @@ function processTable(id, tableHTML, shouldFilter) {
   $("#" + id + "Button").prop('disabled', false);     // Activate button
   $(".auto").each((i, item) => autoAdaptWidth(item)); // Auto adapt all auto element
 
-
-  // sorttable.makeSortable($("#" + id + "Table").get(0));
   if (shouldFilter) {
     filterTable(id);
   }
@@ -303,7 +298,7 @@ function getTableTitle(id, disabled, tooltip, colspan) {
 }
 
 function getMainTableHead(id) {
-  return '<table id="' + id + 'Table" class="sortable mainTable">';
+  return '<table id="' + id + 'Table" class="mainTable">';
 }
 
 function getTableCheckmark(content) {
@@ -387,7 +382,7 @@ function getOverlayDiv(id, cssClass = "overlay") {
 // }
 
 // function getMainTableHead(id) {
-//   return '<table id="' + id + 'Table" class="sortable mainTable '
+//   return '<table id="' + id + 'Table" class="mainTable '
 //        + ($("#" + id + "Table").is(":visible") ? '' : 'hidden') + '">';
 // }
 
@@ -401,7 +396,7 @@ function getColor(value, isDisabled = false, isCur = true, forcedColor) {
 
 function setTable(id, tableHTML) {
   tableHTML += '</table>';
-  $("#" + id + "Div").html(tableHTML);
+  setHtml("#" + id + "Div", tableHTML);
 }
 
 function setEvents() {
@@ -458,8 +453,8 @@ function checkElement(e) {
     const m = parseInt(e.maxLength);
     const maxLength = !isNaN(m) && m > 0 ? m : 30;
     const pattern = e.pattern
-      || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
-      : type == "iban" ? "^([A-Z]{2}[ \-]?[0-9]{2})(?=(?:[ \-]?[A-Z0-9]){9,30}$)((?:[ \-]?[A-Z0-9]{3,5}){2,7})([ \-]?[A-Z0-9]{1,3})?$"
+      || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9]+)*$"
+      : type == "iban" ? "^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$"
       // : type == "url" ? "^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$"
       : type == "url" ? "."
       : type == "name" ? "^[A-zÀ-ú -]{0," + maxLength + "}$"
@@ -545,10 +540,10 @@ function filterTable(id, shouldReload) {
   var filterFunc = id == investId ? (i, item) => (!isChecked || shouldRebalance($(item).children("td")[6] ? $(item).children("td")[6].innerHTML : null)) && searchFunc(item)
                  : id == histoId || id == evolId ? (i, item) => (isChecked || i < GLOBAL.dataPreloadRowLimit) && searchFunc(item)
                  : (i, item) => true;
-  var displayFunc = (i, item) => { var fn = filterFunc(i, item) ? a => $(a).show() : a => $(a).hide(); fn(item); };
-  var loadFunc = (id == histoId || id == evolId) && shouldReload && isChecked
-               ? null
-               : null;
+  // var displayFunc = (i, item) => { var fn = filterFunc(i, item) ? a => $(a).show() : a => $(a).hide(); fn(item); };
+  // var loadFunc = (id == histoId || id == evolId) && shouldReload && isChecked
+  //              ? null
+  //              : null;
 
   // $("#" + id + "Table tbody tr").each(displayFunc);
 
@@ -618,7 +613,7 @@ function showSnackBar(text) {
 
 function displayLoading(id, isDisplayed) {
   if (id) {
-    GLOBAL.currentLoadingId = isDisplayed ? id : null;
+    GLOBAL.currentLoadingId = isDisplayed ? id : "";
     $("#loading").text(isDisplayed ? translate("Loading") + " " + translate(id) + " ..." : null);
     if (isDisplayed || GLOBAL.loadingQueueCount) {
       GLOBAL.hasAlreadyUpdated[id] = true;
@@ -686,7 +681,7 @@ function getTranslateData(content) {
 
       const i = fna(trans);
       if (i) {
-        text = d[i][2].replace('*', num);
+        text = d[i][2].replaceAll('*', num);
         tooltip = d[i][3];
       }
     }
@@ -745,11 +740,11 @@ function shouldRebalance(value) {
 }
 
 function toValue(content) {
-  return content ? parseFloat(String(content).replace(",", "")
-                                             .replace(" ", "")
-                                             .replace("$", "")
-                                             .replace("€", "")
-                                             .replace("%", ""))
+  return content ? parseFloat(String(content).replaceAll(",", "")
+                                             .replaceAll(" ", "")
+                                             .replaceAll("$", "")
+                                             .replaceAll("€", "")
+                                             .replaceAll("%", ""))
                  : 0;
 }
 
@@ -855,6 +850,19 @@ function restrainFormula(formula, low, high) {
 
   return formula;
 }
+
+function setHtml(id, html) {
+  $(id).html(escapeHtml(html));
+}
+
+function escapeHtml(html) {
+    return html
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+ }
 
 function roundDown(value, precision = 0) {
   return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
