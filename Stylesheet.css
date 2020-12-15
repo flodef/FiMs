@@ -185,12 +185,12 @@ marquee {
   width: 250px;
 }
 
-table tr {
+table.mainTable tr {
   /* Add a bottom border to all table rows */
   border-bottom: 1px solid #ddd;
 }
 
-table tr.header, table tr:hover {
+table.mainTable tr.header, table.mainTable tr:hover {
   /* Add a grey background color to the table header and on hover */
   background-color: #f1f1f1;
 }

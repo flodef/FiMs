@@ -3,9 +3,9 @@
 */
 
 window.GLOBAL = {};
-GLOBAL.isLocal = document.URL.includes(":8080");                                                  // Whether the app is running in local mode
-GLOBAL.serverUrl = GLOBAL.isLocal ? '' : "https://raw.githubusercontent.com/flodef/FiMS/master/"; // Remove the server URL if in local mode
-GLOBAL.scriptUrl = GLOBAL.isLocal ? '' : "https://flodef.github.io/FiMS/";                        // Remove the server URL if in local mode
+GLOBAL.isLocal = document.URL.includes(':8080');                                                  // Whether the app is running in local mode
+GLOBAL.serverUrl = GLOBAL.isLocal ? '' : 'https://raw.githubusercontent.com/flodef/FiMS/master/'; // Remove the server URL if in local mode
+GLOBAL.scriptUrl = GLOBAL.isLocal ? '' : 'https://flodef.github.io/FiMS/';                        // Remove the server URL if in local mode
 GLOBAL.data = [];
 GLOBAL.loadingQueueCount = 0;
 GLOBAL.hasAlreadyUpdated = [];
@@ -19,18 +19,18 @@ $(() => {
   jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
 
   const body =
-    getDiv("content", "contentOverlay", null,
-      getDiv("mainHeading") +
-      getDiv("tabContainer") +
-      getDiv("loaderBar", "loaderBar") +
-      getDiv("mainContent") +
-      getDiv("footer"))
-    + getDiv("scrollDiv", "contentOverlay", "center")
-    + getDiv("menuDiv", "contentOverlay", "right")
-    + getOverlayDiv("loader", "shadeOverlay")
-    + getOverlayDiv("popup", "shadeOverlay")
-    + getOverlayDiv("alert")
-    + getDiv("snackbar")
+    getDiv('content', 'contentOverlay', null,
+      getDiv('mainHeading') +
+      getDiv('tabContainer') +
+      getDiv('loaderBar', 'loaderBar') +
+      getDiv('mainContent') +
+      getDiv('footer'))
+    + getDiv('scrollDiv', 'contentOverlay', 'center')
+    + getDiv('menuDiv', 'contentOverlay', 'right')
+    + getOverlayDiv('loader', 'shadeOverlay')
+    + getOverlayDiv('popup', 'shadeOverlay')
+    + getOverlayDiv('alert')
+    + getDiv('snackbar');
   $('body').html(body);
 
   displayElement('.contentOverlay', true, 0);
@@ -47,9 +47,9 @@ function loadPage() {
 
   // Set the app main heading to the web page title
   google.script.run
-               .withSuccessHandler(title => $("#mainHeading").html('<h1>' + translate(title) + '</h1>'))
-               .withFailureHandler(displayError)
-               .getProperty("pageTitle");
+    .withSuccessHandler(title => $('#mainHeading').html('<h1>' + translate(title) + '</h1>'))
+    .withFailureHandler(displayError)
+    .getProperty('pageTitle');
 
   // Set the app buttons
   var tableHTML = '<table id="actionButton" class="topMenu">'
@@ -58,12 +58,12 @@ function loadPage() {
   + '</div><tr>';
   GLOBAL.menuButton.forEach(item => { tableHTML += getMenuButton(item); });
   tableHTML += '</tr>';
-  setTable("menu", tableHTML);
-  displayElement(".actionButton", false, 0);
+  setTable('menu', tableHTML);
+  displayElement('.actionButton', false, 0);
 
   // Set the main content and tab containers
-  var mainContentHTML = "";
-  var tabContainerHTML = "";
+  var mainContentHTML = '';
+  var tabContainerHTML = '';
   GLOBAL.displayId.forEach(id => {
     mainContentHTML += getDiv(id + 'Div');
     const tableHTML = getTableTitle(id, true);
@@ -71,41 +71,41 @@ function loadPage() {
     tabContainerHTML += getTitle(id);
   });
 
-  $("#mainContent").html(mainContentHTML);  // Set the app main content
+  $('#mainContent').html(mainContentHTML);  // Set the app main content
 
   setTabContainer(tabContainerHTML);
-  displayElement(".tabContent", false, 0);
+  displayElement('.tabContent', false, 0);
 
   // Set the footer
-  $("#footer").html('<table style="table-layout:fixed;"><tr>'
-  + '<td align="left">' + getLink("https://forms.gle/ffTrJzALtKtBuh9U8", 'Contact, BUG, Questions ?!*%$^#@') + '</td>'
+  $('#footer').html('<table style="table-layout:fixed;"><tr>'
+  + '<td align="left">' + getLink('https://forms.gle/ffTrJzALtKtBuh9U8', 'Contact, BUG, Questions ?!*%$^#@') + '</td>'
   + '<td align="center" id="loading"></td>'
-  + '<td align="right">' + translate('Icon made by') + ' ' + getLink("https://www.flaticon.com/authors/pixel-buddha", 'Pixel Buddha')
+  + '<td align="right">' + translate('Icon made by') + ' ' + getLink('https://www.flaticon.com/authors/pixel-buddha', 'Pixel Buddha')
   + ' ' + translate('from') + ' ' + getLink('https://www.flaticon.com') + '</td>'
   + '</tr></table>');
 
-  $(document).ready(() => $("#mainFocus").focus());   // Set the main focus (replace autofocus attribute)
+  $(document).ready(() => $('#mainFocus').focus());   // Set the main focus (replace autofocus attribute)
 
   init();   // Call init() proper to specialized script (Main or Associate)
 }
 
 function animateLoaderBar(item, duration = 3000) {
-  item = item ? $(item) : $(".loaderBar");
-  item.html(item.html() || "<span></span>");
+  item = item ? $(item) : $('.loaderBar');
+  item.html(item.html() || '<span></span>');
 
-  const span = item.children("span");
-  span.data("origWidth", span.width())
-      .width(0)
-      .animate({width: span.data("origWidth")}, duration);
+  const span = item.children('span');
+  span.data('origWidth', span.width())
+    .width(0)
+    .animate({width: span.data('origWidth')}, duration);
 }
 
 function openTab(id, isFirstLoading) {
   if (GLOBAL.currentDisplayedId != id) {
     GLOBAL.currentDisplayedId = id;
-    GLOBAL.displayId.forEach(id => displayElement("#" + id + "Div", false, 0));   // Hide all tab content
-    $(".tabLinks").removeClass("active");                                         // Remove the class "active" from all tabLinks"
-    displayElement("#" + id + "Div", true);                                       // Show the current tab
-    $("#" + id + "Button").addClass("active");                                    // Add an "active" class to the button that opened the tab
+    GLOBAL.displayId.forEach(id => displayElement('#' + id + 'Div', false, 0));   // Hide all tab content
+    $('.tabLinks').removeClass('active');                                         // Remove the class "active" from all tabLinks"
+    displayElement('#' + id + 'Div', true);                                       // Show the current tab
+    $('#' + id + 'Button').addClass('active');                                    // Add an "active" class to the button that opened the tab
 
     if (!isFirstLoading && !GLOBAL.displayData[id].loadOnce) {
       updateValues(id);
@@ -123,8 +123,8 @@ function updateValues(id, forceReload, success) {
 }
 
 function openPopup(innerHTML) {
-  setHtml("#popup", innerHTML);
-  $(".contentOverlay").addClass("blur-filter");
+  setHtml('#popup', innerHTML);
+  $('.contentOverlay').addClass('blur-filter');
   displayElement('#popupOverlay', true);
 }
 
@@ -134,8 +134,8 @@ function closePopup() {
 
 function processTable(id, tableHTML, shouldFilter) {
   setTable(id, tableHTML);
-  $("#" + id + "Button").prop('disabled', false);     // Activate button
-  $(".auto").each((i, item) => autoAdaptWidth(item)); // Auto adapt all auto element
+  $('#' + id + 'Button').prop('disabled', false);     // Activate button
+  $('.auto').each((i, item) => autoAdaptWidth(item)); // Auto adapt all auto element
 
   if (shouldFilter) {
     filterTable(id);
@@ -157,7 +157,7 @@ function getTableReadOnlyCell(contents, index) {
        + getTableReadOnlyContent(contents[index-1][1], false);
 }
 
-function getTableReadOnlyContent(content = "", isHeader, isDisabled, color) {
+function getTableReadOnlyContent(content = '', isHeader, isDisabled, color) {
   if (!isHeader) {
     var matches = /\(([^)]+)\)/.exec(content);
     var value = matches ? matches[matches.length-1] : content;
@@ -165,7 +165,7 @@ function getTableReadOnlyContent(content = "", isHeader, isDisabled, color) {
     var color = getColor(value, isDisabled, isCur, color);
     return '<td align="center" style="color:' + color + '">' + content + '</td>';
   } else {
-    return '<th align="center">' + content + '</th>'
+    return '<th align="center">' + content + '</th>';
   }
 }
 
@@ -174,8 +174,8 @@ function getTableEditableContent(content, data) {
   if (data) {
     data.inputId = data.inputId || getRandomId();  // Generates a random Id if it does not have any
     classText = data.class || '';
-    symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
-    const isToggle = data.class && data.class.includes("toggle");
+    symbol = data.type == 'euro' ? ' €' : data.type == 'percent' ? ' %' : data.type == 'radio' ? content : '';
+    const isToggle = data.class && data.class.includes('toggle');
     label = data.label
       ? '<div id="' + data.inputId + 'Div" style="top:55px;left:-320px;position:relative;text-align:right;">'
         + getLabel(data.inputId, Array.isArray(data.label) ? data.label[data.checked ? 0 : 1] : data.label, isToggle) + '</div>'
@@ -185,9 +185,9 @@ function getTableEditableContent(content, data) {
       + '\', $(this).is(\':checked\') ? \'' + data.label[0] + '\' : \'' + data.label[1] + '\', true));"' : '';
 
     if (isNumberInput(data.type)) {
-      data.precision = data.precision ?? (data.type == "euro" ? 2 : 0);
-      content = content ? toValue(content) : data.required ? "0" : "";
-    } else if (data.type == "date") {
+      data.precision = data.precision ?? (data.type == 'euro' ? 2 : 0);
+      content = content ? toValue(content) : data.required ? '0' : '';
+    } else if (data.type == 'date') {
       content = toJQueryDate(content, true);
     }
     data.value = content;
@@ -200,9 +200,9 @@ function getTableEditableContent(content, data) {
       : '';
   }
 
-  const input = data && data.type == "url"
+  const input = data && data.type == 'url'
     ? splice(getLink(content), getAttributesFromData(data), 3)
-    : '<input' + addAttr("class", classText) + getAttributesFromData(data)
+    : '<input' + addAttr('class', classText) + getAttributesFromData(data)
       + (isEditableInput(data.type) && !data.readonly && !data.disabled ? getEditCellHandler(content, data) : handler)
       + '>' + data.symbol + '</input>';
   const tooltip = getTooltip(label + input, data.tooltip);
@@ -212,32 +212,32 @@ function getTableEditableContent(content, data) {
 
 function getAttributesFromData(data) {
   var attr = '';
-  var type = "text";  // Type is text by default
+  var type = 'text';  // Type is text by default
   if (data) {
-    data.symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
+    data.symbol = data.type == 'euro' ? ' €' : data.type == 'percent' ? ' %' : data.type == 'radio' ? content : '';
     if (isNumberInput(data.type)) {
       const min = roundDown(data.min, data.precision) ?? 0;
       const max = roundDown(data.max, data.precision) ?? 0;
-      attr = addAttr("min", min) + addAttr("max", max);
+      attr = addAttr('min', min) + addAttr('max', max);
     } else if (!isEditableInput(data.type)) {
       type = data.type || type;
     } else {
       const max = parseInt(data.maxLength);
-      const maxLength = !isNaN(max) && max > 0 ? max : data.type == "url" ? 256 : 30;
+      const maxLength = !isNaN(max) && max > 0 ? max : data.type == 'url' ? 256 : 30;
       const min = parseInt(data.minLength);
       const minLength = !isNaN(min) && min > 0 ? min : null;
-      attr = addAttr("minLength", minLength) + addAttr("maxLength", maxLength);
+      attr = addAttr('minLength', minLength) + addAttr('maxLength', maxLength);
     }
 
-    attr += addAttr("id", data.inputId) + addAttr("placeholder", data.placeholder)
-          + addAttr("name", data.name) + addAttr("pattern", data.pattern) + addAttr("style", data.style)
-          + addAttr("value", data.value) + addAttr("data-symbol", data.symbol) + addAttr("data-type", data.type || 'text')
-          + addAttr("data-precision", data.precision) + addAttr("readonly", data.readonly, true)
-          + addAttr("disabled", data.disabled, true) + addAttr("required", data.required, true)
-          + addAttr("checked", data.checked);
+    attr += addAttr('id', data.inputId) + addAttr('placeholder', data.placeholder)
+          + addAttr('name', data.name) + addAttr('pattern', data.pattern) + addAttr('style', data.style)
+          + addAttr('value', data.value) + addAttr('data-symbol', data.symbol) + addAttr('data-type', data.type || 'text')
+          + addAttr('data-precision', data.precision) + addAttr('readonly', data.readonly, true)
+          + addAttr('disabled', data.disabled, true) + addAttr('required', data.required, true)
+          + addAttr('checked', data.checked);
   }
 
-  attr += addAttr("type", type);  // Type is universal
+  attr += addAttr('type', type);  // Type is universal
 
   return attr;
 }
@@ -264,8 +264,8 @@ function getUpdateContent(id, range, expected) {
   return 'if (this.value != \'' + expected + '\') '
        + '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]'
        + (id ? id != GLOBAL.settings ? ', () => updateValues(\'' + id + '\', true)'
-       : ', () => getValue({ id:GLOBAL.settings, formula:GLOBAL.settingsFormula }, null, true, updateAllValues)'
-       : '') + '); }';
+         : ', () => getValue({ id:GLOBAL.settings, formula:GLOBAL.settingsFormula }, null, true, updateAllValues)'
+         : '') + '); }';
 }
 
 function getSubTableTitle(id, title, range) {
@@ -284,16 +284,16 @@ function getTableTitle(id, disabled, tooltip, colspan) {
   return '<table id="' + id + 'Content" class="tabContent"><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
        + '<tr style="background-color:white;"><td></td>'
        + (false ? '<td id="' + id + 'Switch" class="mainSwitch '
-       + ($("#" + id + "Switch").is(":visible") ? '' : 'hidden') + '">'
+       + ($('#' + id + 'Switch').is(':visible') ? '' : 'hidden') + '">'
        + getTooltip('<label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
        + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '')
        + ' onclick="filterTable(\'' + id + '\', true)">'
        + '<div class="slider round"></div></label>', tooltip) + '</td></tr></table>'
        + '<td colspan="' + colspan + '" align="right">'
        + '<input id="' + id + 'Search" type="text" placeholder="Search" class="mainSearch '
-       + ($("#" + id + "Search").is(":visible") ? '' : 'hidden') + '" '
+       + ($('#' + id + 'Search').is(':visible') ? '' : 'hidden') + '" '
        + 'onkeyup="filterTable(\'' + id + '\');" onchange="filterTable(\'' + id + '\');"'
-       + 'value="' + ($('#' + id + 'Search').val() || "") + '">' : '')
+       + 'value="' + ($('#' + id + 'Search').val() || '') + '">' : '')
        + '</tr></table>' + getMainTableHead(id);
 }
 
@@ -303,7 +303,7 @@ function getMainTableHead(id) {
 
 function getTableCheckmark(content) {
   return '<td align="center" style="height:27px;">' + getTooltip(
-  '<div style="position:absolute;left:35%;top:50%;display:block;margin:-4px -12px;" class="checkmark"></div>', translate(content)) + '</td>';
+    '<div style="position:absolute;left:35%;top:50%;display:block;margin:-4px -12px;" class="checkmark"></div>', translate(content)) + '</td>';
 }
 
 function getTableLoaderBar(content) {
@@ -314,7 +314,7 @@ function getTableLoaderBar(content) {
 
 function getTableImage(content) {
   return '<td align="center">' + getTooltip(
-  '<img src="' + GLOBAL.serverUrl + 'Img/' + content + '.png" '
+    '<img src="' + GLOBAL.serverUrl + 'Img/' + content + '.png" '
   + ' onclick="displayElement(this, false, 0);displayElement(this, true, 3000)">', translate(content)) + '</td>';
 }
 
@@ -346,13 +346,13 @@ function getLink(content, title) {
 }
 
 function getDiv(id, cssClass, align, content = '') {
-  return '<div' + addAttr("id", id) + addAttr("align", align)
-    + addAttr("class", cssClass ? cssClass + (cssClass.toLowerCase().endsWith("overlay") ? ' hidden' : '') : '') + '>'
+  return '<div' + addAttr('id', id) + addAttr('align', align)
+    + addAttr('class', cssClass ? cssClass + (cssClass.toLowerCase().endsWith('overlay') ? ' hidden' : '') : '') + '>'
     + content + '</div>';
 }
 
-function getOverlayDiv(id, cssClass = "overlay") {
-  return getDiv(id + "Overlay", cssClass, null, getDiv(id));
+function getOverlayDiv(id, cssClass = 'overlay') {
+  return getDiv(id + 'Overlay', cssClass, null, getDiv(id));
 }
 
 // function getTitle(id, disabled) {
@@ -389,45 +389,45 @@ function getOverlayDiv(id, cssClass = "overlay") {
 function getColor(value, isDisabled = false, isCur = true, forcedColor) {
   var number = toValue(value);
   return forcedColor ? forcedColor
-                     : isDisabled || (!isNaN(number) && number == 0) ? "wheat"
-                     : isCur ? number > 0 ? "green" : "red"
-                     : "black";
+    : isDisabled || (!isNaN(number) && number == 0) ? 'wheat'
+      : isCur ? number > 0 ? 'green' : 'red'
+        : 'black';
 }
 
 function setTable(id, tableHTML) {
   tableHTML += '</table>';
-  setHtml("#" + id + "Div", tableHTML);
+  setHtml('#' + id + 'Div', tableHTML);
 }
 
 function setEvents() {
-  $(".checkmark")
-    .on("click", e => $(e.target).addClass('draw'))
-    .on("animationend", e => $(e.target).removeClass('draw'));
+  $('.checkmark')
+    .on('click', e => $(e.target).addClass('draw'))
+    .on('animationend', e => $(e.target).removeClass('draw'));
 
-  $(".validateContent").hover(
+  $('.validateContent').hover(
     e => { var c = $(e.target).children().children(); c.first().fadeOut(); c.last().fadeIn(); },
     e => { var c = $(e.target).children().children(); c.last().fadeOut(); c.first().fadeIn(); });
 }
 
 function setTabContainer(innerHTML) {
-  $("#tabContainer").html(innerHTML);  // Set the tab buttons content
-  $(".tabLinks").css("width", 100/GLOBAL.displayId.length + "%");   // Tab buttons should be centered
+  $('#tabContainer').html(innerHTML);  // Set the tab buttons content
+  $('.tabLinks').css('width', 100/GLOBAL.displayId.length + '%');   // Tab buttons should be centered
 }
 
 function toggleItem(id, item, shouldDisplay) {
   var isCurrentId = item.id == id;
   var shouldDisplay = shouldDisplay && isCurrentId;
-  displayElement(item, shouldDisplay, isCurrentId ? 1000 : 0)
+  displayElement(item, shouldDisplay, isCurrentId ? 1000 : 0);
 }
 
 function autoAdaptWidth(e) {
   checkElement(e);
 
   if (!e.placeholder) {
-    var size = e.style.fontSize ? e.style.fontSize : "13.33px";
+    var size = e.style.fontSize ? e.style.fontSize : '13.33px';
     var step = parseFloat(size)/1.8;
     var index = 4;
-    e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
+    e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + 'px';
   }
 }
 
@@ -440,8 +440,8 @@ function checkElement(e) {
     const max = !isNaN(parseFloat(e.max)) ? parseFloat(e.max) : Number.MAX_SAFE_INTEGER;
     const precision = parseInt(e.dataset.precision) || 0;
     const maxLength = Math.max(String(parseInt(min)).length, String(parseInt(max)).length) + precision + 1;   // Don't forget the decimal separator
-    const pattern = e.pattern || "^" + (min < 0 ? max < 0 ? "-+" : "-?" : "") + "([0-9]" + (e.required ? '+' : '*') + "$"
-      + (precision > 0 ? "|[0-9]+\\.?[0-9]{0," + precision + "}$" : "") + ")";
+    const pattern = e.pattern || '^' + (min < 0 ? max < 0 ? '-+' : '-?' : '') + '([0-9]' + (e.required ? '+' : '*') + '$'
+      + (precision > 0 ? '|[0-9]+\\.?[0-9]{0,' + precision + '}$' : '') + ')';
     const regexp = new RegExp(pattern);
     var val = parseFloat(e.value);
     while (e.value && (!regexp.test(e.value) ||
@@ -453,12 +453,12 @@ function checkElement(e) {
     const m = parseInt(e.maxLength);
     const maxLength = !isNaN(m) && m > 0 ? m : 30;
     const pattern = e.pattern
-      || (type == "email" ? "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9]+)*$"
-      : type == "iban" ? "^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$"
-      // : type == "url" ? "^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$"
-      : type == "url" ? "."
-      : type == "name" ? "^[A-zÀ-ú -]{0," + maxLength + "}$"
-      : "^[A-zÀ-ú0-9, ()]{0," + maxLength + "}$");
+      || (type == 'email' ? '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9]+)*$'
+        : type == 'iban' ? '^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$'
+        // : type == "url" ? "^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$"
+          : type == 'url' ? '.'
+            : type == 'name' ? '^[A-zÀ-ú -]{0,' + maxLength + '}$'
+              : '^[A-zÀ-ú0-9, ()]{0,' + maxLength + '}$');
     const regexp = new RegExp(pattern);
     while (e.value && (!regexp.test(e.value) || e.value.length > maxLength)) {
       e.value = e.value.slice(0, -1);
@@ -469,63 +469,63 @@ function checkElement(e) {
 function getElementValidity(e) {
   const type = e.dataset.type;
   const minLength = isNumberInput(type) ? e.required ? 1 : 0
-   : isEditableInput(type) && !e.readonly && !e.disabled ? e.minLength || (e.required ? 3 : 0) : 0;
+    : isEditableInput(type) && !e.readonly && !e.disabled ? e.minLength || (e.required ? 3 : 0) : 0;
 
-  return e.value.length < minLength ? "Value should have at least " + minLength + " character(s) !"
-    : e.min && e.value && parseFloat(e.value) < parseFloat(e.min) ? "Value should be at least " + roundDown(e.min, parseInt(e.dataset.precision) || 2) + e.dataset.symbol
-    : null;
+  return e.value.length < minLength ? 'Value should have at least ' + minLength + ' character(s) !'
+    : e.min && e.value && parseFloat(e.value) < parseFloat(e.min) ? 'Value should be at least ' + roundDown(e.min, parseInt(e.dataset.precision) || 2) + e.dataset.symbol
+      : null;
 }
 
 function selectName(e, index) {
   if (index !== undefined) {
-    $('#transactionName').prop("selectedIndex", index);
+    $('#transactionName').prop('selectedIndex', index);
   } else {
     index = e.selectedIndex;
   }
 
-  displayElement("#transactionQuantityLabel", e.options[index].title);
+  displayElement('#transactionQuantityLabel', e.options[index].title);
 }
 
 function getValue(data, func, forceReload, success) {
   const id = data.id;
-  if (!id || (id && $("#loading").text() == "")) {
+  if (!id || (id && $('#loading').text() == '')) {
     if (!id || forceReload || !GLOBAL.hasAlreadyUpdated[id]) {
       displayLoading(id, true);
 
       google.script.run
-                   .withSuccessHandler(contents => {
-                     if (id) {
-                       GLOBAL.data[id] = contents;
-                     }
-                     if (func) {
-                       func(id, contents);
-                     }
-                     if (success) {
-                       success();
-                     }
-                     displayLoading(id, false);
+        .withSuccessHandler(contents => {
+          if (id) {
+            GLOBAL.data[id] = contents;
+          }
+          if (func) {
+            func(id, contents);
+          }
+          if (success) {
+            success();
+          }
+          displayLoading(id, false);
 
-                     if (id && !GLOBAL.loadingQueueCount) {
-                       setEvents();  // Set events when everything has been loaded
-                     }
-                   })
-                   .withFailureHandler(displayError)
-                   .getSheetValues(data.formula, data.filter != null ? GLOBAL.userId : null, data.filter);
+          if (id && !GLOBAL.loadingQueueCount) {
+            setEvents();  // Set events when everything has been loaded
+          }
+        })
+        .withFailureHandler(displayError)
+        .getSheetValues(data.formula, data.filter != null ? GLOBAL.userId : null, data.filter);
     }
   } else {
     ++GLOBAL.loadingQueueCount;
     setTimeout(() => {
       GLOBAL.loadingQueueCount = Math.max(GLOBAL.loadingQueueCount-1, 0);
-      getValue(data, func, forceReload, success)
+      getValue(data, func, forceReload, success);
     }, 100);
   }
 }
 
 function setValue(range, value, success) {
   google.script.run
-               .withSuccessHandler(contents => { if (success) { success(); } showSnackBar("Value has been updated !"); })
-               .withFailureHandler(displayError)
-               .setSheetValues(range, value);
+    .withSuccessHandler(contents => { if (success) { success(); } showSnackBar('Value has been updated !'); })
+    .withFailureHandler(displayError)
+    .setSheetValues(range, value);
 }
 
 function filterTable(id, shouldReload) {
@@ -533,13 +533,13 @@ function filterTable(id, shouldReload) {
   const investId = GLOBAL.displayData.investment.id;
   const evolId = GLOBAL.displayData.evolution.id;
 
-  var isChecked = $("#" + id + "Filter").is(':checked');
-  var search = $('#' + id + 'Search').val() ? $('#' + id + 'Search').val().toUpperCase() : "";
+  var isChecked = $('#' + id + 'Filter').is(':checked');
+  var search = $('#' + id + 'Search').val() ? $('#' + id + 'Search').val().toUpperCase() : '';
   var index = id == histoId ? 2 : 0;
-  var searchFunc = item => $(item).children("td")[index] && $(item).children("td")[index].innerHTML.toUpperCase().includes(search);
-  var filterFunc = id == investId ? (i, item) => (!isChecked || shouldRebalance($(item).children("td")[6] ? $(item).children("td")[6].innerHTML : null)) && searchFunc(item)
-                 : id == histoId || id == evolId ? (i, item) => (isChecked || i < GLOBAL.dataPreloadRowLimit) && searchFunc(item)
-                 : (i, item) => true;
+  var searchFunc = item => $(item).children('td')[index] && $(item).children('td')[index].innerHTML.toUpperCase().includes(search);
+  var filterFunc = id == investId ? (i, item) => (!isChecked || shouldRebalance($(item).children('td')[6] ? $(item).children('td')[6].innerHTML : null)) && searchFunc(item)
+    : id == histoId || id == evolId ? (i, item) => (isChecked || i < GLOBAL.dataPreloadRowLimit) && searchFunc(item)
+      : (i, item) => true;
   // var displayFunc = (i, item) => { var fn = filterFunc(i, item) ? a => $(a).show() : a => $(a).hide(); fn(item); };
   // var loadFunc = (id == histoId || id == evolId) && shouldReload && isChecked
   //              ? null
@@ -553,13 +553,13 @@ function filterTable(id, shouldReload) {
 function refreshTotal(id) {
   if (id == GLOBAL.displayData.historic.id) {
     var calculateFunc = (i, item) => {
-      item = $(item).children("td");
+      item = $(item).children('td');
       for (var j = 0; j < item.length; ++j) {
         a[j] += j == 0 ? 1
-              : j == 1 ? item[5].innerHTML ? 1 : 0
-              : j == 2 ? item[7].innerHTML ? 1 : 0
+          : j == 1 ? item[5].innerHTML ? 1 : 0
+            : j == 2 ? item[7].innerHTML ? 1 : 0
               : j == 3 ? item[8].innerHTML ? 1 : 0
-              : toValue(item[j].innerHTML);
+                : toValue(item[j].innerHTML);
       }
     };
     var footerFunc = () =>
@@ -571,61 +571,61 @@ function refreshTotal(id) {
        + '<td title="' + toCurrency(a[8]/a[3]) + '">' + toCurrency(a[8]) + '</td>';
   } else if (id == GLOBAL.displayData.evolution.id) {
     var calculateFunc = (i, item) => {
-      item = $(item).children("td");
+      item = $(item).children('td');
       for (var j = 0; j < item.length; ++j) {
         a[j] += j == 0 ? 1 : toValue(item[j].innerHTML);
       }
     };
     var footerFunc = () => {
-      var footer = "";
+      var footer = '';
       for (var i = 1; i < a.length; i++) {
         footer += '<td>' + toCurrency(a[i]/a[0], 2, i < 5 ? '%' :'€') + '</td>';
       }
       return footer;
-    }
+    };
   }
 
   if (calculateFunc) {
     var max = !$('#' + id + 'Filter').is(':checked')
-      ? GLOBAL.dataPreloadRowLimit : $("#" + id + "Table tbody tr").length;
-    var elem = $("#" + id + "Table tbody tr:visible").length == 0
-             ? $("#" + id + "Table tbody tr:lt(" + max + ")")
-             : $("#" + id + "Table tbody tr:visible");
+      ? GLOBAL.dataPreloadRowLimit : $('#' + id + 'Table tbody tr').length;
+    var elem = $('#' + id + 'Table tbody tr:visible').length == 0
+      ? $('#' + id + 'Table tbody tr:lt(' + max + ')')
+      : $('#' + id + 'Table tbody tr:visible');
     var a = new Array(elem.length).fill(0);
     elem.each(calculateFunc);
-    $("#" + id + "Footer").html('<td>TOTAL</td>' + footerFunc());
+    $('#' + id + 'Footer').html('<td>TOTAL</td>' + footerFunc());
   }
 }
 
 function showSnackBar(text) {
   if (text) {
-    $("#snackbar").text(translate(text));
+    $('#snackbar').text(translate(text));
   }
 
   // Shows the snackbar only if has text and is not already displayed
-  if ($("#snackbar").text() && !$("#snackbar").hasClass("show")) {
-    $("#snackbar").addClass("show");
+  if ($('#snackbar').text() && !$('#snackbar').hasClass('show')) {
+    $('#snackbar').addClass('show');
 
     // After 3 seconds, remove the show class from DIV
-    setTimeout(() => { $("#snackbar").removeClass("show"); $("#snackbar").text(""); }, 3000);
+    setTimeout(() => { $('#snackbar').removeClass('show'); $('#snackbar').text(''); }, 3000);
   }
 }
 
 function displayLoading(id, isDisplayed) {
   if (id) {
-    GLOBAL.currentLoadingId = isDisplayed ? id : "";
-    $("#loading").text(isDisplayed ? translate("Loading") + " " + translate(id) + " ..." : null);
+    GLOBAL.currentLoadingId = isDisplayed ? id : '';
+    $('#loading').text(isDisplayed ? translate('Loading') + ' ' + translate(id) + ' ...' : null);
     if (isDisplayed || GLOBAL.loadingQueueCount) {
       GLOBAL.hasAlreadyUpdated[id] = true;
       setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false, GLOBAL.timeBetweenReload*1000);
-      displayElement("#refreshButton", false);
+      displayElement('#refreshButton', false);
     } else {
-      setTimeout(() => displayElement("#refreshButton", !GLOBAL.loadingQueueCount), 100);  // Hack for local refresh because it loads everything in the same function
+      setTimeout(() => displayElement('#refreshButton', !GLOBAL.loadingQueueCount), 100);  // Hack for local refresh because it loads everything in the same function
     }
   }
 }
 
-function displayElement(id, isDisplayed, duration = "slow", complete) {
+function displayElement(id, isDisplayed, duration = 'slow', complete) {
   var fn = isDisplayed
     ? () => $(id).fadeIn(duration, complete)
     : () => $(id).fadeOut(duration, complete);
@@ -652,11 +652,11 @@ function displayError(msg, isWarning) {
   showLoader(false);
   displayLoading(GLOBAL.currentLoadingId, false);
 
-  $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
-  $("#alert").html('<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>'
-   + '<strong>' + (isWarning ? "WARNING" : "ALERT") + ':</strong> ' + msg);
+  $('#alert').css('background-color', isWarning ? '#ff9800' : '#f44336');
+  $('#alert').html('<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>'
+   + '<strong>' + (isWarning ? 'WARNING' : 'ALERT') + ':</strong> ' + msg);
   displayElement('#alertOverlay', true);
-  displayElement("#refreshButton", true);
+  displayElement('#refreshButton', true);
 }
 
 function translate(content) {
@@ -669,14 +669,14 @@ function getTranslateData(content) {
 
   const d = GLOBAL.data[GLOBAL.translation];
   if (d && content) {
-    const fna = item => { return indexOf(d, item, 0, 1, (a, b) => a.toLowerCase() == b.toLowerCase()) };
+    const fna = item => { return indexOf(d, item, 0, 1, (a, b) => a.toLowerCase() == b.toLowerCase()); };
     const fnb = item => { text = text.replace(item, d[fna(item)][2]); };
-    if (!isNaN(content.replace(/€|%|,/g, ""))) {                                                   // Numbers
+    if (!isNaN(content.replace(/€|%|,/g, ''))) {                                                   // Numbers
       [',', '.'].forEach(fnb);
-    } else if (/\d/.test(content) && (content.includes("month") || content.includes("year"))) {   // Duration
+    } else if (/\d/.test(content) && (content.includes('month') || content.includes('year'))) {   // Duration
       ['months', 'year'].forEach(fnb);
     } else {                                                                                      // Text
-      const num = content.replace(/^[^0-9€%]+|[^0-9€%]+$/g, "");  // Extranct number and symbols from content
+      const num = content.replace(/^[^0-9€%]+|[^0-9€%]+$/g, '');  // Extranct number and symbols from content
       const trans = num ? content.replace(num, '*') : content;    // Replace number by * to find translation
 
       const i = fna(trans);
@@ -696,31 +696,31 @@ function getPopupContent(id, content, validate) {
     + content + '<br><br>'
     + (!validate
       ? '<button id="' + id + 'Button" onclick="handleEvent(true);' + id + 'Validation(this.innerHTML)"></button>'
-      : '<button id="previousPopupButton" onclick="handleEvent(true);' + id + '()">' + translate("PREVIOUS") + '</button>'
-      + '<button id="validatePopupButton" onclick="handleEvent(true);' + validate + '()">' + translate("VALIDATE") + '</button>' )
+      : '<button id="previousPopupButton" onclick="handleEvent(true);' + id + '()">' + translate('PREVIOUS') + '</button>'
+      + '<button id="validatePopupButton" onclick="handleEvent(true);' + validate + '()">' + translate('VALIDATE') + '</button>' )
     + '</div>';
 }
 
 function addPopupButtonEvent(id, hasSingleButton) {
   if (hasSingleButton) {
     const fn = event => {
-      if (!GLOBAL.handleEvent && event && event.target.id == id && event.which == 13 && !$("#" + id).data("error")) {
-        $("#" + id + "Button").click();
+      if (!GLOBAL.handleEvent && event && event.target.id == id && event.which == 13 && !$('#' + id).data('error')) {
+        $('#' + id + 'Button').click();
       }
-      $("#" + id + "Button").html($("#" + id).val() ? translate("OK") : translate("CANCEL"));
+      $('#' + id + 'Button').html($('#' + id).val() ? translate('OK') : translate('CANCEL'));
     };
     fn();                  // Call the trigger function to display correct button text (OK or CANCEL)
-    $("#" + id).keyup();   // Trigger the Keyup event to adjust the input (display the eraser) as if a value as been entered
-    $("#" + id).keyup(fn); // Set the keyup trigger function
+    $('#' + id).keyup();   // Trigger the Keyup event to adjust the input (display the eraser) as if a value as been entered
+    $('#' + id).keyup(fn); // Set the keyup trigger function
   } else {
-    $("#" + id).keyup(event => {
+    $('#' + id).keyup(event => {
       if (!GLOBAL.handleEvent && event && (event.which == 13 || event.which == 27)) {
-        if (event.which == 13) { $("#validatePopupButton").click(); }
-        else if (event.which == 27) { $("#previousPopupButton").click(); }
+        if (event.which == 13) { $('#validatePopupButton').click(); }
+        else if (event.which == 27) { $('#previousPopupButton').click(); }
       }
     });
   }
-  setTimeout(() => { handleEvent(false); $("#" + id).focus(); }, 300);  // Hack for key events to avoid handling same events for multiple forms
+  setTimeout(() => { handleEvent(false); $('#' + id).focus(); }, 300);  // Hack for key events to avoid handling same events for multiple forms
 }
 
 function handleEvent(isHandled) {
@@ -731,52 +731,52 @@ function handleEvent(isHandled) {
 
 function addScript(scriptName) {
   var element = document.createElement('script');
-  element.src = GLOBAL.scriptUrl + scriptName + ".js";
+  element.src = GLOBAL.scriptUrl + scriptName + '.js';
   document.head.appendChild(element);
 }
 
 function shouldRebalance(value) {
-  return value && !value.startsWith("HOLD");
+  return value && !value.startsWith('HOLD');
 }
 
 function toValue(content) {
-  return content ? parseFloat(String(content).replaceAll(",", "")
-                                             .replaceAll(" ", "")
-                                             .replaceAll("$", "")
-                                             .replaceAll("€", "")
-                                             .replaceAll("%", ""))
-                 : 0;
+  return content ? parseFloat(String(content).replaceAll(',', '')
+    .replaceAll(' ', '')
+    .replaceAll('$', '')
+    .replaceAll('€', '')
+    .replaceAll('%', ''))
+    : 0;
 }
 
 function toCurrency(content, precision = 2, symbol = '€') {
   var str = String(toValue(content));
   var ln = str.length;
-  var neg = str.startsWith("-") ? -1 : 0;
-  var i = str.indexOf(".") != -1 ? str.indexOf(".") : ln;
-  str = i != ln ? str.slice(0, i+precision+1).replace(/0+$/g, '') : str + ".";
-  var j = str.length-str.indexOf(".")-1;
-  str = (j < 2 ? str + '0'.repeat(2-j) : str) + " " + symbol;
+  var neg = str.startsWith('-') ? -1 : 0;
+  var i = str.indexOf('.') != -1 ? str.indexOf('.') : ln;
+  str = i != ln ? str.slice(0, i+precision+1).replace(/0+$/g, '') : str + '.';
+  var j = str.length-str.indexOf('.')-1;
+  str = (j < 2 ? str + '0'.repeat(2-j) : str) + ' ' + symbol;
 
-  return i + neg > 9 ? str.slice(0, i-9) + "," + str.slice(i-9, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
-       : i + neg > 6 ? str.slice(0, i-6) + "," + str.slice(i-6, i-3) + "," + str.slice(i-3)
-       : i + neg > 3 ? str.slice(0, i-3) + "," + str.slice(i-3)
-       : str;
+  return i + neg > 9 ? str.slice(0, i-9) + ',' + str.slice(i-9, i-6) + ',' + str.slice(i-6, i-3) + ',' + str.slice(i-3)
+    : i + neg > 6 ? str.slice(0, i-6) + ',' + str.slice(i-6, i-3) + ',' + str.slice(i-3)
+      : i + neg > 3 ? str.slice(0, i-3) + ',' + str.slice(i-3)
+        : str;
 }
 
 function toStringDate(date, isMDY) {
-  if (typeof(date) == "string") {
-    return date && date.split("/").length == 3
-    ? date.replace(/(^|\/)0+/g, "$1").split("/")[isMDY ? 1 : 0] + "/"
-      + date.replace(/(^|\/)0+/g, "$1").split("/")[isMDY ? 0 : 1] + "/"
-      + date.split("/")[2]
-    : null;
-  } else if (typeof(date) == "object") {
+  if (typeof(date) == 'string') {
+    return date && date.split('/').length == 3
+      ? date.replace(/(^|\/)0+/g, '$1').split('/')[isMDY ? 1 : 0] + '/'
+      + date.replace(/(^|\/)0+/g, '$1').split('/')[isMDY ? 0 : 1] + '/'
+      + date.split('/')[2]
+      : null;
+  } else if (typeof(date) == 'object') {
     let day = date.getDate();
     let month = date.getMonth() + 1;   //January is 0!
     const year = date.getFullYear();
     day = day < 10 ? '0' + day : day;
     month = month < 10 ? '0' + month : month;
-    return isMDY ? month + "/" + day + "/" + year : day + "/" + month + "/" + year;
+    return isMDY ? month + '/' + day + '/' + year : day + '/' + month + '/' + year;
   } else {
     return toStringDate(new Date(), isMDY);
   }
@@ -791,7 +791,7 @@ function toJQueryDate(date, isMDY) {  // yyyy-MM-dd
 }
 
 function addDaysToDate(daysToAdd = 0, date) {
-  var date = typeof(date) == "object" ? date : new Date();
+  var date = typeof(date) == 'object' ? date : new Date();
   date.setDate(date.getDate() + daysToAdd);
 
   return date;
@@ -803,13 +803,13 @@ function getNextMonthDate(dayCount = 1) { // 0 = end of this month, 1 (default) 
 }
 
 function getDaysBetweenDate(startDate, endDate) {
-    var millisecondsPerDay = 24 * 60 * 60 * 1000;
-    return Math.round((endDate - startDate) / millisecondsPerDay);
+  var millisecondsPerDay = 24 * 60 * 60 * 1000;
+  return Math.round((endDate - startDate) / millisecondsPerDay);
 }
 
 
 function indexOf(array, value, index, start, compare) {
-  var x = Number.isInteger(start) ? start : 0
+  var x = Number.isInteger(start) ? start : 0;
   const y = Number.isInteger(index) && index >= 0 || isString(index) ? index : null;
   const fn = compare ? compare : (a, b) => a == b;
 
@@ -837,7 +837,7 @@ function splice(original, text, offset = 0, removeCount = 0) {
   let calculatedOffset = offset < 0 ? original.length + offset : offset;
   return original.substring(0, calculatedOffset) +
     text + original.substring(calculatedOffset + removeCount);
-};
+}
 
 function restrainFormula(formula, low, high) {
   formula = formula.replace(/\d+/g, '');
@@ -856,13 +856,13 @@ function setHtml(id, html) {
 }
 
 function escapeHtml(html) {
-    return html
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
- }
+  return html
+  // .replace(/</g, '&lt;')
+  // .replace(/>/g, '&gt;')
+  // .replace(/"/g, '&quot;')
+    .replace(/&/g, '&amp;')
+    .replace(/'/g, '&#039;');
+}
 
 function roundDown(value, precision = 0) {
   return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
@@ -881,11 +881,11 @@ function isString(item) {
 }
 
 function isEditableInput(type) {
-  return type && (type != "date" && type != "radio" && type != "checkbox");
+  return type && (type != 'date' && type != 'radio' && type != 'checkbox');
 }
 
 function isNumberInput(type) {
-  return type && (type == "number" || type == "euro" || type == "percent");
+  return type && (type == 'number' || type == 'euro' || type == 'percent');
 }
 
 function addAttr(name, value, isSingle) {
