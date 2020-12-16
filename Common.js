@@ -128,12 +128,13 @@ function openPopup(innerHTML) {
   displayElement('#popupOverlay', true);
 }
 
-function closePopup() {
-  displayElement('#popupOverlay', false, () => { $('.contentOverlay').removeClass('blur-filter');$('#mainFocus').focus(); });
+function closePopup(complete = () => {}) {
+  displayElement('#popupOverlay', false, null,
+    () => { $('.contentOverlay').removeClass('blur-filter');$('#mainFocus').focus(); complete; });
 }
 
 function processTable(id, tableHTML, shouldFilter) {
-  setTable(id, tableHTML);
+  setTable(id, tableHTML + (shouldFilter && !tableHTML.includes('<tfoot>') ? '<tfoot><tr id="' + id + 'Footer"></tr></tfoot>' : ''));
   $('#' + id + 'Button').prop('disabled', false);     // Activate button
   $('.auto').each((i, item) => autoAdaptWidth(item)); // Auto adapt all auto element
 
@@ -340,9 +341,9 @@ function getTooltip(html, tooltip) {
 }
 
 function getLink(content, title) {
-  return content && content.slice(0, 4) == 'http'
-    ? '<a href=' + content + ' target="_blank">' + (title || content) + '</a>'
-    : content || '<a >&nbsp;</a>';
+  return content
+    ? '<a href="' + (content.slice(0, 4) == 'http' ? content : '#') + '" target="_blank">' + (title || content) + '</a>'
+    : '<a >&nbsp;</a>';
 }
 
 function getDiv(id, cssClass, align, content = '') {
@@ -510,7 +511,7 @@ function getValue(data, func, forceReload, success) {
           }
         })
         .withFailureHandler(displayError)
-        .getSheetValues(data.formula, data.filter != null ? GLOBAL.userId : null, data.filter);
+        .getSheetValues(data.formula, data.filter != null ? GLOBAL.user.ID : null, data.filter);
     }
   } else {
     ++GLOBAL.loadingQueueCount;
@@ -857,13 +858,14 @@ function setHtml(id, html) {
 }
 
 function escapeHtml(html) {
-  return html
+  return html ? html
   // .replace(/</g, '&lt;')
   // .replace(/>/g, '&gt;')
   // .replace(/"/g, '&quot;')
   // .replace(/&/g, '&amp;')
     .replace(/'/g, '&#039;')
-    .replace(/€/g, '&euro;');
+    .replace(/€/g, '&euro;')
+    : '';
 }
 
 function roundDown(value, precision = 0) {

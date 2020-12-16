@@ -625,9 +625,8 @@ function updateInvestmentTable(id, contents) {
       // tableHTML += getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color);
     }
     tableHTML += '</tr>';
-    tableHTML += i == 0 ? '</thead><tbody>'
-      : i == row-2 ? '</tbody><tfoot>'
-        : i == row-1 ? '</tfoot>' : '';
+    tableHTML += i == 0 ? '</thead><tbody>' : i == row-2 ? '</tbody><tfoot>' : i == row-1 ? '</tfoot>' : '';
+    // tableHTML += i == 0 ? '</thead><tbody>' : i == row - 1 ? '</tbody>' : '';
 
     if (i != 0 && i != row-1) {
       tags.push(contents[i][7]);
@@ -671,10 +670,8 @@ function updateHistoricTable(id, contents) {
         : '';
     }
     tableHTML += '</tr>';
-    tableHTML += i==0 ? '</thead><tbody>'
-      : i==contents.length-1 ? '</tbody><tfoot>' : '';
+    tableHTML += i == 0 ? '</thead><tbody>' : i == row - 2 ? '</tbody>' : '';
   }
-  tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>';
 
   processTable(id, tableHTML, true);
 
@@ -694,10 +691,8 @@ function updateStandardTable(id, contents) {
       tableHTML += getTableReadOnlyContent(t , i == 0);
     }
     tableHTML += '</tr>';
-    tableHTML += i==0 ? '</thead><tbody>'
-      : i==contents.length-1 ? '</tbody><tfoot>' : '';
+    tableHTML += i == 0 ? '</thead><tbody>' : i == row - 1 ? '</tbody>' : '';
   }
-  tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>';
 
   processTable(id, tableHTML, true);
 }

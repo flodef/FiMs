@@ -39,18 +39,17 @@ GLOBAL.personalData = [
   { index:23, readonly:true, type:'name', required:true },                           // Bank
   { index:24, readonly:true, type:'name', required:true },                           // Association
   { index:25, readonly:true, type:'url' },                            // Web page
-  { index:2, type:'euro', min:-1000, max:0 },                         // Recurrent
+  { index:2, type:'euro', min:-1000, max:0, required:true },                         // Recurrent
   { index:6, disabled:true },                                         // Estimate rate
   { index:7, disabled:true },                                         // Estimate gain
   { index:5, disabled:true },                                         // Financed project
   { index:3, disabled:true },                                         // Charity
   { index:4, disabled:true },                                         // Donated
   { index:8, disabled:true },                                         // Duration
-  { index:26, type:'url', disabled:true }                             // Debt recognition
 ];
 
-GLOBAL.totalValue = 0;
-GLOBAL.recurrentValue = 0;
+GLOBAL.user = [];
+
 
 //THIS PAGE SHORTENED URL : https://bit.ly/3eiucSP
 
@@ -85,10 +84,8 @@ function updateAccountTable(id, contents) {
         tableHTML += getTranslatedContent(contents[i][j], i == 0);
       }
       tableHTML += '</tr>';
-      tableHTML += i==0 ? '</thead><tbody>'
-        : i==contents.length-1 ? '</tbody><tfoot>' : '';
+      tableHTML += i == 0 ? '</thead><tbody>' : i == row - 1 ? '</tbody>' : '';
     }
-    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>';
 
     processTable(id, tableHTML);
     openTabAfterConnect(id);
@@ -119,10 +116,8 @@ function updateHistoricTable(id, contents) {
           : '';
       }
       tableHTML += '</tr>';
-      tableHTML += i==0 ? '</thead><tbody>'
-        : i==contents.length-1 ? '</tbody><tfoot>' : '';
+      tableHTML += i == 0 ? '</thead><tbody>' : i == row - 1 ? '</tbody>' : '';
     }
-    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>';
 
     processTable(id, tableHTML);
     openTabAfterConnect(id);
@@ -142,14 +137,30 @@ function updatePersonalTable(id, contents) {
       item.range = baseFormula + convertNumberToColumn(i) + contents[1][0];
       item.value = item.readonly || item.disabled ? translate(contents[1][i]) : contents[1][i];
 
+      GLOBAL.user[contents[0][i].replaceAll(' ', '')] = contents[1][i];
+
       tableHTML += '<tr>';
       tableHTML += getTranslatedContent(contents[0][i], false, item);
       tableHTML += '</tr>';
     });
 
-    tableHTML += '<tr id="' + id + 'Footer"></tr></tfoot>';
+    // Add an Acknowledgment Of Debt row at the end
+    const ackDebt = "Acknowledgment Of Debt";
+    const ackDebtId = ackDebt.replaceAll(' ', '') + 'Link';
+    const hasHistoric = GLOBAL.data.historic.length > 1;
+    if (hasHistoric) {
+      tableHTML += '<tr>';
+      tableHTML += getTranslatedContent(ackDebt, false, { value:translate(ackDebt), inputId:ackDebtId, type:'url'});
+      tableHTML += '</tr>';
+    }
+
     processTable(id, tableHTML);
     openTabAfterConnect(id);
+
+    // Acknowledgment of Debt creation when clicking on the link
+    if (hasHistoric) {
+      $('#' + ackDebtId).click(e => { e.preventDefault(); CreateAckDebt(); return false; });
+    }
 
     // Set the scrolling panel
     tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
@@ -166,10 +177,6 @@ function updatePersonalTable(id, contents) {
     setHtml('#scrollDiv', tableHTML);
 
     GLOBAL.totalValue = toValue(contents[1][totalCol]);
-    GLOBAL.recurrentValue = contents[1][indexOf(contents[0], 'Recurrent')];
-    GLOBAL.userEmail = contents[1][indexOf(contents[0], 'Email')];
-    GLOBAL.userFullName = contents[1][indexOf(contents[0], 'Family Name')].toUpperCase()
-      + ' ' + contents[1][indexOf(contents[0], 'First Name')];
   }
 
   displayElement('#depositButton', hasContent); // Show the deposit button
@@ -186,7 +193,7 @@ function updateFaqTable(id, contents) {
       var con = contents[i][j];
       var isQuestion = j == 0;
       var str = '';
-      con.split(' ').forEach(a => str += getLink(a) + ' ');
+      con.split(' ').forEach(a => str += (a.includes('http') ? getLink(a) : a) + ' ');
       tableHTML += (isQuestion ? '<b>' : '') + str + (isQuestion ? '</b>' : '') + '<br>';
     }
     tableHTML += '<br><br>';
@@ -210,7 +217,7 @@ function connect() {
   const d = GLOBAL.personalData[0];
   const id = 'userId';
   const content = getTranslatedContent('Enter your user id', false,
-    {inputId:id, type:d.type, minLength:d.minLength, maxLength:d.maxLength, value:GLOBAL.userId,
+    {inputId:id, type:d.type, minLength:d.minLength, maxLength:d.maxLength, value:GLOBAL.user.ID,
       erase:true, placeholder:translate('User Id')});
   const innerHTML = getPopupContent(id, content);
 
@@ -227,17 +234,16 @@ function userIdValidation(result) {
 }
 
 function setUserId(id) {
-  if (id != GLOBAL.userId) {
+  if (id != GLOBAL.user.ID) {
     const faqId = GLOBAL.displayData.FAQ.id;
-    GLOBAL.userId = id;
-    GLOBAL.userEmail = null;
-    GLOBAL.userFullName = null;
+    GLOBAL.user = [];
+    GLOBAL.user.ID = id;
 
-    GLOBAL.displayId.forEach(id => {
-      if (id != faqId) {
-        $('#' + id + 'Div').html('');                         // Clear all tab content except faq
+    GLOBAL.displayId.forEach(displayId => {
+      if (displayId != faqId) {
+        $('#' + displayId + 'Div').html('');                  // Clear all tab content except faq
       }
-      displayElement('#' + id + 'Button', GLOBAL.userId, 0);  // Display/Hide all tab depending on the connection state
+      displayElement('#' + displayId + 'Button', id, 0);      // Display/Hide all tab depending on the connection state
     });
     GLOBAL.currentDisplayedId = null;                         // Unselect the current displayed tab
 
@@ -309,7 +315,7 @@ function updateDeposit() {
   confirmation(content);
 
   // Send email reminder to myself
-  const subject = title + ': ' + value + ' for ' + GLOBAL.userId;
+  const subject = title + ': ' + value + ' for ' + GLOBAL.user.ID;
   google.script.run
     .withSuccessHandler(contents => insertHistoricRow(data))
     .withFailureHandler(displayError)
@@ -330,7 +336,7 @@ function withdraw() {
           {inputId:GLOBAL.withdrawCost, disabled:true}))
       + getDiv(GLOBAL.withdrawRecurrent + 'All', null, null,
         getTranslatedContent('Current recurrent amount', false,
-          {inputId:GLOBAL.withdrawRecurrent, disabled:true, value:translate(GLOBAL.recurrentValue)}));
+          {inputId:GLOBAL.withdrawRecurrent, disabled:true, value:translate(GLOBAL.user.Recurrent)}));
 
   const innerHTML = getPopupContent(id, content);
 
@@ -361,7 +367,7 @@ function withdrawAmountValidation(result) {
   if (result == translate('OK') && !$('#' + id).data('error')) {
     const value = toCurrency($('#' + id).val());
     const period = GLOBAL.withdrawPeriodOption[$('#' + GLOBAL.withdrawPeriod).is(':checked') ? 0 : 1];
-    if (period != GLOBAL.withdrawPeriodOption[1] || -parseFloat(toValue(value)) != parseFloat(toValue(GLOBAL.recurrentValue))) {
+    if (period != GLOBAL.withdrawPeriodOption[1] || -parseFloat(toValue(value)) != parseFloat(toValue(GLOBAL.user.Recurrent))) {
       const isNextMonth = $('#' + GLOBAL.withdrawDate).is(':checked') || !$('#' + GLOBAL.withdrawPeriod).is(':checked');
       const date = toStringDate(!isNextMonth ? new Date(Math.min(addDaysToDate(5), getNextMonthDate(0))) : getNextMonthDate(5));
       const cost = !isNextMonth ? $('#' + GLOBAL.withdrawCost).val() : toCurrency(0);
@@ -373,9 +379,9 @@ function withdrawAmountValidation(result) {
       + getTranslatedContent('Withdraw period', true) + getTranslatedContent(period) + '</tr><tr>'
       + getTranslatedContent('Withdraw date', true) + getTableReadOnlyContent(date) + '</tr><tr>'
       + getTranslatedContent('Operation cost', true) + getTableReadOnlyContent(cost) + '</tr><tr>'
-      + getTranslatedContent('Recipient', true) + getTableReadOnlyContent(GLOBAL.userFullName) + '</tr><tr>'
-      + getTranslatedContent('IBAN', true) + getTableReadOnlyContent(data[1][indexOf(data[0], 'IBAN')]) + '</tr><tr>'
-      + getTranslatedContent('Bank', true) + getTableReadOnlyContent(data[1][indexOf(data[0], 'Bank')]) + '</tr></table>';
+      + getTranslatedContent('Recipient', true) + getTableReadOnlyContent(getFullName(GLOBAL.user)) + '</tr><tr>'
+      + getTranslatedContent('IBAN', true) + getTableReadOnlyContent(GLOBAL.user.IBAN) + '</tr><tr>'
+      + getTranslatedContent('Bank', true) + getTableReadOnlyContent(GLOBAL.user.Bank) + '</tr></table>';
 
       const innerHTML = getPopupContent(withdraw.name, content, updateWithdraw.name);
 
@@ -420,7 +426,7 @@ function updateWithdraw() {
     updatePersonalTable(id, GLOBAL.data[id]);
   }
 
-  const subject = period + ' ' + title + ': ' + value + ' for ' + GLOBAL.userId + ' for the ' + date;
+  const subject = period + ' ' + title + ': ' + value + ' for ' + GLOBAL.user.ID + ' for the ' + date;
   google.script.run
     .withSuccessHandler(contents => isUnique ? insertHistoricRow(data) : changeRecurrent(value))
     .withFailureHandler(displayError)
@@ -460,7 +466,7 @@ function confirmation(content) {
   google.script.run
     .withSuccessHandler()
     .withFailureHandler(displayError)
-    .sendEmail(GLOBAL.userEmail, subject, message, {htmlBody:html});
+    .sendEmail(GLOBAL.user.Email, subject, message, {htmlBody:html});
 }
 
 function confirmationValidation(result) {
@@ -469,7 +475,7 @@ function confirmationValidation(result) {
 
 function insertHistoricRow(data) {
   if (data && data.movement) {
-    data = [[data.date ?? '', GLOBAL.userId, toCurrency(data.movement), data.cost ?? toCurrency(0)]];
+    data = [[data.date ?? '', GLOBAL.user.ID, toCurrency(data.movement), data.cost ?? toCurrency(0)]];
 
     // Display added data in the historic tab
     const id = GLOBAL.displayData.historic.id;
@@ -510,15 +516,76 @@ function getTranslatedContent(content, isHeader, data) {
   if (!isReadOnly) {
     data.tooltip = d.tooltip;
     data.style = (isEditableInput(data.type) ? 'width:104px;' : '')
-      + (data.readonly || data.disabled ? 'background:transparent;' : '')
-      + 'text-align:center;line-height:45px;border:transparent;' + (data.style ?? '');
+      + 'text-align:center;border:transparent;' + (data.style ?? '');
   }
 
   return isReadOnly
     ? getTableReadOnlyContent(content, isHeader).replace(content, isHeader
       ? '<div class="tooltip">' + d.text + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>'
       : d.text)
-    : '<td><h2 style="cursor:default">' + d.text + '</h2></td>' + getTableEditableContent(data.value, data);
+    : '<td><h2 style="cursor:default;line-height:45px;">' + d.text + '</h2></td>'
+      + (data.readonly || data.disabled ? getTableReadOnlyContent(data.value) : getTableEditableContent(data.value, data));
+}
+
+function CreateAckDebt() {
+  var total = 0;
+  const deposit = [];
+  GLOBAL.data.historic.forEach(item => {
+    const date = item[0];
+    const value = toValue(item[2]);
+    if (value > 0 && date) {
+      total += value;
+      deposit.unshift([date, value]);
+    }
+  });
+  const length = deposit.length;
+
+  // TODO : HAND WRITING
+  // montant de la dette (somme à payer) en chiffres
+  // montant de la dette en toutes lettres
+  // signature et date
+
+  if (length > 0) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(20);
+    doc.text(105, 30, 'Reconnaissance de dette', null, null, 'center');
+    doc.setFontSize(11);
+    doc.text(20, 50, 'Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31), \n'
+    + 'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de \n'
+    + getFullName(GLOBAL.user) + ', né(e) le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity + ', \n'
+    + 'demeurant à ce jour ' + GLOBAL.user.Address + ' - ' + GLOBAL.user.PostalCode + ' ' + GLOBAL.user.City + ', \n'
+    + 'la somme de ' + total + ' euros à titre de prêt sous la forme du :');
+    deposit.forEach((item, i) => {
+      doc.circle(30, 77 + i * 5, 0.5, 'FD');
+      doc.text(33, 78 + i * 5, 'Virement bancaire SEPA de ' + item[1] + ' euros, émis le ' + item[0]);
+    });
+    doc.text(20, 87 + length * 5, 'Le remboursement de ce prêt interviendra de la façon suivante :');
+    doc.circle(30, 94 + length * 5, 0.5, 'FD');
+    doc.text(33, 95 + length * 5, 'il sera remboursé immédiatement (moyennant le temps de virement de compte à compte\n'
+    + 'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique, \n'
+    + 'lettre ou autre moyen informatique), en une ou plusieurs fois, à la convenance du prêteur.');
+    doc.text(20, 118 + length * 5, 'Ce prêt est consenti moyennant un intérêt de :');
+    doc.circle(30, 125 + length * 5, 0.5, 'FD');
+    doc.text(33, 126 + length * 5, 'pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an \n'
+    + 'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.');
+    doc.text(20, 160 + length * 5, 'L\'emprunteur, DE FROCOURT Florian, \n                    Daté et signé');
+    doc.text(190, 160 + length * 5, 'Le prêteur, ' + getFullName(GLOBAL.user) + '\nDaté et signé               ', null, null, 'right');
+    doc.addImage(GLOBAL.serverUrl + 'Img/Signature.png', 'PNG', 20, 170 + length * 5);
+
+    const title = 'Test';
+    const datauri = doc.output('bloburl', title + '.pdf');
+    const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px;" '
+      + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
+      + '<iframe src="' + datauri + '" style="border:none; top:0px; left:0px; bottom:0px;'
+      + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>'
+    openPopup(html);
+    $('#popup').css( { margin: '5%', height: '850px', width: 'auto' });
+  }
+}
+
+function getFullName(person) {
+  return person.FamilyName.toUpperCase() + ' ' + person.FirstName;
 }
 
 function convertNumberToColumn(number) {    // 0 => A, 1 => B, etc
