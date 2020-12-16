@@ -4,7 +4,6 @@
 CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 -------------TEST-------------
 
-- AckDebt is done automatically
 - Add handwritting to AckDebt
 
 - FAQ : 
@@ -13,7 +12,6 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 	- Q : What happened if new deposit ?
 
 - Recurrent : 
-	- Should have Max = 1/12 of total
 	- Check everymonth if Rec > Total in appscript
 
 - Editable personal Table

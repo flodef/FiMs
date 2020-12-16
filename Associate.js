@@ -39,7 +39,7 @@ GLOBAL.personalData = [
   { index:23, readonly:true, type:'name', required:true },                           // Bank
   { index:24, readonly:true, type:'name', required:true },                           // Association
   { index:25, readonly:true, type:'url' },                            // Web page
-  { index:2, type:'euro', min:-1000, max:0, required:true },                         // Recurrent
+  { index:2, type:'euro', max:0, required:true },                         // Recurrent
   { index:6, disabled:true },                                         // Estimate rate
   { index:7, disabled:true },                                         // Estimate gain
   { index:5, disabled:true },                                         // Financed project
@@ -131,11 +131,19 @@ function updatePersonalTable(id, contents) {
   if (hasContent) {
     const baseFormula = GLOBAL.displayData[id].formula.split('!')[0] + '!';
     var tableHTML = getTableTitle(id);
+    const totalCol = indexOf(contents[0], 'Total');
+    const depositCol = indexOf(contents[0], 'Deposit');
+    const recurrentCol = indexOf(contents[0], 'Recurrent');
+
+    GLOBAL.totalValue = toValue(contents[1][totalCol]);
+    GLOBAL.maxRecurrent = Math.max(GLOBAL.totalValue / 12, 100);
+
     GLOBAL.personalData.forEach(item => {
       const i = item.index;
       item.id = id;
       item.range = baseFormula + convertNumberToColumn(i) + contents[1][0];
       item.value = item.readonly || item.disabled ? translate(contents[1][i]) : contents[1][i];
+      item.min = recurrentCol ? -GLOBAL.maxRecurrent : null;
 
       GLOBAL.user[contents[0][i].replaceAll(' ', '')] = contents[1][i];
 
@@ -164,8 +172,6 @@ function updatePersonalTable(id, contents) {
 
     // Set the scrolling panel
     tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
-    const totalCol = indexOf(contents[0], 'Total');
-    const depositCol = indexOf(contents[0], 'Deposit');
     for (var i = totalCol; i >= depositCol; --i) {
       tableHTML += '<tr>';
       tableHTML += getTranslatedContent(contents[0][i]);
@@ -175,8 +181,6 @@ function updatePersonalTable(id, contents) {
 
     tableHTML += '</table></marquee>';
     setHtml('#scrollDiv', tableHTML);
-
-    GLOBAL.totalValue = toValue(contents[1][totalCol]);
   }
 
   displayElement('#depositButton', hasContent); // Show the deposit button
@@ -367,7 +371,13 @@ function withdrawAmountValidation(result) {
   if (result == translate('OK') && !$('#' + id).data('error')) {
     const value = toCurrency($('#' + id).val());
     const period = GLOBAL.withdrawPeriodOption[$('#' + GLOBAL.withdrawPeriod).is(':checked') ? 0 : 1];
-    if (period != GLOBAL.withdrawPeriodOption[1] || -parseFloat(toValue(value)) != parseFloat(toValue(GLOBAL.user.Recurrent))) {
+    const isRecurrent = period == GLOBAL.withdrawPeriodOption[1];
+    const maxRecurrent = Math.max(GLOBAL.totalValue / 12, 100);
+    if (isRecurrent && -parseFloat(toValue(value)) == parseFloat(toValue(GLOBAL.user.Recurrent))) {
+      showSnackBar('The asked recurrent withdraw amount is the same as the current one !');
+    } else if (isRecurrent && parseFloat(toValue(value)) > GLOBAL.maxRecurrent) {
+      showSnackBar('The asked recurrent withdraw amount can\'t be more than ' + translate(toCurrency(GLOBAL.maxRecurrent)) + ' !');
+    } else {
       const isNextMonth = $('#' + GLOBAL.withdrawDate).is(':checked') || !$('#' + GLOBAL.withdrawPeriod).is(':checked');
       const date = toStringDate(!isNextMonth ? new Date(Math.min(addDaysToDate(5), getNextMonthDate(0))) : getNextMonthDate(5));
       const cost = !isNextMonth ? $('#' + GLOBAL.withdrawCost).val() : toCurrency(0);
@@ -389,8 +399,6 @@ function withdrawAmountValidation(result) {
       addPopupButtonEvent(GLOBAL.validatePopupButton, false);
 
       $('#popup').data(id, {value:value, period:period, date:date, cost:cost, content:content});
-    } else {
-      showSnackBar('The asked recurrent withdraw amount is the same as the current one !');
     }
   } else if (result == translate('CANCEL')) {
     closePopup();
@@ -516,7 +524,8 @@ function getTranslatedContent(content, isHeader, data) {
   if (!isReadOnly) {
     data.tooltip = d.tooltip;
     data.style = (isEditableInput(data.type) ? 'width:104px;' : '')
-      + 'text-align:center;border:transparent;' + (data.style ?? '');
+      + (data.type != 'checkbox' ? 'text-align:center;border:transparent;' : '')
+      + (data.style ?? '');
   }
 
   return isReadOnly
