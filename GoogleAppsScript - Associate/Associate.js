@@ -74,7 +74,7 @@ function updateAssociate() {
         if (recu < 0) {
           if (recu < -total) {
             this._sendMessage('STOP RECURRENT WITHDRAW FOR ' + name + ' !!',
-              name + " asked for " + -recu " € but there is only " + total + " € left in the bank !");
+              name + " asked for " + -recu + " € but there is only " + total + " € left in the bank !");
           }
 
           const histoSheet = this._getSheet(ASSHISTO);
