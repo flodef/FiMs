@@ -861,6 +861,7 @@ function escapeHtml(html) {
   // .replace(/>/g, '&gt;')
   // .replace(/"/g, '&quot;')
     .replace(/&/g, '&amp;')
+    .replace(/€/g, '&euro;')
     .replace(/'/g, '&#039;');
 }
 
