@@ -583,7 +583,7 @@ function CreateAckDebt() {
     doc.addImage(GLOBAL.serverUrl + 'Img/Signature.png', 'PNG', 20, 170 + length * 5);
 
     const title = 'Test';
-    const datauri = doc.output('bloburl', title + '.pdf');
+    const datauri = doc.output('dataurlstring', title + '.pdf');
     const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px;" '
       + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
       + '<iframe src="' + datauri + '" style="border:none; top:0px; left:0px; bottom:0px;'
