@@ -342,7 +342,7 @@ function getTooltip(html, tooltip) {
 function getLink(content, title) {
   return content && content.slice(0, 4) == 'http'
     ? '<a href=' + content + ' target="_blank">' + (title || content) + '</a>'
-    : content;
+    : content || '<a >&nbsp;</a>';
 }
 
 function getDiv(id, cssClass, align, content = '') {
@@ -835,8 +835,9 @@ function indexOf(array, value, index, start, compare) {
    */
 function splice(original, text, offset = 0, removeCount = 0) {
   let calculatedOffset = offset < 0 ? original.length + offset : offset;
-  return original.substring(0, calculatedOffset) +
-    text + original.substring(calculatedOffset + removeCount);
+  return original
+    ? original.substring(0, calculatedOffset) + text + original.substring(calculatedOffset + removeCount)
+    : text;
 }
 
 function restrainFormula(formula, low, high) {
@@ -860,9 +861,9 @@ function escapeHtml(html) {
   // .replace(/</g, '&lt;')
   // .replace(/>/g, '&gt;')
   // .replace(/"/g, '&quot;')
-    .replace(/&/g, '&amp;')
-    .replace(/€/g, '&euro;')
-    .replace(/'/g, '&#039;');
+  // .replace(/&/g, '&amp;')
+    .replace(/'/g, '&#039;')
+    .replace(/€/g, '&euro;');
 }
 
 function roundDown(value, precision = 0) {
