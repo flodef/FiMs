@@ -1,6 +1,7 @@
 -------------TEST-------------
 - Status should be pending if date is > today()
 - When withdraw is done at the end of the month, it should display the end of the month (not +5)
+- Check everymonth if Recurrent > Total in appscript, otherwise send an alert message
 CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 -------------TEST-------------
 
@@ -10,9 +11,6 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 	- Add theme to group Q/A
 	- Q can be folded
 	- Q : What happened if new deposit ?
-
-- Recurrent : 
-	- Check everymonth if Rec > Total in appscript
 
 - Editable personal Table
 	- Date is not updated when selected

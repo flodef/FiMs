@@ -6,6 +6,7 @@ const ASSNAME_COL = 2;          // Should be the "ID" column
 const ASSRECU_COL = 3;          // Should be the "Recurrent" column
 const ASSCHAR_COL = 4;          // Should be the "Charity" column
 const ASSDEPO_COL = 10;          // Should be the "Deposit" column
+const ASSTOTAL_COL = 14;         // Should be the "Total" column
 const ASSMAIL_COL = 15;          // Should be the "EMail" column
 const ASSASSO_COL = 25;          // Should be the "Association" column
 const ASSLINK_COL = 26;          // Should be the "Web Page" column
@@ -32,11 +33,12 @@ const FM = 0;     // First month (january)
 function updateAssociate() {
   // Retrieve associate main data
   const associateSheet = this._getSheet(ASSOCIATE);
-  const associateArray = associateSheet.getSheetValues(FR, FC, -1, ASSDEPO_COL);
+  const associateArray = associateSheet.getSheetValues(FR, FC, -1, ASSTOTAL_COL);
 
   for (var i = 0; i < associateArray.length; ++i) {
     // Retrieve associate account data
     const depo = associateArray[i][ASSDEPO_COL-1];
+    const total = associateArray[i][ASSTOTAL_COL-1];
 
     if (depo > 0) {
       const name = associateArray[i][ASSNAME_COL-1];
@@ -70,11 +72,16 @@ function updateAssociate() {
 
         // Add recurrent withdrawal to associate historic
         if (recu < 0) {
+          if (recu < -total) {
+            this._sendMessage('STOP RECURRENT WITHDRAW FOR ' + name + ' !!',
+              name + " asked for " + -recu " € but there is only " + total + " € left in the bank !");
+          }
+
           const histoSheet = this._getSheet(ASSHISTO);
           var d = this._toDate();      // Get date without hours to match range's date
           d.setDate(d.getDate() + 5);  // Take around 5 days to make a bank transfer
 
-          const data = [[d, name, recu]];
+          const data = [[d, name, Math.max(recu, -total)]];
           this._insertFirstRow(histoSheet, data);
         }
       }
