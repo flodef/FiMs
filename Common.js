@@ -893,5 +893,6 @@ function isNumberInput(type) {
 }
 
 function addAttr(name, value, isSingle) {
-  return name && value != null ? ' ' + name + (!isSingle ? '="' + value.toString().trim() + '"' : '') : '';
+  return name && ((value != null && value.toString()) || isSingle)
+    ? ' ' + name + (!isSingle ? '="' + value.toString().trim() + '"' : '') : '';
 }
