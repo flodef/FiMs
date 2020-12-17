@@ -15,6 +15,7 @@ GLOBAL.Status = 'Status';
 GLOBAL.completedStatus = 'Completed !';
 GLOBAL.pendingStatus = 'Pending ...';
 GLOBAL.DonationStatus = 'Donation';
+GLOBAL.ackDebt = 'Acknowledgment Of Debt';
 GLOBAL.withdrawPeriodOption = ['Unique', 'Recurrent'];
 GLOBAL.withdrawDateOption = ['Start of next month', 'Immediat'];
 
@@ -153,7 +154,7 @@ function updatePersonalTable(id, contents) {
     });
 
     // Add an Acknowledgment Of Debt row at the end
-    const ackDebt = 'Acknowledgment Of Debt';
+    const ackDebt = GLOBAL.ackDebt;
     const ackDebtId = ackDebt.replaceAll(' ', '') + 'Link';
     const hasHistoric = GLOBAL.data.historic.length > 1;
     if (hasHistoric) {
@@ -582,14 +583,28 @@ function CreateAckDebt() {
     doc.text(190, 160 + length * 5, 'Le prêteur, ' + getFullName(GLOBAL.user) + '\nDaté et signé               ', null, null, 'right');
     doc.addImage(GLOBAL.serverUrl + 'Img/Signature.png', 'PNG', 20, 170 + length * 5);
 
-    const title = 'Test';
-    const datauri = doc.output('dataurl', title + '.pdf');
-    const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px;" '
-      + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
-      + '<iframe src="' + datauri + '" style="border:none; top:0px; left:0px; bottom:0px;'
+    const title = translate(GLOBAL.ackDebt);
+    const data = doc.output('bloburl', title + '.pdf');
+    // This piece of code doesn't work on Google App Script
+    // const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px;" '
+    //   + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
+    //   + '<iframe src="' + data + '" style="border:none; top:0px; left:0px; bottom:0px;'
+    //   + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>';
+    // openPopup(html);
+    // $('#popup').css( { margin: '5%', height: '850px', width: 'auto' });
+
+    const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px; font-weight:bold; float:right; cursor:pointer;" '
+      + 'class="closebtn" onclick="window.close();">&times;</span>'
+      + '<button id="download">Download</button>'
+      + '<iframe id="jsPDF" src="' + data + '" style="border:none; top:0px; left:0px; bottom:0px;'
       + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>';
-    openPopup(html);
-    $('#popup').css( { margin: '5%', height: '850px', width: 'auto' });
+
+    const newWindow = window.open();
+    newWindow.document.open();
+    newWindow.document.write(html);
+    newWindow.document.getElementById("download").onclick = () =>  doc.save(title + '.pdf');
+    newWindow.document.close();
+    newWindow.addEventListener('load', event => newWindow.document.title = title);
   }
 }
 
