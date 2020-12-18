@@ -595,7 +595,7 @@ function CreateAckDebt() {
 
     const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px; font-weight:bold; float:right; cursor:pointer;" '
       + 'class="closebtn" onclick="window.close();">&times;</span>'
-      + '<button id="download">Download</button>'
+      + '<button id="download">' + translate('Download') + '</button>'
       + '<iframe id="jsPDF" src="' + data + '" style="border:none; top:0px; left:0px; bottom:0px;'
       + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>';
 
