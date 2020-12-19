@@ -597,7 +597,7 @@ function CreateAckDebt() {
     + 'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique,'
     + 'lettre ou autre moyen informatique), en une ou plusieurs fois, à la convenance du prêteur.</li></ul>'
     + '<p>Ce prêt est consenti moyennant un intérêt de :</p>'
-    + '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an'
+    + '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an, '
     + 'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.</li></ul><br><br>'
     + '<span>L\'emprunteur, DE FROCOURT Florian,</span>'
     + '<span style="float:right">Le prêteur(se), ' + getFullName(GLOBAL.user) + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé</span>'
@@ -612,13 +612,13 @@ function CreateAckDebt() {
     //   + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
     //   + '<iframe src="' + data + '" style="border:none; top:0px; left:0px; bottom:0px;'
     //   + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>';
-    const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px;" '
+    const html = '<span style="font-size:33px; padding:0px 0px 15px 0px;" '
       + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
       // + '<button id="download">' + translate('Download') + '</button>'
       + '<div style="width:560px; position:relative; margin:25px auto; padding:25px; background:white;">' + doc + '</div>';
 
     openPopup(html);
-    $('#popup').css( { margin: '5% 20%', height: '850px', width: 'auto', overflowY: 'auto' });
+    $('#popup').css( { margin: '5%', height: 'auto', width: 'auto', minWidth:'650px', minHeight:'500px', overflow: 'auto', background: 'slategray' });
 
     // const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px; font-weight:bold; float:right; cursor:pointer;" '
     //   + 'class="closebtn" onclick="window.close();">&times;</span>'
@@ -671,7 +671,7 @@ function numberToText(number) {
     const n = ('000000' + text).substr(-6).match(/^(\d{1})(\d{2})(\d{1})(\d{2})$/);
     if (n) {
       const junc = i => { const a = i[0]; const b = tens[a] ? i[1] : Number(i[1])+10;
-        return a == 8 && b == 0 ? 's' : a < 8 && (b == 1 || b == 11) ? ' et ' : b >= 1 ? '-' : '' };
+        return a == 8 && b == 0 ? 's' : a < 8 && (b == 1 || b == 11) ? ' et ' : b >= 1 ? '-' : ''; };
       let str = '';
       str += n[1] != 0 ? (n[1] > 1 ? ones[Number(n[1])] : '') + hundred + (n[1] > 1 ? 's ' : ' ') : '';
       str += (n[2] != 0 ? (n[2] > 1 ? ones[Number(n[2])] || tens[n[2][0]] + ' ' + ones[n[2][1]] : '') : '') + (n[1] + n[2] != 0 ? thousand : '');

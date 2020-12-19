@@ -1,4 +1,5 @@
-const src = ['Lib/jquery.min',            // https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js
+const javascriptScriptSouce = [
+  'Lib/jquery.min',                       // https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js
   'Lib/jquery-ui',                        // https://code.jquery.com/ui/1.12.1/jquery-ui.js
   'Lib/jquery.csv.min',                   // https://raw.githubusercontent.com/typeiii/jquery-csv/master/src/jquery.csv.min.js
   'Lib/jspdf.umd.min',                    // https://raw.githubusercontent.com/MrRio/jsPDF/master/dist/jspdf.umd.min.js
@@ -8,24 +9,6 @@ const src = ['Lib/jquery.min',            // https://ajax.googleapis.com/ajax/li
   'Common',
 ];
 
-// Load every script one after the other
-loadScript(0);
-function loadScript(i) {
-  const addScript = scriptName => {
-    var element = document.createElement('script');
-    element.src = scriptName + '.js';
-    document.head.appendChild(element);
-  };
-  addScript(src[i]);
-
-  // Load next library, and the main app script as last one
-  if (++i < src.length) {
-    setTimeout(() => loadScript(i), 100); // Hack to avoid script loading in wrong order
-  } else {
-    const fn = pageTitle => addScript(pageTitle.replace('FiMs ', ''));
-    setTimeout(() => google.script.run
-      .withSuccessHandler(fn)
-      .withFailureHandler(alert)
-      .getProperty('pageTitle'), 100);     // Hack to avoid script loading in wrong order
-  }
-}
+var element = document.createElement('script');
+element.src = 'Init.js';
+document.head.appendChild(element);

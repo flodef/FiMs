@@ -1,9 +1,13 @@
-<script src="https://flodef.github.io/FiMS/Lib/jquery.min.js"></script>
-<script src="https://flodef.github.io/FiMS/Lib/jquery-ui.js"></script>
-<script src="https://flodef.github.io/FiMS/Lib/jquery.csv.min.js"></script>
-<script src="https://flodef.github.io/FiMS/Lib/jspdf.umd.min.js"></script>
-<script src="https://flodef.github.io/FiMS/Common.js"></script>
 <script>
-  const fn = pageTitle => addScript(pageTitle.replace('FiMs ', ''));
-  google.script.run.withSuccessHandler(fn).withFailureHandler(alert).getProperty("pageTitle");
+  const javascriptScriptSouce = [
+    'Lib/jquery.min',                       // https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js
+    'Lib/jquery-ui',                        // https://code.jquery.com/ui/1.12.1/jquery-ui.js
+    'Lib/jquery.csv.min',                   // https://raw.githubusercontent.com/typeiii/jquery-csv/master/src/jquery.csv.min.js
+    'Lib/jspdf.umd.min',                    // https://raw.githubusercontent.com/MrRio/jsPDF/master/dist/jspdf.umd.min.js
+    // 'Lib/jquery.easy-autocomplete.min',  // https://raw.githubusercontent.com/pawelczak/EasyAutocomplete/master/dist/jquery.easy-autocomplete.min.js
+    // 'Lib/xlsx.full.min',                    // https://raw.githubusercontent.com/SheetJS/sheetjs/master/dist/xlsx.full.min.js
+    //'Google',
+    'Common',
+  ];
 </script>
+<script src="https://flodef.github.io/FiMS/Init.js"></script>

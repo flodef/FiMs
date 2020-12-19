@@ -2,10 +2,6 @@
 * Functions that are shared between main app and associate app.
 */
 
-window.GLOBAL = {};
-GLOBAL.isLocal = document.URL.includes(':8080');                                                  // Whether the app is running in local mode
-GLOBAL.serverUrl = GLOBAL.isLocal ? '' : 'https://raw.githubusercontent.com/flodef/FiMS/master/'; // Remove the server URL if in local mode
-GLOBAL.scriptUrl = GLOBAL.isLocal ? '' : 'https://flodef.github.io/FiMS/';                        // Remove the server URL if in local mode
 GLOBAL.data = [];
 GLOBAL.loadingQueueCount = 0;
 GLOBAL.hasAlreadyUpdated = [];
@@ -17,26 +13,6 @@ GLOBAL.handleEvent = true;
  */
 $(() => {
   jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
-
-  const body =
-    getDiv('content', 'contentOverlay', null,
-      getDiv('mainHeading') +
-      getDiv('tabContainer') +
-      getDiv('loaderBar', 'loaderBar') +
-      getDiv('mainContent') +
-      getDiv('footer'))
-    + getDiv('scrollDiv', 'contentOverlay', 'center')
-    + getDiv('menuDiv', 'contentOverlay', 'right')
-    + getOverlayDiv('loader', 'shadeOverlay')
-    + getOverlayDiv('popup', 'shadeOverlay')
-    + getOverlayDiv('alert')
-    + getDiv('snackbar');
-  $('body').html(body);
-
-  displayElement('.contentOverlay', true, 0);
-  displayElement('.actionButton', false, 0);
-
-  animateLoaderBar();
 });
 
 function loadPage() {
@@ -346,16 +322,6 @@ function getLink(content, title) {
     : '<a >&nbsp;</a>';
 }
 
-function getDiv(id, cssClass, align, content = '') {
-  return '<div' + addAttr('id', id) + addAttr('align', align)
-    + addAttr('class', cssClass ? cssClass + (cssClass.toLowerCase().endsWith('overlay') ? ' hidden' : '') : '') + '>'
-    + content + '</div>';
-}
-
-function getOverlayDiv(id, cssClass = 'overlay') {
-  return getDiv(id + 'Overlay', cssClass, null, getDiv(id));
-}
-
 // function getTitle(id, disabled) {
 //   return '<h2'
 //         + (!disabled ? ' onclick="var shouldDisplay = !$(\'#' + id + 'Table\').is(\':visible\');'
@@ -508,6 +474,7 @@ function getValue(data, func, forceReload, success) {
 
           if (id && !GLOBAL.loadingQueueCount) {
             setEvents();  // Set events when everything has been loaded
+            displayElement('#tabContainer', true);  // Display the tab container
           }
         })
         .withFailureHandler(displayError)
@@ -730,12 +697,6 @@ function handleEvent(isHandled) {
   // if (isHandled) { event.preventDefault(); }
 }
 
-function addScript(scriptName) {
-  var element = document.createElement('script');
-  element.src = GLOBAL.scriptUrl + scriptName + '.js';
-  document.head.appendChild(element);
-}
-
 function shouldRebalance(value) {
   return value && !value.startsWith('HOLD');
 }
@@ -890,9 +851,4 @@ function isEditableInput(type) {
 
 function isNumberInput(type) {
   return type && (type == 'number' || type == 'euro' || type == 'percent');
-}
-
-function addAttr(name, value, isSingle) {
-  return name && (value || value == 0)
-    ? ' ' + name + (!isSingle ? '="' + value.toString().trim() + '"' : '') : '';
 }

@@ -5,8 +5,8 @@
 CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 -------------TEST-------------
 
-- Add handwritting to AckDebt
 - Load each page on demand (show loader bar)
+- Recurrent edit in personal should not refresh the page
 
 - FAQ : 
 	- Add theme to group Q/A
@@ -28,7 +28,7 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 	- New question in FAQ
 	- What's new
 
-- Don't display the tab since the beginning if no user identified
+
 
 - Add new data (new user data)
 
