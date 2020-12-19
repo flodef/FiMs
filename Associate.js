@@ -556,55 +556,119 @@ function CreateAckDebt() {
   // signature et date
 
   if (length > 0) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(20);
-    doc.text(105, 30, 'Reconnaissance de dette', null, null, 'center');
-    doc.setFontSize(11);
-    doc.text(20, 50, 'Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31), \n'
-    + 'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de \n'
-    + getFullName(GLOBAL.user) + ', né(e) le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity + ', \n'
-    + 'demeurant à ce jour ' + GLOBAL.user.Address + ' - ' + GLOBAL.user.PostalCode + ' ' + GLOBAL.user.City + ', \n'
-    + 'la somme de ' + total + ' euros à titre de prêt sous la forme du :');
-    deposit.forEach((item, i) => {
-      doc.circle(30, 77 + i * 5, 0.5, 'FD');
-      doc.text(33, 78 + i * 5, 'Virement bancaire SEPA de ' + item[1] + ' euros, émis le ' + item[0]);
-    });
-    doc.text(20, 87 + length * 5, 'Le remboursement de ce prêt interviendra de la façon suivante :');
-    doc.circle(30, 94 + length * 5, 0.5, 'FD');
-    doc.text(33, 95 + length * 5, 'il sera remboursé immédiatement (moyennant le temps de virement de compte à compte\n'
-    + 'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique, \n'
-    + 'lettre ou autre moyen informatique), en une ou plusieurs fois, à la convenance du prêteur.');
-    doc.text(20, 118 + length * 5, 'Ce prêt est consenti moyennant un intérêt de :');
-    doc.circle(30, 125 + length * 5, 0.5, 'FD');
-    doc.text(33, 126 + length * 5, 'pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an \n'
-    + 'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.');
-    doc.text(20, 160 + length * 5, 'L\'emprunteur, DE FROCOURT Florian, \n                    Daté et signé');
-    doc.text(190, 160 + length * 5, 'Le prêteur, ' + getFullName(GLOBAL.user) + '\nDaté et signé               ', null, null, 'right');
-    doc.addImage(GLOBAL.serverUrl + 'Img/Signature.png', 'PNG', 20, 170 + length * 5);
+    const signDate = deposit[length-1][0];
+    // const { jsPDF } = window.jspdf;
+    // const doc = new jsPDF();
+    // doc.setFontSize(20);
+    // doc.text(105, 30, 'Reconnaissance de dette', null, null, 'center');
+    // doc.setFontSize(11);
+    // doc.text(20, 50, 'Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31), \n'
+    // + 'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de \n'
+    // + getFullName(GLOBAL.user) + ', né(e) le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity + ', \n'
+    // + 'demeurant à ce jour ' + GLOBAL.user.Address + ' - ' + GLOBAL.user.PostalCode + ' ' + GLOBAL.user.City + ', \n'
+    // + 'la somme de ' + total + ' euros à titre de prêt sous la forme du :');
+    // deposit.forEach((item, i) => {
+    //   doc.circle(30, 77 + i * 5, 0.5, 'FD');
+    //   doc.text(33, 78 + i * 5, 'Virement bancaire SEPA de ' + item[1] + ' euros, émis le ' + item[0]);
+    // });
+    // doc.text(20, 87 + length * 5, 'Le remboursement de ce prêt interviendra de la façon suivante :');
+    // doc.circle(30, 94 + length * 5, 0.5, 'FD');
+    // doc.text(33, 95 + length * 5, 'il sera remboursé immédiatement (moyennant le temps de virement de compte à compte\n'
+    // + 'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique, \n'
+    // + 'lettre ou autre moyen informatique), en une ou plusieurs fois, à la convenance du prêteur.');
+    // doc.text(20, 118 + length * 5, 'Ce prêt est consenti moyennant un intérêt de :');
+    // doc.circle(30, 125 + length * 5, 0.5, 'FD');
+    // doc.text(33, 126 + length * 5, 'pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an \n'
+    // + 'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.');
+    // doc.text(20, 160 + length * 5, 'L\'emprunteur, DE FROCOURT Florian, \n                    Daté et signé');
+    // doc.text(190, 160 + length * 5, 'Le prêteur, ' + getFullName(GLOBAL.user) + '\nDaté et signé               ', null, null, 'right');
+    // doc.addImage(imgPath + 'Signature.png', 'PNG', 20, 170 + length * 5);
+    let doc = '<h2 align="center" style="color:black">Reconnaissance de dette</h2><br>'
+    + '<p>Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31)<br>'
+    + 'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de<br>'
+    + getFullName(GLOBAL.user) + ', né(e) le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity + '<br>'
+    + 'demeurant à ce jour ' + GLOBAL.user.Address + ' - ' + GLOBAL.user.PostalCode + ' ' + GLOBAL.user.City + '<br>'
+    + 'la somme de ' + getImgFromNumber(total) + numberToText(total) + ' euros à titre de prêt sous la forme du :</p><ul>';
+    deposit.forEach(item => doc += '<li>Virement bancaire SEPA de ' + item[1] + ' euros, émis le ' + item[0] + '</li>');
+    doc += '</ul><p>Le remboursement de ce prêt interviendra de la façon suivante :</p>'
+    + '<ul><li>il sera remboursé immédiatement (moyennant le temps de virement de compte à compte<br>'
+    + 'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique,<br>'
+    + 'lettre ou autre moyen informatique), en une ou plusieurs fois, à la convenance du prêteur.</li></ul>'
+    + '<p>Ce prêt est consenti moyennant un intérêt de :</p>'
+    + '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an<br>'
+    + 'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.</li></ul><br><br>'
+    + '<span>L\'emprunteur, DE FROCOURT Florian,</span>'
+    + '<span style="float:right">Le prêteur(se), ' + getFullName(GLOBAL.user) + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé</span>'
+    + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé<br><br>'
+    + '&emsp;&emsp;&emsp;' + getImgTag('Le', 15) + '&nbsp;' + getImgFromNumber(signDate)
+    + '<br>' + getImgTag('Signature');
 
     const title = translate(GLOBAL.ackDebt);
-    const data = doc.output('bloburl', title + '.pdf');
+    // const data = doc.output('bloburl', title + '.pdf');
     // This piece of code doesn't work on Google App Script
     // const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px;" '
     //   + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
     //   + '<iframe src="' + data + '" style="border:none; top:0px; left:0px; bottom:0px;'
     //   + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>';
-    // openPopup(html);
-    // $('#popup').css( { margin: '5%', height: '850px', width: 'auto' });
+    const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px;" '
+      + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
+      // + '<button id="download">' + translate('Download') + '</button>'
+      + '<div style="width:560px; position:relative; margin:25px auto; padding:25px; background:white;">' + doc + '</div>';
 
-    const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px; font-weight:bold; float:right; cursor:pointer;" '
-      + 'class="closebtn" onclick="window.close();">&times;</span>'
-      + '<button id="download">' + translate('Download') + '</button>'
-      + '<iframe id="jsPDF" src="' + data + '" style="border:none; top:0px; left:0px; bottom:0px;'
-      + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>';
+    openPopup(html);
+    $('#popup').css( { margin: '5% 20%', height: '850px', width: 'auto', overflowY: 'auto' });
 
-    const newWindow = window.open();
-    newWindow.document.open();
-    newWindow.document.write(html);
-    newWindow.document.getElementById("download").onclick = () =>  doc.save(title + '.pdf');
-    newWindow.document.close();
-    newWindow.addEventListener('load', event => newWindow.document.title = title);
+    // const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px; font-weight:bold; float:right; cursor:pointer;" '
+    //   + 'class="closebtn" onclick="window.close();">&times;</span>'
+    //   + '<button id="download">' + translate('Download') + '</button>'
+    //   + '<iframe id="jsPDF" src="' + data + '" style="border:none; top:0px; left:0px; bottom:0px;'
+    //   + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>';
+
+    // const newWindow = window.open();
+    // newWindow.document.open();
+    // newWindow.document.write(html);
+    // newWindow.document.getElementById("download").onclick = () =>  doc.save(title + '.pdf');
+    // newWindow.document.close();
+    // newWindow.addEventListener('load', event => newWindow.document.title = title);
+  }
+}
+
+function getImgTag(name, height) {
+  return '<img style="cursor:default; filter:none; ' + (height ? 'height:' + height + 'px;' : '')
+    + '" src="' + GLOBAL.serverUrl + 'Img/AckDebt/' + name + '.png">';
+}
+
+function getImgFromNumber(number) {
+  var html = '';
+  const text = number.toString();
+  for (var i = 0; i < text.length; ++i) {
+    html += getImgTag(text[i].replace('/', 'slash'), 15);
+  }
+  return html;
+}
+
+function numberToText(number) {
+  const ones = ['', 'un ', 'deux ', 'trois ', 'quatre ', 'cinq ', 'six ', 'sept ', 'huit ', 'neuf ',
+    'dix ', 'onze ', 'douze ', 'treize ', 'quatorze ', 'quinze ', 'seize ', 'dix-sept ', 'dix-huit ', 'dix-neuf '];
+  const tens = ['', '', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', '', 'quatre-vingt', ''];
+  const hundred = ['cent', 'cents'];
+  const thousand = ['mille'];
+  const million = ['million'];
+  const text = number.toString();
+  if (text.length <= 6) {
+    const n = ('000000' + text).substr(-6).match(/^(\d{1})(\d{2})(\d{1})(\d{2})$/);
+    if (n) {
+      const junc = i => { const a = i[0]; const b = tens[a] ? i[1] : Number(i[1])+10;
+        return a == 8 && b == 0 ? 's' : a < 8 && (b == 1 || b == 11) ? ' et ' : b >= 1 ? '-' : '' };
+      let str = '';
+      str += n[1] != 0 ? (n[1] > 1 ? ones[Number(n[1])] : '') + 'cent' + (n[1] > 1 ? 's ' : ' ') : '';
+      str += (n[2] != 0 ? (n[2] > 1 ? ones[Number(n[2])] || tens[n[2][0]] + ' ' + ones[n[2][1]] : '') : '') + (n[1] + n[2] != 0 ? 'mille ' : '');
+      str += n[3] != 0 ? (n[3] > 1 ? ones[Number(n[3])] : '') + 'cent' + (n[3] > 1 ? 's ' : ' ') : '';
+      str += n[4] != 0 ? (ones[Number(n[4])] || (tens[n[4][0]] ? tens[n[4][0]] + junc(n[4]) + ones[n[4][1]] : tens[Number(n[4][0])-1] + junc(n[4]) + ones[Number(n[4][1])+10])) : '';
+      return str;
+    }
+  } else {
+    throw 'number is too high to be processed: ' + text;
   }
 }
 
