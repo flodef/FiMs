@@ -39,7 +39,7 @@ GLOBAL.personalData = [
   { index:22, readonly:true, type:'iban', required:true },                           // IBAN
   { index:23, readonly:true, type:'name', required:true },                           // Bank
   { index:24, readonly:true, type:'name', required:true },                           // Association
-  { index:25, readonly:true, type:'url' },                            // Web page
+  { index:25, type:'url' },                            // Web page
   { index:2, type:'euro', max:0, required:true },                         // Recurrent
   { index:6, disabled:true },                                         // Estimate rate
   { index:7, disabled:true },                                         // Estimate gain
@@ -584,23 +584,25 @@ function CreateAckDebt() {
     // doc.text(190, 160 + length * 5, 'Le prêteur, ' + getFullName(GLOBAL.user) + '\nDaté et signé               ', null, null, 'right');
     // doc.addImage(imgPath + 'Signature.png', 'PNG', 20, 170 + length * 5);
     let doc = '<h2 align="center" style="color:black">Reconnaissance de dette</h2><br>'
-    + '<p>Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31)<br>'
-    + 'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de<br>'
-    + getFullName(GLOBAL.user) + ', né(e) le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity + '<br>'
-    + 'demeurant à ce jour ' + GLOBAL.user.Address + ' - ' + GLOBAL.user.PostalCode + ' ' + GLOBAL.user.City + '<br>'
-    + 'la somme de ' + getImgFromNumber(total) + numberToText(total) + ' euros à titre de prêt sous la forme du :</p><ul>';
+    + '<p>Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31), '
+    + 'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de '
+    + getFullName(GLOBAL.user) + ', né(e) le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity
+    + ', demeurant à ce jour, ' + GLOBAL.user.Address + ' - ' + GLOBAL.user.PostalCode + ' ' + GLOBAL.user.City
+    + ', la somme de ' + getImgFromNumber(total) + getImgTag('€', 15) + getImgTag('', 15)
+    + getImgTag('(', 15) + getImgFromText(numberToText(total)) + getImgTag('euros', 15) + getImgTag(')', 15)
+    + ' à titre de prêt sous la forme du :</p><ul>';
     deposit.forEach(item => doc += '<li>Virement bancaire SEPA de ' + item[1] + ' euros, émis le ' + item[0] + '</li>');
     doc += '</ul><p>Le remboursement de ce prêt interviendra de la façon suivante :</p>'
-    + '<ul><li>il sera remboursé immédiatement (moyennant le temps de virement de compte à compte<br>'
-    + 'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique,<br>'
+    + '<ul><li>il sera remboursé immédiatement (moyennant le temps de virement de compte à compte'
+    + 'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique,'
     + 'lettre ou autre moyen informatique), en une ou plusieurs fois, à la convenance du prêteur.</li></ul>'
     + '<p>Ce prêt est consenti moyennant un intérêt de :</p>'
-    + '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an<br>'
+    + '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an'
     + 'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.</li></ul><br><br>'
     + '<span>L\'emprunteur, DE FROCOURT Florian,</span>'
     + '<span style="float:right">Le prêteur(se), ' + getFullName(GLOBAL.user) + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé</span>'
     + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé<br><br>'
-    + '&emsp;&emsp;&emsp;' + getImgTag('Le', 15) + '&nbsp;' + getImgFromNumber(signDate)
+    + '&emsp;&emsp;&emsp;' + getImgTag('Le', 15) + '&emsp;' + getImgFromNumber(signDate)
     + '<br>' + getImgTag('Signature');
 
     const title = translate(GLOBAL.ackDebt);
@@ -644,6 +646,17 @@ function getImgFromNumber(number) {
   for (var i = 0; i < text.length; ++i) {
     html += getImgTag(text[i].replace('/', 'slash'), 15);
   }
+
+  return html;
+}
+
+function getImgFromText(text) {
+  var html = '';
+  const height = 20;
+  text = text.replaceAll('-', ' - ');
+  const array = text.split(' ');
+  array.forEach((item, i) => html += getImgTag(item, height) + (item != '-' && array[i+1] != '-' ? getImgTag('', height) : ''));
+
   return html;
 }
 
@@ -651,9 +664,8 @@ function numberToText(number) {
   const ones = ['', 'un ', 'deux ', 'trois ', 'quatre ', 'cinq ', 'six ', 'sept ', 'huit ', 'neuf ',
     'dix ', 'onze ', 'douze ', 'treize ', 'quatorze ', 'quinze ', 'seize ', 'dix-sept ', 'dix-huit ', 'dix-neuf '];
   const tens = ['', '', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', '', 'quatre-vingt', ''];
-  const hundred = ['cent', 'cents'];
-  const thousand = ['mille'];
-  const million = ['million'];
+  const hundred = 'cent';
+  const thousand = 'mille ';
   const text = number.toString();
   if (text.length <= 6) {
     const n = ('000000' + text).substr(-6).match(/^(\d{1})(\d{2})(\d{1})(\d{2})$/);
@@ -661,11 +673,11 @@ function numberToText(number) {
       const junc = i => { const a = i[0]; const b = tens[a] ? i[1] : Number(i[1])+10;
         return a == 8 && b == 0 ? 's' : a < 8 && (b == 1 || b == 11) ? ' et ' : b >= 1 ? '-' : '' };
       let str = '';
-      str += n[1] != 0 ? (n[1] > 1 ? ones[Number(n[1])] : '') + 'cent' + (n[1] > 1 ? 's ' : ' ') : '';
-      str += (n[2] != 0 ? (n[2] > 1 ? ones[Number(n[2])] || tens[n[2][0]] + ' ' + ones[n[2][1]] : '') : '') + (n[1] + n[2] != 0 ? 'mille ' : '');
-      str += n[3] != 0 ? (n[3] > 1 ? ones[Number(n[3])] : '') + 'cent' + (n[3] > 1 ? 's ' : ' ') : '';
+      str += n[1] != 0 ? (n[1] > 1 ? ones[Number(n[1])] : '') + hundred + (n[1] > 1 ? 's ' : ' ') : '';
+      str += (n[2] != 0 ? (n[2] > 1 ? ones[Number(n[2])] || tens[n[2][0]] + ' ' + ones[n[2][1]] : '') : '') + (n[1] + n[2] != 0 ? thousand : '');
+      str += n[3] != 0 ? (n[3] > 1 ? ones[Number(n[3])] : '') + hundred + (n[3] > 1 ? 's ' : ' ') : '';
       str += n[4] != 0 ? (ones[Number(n[4])] || (tens[n[4][0]] ? tens[n[4][0]] + junc(n[4]) + ones[n[4][1]] : tens[Number(n[4][0])-1] + junc(n[4]) + ones[Number(n[4][1])+10])) : '';
-      return str;
+      return str.trim();
     }
   } else {
     throw 'number is too high to be processed: ' + text;

@@ -6,6 +6,7 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 -------------TEST-------------
 
 - Add handwritting to AckDebt
+- Load each page on demand (show loader bar)
 
 - FAQ : 
 	- Add theme to group Q/A
