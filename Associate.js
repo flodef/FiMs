@@ -615,11 +615,24 @@ function CreateAckDebt() {
     //   + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>';
     const html = '<span style="font-size:33px; padding:0px 0px 15px 0px;" '
       + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
-      + '<button id="download" onclick="html2pdf().set({filename:\'' + title + '.pdf\'}).from($(\'#ackDebtDiv\').get(0)).save();">' + translate('Download') + '</button>'
+      + '<button onclick="printHtml(\'#ackDebtDiv\', \'' + title + '\')">' + translate('Print') + '</button>'
       + '<div id="ackDebtDiv" style="width:560px; position:relative; margin:25px auto; padding:25px; background:white;">' + doc + '</div>';
 
     openPopup(html);
     $('#popup').css( { margin: '5%', height: 'auto', width: 'auto', minWidth:'650px', minHeight:'500px', overflow: 'auto', background: 'slategray' });
+
+    // let mywindow = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150');
+    //
+    //   mywindow.document.write(`<html><head><title>${title}</title>`);
+    //   mywindow.document.write('</head><body >');
+    //   mywindow.document.write($('#ackDebtDiv').html());
+    //   mywindow.document.write('</body></html>');
+    //
+    //   mywindow.document.close(); // necessary for IE >= 10
+    //   mywindow.focus(); // necessary for IE >= 10*/
+    //
+    //   mywindow.print();
+    //   mywindow.close();
 
     // const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px; font-weight:bold; float:right; cursor:pointer;" '
     //   + 'class="closebtn" onclick="window.close();">&times;</span>'
@@ -683,6 +696,17 @@ function numberToText(number) {
   } else {
     throw 'number is too high to be processed: ' + text;
   }
+}
+
+function printHtml(id, title) {
+  var printWindow = window.open('', '', 'height=768,width=1024');
+  printWindow.document.write('<html><head><title>' + title + '</title>');
+  printWindow.document.write('</head><body >');
+  printWindow.document.write($(id).html());
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  printWindow.print();
+  setTimeout(()=>printWindow.close(), 1000);
 }
 
 function getFullName(person) {

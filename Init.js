@@ -40,9 +40,9 @@ async function loadScript(i) {
     } else {
       const fn = pageTitle => addScript(pageTitle.replace('FiMs ', ''));
       google.script.run
-      .withSuccessHandler(fn)
-      .withFailureHandler(alert)
-      .getProperty('pageTitle');
+        .withSuccessHandler(fn)
+        .withFailureHandler(alert)
+        .getProperty('pageTitle');
     }
   }
 }
