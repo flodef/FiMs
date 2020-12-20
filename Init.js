@@ -22,16 +22,17 @@ function initHTML() {
 }
 
 async function loadScript(i) {
-  if (javascriptScriptSouce && i < javascriptScriptSouce.length
-    && (GLOBAL.isLocal || (!GLOBAL.isLocal && !javascriptScriptSouce[i][1]))) {
-    const src = javascriptScriptSouce[i][0];
-    const length = javascriptScriptSouce.length;
-    console.log(src);
+  if (javascriptScriptSouce && i < javascriptScriptSouce.length) {
+    if (GLOBAL.isLocal || (!GLOBAL.isLocal && !javascriptScriptSouce[i][1]))) {
+      const src = javascriptScriptSouce[i][0];
+      const length = javascriptScriptSouce.length;
+      console.log(src);
 
-    setLoaderBar((i + 1) / length);
+      setLoaderBar((i + 1) / length);
 
-    addScript(src);
-    await waitForScript(src);
+      addScript(src);
+      await waitForScript(src);
+    }
 
     // Load next library, and the main app script as last one
     if (++i < length) {
@@ -39,9 +40,9 @@ async function loadScript(i) {
     } else {
       const fn = pageTitle => addScript(pageTitle.replace('FiMs ', ''));
       google.script.run
-        .withSuccessHandler(fn)
-        .withFailureHandler(alert)
-        .getProperty('pageTitle');
+      .withSuccessHandler(fn)
+      .withFailureHandler(alert)
+      .getProperty('pageTitle');
     }
   }
 }
