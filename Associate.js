@@ -583,6 +583,7 @@ function CreateAckDebt() {
     // doc.text(20, 160 + length * 5, 'L\'emprunteur, DE FROCOURT Florian, \n                    Daté et signé');
     // doc.text(190, 160 + length * 5, 'Le prêteur, ' + getFullName(GLOBAL.user) + '\nDaté et signé               ', null, null, 'right');
     // doc.addImage(imgPath + 'Signature.png', 'PNG', 20, 170 + length * 5);
+
     let doc = '<h2 align="center" style="color:black">Reconnaissance de dette</h2><br>'
     + '<p>Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31), '
     + 'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de '
@@ -614,8 +615,8 @@ function CreateAckDebt() {
     //   + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>';
     const html = '<span style="font-size:33px; padding:0px 0px 15px 0px;" '
       + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
-      // + '<button id="download">' + translate('Download') + '</button>'
-      + '<div style="width:560px; position:relative; margin:25px auto; padding:25px; background:white;">' + doc + '</div>';
+      + '<button id="download" onclick="html2pdf().set({filename:\'' + title + '.pdf\'}).from($(\'#ackDebtDiv\').get(0)).save();">' + translate('Download') + '</button>'
+      + '<div id="ackDebtDiv" style="width:560px; position:relative; margin:25px auto; padding:25px; background:white;">' + doc + '</div>';
 
     openPopup(html);
     $('#popup').css( { margin: '5%', height: 'auto', width: 'auto', minWidth:'650px', minHeight:'500px', overflow: 'auto', background: 'slategray' });

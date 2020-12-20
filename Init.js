@@ -1,8 +1,3 @@
-window.GLOBAL = {};
-GLOBAL.isLocal = document.URL.includes(':8080');                                                  // Whether the app is running in local mode
-GLOBAL.serverUrl = GLOBAL.isLocal ? '' : 'https://raw.githubusercontent.com/flodef/FiMS/master/'; // Remove the server URL if in local mode
-GLOBAL.scriptUrl = GLOBAL.isLocal ? '' : 'https://flodef.github.io/FiMS/';                        // Remove the server URL if in local mode
-
 initHTML();
 
 function initHTML() {
@@ -27,9 +22,11 @@ function initHTML() {
 }
 
 async function loadScript(i) {
-  if (javascriptScriptSouce) {
-    const src = javascriptScriptSouce[i];
+  if (javascriptScriptSouce && i < javascriptScriptSouce.length
+    && (GLOBAL.isLocal || (!GLOBAL.isLocal && !javascriptScriptSouce[i][1]))) {
+    const src = javascriptScriptSouce[i][0];
     const length = javascriptScriptSouce.length;
+    console.log(src);
 
     setLoaderBar((i + 1) / length);
 
@@ -58,12 +55,6 @@ async function waitForScript(scriptName) {
   while (!fn()) {
     await new Promise(r => setTimeout(r, 100));
   }
-}
-
-function addScript(scriptName) {
-  var element = document.createElement('script');
-  element.src = GLOBAL.scriptUrl + scriptName + '.js';
-  document.head.appendChild(element);
 }
 
 function setLoaderBar(value) {
