@@ -23,9 +23,9 @@ function initHTML() {
 
 async function loadScript(i) {
   if (javascriptScriptSouce && i < javascriptScriptSouce.length) {
-    if (GLOBAL.isLocal || (!GLOBAL.isLocal && !javascriptScriptSouce[i][1]))) {
+    const length = javascriptScriptSouce.length;
+    if (GLOBAL.isLocal || (!GLOBAL.isLocal && !javascriptScriptSouce[i][1])) {
       const src = javascriptScriptSouce[i][0];
-      const length = javascriptScriptSouce.length;
       console.log(src);
 
       setLoaderBar((i + 1) / length);
