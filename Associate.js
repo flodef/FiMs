@@ -587,7 +587,7 @@ function CreateAckDebt() {
     let doc = '<h2 align="center" style="color:black">Reconnaissance de dette</h2><br>'
     + '<p>Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31), '
     + 'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de '
-    + getFullName(GLOBAL.user) + ', né(e) le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity
+    + getFullName(GLOBAL.user) + ', né·e le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity
     + ', demeurant à ce jour, ' + GLOBAL.user.Address + ' - ' + GLOBAL.user.PostalCode + ' ' + GLOBAL.user.City
     + ', la somme de ' + getImgFromNumber(total) + getImgTag('€', 15) + getImgTag('', 15)
     + getImgTag('(', 15) + getImgFromText(numberToText(total)) + getImgTag('euros', 15) + getImgTag(')', 15)
@@ -601,7 +601,7 @@ function CreateAckDebt() {
     + '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an, '
     + 'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.</li></ul><br><br>'
     + '<span>L\'emprunteur, DE FROCOURT Florian,</span>'
-    + '<span style="float:right">Le prêteur(se), ' + getFullName(GLOBAL.user) + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé</span>'
+    + '<span style="float:right">Le·a prêteur·se, ' + getFullName(GLOBAL.user) + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé</span>'
     + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé<br><br>'
     + '&emsp;&emsp;&emsp;' + getImgTag('Le', 15) + '&emsp;' + getImgFromNumber(signDate)
     + '<br>' + getImgTag('Signature');
@@ -699,14 +699,13 @@ function numberToText(number) {
 }
 
 function printHtml(id, title) {
-  var printWindow = window.open('', '', 'height=768,width=1024');
-  printWindow.document.write('<html><head><title>' + title + '</title>');
-  printWindow.document.write('</head><body >');
-  printWindow.document.write($(id).html());
-  printWindow.document.write('</body></html>');
+  const html = '<html><head><link rel="stylesheet" href="' + GLOBAL.scriptUrl + 'Stylesheet.css"><title>' + title + '</title>'
+    + '</head><body style="margin:0% 20%;">' + $(id).html() + '</body></html>';
+  const printWindow = window.open('', '', 'width=' + screen.width + ',height=' + screen.height);
+  printWindow.document.write(html);
   printWindow.document.close();
   printWindow.print();
-  setTimeout(()=>printWindow.close(), 1000);
+  setTimeout(printWindow.close, 100);
 }
 
 function getFullName(person) {

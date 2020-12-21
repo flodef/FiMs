@@ -7,6 +7,9 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 
 - Load each page on demand (show loader bar)
 - Recurrent edit in personal should not refresh the page
+- Don't reload FAQ
+- Add CSS to print
+- Add scrollbar in Investment
 
 - FAQ : 
 	- Add theme to group Q/A
