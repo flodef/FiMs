@@ -106,7 +106,7 @@ function openPopup(innerHTML) {
 
 function closePopup(complete = () => {}) {
   displayElement('#popupOverlay', false, null,
-    () => { $('.contentOverlay').removeClass('blur-filter');$('#mainFocus').focus(); complete; });
+    () => { $('.contentOverlay').removeClass('blur-filter');$('#mainFocus').focus(); complete(); });
 }
 
 function processTable(id, tableHTML, shouldFilter) {

@@ -254,7 +254,8 @@ function setUserId(id) {
 
     if (id) {
       GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1];   // Create user account formula
-      updateAllValues();                                      // Load all data
+      GLOBAL.displayId.forEach(id => { if (id != faqId) { updateValues(id, true) }} ); // Load all data except faq
+      updateAllValues();
     } else {    // No user
       openTab(faqId);                                         // Open first the faq tab (in case of disconnection)
       $('#scrollDiv').html('');                               // Clear the scroll marquee content
@@ -705,7 +706,7 @@ function printHtml(id, title) {
   printWindow.document.write(html);
   printWindow.document.close();
   printWindow.print();
-  setTimeout(printWindow.close, 100);
+  setTimeout(() => printWindow.close(), 100);
 }
 
 function getFullName(person) {
