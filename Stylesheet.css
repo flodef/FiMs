@@ -1,7 +1,7 @@
 h1, h2 {
   font-weight: 400;
   color: #b1b1b1;
-  margin : 0px;
+  margin: 0px;
 }
 
 h1 {
@@ -62,20 +62,19 @@ button {
   font-size: 11px;
   width: 100px;
   cursor: pointer;
-  margin:0px 15px 0px 15px;
+  margin: 0px 15px 0px 15px;
 }
 
 a.button {
-    -webkit-appearance: button;
-    -moz-appearance: button;
-    appearance: button;
-
-    text-decoration: none;
-    color: initial;
+  -webkit-appearance: button;
+  -moz-appearance: button;
+  appearance: button;
+  text-decoration: none;
+  color: initial;
 }
 
 marquee {
-  background-color: rgba(255,255,255,0.8);
+  background-color: rgba(255, 255, 255, 0.8);
 }
 
 .hidden {
@@ -83,7 +82,7 @@ marquee {
 }
 
 .mainHeading {
-  background: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.8);
   width: fit-content;
 }
 
@@ -93,7 +92,7 @@ marquee {
 
 .topMenu {
   width: auto;
-  background-color: rgba(255,255,255,0.8);
+  background-color: rgba(255, 255, 255, 0.8);
   margin: 15px 0px 0px 0px;
 }
 
@@ -122,7 +121,6 @@ marquee {
   margin: 15px;
 }
 
-
 /* Tab */
 #tabContainer {
   overflow: hidden;
@@ -139,7 +137,7 @@ marquee {
   transition: 0.3s;
   font-weight: 400;
   color: #b1b1b1;
-  margin : 0px;
+  margin: 0px;
   font-size: 21px;
   line-height: 33px;
   border-radius: 0px;
@@ -157,7 +155,7 @@ marquee {
 }
 
 .tabLinks:disabled,
-.tabLinks[disabled]{
+.tabLinks[disabled] {
   background-color: inherit;
   cursor: default;
 }
@@ -168,17 +166,22 @@ marquee {
   border-top: none;
 }
 
-
 /* Search bar */
 .mainSearch {
   border-radius: 25px;
-  background-image: url('Img/searchicon.png'); /* Add a search icon to input */
-  background-position: 6px 4px; /* Position the search icon */
-  background-repeat: no-repeat; /* Do not repeat the icon image */
+  background-image: url('Img/searchicon.png');
+  /* Add a search icon to input */
+  background-position: 6px 4px;
+  /* Position the search icon */
+  background-repeat: no-repeat;
+  /* Do not repeat the icon image */
   height: 28px;
-  font-size: 16px; /* Increase font-size */
-  padding: 0px 0px 0px 40px; /* Add some padding */
-  border: 1px solid #b1b1b1; /* Add a grey border */
+  font-size: 16px;
+  /* Increase font-size */
+  padding: 0px 0px 0px 40px;
+  /* Add some padding */
+  border: 1px solid #b1b1b1;
+  /* Add a grey border */
   vertical-align: bottom;
   width: 130px;
   -webkit-transition: width 0.4s ease-in-out;
@@ -199,7 +202,6 @@ table.mainTable tr.header, table.mainTable tr:hover {
   background-color: #f1f1f1;
 }
 
-
 /* Loader and Overlay */
 .contentOverlay,
 .shadeOverlay,
@@ -218,15 +220,17 @@ table.mainTable tr.header, table.mainTable tr:hover {
 }
 
 .shadeOverlay {
-  background-color: rgba(0,0,0,0.3);
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 #popup {
   background-color: #fefefe;
-  margin: 15% auto; /* 15% from the top and centered */
+  margin: 15% auto;
+  /* 15% from the top and centered */
   padding: 20px;
   border: 1px solid #888;
-  width: 555px; /* Could be more or less, depending on screen size */
+  width: 555px;
+  /* Could be more or less, depending on screen size */
 }
 
 #loader {
@@ -247,13 +251,23 @@ table.mainTable tr.header, table.mainTable tr:hover {
 }
 
 @-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg); }
-  100% { -webkit-transform: rotate(360deg); }
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Add animation to "page content" */
@@ -266,35 +280,61 @@ table.mainTable tr.header, table.mainTable tr:hover {
 }
 
 @-webkit-keyframes animatebottom {
-  from { bottom:-100px; opacity:0 }
-  to { bottom:0px; opacity:1 }
+  from {
+    bottom: -100px;
+    opacity: 0
+  }
+
+  to {
+    bottom: 0px;
+    opacity: 1
+  }
 }
 
 @keyframes animatebottom {
-  from{ bottom:-100px; opacity:0 }
-  to{ bottom:0; opacity:1 }
+  from {
+    bottom: -100px;
+    opacity: 0
+  }
+
+  to {
+    bottom: 0;
+    opacity: 1
+  }
 }
 
 /* The snackbar - position it at the bottom and in the middle of the screen */
 #snackbar {
-  visibility: hidden; /* Hidden by default. Visible on click */
-  min-width: 250px; /* Set a default minimum width */
-  margin-left: -125px; /* Divide value of min-width by 2 */
-  background-color: #333; /* Black background color */
-  color: #fff; /* White text color */
-  text-align: center; /* Centered text */
-  border-radius: 2px; /* Rounded borders */
-  padding: 16px; /* Padding */
-  position: fixed; /* Sit on top of the screen */
-  z-index: 1; /* Add a z-index if needed */
-  left: 50%; /* Center the snackbar */
-  bottom: 30px; /* 30px from the bottom */
+  visibility: hidden;
+  /* Hidden by default. Visible on click */
+  min-width: 250px;
+  /* Set a default minimum width */
+  margin-left: -125px;
+  /* Divide value of min-width by 2 */
+  background-color: #333;
+  /* Black background color */
+  color: #fff;
+  /* White text color */
+  text-align: center;
+  /* Centered text */
+  border-radius: 2px;
+  /* Rounded borders */
+  padding: 16px;
+  /* Padding */
+  position: fixed;
+  /* Sit on top of the screen */
+  z-index: 1;
+  /* Add a z-index if needed */
+  left: 50%;
+  /* Center the snackbar */
+  bottom: 30px;
+  /* 30px from the bottom */
 }
 
 /* Show the snackbar when clicking on a button (class added with JavaScript) */
 #snackbar.show {
-  visibility: visible; /* Show the snackbar */
-
+  visibility: visible;
+  /* Show the snackbar */
   /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
   However, delay the fade out process for 2.5 seconds */
   -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
@@ -303,25 +343,52 @@ table.mainTable tr.header, table.mainTable tr:hover {
 
 /* Animations to fade the snackbar in and out */
 @-webkit-keyframes fadein {
-  from {bottom: 0; opacity: 0;}
-  to {bottom: 30px; opacity: 1;}
+  from {
+    bottom: 0;
+    opacity: 0;
+  }
+
+  to {
+    bottom: 30px;
+    opacity: 1;
+  }
 }
 
 @keyframes fadein {
-  from {bottom: 0; opacity: 0;}
-  to {bottom: 30px; opacity: 1;}
+  from {
+    bottom: 0;
+    opacity: 0;
+  }
+
+  to {
+    bottom: 30px;
+    opacity: 1;
+  }
 }
 
 @-webkit-keyframes fadeout {
-  from {bottom: 30px; opacity: 1;}
-  to {bottom: 0; opacity: 0;}
+  from {
+    bottom: 30px;
+    opacity: 1;
+  }
+
+  to {
+    bottom: 0;
+    opacity: 0;
+  }
 }
 
 @keyframes fadeout {
-  from {bottom: 30px; opacity: 1;}
-  to {bottom: 0; opacity: 0;}
-}
+  from {
+    bottom: 30px;
+    opacity: 1;
+  }
 
+  to {
+    bottom: 0;
+    opacity: 0;
+  }
+}
 
 /* Toggle switch */
 input[type=checkbox][class=toggle] {
@@ -331,6 +398,7 @@ input[type=checkbox][class=toggle] {
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
 }
+
 input[type=checkbox][class=toggle]:focus {
   outline: 0;
 }
@@ -346,6 +414,7 @@ input[type=checkbox][class=toggle]:focus {
   background: #ccc;
   transition: all 0.2s ease;
 }
+
 .toggle:after {
   content: "";
   position: absolute;
@@ -358,14 +427,15 @@ input[type=checkbox][class=toggle]:focus {
   box-shadow: 0 1px 2px rgba(44, 44, 44, 0.2);
   transition: all 0.2s cubic-bezier(0.5, 0.1, 0.75, 1.35);
 }
+
 .toggle:checked {
   border-color: #2196F3;
   background: #2196F3;
 }
+
 .toggle:checked:after {
   transform: translatex(20px);
 }
-
 
 /* The switch - the box around the slider */
 /* .switch {
@@ -374,12 +444,10 @@ input[type=checkbox][class=toggle]:focus {
   width: 30px;
   height: 17px;
 } */
-
 /* Hide default HTML checkbox */
 /* .switch input {
   display:none;
 } */
-
 /* The slider */
 /* .slider {
   position: absolute;
@@ -418,7 +486,6 @@ input:checked + .slider:before {
   -ms-transform: translateX(13px);
   transform: translateX(13px);
 } */
-
 /* Rounded sliders */
 /* .slider.round {
   border-radius: 34px;
@@ -427,7 +494,6 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 } */
-
 /* Tooltip */
 .tooltip {
   position: relative;
@@ -471,7 +537,6 @@ input:checked + .slider:before {
   opacity: 1;
 }
 
-
 /* Image effect */
 img:hover {
   -webkit-filter: blur(1px);
@@ -479,7 +544,6 @@ img:hover {
   /* box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); */
   cursor: pointer;
 }
-
 
 /* Alert */
 #alert {
@@ -506,7 +570,6 @@ img:hover {
   color: black;
 }
 
-
 /* Removes border and other stuff on input type image */
 input[type="image"] {
   width: 48px;
@@ -526,23 +589,23 @@ input[type="image"]:focus, input[type="image"]:hover {
 
 input[type="image"]:disabled, button:disabled {
   -webkit-filter: grayscale(100%);
-     -moz-filter: grayscale(100%);
-       -o-filter: grayscale(100%);
-      -ms-filter: grayscale(100%);
-          filter: grayscale(100%);
+  -moz-filter: grayscale(100%);
+  -o-filter: grayscale(100%);
+  -ms-filter: grayscale(100%);
+  filter: grayscale(100%);
   border: 0px;
   cursor: default;
   width: 0px;
   padding: 0px;
 }
 
-
 /* Removes step arrows on input type number */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   /* display: none; <- Crashes Chrome on hover */
   -webkit-appearance: none;
-  margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+  margin: 0;
+  /* <-- Apparently some margin are still there even though it's hidden */
 }
 
 input[type="text"] {
@@ -562,167 +625,199 @@ input[type="text"]:hover, input[type="text"]:focus {
 }
 
 @-webkit-keyframes expand {
-  from { min-width: 5px; }
-  to { min-width: 35px; }
+  from {
+    min-width: 5px;
+  }
+
+  to {
+    min-width: 35px;
+  }
 }
 
 @keyframes expand {
-  from { min-width: 5px; }
-  to { min-width: 35px; }
+  from {
+    min-width: 5px;
+  }
+
+  to {
+    min-width: 35px;
+  }
 }
 
 @-webkit-keyframes shrink {
-  from { min-width: 35px; }
-  to { min-width: 5px; }
+  from {
+    min-width: 35px;
+  }
+
+  to {
+    min-width: 5px;
+  }
 }
 
 @keyframes shrink {
-  from { min-width: 35px; }
-  to { min-width: 5px; }
-}
+  from {
+    min-width: 35px;
+  }
 
+  to {
+    min-width: 5px;
+  }
+}
 
 /* Animated Progress bar */
 .loaderBar {
-  height: 20px;  /* Can be anything */
+  height: 20px;
+  /* Can be anything */
   position: relative;
-  margin: 60px 0 20px 0; /* Just for demo spacing */
+  margin: 60px 0 20px 0;
+  /* Just for demo spacing */
   background: none;
   -moz-border-radius: 25px;
   -webkit-border-radius: 25px;
   border-radius: 25px;
   padding: 250px;
-  -webkit-box-shadow: inset 0 -1px 1px rgba(255,255,255,0.3);
-  -moz-box-shadow   : inset 0 -1px 1px rgba(255,255,255,0.3);
-  box-shadow        : inset 0 -1px 1px rgba(255,255,255,0.3);
+  -webkit-box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
+  -moz-box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
 }
 
-.loaderBar > span {
+.loaderBar>span {
   display: block;
   height: 100%;
-     -webkit-border-top-right-radius: 20px;
+  -webkit-border-top-right-radius: 20px;
   -webkit-border-bottom-right-radius: 20px;
-         -moz-border-radius-topright: 20px;
-      -moz-border-radius-bottomright: 20px;
-             border-top-right-radius: 20px;
-          border-bottom-right-radius: 20px;
-      -webkit-border-top-left-radius: 20px;
-   -webkit-border-bottom-left-radius: 20px;
-          -moz-border-radius-topleft: 20px;
-       -moz-border-radius-bottomleft: 20px;
-              border-top-left-radius: 20px;
-           border-bottom-left-radius: 20px;
-  background-color: rgb(43,194,83);
-  background-image: -webkit-gradient(
-    linear,
-    left bottom,
-    left top,
-    color-stop(0, rgb(43,194,83)),
-    color-stop(1, rgb(84,240,84))
-   );
-  background-image: -moz-linear-gradient(
-    center bottom,
-    rgb(43,194,83) 37%,
-    rgb(84,240,84) 69%
-   );
+  -moz-border-radius-topright: 20px;
+  -moz-border-radius-bottomright: 20px;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  -webkit-border-top-left-radius: 20px;
+  -webkit-border-bottom-left-radius: 20px;
+  -moz-border-radius-topleft: 20px;
+  -moz-border-radius-bottomleft: 20px;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+  background-color: rgb(43, 194, 83);
+  background-image: -webkit-gradient(linear,
+      left bottom,
+      left top,
+      color-stop(0, rgb(43, 194, 83)),
+      color-stop(1, rgb(84, 240, 84)));
+  background-image: -moz-linear-gradient(center bottom,
+      rgb(43, 194, 83) 37%,
+      rgb(84, 240, 84) 69%);
   -webkit-box-shadow:
-    inset 0 2px 9px  rgba(255,255,255,0.3),
-    inset 0 -2px 6px rgba(0,0,0,0.4);
+    inset 0 2px 9px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.4);
   -moz-box-shadow:
-    inset 0 2px 9px  rgba(255,255,255,0.3),
-    inset 0 -2px 6px rgba(0,0,0,0.4);
+    inset 0 2px 9px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.4);
   box-shadow:
-    inset 0 2px 9px  rgba(255,255,255,0.3),
-    inset 0 -2px 6px rgba(0,0,0,0.4);
+    inset 0 2px 9px rgba(255, 255, 255, 0.3),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.4);
   position: relative;
   overflow: hidden;
 }
 
-.loaderBar > span:after, .animate > span > span {
+.loaderBar>span:after, .animate>span>span {
   content: "";
   position: absolute;
-  top: 0; left: 0; bottom: 0; right: 0;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
   background-image:
-     -webkit-gradient(linear, 0 0, 100% 100%,
-        color-stop(.25, rgba(255, 255, 255, .2)),
-        color-stop(.25, transparent), color-stop(.5, transparent),
-        color-stop(.5, rgba(255, 255, 255, .2)),
-        color-stop(.75, rgba(255, 255, 255, .2)),
-        color-stop(.75, transparent), to(transparent)
-     );
+    -webkit-gradient(linear, 0 0, 100% 100%,
+      color-stop(.25, rgba(255, 255, 255, .2)),
+      color-stop(.25, transparent), color-stop(.5, transparent),
+      color-stop(.5, rgba(255, 255, 255, .2)),
+      color-stop(.75, rgba(255, 255, 255, .2)),
+      color-stop(.75, transparent), to(transparent));
   background-image:
-    -moz-linear-gradient(
-      -45deg,
-        rgba(255, 255, 255, .2) 25%,
-        transparent 25%,
-        transparent 50%,
-        rgba(255, 255, 255, .2) 50%,
-        rgba(255, 255, 255, .2) 75%,
-        transparent 75%,
-        transparent
-     );
+    -moz-linear-gradient(-45deg,
+      rgba(255, 255, 255, .2) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(255, 255, 255, .2) 50%,
+      rgba(255, 255, 255, .2) 75%,
+      transparent 75%,
+      transparent);
   z-index: 1;
   -webkit-background-size: 50px 50px;
   -moz-background-size: 50px 50px;
   background-size: 50px 50px;
   -webkit-animation: move 2s linear infinite;
   -moz-animation: move 2s linear infinite;
-     -webkit-border-top-right-radius: 20px;
+  -webkit-border-top-right-radius: 20px;
   -webkit-border-bottom-right-radius: 20px;
-         -moz-border-radius-topright: 20px;
-      -moz-border-radius-bottomright: 20px;
-             border-top-right-radius: 20px;
-          border-bottom-right-radius: 20px;
-      -webkit-border-top-left-radius: 20px;
-   -webkit-border-bottom-left-radius: 20px;
-          -moz-border-radius-topleft: 20px;
-       -moz-border-radius-bottomleft: 20px;
-              border-top-left-radius: 20px;
-           border-bottom-left-radius: 20px;
+  -moz-border-radius-topright: 20px;
+  -moz-border-radius-bottomright: 20px;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  -webkit-border-top-left-radius: 20px;
+  -webkit-border-bottom-left-radius: 20px;
+  -moz-border-radius-topleft: 20px;
+  -moz-border-radius-bottomleft: 20px;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
   overflow: hidden;
 }
 
-.animate > span:after {
+.animate>span:after {
   display: none;
 }
 
 @keyframes move {
-    0% { background-position: 0 0; }
-    100% { background-position: 50px 50px; }
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 50px 50px;
+  }
 }
 
 @-webkit-keyframes move {
-    0% { background-position: 0 0; }
-    100% { background-position: 50px 50px; }
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 50px 50px;
+  }
 }
 
 @-moz-keyframes move {
-    0% { background-position: 0 0; }
-    100% { background-position: 50px 50px; }
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 50px 50px;
+  }
 }
 
-.grey > span {
+.grey>span {
   background-color: #b1b1b1;
   background-image: -moz-linear-gradient(top, #b1b1b1, #afe60c);
-  background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #b1b1b1),color-stop(1, #afe60c));
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #b1b1b1), color-stop(1, #afe60c));
   background-image: -webkit-linear-gradient(#b1b1b1, #afe60c);
 }
 
-.orange > span {
+.orange>span {
   background-color: #f1a165;
   background-image: -moz-linear-gradient(top, #f1a165, #f36d0a);
-  background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #f1a165),color-stop(1, #f36d0a));
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #f1a165), color-stop(1, #f36d0a));
   background-image: -webkit-linear-gradient(#f1a165, #f36d0a);
 }
 
-.red > span {
+.red>span {
   background-color: #f0a3a3;
   background-image: -moz-linear-gradient(top, #f0a3a3, #f42323);
-  background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #f0a3a3),color-stop(1, #f42323));
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #f0a3a3), color-stop(1, #f42323));
   background-image: -webkit-linear-gradient(#f0a3a3, #f42323);
 }
 
-.nostripes > span > span, .nostripes > span:after {
+.nostripes>span>span, .nostripes>span:after {
   -webkit-animation: none;
   -moz-animation: none;
   background-image: none;
@@ -734,7 +829,6 @@ input[type="text"]:hover, input[type="text"]:focus {
   animation-name: move;
   cursor: default;
 }
-
 
 /* Checkmark */
 .checkmark {
@@ -764,11 +858,13 @@ input[type="text"]:hover, input[type="text"]:focus {
     width: 0;
     opacity: 1;
   }
+
   40% {
     height: 0;
     width: 12px;
     opacity: 1;
   }
+
   100% {
     height: 25px;
     width: 12px;

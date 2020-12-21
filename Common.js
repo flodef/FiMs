@@ -1,6 +1,6 @@
 /**
-* Functions that are shared between main app and associate app.
-*/
+ * Functions that are shared between main app and associate app.
+ */
 
 GLOBAL.data = [];
 GLOBAL.loadingQueueCount = 0;
@@ -12,14 +12,14 @@ GLOBAL.handleEvent = true;
  * Run initializations on web app load.
  */
 $(() => {
-  jQuery.fx.off = false;  // if false, display jQuery viesual effect like "fade"
+  jQuery.fx.off = false; // if false, display jQuery viesual effect like "fade"
 });
 
 function loadPage() {
   $(document).on('visibilitychange', () => GLOBAL.doVisualUpdates = !document.hidden);
-  $(document).keyup(onKeyUp);  // The event listener for the key press (action buttons)
+  $(document).keyup(onKeyUp); // The event listener for the key press (action buttons)
 
-  GLOBAL.displayId = Object.keys(GLOBAL.displayData);         // Set the id to display in a normal array
+  GLOBAL.displayId = Object.keys(GLOBAL.displayData); // Set the id to display in a normal array
 
   // Set the app main heading to the web page title
   google.script.run
@@ -28,11 +28,13 @@ function loadPage() {
     .getProperty('pageTitle');
 
   // Set the app buttons
-  var tableHTML = '<table id="actionButton" class="topMenu">'
-  + '<div id="focus" style="height:0px;">'
-  + '<input id="mainFocus" type="image" src="' + GLOBAL.serverUrl + 'Img/0BYg1.png" style="height:0px;" tabindex="1">'
-  + '</div><tr>';
-  GLOBAL.menuButton.forEach(item => { tableHTML += getMenuButton(item); });
+  var tableHTML = '<table id="actionButton" class="topMenu">' +
+    '<div id="focus" style="height:0px;">' +
+    '<input id="mainFocus" type="image" src="' + GLOBAL.serverUrl + 'Img/0BYg1.png" style="height:0px;" tabindex="1">' +
+    '</div><tr>';
+  GLOBAL.menuButton.forEach(item => {
+    tableHTML += getMenuButton(item);
+  });
   tableHTML += '</tr>';
   setTable('menu', tableHTML);
   displayElement('.actionButton', false, 0);
@@ -47,22 +49,22 @@ function loadPage() {
     tabContainerHTML += getTitle(id);
   });
 
-  $('#mainContent').html(mainContentHTML);  // Set the app main content
+  $('#mainContent').html(mainContentHTML); // Set the app main content
 
   setTabContainer(tabContainerHTML);
   displayElement('.tabContent', false, 0);
 
   // Set the footer
-  $('#footer').html('<table style="table-layout:fixed;"><tr>'
-  + '<td align="left">' + getLink('https://forms.gle/ffTrJzALtKtBuh9U8', 'Contact, BUG, Questions ?!*%$^#@') + '</td>'
-  + '<td align="center" id="loading"></td>'
-  + '<td align="right">' + translate('Icon made by') + ' ' + getLink('https://www.flaticon.com/authors/pixel-buddha', 'Pixel Buddha')
-  + ' ' + translate('from') + ' ' + getLink('https://www.flaticon.com') + '</td>'
-  + '</tr></table>');
+  $('#footer').html('<table style="table-layout:fixed;"><tr>' +
+    '<td align="left">' + getLink('https://forms.gle/ffTrJzALtKtBuh9U8', 'Contact, BUG, Questions ?!*%$^#@') + '</td>' +
+    '<td align="center" id="loading"></td>' +
+    '<td align="right">' + translate('Icon made by') + ' ' + getLink('https://www.flaticon.com/authors/pixel-buddha', 'Pixel Buddha') +
+    ' ' + translate('from') + ' ' + getLink('https://www.flaticon.com') + '</td>' +
+    '</tr></table>');
 
-  $(document).ready(() => $('#mainFocus').focus());   // Set the main focus (replace autofocus attribute)
+  $(document).ready(() => $('#mainFocus').focus()); // Set the main focus (replace autofocus attribute)
 
-  init();   // Call init() proper to specialized script (Main or Associate)
+  init(); // Call init() proper to specialized script (Main or Associate)
 }
 
 function animateLoaderBar(item, duration = 3000) {
@@ -72,16 +74,18 @@ function animateLoaderBar(item, duration = 3000) {
   const span = item.children('span');
   span.data('origWidth', span.width())
     .width(0)
-    .animate({width: span.data('origWidth')}, duration);
+    .animate({
+      width: span.data('origWidth')
+    }, duration);
 }
 
 function openTab(id, isFirstLoading) {
   if (GLOBAL.currentDisplayedId != id) {
     GLOBAL.currentDisplayedId = id;
-    GLOBAL.displayId.forEach(id => displayElement('#' + id + 'Div', false, 0));   // Hide all tab content
-    $('.tabLinks').removeClass('active');                                         // Remove the class "active" from all tabLinks"
-    displayElement('#' + id + 'Div', true);                                       // Show the current tab
-    $('#' + id + 'Button').addClass('active');                                    // Add an "active" class to the button that opened the tab
+    GLOBAL.displayId.forEach(id => displayElement('#' + id + 'Div', false, 0)); // Hide all tab content
+    $('.tabLinks').removeClass('active'); // Remove the class "active" from all tabLinks"
+    displayElement('#' + id + 'Div', true); // Show the current tab
+    $('#' + id + 'Button').addClass('active'); // Add an "active" class to the button that opened the tab
 
     if (!isFirstLoading && !GLOBAL.displayData[id].loadOnce) {
       updateValues(id);
@@ -106,12 +110,16 @@ function openPopup(innerHTML) {
 
 function closePopup(complete = () => {}) {
   displayElement('#popupOverlay', false, null,
-    () => { $('.contentOverlay').removeClass('blur-filter');$('#mainFocus').focus(); complete(); });
+    () => {
+      $('.contentOverlay').removeClass('blur-filter');
+      $('#mainFocus').focus();
+      complete();
+    });
 }
 
 function processTable(id, tableHTML, shouldFilter) {
   setTable(id, tableHTML + (shouldFilter && !tableHTML.includes('<tfoot>') ? '<tfoot><tr id="' + id + 'Footer"></tr></tfoot>' : ''));
-  $('#' + id + 'Button').prop('disabled', false);     // Activate button
+  $('#' + id + 'Button').prop('disabled', false); // Activate button
   $('.auto').each((i, item) => autoAdaptWidth(item)); // Auto adapt all auto element
 
   if (shouldFilter) {
@@ -120,24 +128,24 @@ function processTable(id, tableHTML, shouldFilter) {
 }
 
 function getTableEditableCell(contents, data) {
-  return getTableReadOnlyContent(contents[index-1][0], false)
-       + getTableEditableContent(contents[index-1][1], data);
+  return getTableReadOnlyContent(contents[index - 1][0], false) +
+    getTableEditableContent(contents[index - 1][1], data);
 }
 
 function getTableValidatableCell(id, contents, index, range, expected) {
-  return getTableReadOnlyContent(contents[index-1][0], false)
-       + getTableValidatableContent(id, contents[index-1][1], range, expected);
+  return getTableReadOnlyContent(contents[index - 1][0], false) +
+    getTableValidatableContent(id, contents[index - 1][1], range, expected);
 }
 
 function getTableReadOnlyCell(contents, index) {
-  return getTableReadOnlyContent(contents[index-1][0], false)
-       + getTableReadOnlyContent(contents[index-1][1], false);
+  return getTableReadOnlyContent(contents[index - 1][0], false) +
+    getTableReadOnlyContent(contents[index - 1][1], false);
 }
 
 function getTableReadOnlyContent(content = '', isHeader, isDisabled, color) {
   if (!isHeader) {
     var matches = /\(([^)]+)\)/.exec(content);
-    var value = matches ? matches[matches.length-1] : content;
+    var value = matches ? matches[matches.length - 1] : content;
     var isCur = /(€|%|\$)/.test(value);
     var color = getColor(value, isDisabled, isCur, color);
     return '<td align="center" style="color:' + color + '">' + content + '</td>';
@@ -147,19 +155,22 @@ function getTableReadOnlyContent(content = '', isHeader, isDisabled, color) {
 }
 
 function getTableEditableContent(content, data) {
-  var label = '', post = '', classText = '', handler = '';
+  var label = '',
+    post = '',
+    classText = '',
+    handler = '';
   if (data) {
-    data.inputId = data.inputId || getRandomId();  // Generates a random Id if it does not have any
+    data.inputId = data.inputId || getRandomId(); // Generates a random Id if it does not have any
     classText = data.class || '';
     symbol = data.type == 'euro' ? ' €' : data.type == 'percent' ? ' %' : data.type == 'radio' ? content : '';
     const isToggle = data.class && data.class.includes('toggle');
-    label = data.label
-      ? '<div id="' + data.inputId + 'Div" style="top:55px;left:-320px;position:relative;text-align:right;">'
-        + getLabel(data.inputId, Array.isArray(data.label) ? data.label[data.checked ? 0 : 1] : data.label, isToggle) + '</div>'
-      : '';
+    label = data.label ?
+      '<div id="' + data.inputId + 'Div" style="top:55px;left:-320px;position:relative;text-align:right;">' +
+      getLabel(data.inputId, Array.isArray(data.label) ? data.label[data.checked ? 0 : 1] : data.label, isToggle) + '</div>' :
+      '';
 
-    handler = isToggle ? ' onclick="$(\'#' + data.inputId + 'Div\').html(getLabel(\'' + data.inputId
-      + '\', $(this).is(\':checked\') ? \'' + data.label[0] + '\' : \'' + data.label[1] + '\', true));"' : '';
+    handler = isToggle ? ' onclick="$(\'#' + data.inputId + 'Div\').html(getLabel(\'' + data.inputId +
+      '\', $(this).is(\':checked\') ? \'' + data.label[0] + '\' : \'' + data.label[1] + '\', true));"' : '';
 
     if (isNumberInput(data.type)) {
       data.precision = data.precision ?? (data.type == 'euro' ? 2 : 0);
@@ -171,17 +182,17 @@ function getTableEditableContent(content, data) {
 
     classText += isEditableInput(data.type) ? ' auto' : '';
 
-    post = data.erase
-      ? '<span id="' + data.inputId + 'Erase" style="float:none;color:black;visibility:hidden" class="closebtn"'
-        + ' onclick="$(\'#' + data.inputId + '\').val(\'\');$(\'#' + data.inputId + '\').keyup();$(\'#' + data.inputId + '\').focus();">&times;</span>'
-      : '';
+    post = data.erase ?
+      '<span id="' + data.inputId + 'Erase" style="float:none;color:black;visibility:hidden" class="closebtn"' +
+      ' onclick="$(\'#' + data.inputId + '\').val(\'\');$(\'#' + data.inputId + '\').keyup();$(\'#' + data.inputId + '\').focus();">&times;</span>' :
+      '';
   }
 
-  const input = data && data.type == 'url'
-    ? splice(getLink(content), getAttributesFromData(data), 3)
-    : '<input' + addAttr('class', classText) + getAttributesFromData(data)
-      + (isEditableInput(data.type) && !data.readonly && !data.disabled ? getEditCellHandler(content, data) : handler)
-      + '>' + data.symbol + '</input>';
+  const input = data && data.type == 'url' ?
+    splice(getLink(content), getAttributesFromData(data), 3) :
+    '<input' + addAttr('class', classText) + getAttributesFromData(data) +
+    (isEditableInput(data.type) && !data.readonly && !data.disabled ? getEditCellHandler(content, data) : handler) +
+    '>' + data.symbol + '</input>';
   const tooltip = getTooltip(label + input, data.tooltip);
 
   return '<td align="center">' + tooltip + post + '</td>';
@@ -189,7 +200,7 @@ function getTableEditableContent(content, data) {
 
 function getAttributesFromData(data) {
   var attr = '';
-  var type = 'text';  // Type is text by default
+  var type = 'text'; // Type is text by default
   if (data) {
     data.symbol = data.type == 'euro' ? ' €' : data.type == 'percent' ? ' %' : data.type == 'radio' ? content : '';
     if (isNumberInput(data.type)) {
@@ -206,72 +217,75 @@ function getAttributesFromData(data) {
       attr = addAttr('minLength', minLength) + addAttr('maxLength', maxLength);
     }
 
-    attr += addAttr('id', data.inputId) + addAttr('placeholder', data.placeholder)
-          + addAttr('name', data.name) + addAttr('pattern', data.pattern) + addAttr('style', data.style)
-          + addAttr('value', data.value) + addAttr('data-symbol', data.symbol) + addAttr('data-type', data.type || 'text')
-          + addAttr('data-precision', data.precision) + addAttr('readonly', data.readonly, true)
-          + addAttr('disabled', data.disabled, true) + addAttr('required', data.required, true)
-          + addAttr('checked', data.checked);
+    attr += addAttr('id', data.inputId) + addAttr('placeholder', data.placeholder) +
+      addAttr('name', data.name) + addAttr('pattern', data.pattern) + addAttr('style', data.style) +
+      addAttr('value', data.value) + addAttr('data-symbol', data.symbol) + addAttr('data-type', data.type || 'text') +
+      addAttr('data-precision', data.precision) + addAttr('readonly', data.readonly, true) +
+      addAttr('disabled', data.disabled, true) + addAttr('required', data.required, true) +
+      addAttr('checked', data.checked);
   }
 
-  attr += addAttr('type', type);  // Type is universal
+  attr += addAttr('type', type); // Type is universal
 
   return attr;
 }
 
 function getTableValidatableContent(id, content, range, expected) {
-  return '<td class="validateContent" align="center" style="font-style:italic;background-color:'
-       + (!expected || content == expected ? 'transparent' : 'pink') + '">'
-       + '<div style="position:relative"><span>' + content + '</span>'
-       + '<div style="position:absolute;left:35%;top:50%;" class="checkmark" value="' + toValue(content) + '"'
-       + 'onclick="if(!$(this).hasClass(\'draw\')) { ' + getUpdateContent(id, range, GLOBAL.dummy) + ' }">'
-       + '</div></div></td>';
+  return '<td class="validateContent" align="center" style="font-style:italic;background-color:' +
+    (!expected || content == expected ? 'transparent' : 'pink') + '">' +
+    '<div style="position:relative"><span>' + content + '</span>' +
+    '<div style="position:absolute;left:35%;top:50%;" class="checkmark" value="' + toValue(content) + '"' +
+    'onclick="if(!$(this).hasClass(\'draw\')) { ' + getUpdateContent(id, range, GLOBAL.dummy) + ' }">' +
+    '</div></div></td>';
 }
 
 function getEditCellHandler(expected, data) {
-  return ' onfocusout="const error = getElementValidity(this); $(this).data(\'error\', error); if (error) { $(this).focus(); showSnackBar(error); } else { '
-       + (data && data.id && data.range ? getUpdateContent(data.id, data.range, expected) : '') + ' }"'
-       + ' onkeyup="if (!GLOBAL.handleEvent && event.which == 13) { $(this).blur() } else if (!GLOBAL.handleEvent && event.which == 27)'
-       + ' { this.value = \'' + expected + '\'; } autoAdaptWidth(this);'
-       + (data && data.inputId && data.erase ? ' $(\'#' + data.inputId + 'Erase\').css(\'visibility\', $(this).val() ? \'visible\' : \'hidden\')' : '')
-       + '" oninput="autoAdaptWidth(this);"';
+  return ' onfocusout="const error = getElementValidity(this); $(this).data(\'error\', error); if (error) { $(this).focus(); showSnackBar(error); } else { ' +
+    (data && data.id && data.range ? getUpdateContent(data.id, data.range, expected) : '') + ' }"' +
+    ' onkeyup="if (!GLOBAL.handleEvent && event.which == 13) { $(this).blur() } else if (!GLOBAL.handleEvent && event.which == 27)' +
+    ' { this.value = \'' + expected + '\'; } autoAdaptWidth(this);' +
+    (data && data.inputId && data.erase ? ' $(\'#' + data.inputId + 'Erase\').css(\'visibility\', $(this).val() ? \'visible\' : \'hidden\')' : '') +
+    '" oninput="autoAdaptWidth(this);"';
 }
 
 function getUpdateContent(id, range, expected) {
-  return 'if (this.value != \'' + expected + '\') '
-       + '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]'
-       + (id ? id != GLOBAL.settings ? ', () => updateValues(\'' + id + '\', true)'
-         : ', () => getValue({ id:GLOBAL.settings, formula:GLOBAL.settingsFormula }, null, true, updateAllValues)'
-         : '') + '); }';
+  return 'if (this.value != \'' + expected + '\') ' +
+    '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]' +
+    (id ? id != GLOBAL.settings ? ', () => updateValues(\'' + id + '\', true)' :
+      ', () => getValue({ id:GLOBAL.settings, formula:GLOBAL.settingsFormula }, null, true, updateAllValues)' :
+      '') + '); }';
 }
 
 function getSubTableTitle(id, title, range) {
-  return '<tr><td colspan="10"><input value="' + title + '" class="tableTitle auto" minLength="3"'
-    + ' maxLength="30" style="font-size:16px;"' + getEditCellHandler(title, {id:id, range:range})
-    + '"></input></td></tr>';
+  return '<tr><td colspan="10"><input value="' + title + '" class="tableTitle auto" minLength="3"' +
+    ' maxLength="30" style="font-size:16px;"' + getEditCellHandler(title, {
+      id: id,
+      range: range
+    }) +
+    '"></input></td></tr>';
 }
 
 function getTitle(id) {
   const title = translate(id);
-  return '<button disabled id="' + id + 'Button" class="tabLinks" onclick="openTab(\'' + id + '\')">'
-        + toFirstUpperCase(title) + '</button>';
+  return '<button disabled id="' + id + 'Button" class="tabLinks" onclick="openTab(\'' + id + '\')">' +
+    toFirstUpperCase(title) + '</button>';
 }
 
 function getTableTitle(id, disabled, tooltip, colspan) {
-  return '<table id="' + id + 'Content" class="tabContent"><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">'
-       + '<tr style="background-color:white;"><td></td>'
-       + (false ? '<td id="' + id + 'Switch" class="mainSwitch '
-       + ($('#' + id + 'Switch').is(':visible') ? '' : 'hidden') + '">'
-       + getTooltip('<label class="switch" style="border:30px;margin:7px 0px 0px 0px;">'
-       + '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '')
-       + ' onclick="filterTable(\'' + id + '\', true)">'
-       + '<div class="slider round"></div></label>', tooltip) + '</td></tr></table>'
-       + '<td colspan="' + colspan + '" align="right">'
-       + '<input id="' + id + 'Search" type="text" placeholder="Search" class="mainSearch '
-       + ($('#' + id + 'Search').is(':visible') ? '' : 'hidden') + '" '
-       + 'onkeyup="filterTable(\'' + id + '\');" onchange="filterTable(\'' + id + '\');"'
-       + 'value="' + ($('#' + id + 'Search').val() || '') + '">' : '')
-       + '</tr></table>' + getMainTableHead(id);
+  return '<table id="' + id + 'Content" class="tabContent"><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">' +
+    '<tr style="background-color:white;"><td></td>' +
+    (false ? '<td id="' + id + 'Switch" class="mainSwitch ' +
+      ($('#' + id + 'Switch').is(':visible') ? '' : 'hidden') + '">' +
+      getTooltip('<label class="switch" style="border:30px;margin:7px 0px 0px 0px;">' +
+        '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') +
+        ' onclick="filterTable(\'' + id + '\', true)">' +
+        '<div class="slider round"></div></label>', tooltip) + '</td></tr></table>' +
+      '<td colspan="' + colspan + '" align="right">' +
+      '<input id="' + id + 'Search" type="text" placeholder="Search" class="mainSearch ' +
+      ($('#' + id + 'Search').is(':visible') ? '' : 'hidden') + '" ' +
+      'onkeyup="filterTable(\'' + id + '\');" onchange="filterTable(\'' + id + '\');"' +
+      'value="' + ($('#' + id + 'Search').val() || '') + '">' : '') +
+    '</tr></table>' + getMainTableHead(id);
 }
 
 function getMainTableHead(id) {
@@ -284,15 +298,15 @@ function getTableCheckmark(content) {
 }
 
 function getTableLoaderBar(content) {
-  return '<td align="center" style="width:100px;">' + getTooltip('<div class="loaderBar drawlb"'
-  + ' onclick="animateLoaderBar(this, 1000)" style="cursor:pointer;padding:0px;margin:0px">'
-  + '<span width="80px" style="width:80px;height:12px;top:3px;margin:5px 0px;"></span></div>', translate(content)) + '</td>';
+  return '<td align="center" style="width:100px;">' + getTooltip('<div class="loaderBar drawlb"' +
+    ' onclick="animateLoaderBar(this, 1000)" style="cursor:pointer;padding:0px;margin:0px">' +
+    '<span width="80px" style="width:80px;height:12px;top:3px;margin:5px 0px;"></span></div>', translate(content)) + '</td>';
 }
 
 function getTableImage(content) {
   return '<td align="center">' + getTooltip(
-    '<img src="' + GLOBAL.serverUrl + 'Img/' + content + '.png" '
-  + ' onclick="displayElement(this, false, 0);displayElement(this, true, 3000)">', translate(content)) + '</td>';
+    '<img src="' + GLOBAL.serverUrl + 'Img/' + content + '.png" ' +
+    ' onclick="displayElement(this, false, 0);displayElement(this, true, 3000)">', translate(content)) + '</td>';
 }
 
 function getMenuButton(item) {
@@ -300,16 +314,16 @@ function getMenuButton(item) {
   const img = toFirstUpperCase(item.img ?? id);
   const fn = item.fn ? item.fn.name : id;
 
-  return '<td style="padding: 0px;">' + getTooltip('<input id="' + id + 'Button" class="actionButton"'
-    + ' src="' + GLOBAL.serverUrl + 'Img/' + img + '.png" type="image" tabindex="2" onclick="'
-    + fn + '()">', translate(img)) + '</td>';
+  return '<td style="padding: 0px;">' + getTooltip('<input id="' + id + 'Button" class="actionButton"' +
+    ' src="' + GLOBAL.serverUrl + 'Img/' + img + '.png" type="image" tabindex="2" onclick="' +
+    fn + '()">', translate(img)) + '</td>';
 }
 
 function getLabel(id, content, isToggle) {
   const d = getTranslateData(content);
-  return getTooltip('<label id="' + id + 'Label" for="' + id + '" '
-    + (isToggle ? 'style="top:-20px;position:relative;"' : '') + '>'
-    + d.text + '</label>', d.tooltip);
+  return getTooltip('<label id="' + id + 'Label" for="' + id + '" ' +
+    (isToggle ? 'style="top:-20px;position:relative;"' : '') + '>' +
+    d.text + '</label>', d.tooltip);
 }
 
 function getTooltip(html, tooltip) {
@@ -317,9 +331,9 @@ function getTooltip(html, tooltip) {
 }
 
 function getLink(content, title) {
-  return content
-    ? '<a href="' + (content.slice(0, 4) == 'http' ? content : '#') + '" target="_blank">' + (title || content) + '</a>'
-    : '<a >&nbsp;</a>';
+  return content ?
+    '<a href="' + (content.slice(0, 4) == 'http' ? content : '#') + '" target="_blank">' + (title || content) + '</a>' :
+    '<a >&nbsp;</a>';
 }
 
 // function getTitle(id, disabled) {
@@ -355,10 +369,10 @@ function getLink(content, title) {
 
 function getColor(value, isDisabled = false, isCur = true, forcedColor) {
   var number = toValue(value);
-  return forcedColor ? forcedColor
-    : isDisabled || (!isNaN(number) && number == 0) ? 'wheat'
-      : isCur ? number > 0 ? 'green' : 'red'
-        : 'black';
+  return forcedColor ? forcedColor :
+    isDisabled || (!isNaN(number) && number == 0) ? 'wheat' :
+    isCur ? number > 0 ? 'green' : 'red' :
+    'black';
 }
 
 function setTable(id, tableHTML) {
@@ -372,13 +386,21 @@ function setEvents() {
     .on('animationend', e => $(e.target).removeClass('draw'));
 
   $('.validateContent').hover(
-    e => { var c = $(e.target).children().children(); c.first().fadeOut(); c.last().fadeIn(); },
-    e => { var c = $(e.target).children().children(); c.last().fadeOut(); c.first().fadeIn(); });
+    e => {
+      var c = $(e.target).children().children();
+      c.first().fadeOut();
+      c.last().fadeIn();
+    },
+    e => {
+      var c = $(e.target).children().children();
+      c.last().fadeOut();
+      c.first().fadeIn();
+    });
 }
 
 function setTabContainer(innerHTML) {
-  $('#tabContainer').html(innerHTML);  // Set the tab buttons content
-  $('.tabLinks').css('width', 100/GLOBAL.displayId.length + '%');   // Tab buttons should be centered
+  $('#tabContainer').html(innerHTML); // Set the tab buttons content
+  $('.tabLinks').css('width', 100 / GLOBAL.displayId.length + '%'); // Tab buttons should be centered
 }
 
 function toggleItem(id, item, shouldDisplay) {
@@ -392,7 +414,7 @@ function autoAdaptWidth(e) {
 
   if (!e.placeholder) {
     var size = e.style.fontSize ? e.style.fontSize : '13.33px';
-    var step = parseFloat(size)/1.8;
+    var step = parseFloat(size) / 1.8;
     var index = 4;
     e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + 'px';
   }
@@ -406,26 +428,27 @@ function checkElement(e) {
     const min = !isNaN(parseFloat(e.min)) ? parseFloat(e.min) : Number.MIN_SAFE_INTEGER;
     const max = !isNaN(parseFloat(e.max)) ? parseFloat(e.max) : Number.MAX_SAFE_INTEGER;
     const precision = parseInt(e.dataset.precision) || 0;
-    const maxLength = Math.max(String(parseInt(min)).length, String(parseInt(max)).length) + precision + 1;   // Don't forget the decimal separator
-    const pattern = e.pattern || '^' + (min < 0 ? max < 0 ? '-+' : '-?' : '') + '([0-9]' + (e.required ? '+' : '*') + '$'
-      + (precision > 0 ? '|[0-9]+\\.?[0-9]{0,' + precision + '}$' : '') + ')';
+    const maxLength = Math.max(String(parseInt(min)).length, String(parseInt(max)).length) + precision + 1; // Don't forget the decimal separator
+    const pattern = e.pattern || '^' + (min < 0 ? max < 0 ? '-+' : '-?' : '') + '([0-9]' + (e.required ? '+' : '*') + '$' +
+      (precision > 0 ? '|[0-9]+\\.?[0-9]{0,' + precision + '}$' : '') + ')';
     const regexp = new RegExp(pattern);
     var val = parseFloat(e.value);
     while (e.value && (!regexp.test(e.value) ||
-      (!isNaN(val) && (val > max || (min < 0 && val < min) || e.value.length > maxLength)))) {
+        (!isNaN(val) && (val > max || (min < 0 && val < min) || e.value.length > maxLength)))) {
       e.value = e.value.slice(0, -1);
       val = parseFloat(e.value);
     }
   } else if (isEditableInput(type) && !e.readonly && !e.disabled) {
     const m = parseInt(e.maxLength);
     const maxLength = !isNaN(m) && m > 0 ? m : 30;
-    const pattern = e.pattern
-      || (type == 'email' ? '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9]+)*$'
-        : type == 'iban' ? '^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$'
+    const pattern = e.pattern ||
+      (type == 'email' ? '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9]+)*$' :
+        type == 'iban' ? '^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$'
         // : type == "url" ? "^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$"
-          : type == 'url' ? '.'
-            : type == 'name' ? '^[A-zÀ-ú -]{0,' + maxLength + '}$'
-              : '^[A-zÀ-ú0-9, ()]{0,' + maxLength + '}$');
+        :
+        type == 'url' ? '.' :
+        type == 'name' ? '^[A-zÀ-ú -]{0,' + maxLength + '}$' :
+        '^[A-zÀ-ú0-9, ()]{0,' + maxLength + '}$');
     const regexp = new RegExp(pattern);
     while (e.value && (!regexp.test(e.value) || e.value.length > maxLength)) {
       e.value = e.value.slice(0, -1);
@@ -435,12 +458,12 @@ function checkElement(e) {
 
 function getElementValidity(e) {
   const type = e.dataset.type;
-  const minLength = isNumberInput(type) ? e.required ? 1 : 0
-    : isEditableInput(type) && !e.readonly && !e.disabled ? e.minLength || (e.required ? 3 : 0) : 0;
+  const minLength = isNumberInput(type) ? e.required ? 1 : 0 :
+    isEditableInput(type) && !e.readonly && !e.disabled ? e.minLength || (e.required ? 3 : 0) : 0;
 
-  return e.value.length < minLength ? 'Value should have at least ' + minLength + ' character(s) !'
-    : e.min && e.value && parseFloat(e.value) < parseFloat(e.min) ? 'Value should be at least ' + roundDown(e.min, parseInt(e.dataset.precision) || 2) + e.dataset.symbol
-      : null;
+  return e.value.length < minLength ? 'Value should have at least ' + minLength + ' character(s) !' :
+    e.min && e.value && parseFloat(e.value) < parseFloat(e.min) ? 'Value should be at least ' + roundDown(e.min, parseInt(e.dataset.precision) || 2) + e.dataset.symbol :
+    null;
 }
 
 function selectName(e, index) {
@@ -473,8 +496,8 @@ function getValue(data, func, forceReload, success) {
           displayLoading(id, false);
 
           if (id && !GLOBAL.loadingQueueCount) {
-            setEvents();  // Set events when everything has been loaded
-            displayElement('#tabContainer', true);  // Display the tab container
+            setEvents(); // Set events when everything has been loaded
+            displayElement('#tabContainer', true); // Display the tab container
           }
         })
         .withFailureHandler(displayError)
@@ -483,7 +506,7 @@ function getValue(data, func, forceReload, success) {
   } else {
     ++GLOBAL.loadingQueueCount;
     setTimeout(() => {
-      GLOBAL.loadingQueueCount = Math.max(GLOBAL.loadingQueueCount-1, 0);
+      GLOBAL.loadingQueueCount = Math.max(GLOBAL.loadingQueueCount - 1, 0);
       getValue(data, func, forceReload, success);
     }, 100);
   }
@@ -491,23 +514,28 @@ function getValue(data, func, forceReload, success) {
 
 function setValue(range, value, success) {
   google.script.run
-    .withSuccessHandler(contents => { if (success) { success(); } showSnackBar('Value has been updated !'); })
+    .withSuccessHandler(contents => {
+      if (success) {
+        success();
+      }
+      showSnackBar('Value has been updated !');
+    })
     .withFailureHandler(displayError)
     .setSheetValues(range, value);
 }
 
 function filterTable(id, shouldReload) {
-  const histoId = GLOBAL.displayData.historic.id;
-  const investId = GLOBAL.displayData.investment.id;
-  const evolId = GLOBAL.displayData.evolution.id;
-
-  var isChecked = $('#' + id + 'Filter').is(':checked');
-  var search = $('#' + id + 'Search').val() ? $('#' + id + 'Search').val().toUpperCase() : '';
-  var index = id == histoId ? 2 : 0;
-  var searchFunc = item => $(item).children('td')[index] && $(item).children('td')[index].innerHTML.toUpperCase().includes(search);
-  var filterFunc = id == investId ? (i, item) => (!isChecked || shouldRebalance($(item).children('td')[6] ? $(item).children('td')[6].innerHTML : null)) && searchFunc(item)
-    : id == histoId || id == evolId ? (i, item) => (isChecked || i < GLOBAL.dataPreloadRowLimit) && searchFunc(item)
-      : (i, item) => true;
+  // const histoId = GLOBAL.displayData.historic.id;
+  // const investId = GLOBAL.displayData.investment.id;
+  // const evolId = GLOBAL.displayData.evolution.id;
+  //
+  // var isChecked = $('#' + id + 'Filter').is(':checked');
+  // var search = $('#' + id + 'Search').val() ? $('#' + id + 'Search').val().toUpperCase() : '';
+  // var index = id == histoId ? 2 : 0;
+  // var searchFunc = item => $(item).children('td')[index] && $(item).children('td')[index].innerHTML.toUpperCase().includes(search);
+  // var filterFunc = id == investId ? (i, item) => (!isChecked || shouldRebalance($(item).children('td')[6] ? $(item).children('td')[6].innerHTML : null)) && searchFunc(item)
+  //   : id == histoId || id == evolId ? (i, item) => (isChecked || i < GLOBAL.dataPreloadRowLimit) && searchFunc(item)
+  //     : (i, item) => true;
   // var displayFunc = (i, item) => { var fn = filterFunc(i, item) ? a => $(a).show() : a => $(a).hide(); fn(item); };
   // var loadFunc = (id == histoId || id == evolId) && shouldReload && isChecked
   //              ? null
@@ -523,20 +551,20 @@ function refreshTotal(id) {
     var calculateFunc = (i, item) => {
       item = $(item).children('td');
       for (var j = 0; j < item.length; ++j) {
-        a[j] += j == 0 ? 1
-          : j == 1 ? item[5].innerHTML ? 1 : 0
-            : j == 2 ? item[7].innerHTML ? 1 : 0
-              : j == 3 ? item[8].innerHTML ? 1 : 0
-                : toValue(item[j].innerHTML);
+        a[j] += j == 0 ? 1 :
+          j == 1 ? item[5].innerHTML ? 1 : 0 :
+          j == 2 ? item[7].innerHTML ? 1 : 0 :
+          j == 3 ? item[8].innerHTML ? 1 : 0 :
+          toValue(item[j].innerHTML);
       }
     };
     var footerFunc = () =>
-      '<td colspan="3" align="center">' + a[0] + ' rows</td>'
-       + '<td>' + a[4].toFixed(0) + '</td>'
-       + '<td>' + toCurrency(a[5]/a[1]) + '</td>'
-       + '<td title="' + toCurrency(a[6]/a[0]) + '">' + toCurrency(a[6]) + '</td>'
-       + '<td title="' + toCurrency(a[7]/a[2]) + '">' + toCurrency(a[7]) + '</td>'
-       + '<td title="' + toCurrency(a[8]/a[3]) + '">' + toCurrency(a[8]) + '</td>';
+      '<td colspan="3" align="center">' + a[0] + ' rows</td>' +
+      '<td>' + a[4].toFixed(0) + '</td>' +
+      '<td>' + toCurrency(a[5] / a[1]) + '</td>' +
+      '<td title="' + toCurrency(a[6] / a[0]) + '">' + toCurrency(a[6]) + '</td>' +
+      '<td title="' + toCurrency(a[7] / a[2]) + '">' + toCurrency(a[7]) + '</td>' +
+      '<td title="' + toCurrency(a[8] / a[3]) + '">' + toCurrency(a[8]) + '</td>';
   } else if (id == GLOBAL.displayData.evolution.id) {
     var calculateFunc = (i, item) => {
       item = $(item).children('td');
@@ -547,18 +575,18 @@ function refreshTotal(id) {
     var footerFunc = () => {
       var footer = '';
       for (var i = 1; i < a.length; i++) {
-        footer += '<td>' + toCurrency(a[i]/a[0], 2, i < 5 ? '%' :'€') + '</td>';
+        footer += '<td>' + toCurrency(a[i] / a[0], 2, i < 5 ? '%' : '€') + '</td>';
       }
       return footer;
     };
   }
 
   if (calculateFunc) {
-    var max = !$('#' + id + 'Filter').is(':checked')
-      ? GLOBAL.dataPreloadRowLimit : $('#' + id + 'Table tbody tr').length;
-    var elem = $('#' + id + 'Table tbody tr:visible').length == 0
-      ? $('#' + id + 'Table tbody tr:lt(' + max + ')')
-      : $('#' + id + 'Table tbody tr:visible');
+    var max = !$('#' + id + 'Filter').is(':checked') ?
+      GLOBAL.dataPreloadRowLimit : $('#' + id + 'Table tbody tr').length;
+    var elem = $('#' + id + 'Table tbody tr:visible').length == 0 ?
+      $('#' + id + 'Table tbody tr:lt(' + max + ')') :
+      $('#' + id + 'Table tbody tr:visible');
     var a = new Array(elem.length).fill(0);
     elem.each(calculateFunc);
     $('#' + id + 'Footer').html('<td>TOTAL</td>' + footerFunc());
@@ -575,7 +603,10 @@ function showSnackBar(text) {
     $('#snackbar').addClass('show');
 
     // After 3 seconds, remove the show class from DIV
-    setTimeout(() => { $('#snackbar').removeClass('show'); $('#snackbar').text(''); }, 3000);
+    setTimeout(() => {
+      $('#snackbar').removeClass('show');
+      $('#snackbar').text('');
+    }, 3000);
   }
 }
 
@@ -585,18 +616,18 @@ function displayLoading(id, isDisplayed) {
     $('#loading').text(isDisplayed ? translate('Loading') + ' ' + translate(id) + ' ...' : null);
     if (isDisplayed || GLOBAL.loadingQueueCount) {
       GLOBAL.hasAlreadyUpdated[id] = true;
-      setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false, GLOBAL.timeBetweenReload*1000);
+      setTimeout(() => GLOBAL.hasAlreadyUpdated[id] = false, GLOBAL.timeBetweenReload * 1000);
       displayElement('#refreshButton', false);
     } else {
-      setTimeout(() => displayElement('#refreshButton', !GLOBAL.loadingQueueCount), 100);  // Hack for local refresh because it loads everything in the same function
+      setTimeout(() => displayElement('#refreshButton', !GLOBAL.loadingQueueCount), 100); // Hack for local refresh because it loads everything in the same function
     }
   }
 }
 
 function displayElement(id, isDisplayed, duration = 'slow', complete) {
-  var fn = isDisplayed
-    ? () => $(id).fadeIn(duration, complete)
-    : () => $(id).fadeOut(duration, complete);
+  var fn = isDisplayed ?
+    () => $(id).fadeIn(duration, complete) :
+    () => $(id).fadeOut(duration, complete);
   fn();
 }
 
@@ -621,8 +652,8 @@ function displayError(msg, isWarning) {
   displayLoading(GLOBAL.currentLoadingId, false);
 
   $('#alert').css('background-color', isWarning ? '#ff9800' : '#f44336');
-  $('#alert').html('<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>'
-   + '<strong>' + (isWarning ? 'WARNING' : 'ALERT') + ':</strong> ' + msg);
+  $('#alert').html('<span class="closebtn" onclick="displayElement(\'#alertOverlay\', false, () => $(\'#transactionName\').focus());">&times;</span>' +
+    '<strong>' + (isWarning ? 'WARNING' : 'ALERT') + ':</strong> ' + msg);
   displayElement('#alertOverlay', true);
   displayElement('#refreshButton', true);
 }
@@ -637,15 +668,19 @@ function getTranslateData(content) {
 
   const d = GLOBAL.data[GLOBAL.translation];
   if (d && content) {
-    const fna = item => { return indexOf(d, item, 0, 1, (a, b) => a.toLowerCase() == b.toLowerCase()); };
-    const fnb = item => { text = text.replace(item, d[fna(item)][2]); };
-    if (!isNaN(content.replace(/€|%|,/g, ''))) {                                                   // Numbers
+    const fna = item => {
+      return indexOf(d, item, 0, 1, (a, b) => a.toLowerCase() == b.toLowerCase());
+    };
+    const fnb = item => {
+      text = text.replace(item, d[fna(item)][2]);
+    };
+    if (!isNaN(content.replace(/€|%|,/g, ''))) { // Numbers
       [',', '.'].forEach(fnb);
-    } else if (/\d/.test(content) && (content.includes('month') || content.includes('year'))) {   // Duration
+    } else if (/\d/.test(content) && (content.includes('month') || content.includes('year'))) { // Duration
       ['months', 'year'].forEach(fnb);
-    } else {                                                                                      // Text
-      const num = content.replace(/^[^0-9€%]+|[^0-9€%]+$/g, '');  // Extranct number and symbols from content
-      const trans = num ? content.replace(num, '*') : content;    // Replace number by * to find translation
+    } else { // Text
+      const num = content.replace(/^[^0-9€%]+|[^0-9€%]+$/g, ''); // Extranct number and symbols from content
+      const trans = num ? content.replace(num, '*') : content; // Replace number by * to find translation
 
       const i = fna(trans);
       if (i) {
@@ -655,18 +690,21 @@ function getTranslateData(content) {
     }
   }
 
-  return {text:text, tooltip:tooltip};
+  return {
+    text: text,
+    tooltip: tooltip
+  };
 }
 
 function getPopupContent(id, content, validate) {
   handleEvent(true);
-  return '<div align="center" style="margin:15px 0px 0px 0px;">'
-    + content + '<br><br>'
-    + (!validate
-      ? '<button id="' + id + 'Button" onclick="handleEvent(true);' + id + 'Validation(this.innerHTML)"></button>'
-      : '<button id="previousPopupButton" onclick="handleEvent(true);' + id + '()">' + translate('PREVIOUS') + '</button>'
-      + '<button id="validatePopupButton" onclick="handleEvent(true);' + validate + '()">' + translate('VALIDATE') + '</button>' )
-    + '</div>';
+  return '<div align="center" style="margin:15px 0px 0px 0px;">' +
+    content + '<br><br>' +
+    (!validate ?
+      '<button id="' + id + 'Button" onclick="handleEvent(true);' + id + 'Validation(this.innerHTML)"></button>' :
+      '<button id="previousPopupButton" onclick="handleEvent(true);' + id + '()">' + translate('PREVIOUS') + '</button>' +
+      '<button id="validatePopupButton" onclick="handleEvent(true);' + validate + '()">' + translate('VALIDATE') + '</button>') +
+    '</div>';
 }
 
 function addPopupButtonEvent(id, hasSingleButton) {
@@ -677,18 +715,24 @@ function addPopupButtonEvent(id, hasSingleButton) {
       }
       $('#' + id + 'Button').html($('#' + id).val() ? translate('OK') : translate('CANCEL'));
     };
-    fn();                  // Call the trigger function to display correct button text (OK or CANCEL)
-    $('#' + id).keyup();   // Trigger the Keyup event to adjust the input (display the eraser) as if a value as been entered
+    fn(); // Call the trigger function to display correct button text (OK or CANCEL)
+    $('#' + id).keyup(); // Trigger the Keyup event to adjust the input (display the eraser) as if a value as been entered
     $('#' + id).keyup(fn); // Set the keyup trigger function
   } else {
     $('#' + id).keyup(event => {
       if (!GLOBAL.handleEvent && event && (event.which == 13 || event.which == 27)) {
-        if (event.which == 13) { $('#validatePopupButton').click(); }
-        else if (event.which == 27) { $('#previousPopupButton').click(); }
+        if (event.which == 13) {
+          $('#validatePopupButton').click();
+        } else if (event.which == 27) {
+          $('#previousPopupButton').click();
+        }
       }
     });
   }
-  setTimeout(() => { handleEvent(false); $('#' + id).focus(); }, 300);  // Hack for key events to avoid handling same events for multiple forms
+  setTimeout(() => {
+    handleEvent(false);
+    $('#' + id).focus();
+  }, 300); // Hack for key events to avoid handling same events for multiple forms
 }
 
 function handleEvent(isHandled) {
@@ -703,11 +747,11 @@ function shouldRebalance(value) {
 
 function toValue(content) {
   return content ? parseFloat(String(content).replaceAll(',', '')
-    .replaceAll(' ', '')
-    .replaceAll('$', '')
-    .replaceAll('€', '')
-    .replaceAll('%', ''))
-    : 0;
+      .replaceAll(' ', '')
+      .replaceAll('$', '')
+      .replaceAll('€', '')
+      .replaceAll('%', '')) :
+    0;
 }
 
 function toCurrency(content, precision = 2, symbol = '€') {
@@ -715,26 +759,26 @@ function toCurrency(content, precision = 2, symbol = '€') {
   var ln = str.length;
   var neg = str.startsWith('-') ? -1 : 0;
   var i = str.indexOf('.') != -1 ? str.indexOf('.') : ln;
-  str = i != ln ? str.slice(0, i+precision+1).replace(/0+$/g, '') : str + '.';
-  var j = str.length-str.indexOf('.')-1;
-  str = (j < 2 ? str + '0'.repeat(2-j) : str) + ' ' + symbol;
+  str = i != ln ? str.slice(0, i + precision + 1).replace(/0+$/g, '') : str + '.';
+  var j = str.length - str.indexOf('.') - 1;
+  str = (j < 2 ? str + '0'.repeat(2 - j) : str) + ' ' + symbol;
 
-  return i + neg > 9 ? str.slice(0, i-9) + ',' + str.slice(i-9, i-6) + ',' + str.slice(i-6, i-3) + ',' + str.slice(i-3)
-    : i + neg > 6 ? str.slice(0, i-6) + ',' + str.slice(i-6, i-3) + ',' + str.slice(i-3)
-      : i + neg > 3 ? str.slice(0, i-3) + ',' + str.slice(i-3)
-        : str;
+  return i + neg > 9 ? str.slice(0, i - 9) + ',' + str.slice(i - 9, i - 6) + ',' + str.slice(i - 6, i - 3) + ',' + str.slice(i - 3) :
+    i + neg > 6 ? str.slice(0, i - 6) + ',' + str.slice(i - 6, i - 3) + ',' + str.slice(i - 3) :
+    i + neg > 3 ? str.slice(0, i - 3) + ',' + str.slice(i - 3) :
+    str;
 }
 
 function toStringDate(date, isMDY) {
   if (typeof(date) == 'string') {
-    return date && date.split('/').length == 3
-      ? date.replace(/(^|\/)0+/g, '$1').split('/')[isMDY ? 1 : 0] + '/'
-      + date.replace(/(^|\/)0+/g, '$1').split('/')[isMDY ? 0 : 1] + '/'
-      + date.split('/')[2]
-      : null;
+    return date && date.split('/').length == 3 ?
+      date.replace(/(^|\/)0+/g, '$1').split('/')[isMDY ? 1 : 0] + '/' +
+      date.replace(/(^|\/)0+/g, '$1').split('/')[isMDY ? 0 : 1] + '/' +
+      date.split('/')[2] :
+      null;
   } else if (typeof(date) == 'object') {
     let day = date.getDate();
-    let month = date.getMonth() + 1;   //January is 0!
+    let month = date.getMonth() + 1; //January is 0!
     const year = date.getFullYear();
     day = day < 10 ? '0' + day : day;
     month = month < 10 ? '0' + month : month;
@@ -744,8 +788,8 @@ function toStringDate(date, isMDY) {
   }
 }
 
-function toJQueryDate(date, isMDY) {  // yyyy-MM-dd
-  if(!isMDY) {
+function toJQueryDate(date, isMDY) { // yyyy-MM-dd
+  if (!isMDY) {
     date = toStringDate(date, true);
   }
   const d = new Date(date);
@@ -761,14 +805,13 @@ function addDaysToDate(daysToAdd = 0, date) {
 
 function getNextMonthDate(dayCount = 1) { // 0 = end of this month, 1 (default) = start of next month, x = x of next month
   var now = new Date();
-  return new Date(now.getFullYear(), now.getMonth()+1, dayCount);
+  return new Date(now.getFullYear(), now.getMonth() + 1, dayCount);
 }
 
 function getDaysBetweenDate(startDate, endDate) {
   var millisecondsPerDay = 24 * 60 * 60 * 1000;
   return Math.round((endDate - startDate) / millisecondsPerDay);
 }
-
 
 function indexOf(array, value, index, start, compare) {
   var x = Number.isInteger(start) ? start : 0;
@@ -777,9 +820,11 @@ function indexOf(array, value, index, start, compare) {
 
   var i;
   if (Array.isArray(array)) {
-    while(x < array.length
-       && ((y == null && !fn(array[x], value))
-        || (y != null && !fn(array[x][y], value)))) { ++x; }
+    while (x < array.length &&
+      ((y == null && !fn(array[x], value)) ||
+        (y != null && !fn(array[x][y], value)))) {
+      ++x;
+    }
 
     i = x < array.length ? x : null;
   }
@@ -788,18 +833,18 @@ function indexOf(array, value, index, start, compare) {
 }
 
 /**
-   * Splices text within a string.
-   * @param {string} original The original text to modify
-   * @param {string} text The text to insert
-   * @param {int} offset The position to insert the text at (before)
-   * @param {int} [removeCount=0] An optional number of characters to overwrite
-   * @returns {string} A modified string containing the spliced text.
-   */
+ * Splices text within a string.
+ * @param {string} original The original text to modify
+ * @param {string} text The text to insert
+ * @param {int} offset The position to insert the text at (before)
+ * @param {int} [removeCount=0] An optional number of characters to overwrite
+ * @returns {string} A modified string containing the spliced text.
+ */
 function splice(original, text, offset = 0, removeCount = 0) {
   let calculatedOffset = offset < 0 ? original.length + offset : offset;
-  return original
-    ? original.substring(0, calculatedOffset) + text + original.substring(calculatedOffset + removeCount)
-    : text;
+  return original ?
+    original.substring(0, calculatedOffset) + text + original.substring(calculatedOffset + removeCount) :
+    text;
 }
 
 function restrainFormula(formula, low, high) {
@@ -807,7 +852,7 @@ function restrainFormula(formula, low, high) {
   if (low != -1 && high != -1) {
     var a = formula.split(':');
     a[0] += low > 1 ? low : 1;
-    a[1] += high > 1 ? high : GLOBAL.dataPreloadRowLimit+1;
+    a[1] += high > 1 ? high : GLOBAL.dataPreloadRowLimit + 1;
     formula = a[0] + ':' + a[1];
   }
 
@@ -820,13 +865,13 @@ function setHtml(id, html) {
 
 function escapeHtml(html) {
   return html ? html
-  // .replace(/</g, '&lt;')
-  // .replace(/>/g, '&gt;')
-  // .replace(/"/g, '&quot;')
-  // .replace(/&/g, '&amp;')
+    // .replace(/</g, '&lt;')
+    // .replace(/>/g, '&gt;')
+    // .replace(/"/g, '&quot;')
+    // .replace(/&/g, '&amp;')
     .replace(/'/g, '&#039;')
-    .replace(/€/g, '&euro;')
-    : '';
+    .replace(/€/g, '&euro;') :
+    '';
 }
 
 function roundDown(value, precision = 0) {

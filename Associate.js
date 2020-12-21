@@ -20,33 +20,144 @@ GLOBAL.withdrawPeriodOption = ['Unique', 'Recurrent'];
 GLOBAL.withdrawDateOption = ['Start of next month', 'Immediat'];
 
 GLOBAL.displayData = {
-  'account': {id:'account', formula:'!A:N', updateTable:updateAccountTable, loadOnce:true},
-  'historic': {id:'historic', formula:'AssociateHistoric!A:D', updateTable:updateHistoricTable, loadOnce:true, filter:1},
-  'personal': {id:'personal', formula:'Associate!A:AA', updateTable:updatePersonalTable, loadOnce:true, filter:1},
-  'FAQ': {id:'FAQ', formula:'FAQ!A:B', updateTable:updateFaqTable, loadOnce:true }
+  'account': {
+    id: 'account',
+    formula: '!A:N',
+    updateTable: updateAccountTable,
+    loadOnce: true
+  },
+  'historic': {
+    id: 'historic',
+    formula: 'AssociateHistoric!A:D',
+    updateTable: updateHistoricTable,
+    loadOnce: true,
+    filter: 1
+  },
+  'personal': {
+    id: 'personal',
+    formula: 'Associate!A:AA',
+    updateTable: updatePersonalTable,
+    loadOnce: true,
+    filter: 1
+  },
+  'FAQ': {
+    id: 'FAQ',
+    formula: 'FAQ!A:B',
+    updateTable: updateFaqTable,
+    loadOnce: true
+  }
 };
 GLOBAL.menuButton = ['deposit', 'withdraw', 'connect'];
-GLOBAL.personalData = [
-  { index:1, readonly:true, type:'name', minLength:5, maxLength:10, required:true }, // ID
-  { index:15, readonly:true, type:'name', required:true },                           // First name
-  { index:16, readonly:true, type:'name', required:true },                           // Family name
-  { index:14, readonly:true, type:'email', required:true },                          // Email
-  { index:17, disabled:true, type:'date', required:true },                           // Birth date
-  { index:18, readonly:true, type:'text', required:true },                           // Birth city
-  { index:19, readonly:true, type:'text', required:true, maxLength:100 },            // Address
-  { index:20, readonly:true, type:'text', required:true, pattern:'^[0-9]{5}$' },     // Postal code
-  { index:21, readonly:true, type:'name', required:true },                           // City
-  { index:22, readonly:true, type:'iban', required:true },                           // IBAN
-  { index:23, readonly:true, type:'name', required:true },                           // Bank
-  { index:24, readonly:true, type:'name', required:true },                           // Association
-  { index:25, type:'url' },                            // Web page
-  { index:2, type:'euro', max:0, required:true },                         // Recurrent
-  { index:6, disabled:true },                                         // Estimate rate
-  { index:7, disabled:true },                                         // Estimate gain
-  { index:5, disabled:true },                                         // Financed project
-  { index:3, disabled:true },                                         // Charity
-  { index:4, disabled:true },                                         // Donated
-  { index:8, disabled:true },                                         // Duration
+GLOBAL.personalData = [{
+    index: 1,
+    readonly: true,
+    type: 'name',
+    minLength: 5,
+    maxLength: 10,
+    required: true
+  }, // ID
+  {
+    index: 15,
+    readonly: true,
+    type: 'name',
+    required: true
+  }, // First name
+  {
+    index: 16,
+    readonly: true,
+    type: 'name',
+    required: true
+  }, // Family name
+  {
+    index: 14,
+    readonly: true,
+    type: 'email',
+    required: true
+  }, // Email
+  {
+    index: 17,
+    disabled: true,
+    type: 'date',
+    required: true
+  }, // Birth date
+  {
+    index: 18,
+    readonly: true,
+    type: 'text',
+    required: true
+  }, // Birth city
+  {
+    index: 19,
+    readonly: true,
+    type: 'text',
+    required: true,
+    maxLength: 100
+  }, // Address
+  {
+    index: 20,
+    readonly: true,
+    type: 'text',
+    required: true,
+    pattern: '^[0-9]{5}$'
+  }, // Postal code
+  {
+    index: 21,
+    readonly: true,
+    type: 'name',
+    required: true
+  }, // City
+  {
+    index: 22,
+    readonly: true,
+    type: 'iban',
+    required: true
+  }, // IBAN
+  {
+    index: 23,
+    readonly: true,
+    type: 'name',
+    required: true
+  }, // Bank
+  {
+    index: 24,
+    readonly: true,
+    type: 'name',
+    required: true
+  }, // Association
+  {
+    index: 25,
+    type: 'url'
+  }, // Web page
+  {
+    index: 2,
+    type: 'euro',
+    max: 0,
+    required: true
+  }, // Recurrent
+  {
+    index: 6,
+    disabled: true
+  }, // Estimate rate
+  {
+    index: 7,
+    disabled: true
+  }, // Estimate gain
+  {
+    index: 5,
+    disabled: true
+  }, // Financed project
+  {
+    index: 3,
+    disabled: true
+  }, // Charity
+  {
+    index: 4,
+    disabled: true
+  }, // Donated
+  {
+    index: 8,
+    disabled: true
+  }, // Duration
 ];
 
 GLOBAL.user = [];
@@ -58,11 +169,14 @@ GLOBAL.user = [];
  * Run initializations on web app load.
  */
 $(() => {
-  getValue({ id:GLOBAL.translation, formula:GLOBAL.translationFormula }, null, true, loadPage);
+  getValue({
+    id: GLOBAL.translation,
+    formula: GLOBAL.translationFormula
+  }, null, true, loadPage);
 });
 
 function init() {
-  GLOBAL.displayId.forEach(id => displayElement('#' + id + 'Button', false, 0));  // Hide all tab on init
+  GLOBAL.displayId.forEach(id => displayElement('#' + id + 'Button', false, 0)); // Hide all tab on init
 
   google.script.run
     .withSuccessHandler(setUserId)
@@ -79,7 +193,7 @@ function updateAccountTable(id, contents) {
     var col = contents[0].length;
     var tableHTML = getTableTitle(id);
     for (var i = 0; i < row; ++i) {
-      tableHTML += i==0 ? '<thead>' : '';
+      tableHTML += i == 0 ? '<thead>' : '';
       tableHTML += '<tr>';
       for (var j = 0; j < col; ++j) {
         tableHTML += getTranslatedContent(contents[i][j], i == 0);
@@ -92,7 +206,7 @@ function updateAccountTable(id, contents) {
     openTabAfterConnect(id);
   }
 
-  displayElement('#' + id + 'Button', hasContent, 0);  // Hide this tab if empty
+  displayElement('#' + id + 'Button', hasContent, 0); // Hide this tab if empty
 }
 
 function updateHistoricTable(id, contents) {
@@ -103,18 +217,22 @@ function updateHistoricTable(id, contents) {
     var tableHTML = getTableTitle(id);
 
     for (var i = 0; i < row; ++i) {
-      tableHTML += i==0 ? '<thead>' : '';
+      tableHTML += i == 0 ? '<thead>' : '';
       tableHTML += '<tr>';
       for (var j = 0; j < col; ++j) {
-        tableHTML += j != 1 ? getTranslatedContent(contents[i][j], i == 0) : '';  // Don't add the ID column
-        tableHTML += j == col-1
-          ? i == 0 ? getTranslatedContent(GLOBAL.Status, true)                    // Add a status column
-            : contents[i][0] && new Date(toStringDate(contents[i][0], true)) <= new Date()
-              ? parseFloat(contents[i][j]) <= 0
-                ? getTableCheckmark(GLOBAL.completedStatus)                       // Completed
-                : getTableImage(GLOBAL.DonationStatus)                              // Donation
-              : getTableLoaderBar(GLOBAL.pendingStatus)                             // Pending
-          : '';
+        tableHTML += j != 1 ? getTranslatedContent(contents[i][j], i == 0) : ''; // Don't add the ID column
+        tableHTML += j == col - 1 ?
+          i == 0 ? getTranslatedContent(GLOBAL.Status, true) // Add a status column
+          :
+          contents[i][0] && new Date(toStringDate(contents[i][0], true)) <= new Date() ?
+          parseFloat(contents[i][j]) <= 0 ?
+          getTableCheckmark(GLOBAL.completedStatus) // Completed
+          :
+          getTableImage(GLOBAL.DonationStatus) // Donation
+          :
+          getTableLoaderBar(GLOBAL.pendingStatus) // Pending
+          :
+          '';
       }
       tableHTML += '</tr>';
       tableHTML += i == 0 ? '</thead><tbody>' : i == row - 1 ? '</tbody>' : '';
@@ -124,7 +242,7 @@ function updateHistoricTable(id, contents) {
     openTabAfterConnect(id);
   }
 
-  displayElement('#' + id + 'Button', hasContent, 0);  // Hide this tab if empty
+  displayElement('#' + id + 'Button', hasContent, 0); // Hide this tab if empty
 }
 
 function updatePersonalTable(id, contents) {
@@ -159,7 +277,11 @@ function updatePersonalTable(id, contents) {
     const hasHistoric = GLOBAL.data.historic.length > 1;
     if (hasHistoric) {
       tableHTML += '<tr>';
-      tableHTML += getTranslatedContent(ackDebt, false, { value:translate(ackDebt), inputId:ackDebtId, type:'url'});
+      tableHTML += getTranslatedContent(ackDebt, false, {
+        value: translate(ackDebt),
+        inputId: ackDebtId,
+        type: 'url'
+      });
       tableHTML += '</tr>';
     }
 
@@ -168,7 +290,11 @@ function updatePersonalTable(id, contents) {
 
     // Acknowledgment of Debt creation when clicking on the link
     if (hasHistoric) {
-      $('#' + ackDebtId).click(e => { e.preventDefault(); CreateAckDebt(); return false; });
+      $('#' + ackDebtId).click(e => {
+        e.preventDefault();
+        CreateAckDebt();
+        return false;
+      });
     }
 
     // Set the scrolling panel
@@ -191,9 +317,9 @@ function updatePersonalTable(id, contents) {
 function updateFaqTable(id, contents) {
   var row = contents.length;
   var col = contents[0].length;
-  var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col-1);
+  var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
   tableHTML += '<div style="padding: 5px 25px;">';
-  for (var i = 1; i < row; ++i) {     // Skip the header
+  for (var i = 1; i < row; ++i) { // Skip the header
     for (var j = 0; j < col; ++j) {
       var con = contents[i][j];
       var isQuestion = j == 0;
@@ -207,7 +333,7 @@ function updateFaqTable(id, contents) {
 
   processTable(id, tableHTML);
 
-  openTabAfterConnect(id);                // Activate first tab as open by default
+  openTabAfterConnect(id); // Activate first tab as open by default
   displayElement('#connectButton', true); // Show the connect button
 }
 
@@ -221,9 +347,15 @@ function openTabAfterConnect(id) {
 function connect() {
   const d = GLOBAL.personalData[0];
   const id = 'userId';
-  const content = getTranslatedContent('Enter your user id', false,
-    {inputId:id, type:d.type, minLength:d.minLength, maxLength:d.maxLength, value:GLOBAL.user.ID,
-      erase:true, placeholder:translate('User Id')});
+  const content = getTranslatedContent('Enter your user id', false, {
+    inputId: id,
+    type: d.type,
+    minLength: d.minLength,
+    maxLength: d.maxLength,
+    value: GLOBAL.user.ID,
+    erase: true,
+    placeholder: translate('User Id')
+  });
   const innerHTML = getPopupContent(id, content);
 
   openPopup(innerHTML);
@@ -246,33 +378,43 @@ function setUserId(id) {
 
     GLOBAL.displayId.forEach(displayId => {
       if (displayId != faqId) {
-        $('#' + displayId + 'Div').html('');                  // Clear all tab content except faq
+        $('#' + displayId + 'Div').html(''); // Clear all tab content except faq
       }
-      displayElement('#' + displayId + 'Button', id, 0);      // Display/Hide all tab depending on the connection state
+      displayElement('#' + displayId + 'Button', id, 0); // Display/Hide all tab depending on the connection state
     });
-    GLOBAL.currentDisplayedId = null;                         // Unselect the current displayed tab
+    GLOBAL.currentDisplayedId = null; // Unselect the current displayed tab
 
     if (id) {
-      GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1];   // Create user account formula
-      GLOBAL.displayId.forEach(id => { if (id != faqId) { updateValues(id, true) }} ); // Load all data except faq
+      GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1]; // Create user account formula
+      GLOBAL.displayId.forEach(id => {
+        if (id != faqId) {
+          updateValues(id, true)
+        }
+      }); // Load all data except faq
       updateAllValues();
-    } else {    // No user
-      openTab(faqId);                                         // Open first the faq tab (in case of disconnection)
-      $('#scrollDiv').html('');                               // Clear the scroll marquee content
-      displayElement('#' + faqId + 'Button', true, 0);        // Display only the faq
-      if (!GLOBAL.data[faqId]) {                              // Don't load twice the faq
-        updateValues(faqId);                                  // Load only the faq
+    } else { // No user
+      openTab(faqId); // Open first the faq tab (in case of disconnection)
+      $('#scrollDiv').html(''); // Clear the scroll marquee content
+      displayElement('#' + faqId + 'Button', true, 0); // Display only the faq
+      if (!GLOBAL.data[faqId]) { // Don't load twice the faq
+        updateValues(faqId); // Load only the faq
       }
-      displayElement('#depositButton', false, 0);             // Hide the deposit button
-      displayElement('#withdrawButton', false, 0);            // Hide the withdraw button
+      displayElement('#depositButton', false, 0); // Hide the deposit button
+      displayElement('#withdrawButton', false, 0); // Hide the withdraw button
     }
   }
 }
 
 function deposit() {
   const id = GLOBAL.depositAmount;
-  const content = getTranslatedContent('Amount to deposit', false,
-    {inputId:id, type:'euro', min:100, max:100000, erase:true, placeholder:translate('deposit')});
+  const content = getTranslatedContent('Amount to deposit', false, {
+    inputId: id,
+    type: 'euro',
+    min: 100,
+    max: 100000,
+    erase: true,
+    placeholder: translate('deposit')
+  });
   const innerHTML = getPopupContent(id, content);
 
   openPopup(innerHTML);
@@ -283,20 +425,23 @@ function depositAmountValidation(result) {
   const id = GLOBAL.depositAmount;
   if (result == translate('OK') && !$('#' + id).data('error')) {
     const value = toCurrency($('#' + id).val());
-    const content = '<table><tr>'
-      + getTranslatedContent('Amount to deposit', true) + getTranslatedContent(value) + '</tr><tr>'
-      + getTranslatedContent('Recipient', true) + getTableReadOnlyContent('DE FROCOURT F.') + '</tr><tr>'
-      + getTranslatedContent('IBAN', true) + getTableReadOnlyContent('FR76 4061 8802 5000 0403 8167 244') + '</tr><tr>'
-      + getTranslatedContent('BIC', true) + getTableReadOnlyContent('BOUS FRPP XXX') + '</tr><tr>'
-      + getTranslatedContent('Bank', true) + getTableReadOnlyContent('Boursorama Banque') + '</tr><tr>'
-      + getTranslatedContent('Bank Address', true) + getTableReadOnlyContent('18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex') + '</tr></table>';
+    const content = '<table><tr>' +
+      getTranslatedContent('Amount to deposit', true) + getTranslatedContent(value) + '</tr><tr>' +
+      getTranslatedContent('Recipient', true) + getTableReadOnlyContent('DE FROCOURT F.') + '</tr><tr>' +
+      getTranslatedContent('IBAN', true) + getTableReadOnlyContent('FR76 4061 8802 5000 0403 8167 244') + '</tr><tr>' +
+      getTranslatedContent('BIC', true) + getTableReadOnlyContent('BOUS FRPP XXX') + '</tr><tr>' +
+      getTranslatedContent('Bank', true) + getTableReadOnlyContent('Boursorama Banque') + '</tr><tr>' +
+      getTranslatedContent('Bank Address', true) + getTableReadOnlyContent('18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex') + '</tr></table>';
 
     const innerHTML = getPopupContent(deposit.name, content, updateDeposit.name);
 
     openPopup(innerHTML);
     addPopupButtonEvent(GLOBAL.validatePopupButton, false);
 
-    $('#popup').data(id, {value:value, content:content});
+    $('#popup').data(id, {
+      value: value,
+      content: content
+    });
   } else if (result == translate('CANCEL')) {
     closePopup();
   }
@@ -308,7 +453,9 @@ function updateDeposit() {
   const title = toFirstUpperCase(id.replace('Amount', ''));
   const popup = $('#popup').data(id);
   const value = popup.value;
-  const data = {movement:value};
+  const data = {
+    movement: value
+  };
 
   // Get confirmation data ready
   const contents = GLOBAL.data[GLOBAL.displayData.historic.id];
@@ -316,7 +463,13 @@ function updateDeposit() {
 
   const a = getTranslateData(title + ' ' + GLOBAL.confirmation);
   const b = getTranslateData(!hasContent ? GLOBAL.newDeposit : GLOBAL.nextDeposit);
-  const content = {ope:title, title:a.text, main:b.tooltip, inst:a.tooltip, content:popup.content};
+  const content = {
+    ope: title,
+    title: a.text,
+    main: b.tooltip,
+    inst: a.tooltip,
+    content: popup.content
+  };
 
   confirmation(content);
 
@@ -330,19 +483,40 @@ function updateDeposit() {
 
 function withdraw() {
   const id = GLOBAL.withdrawAmount;
-  const content = getTranslatedContent('Amount to withdraw', false,
-    {inputId:id, type:'euro', min:Math.min(100, GLOBAL.totalValue), max:GLOBAL.totalValue, erase:true, placeholder:translate('withdraw')})
-      + getTranslatedContent('Withdraw period', false,
-        {inputId:GLOBAL.withdrawPeriod, type:'checkbox', class:'toggle', label:GLOBAL.withdrawPeriodOption, checked:true})
-      + getDiv(GLOBAL.withdrawDate + 'All', null, null,
-        getTranslatedContent('Withdraw date', false,
-          {inputId:GLOBAL.withdrawDate, type:'checkbox', class:'toggle', label:GLOBAL.withdrawDateOption, checked:true}))
-      + getDiv(GLOBAL.withdrawCost + 'All', null, null,
-        getTranslatedContent('Operation cost', false,
-          {inputId:GLOBAL.withdrawCost, disabled:true}))
-      + getDiv(GLOBAL.withdrawRecurrent + 'All', null, null,
-        getTranslatedContent('Current recurrent amount', false,
-          {inputId:GLOBAL.withdrawRecurrent, disabled:true, value:translate(GLOBAL.user.Recurrent)}));
+  const content = getTranslatedContent('Amount to withdraw', false, {
+      inputId: id,
+      type: 'euro',
+      min: Math.min(100, GLOBAL.totalValue),
+      max: GLOBAL.totalValue,
+      erase: true,
+      placeholder: translate('withdraw')
+    }) +
+    getTranslatedContent('Withdraw period', false, {
+      inputId: GLOBAL.withdrawPeriod,
+      type: 'checkbox',
+      class: 'toggle',
+      label: GLOBAL.withdrawPeriodOption,
+      checked: true
+    }) +
+    getDiv(GLOBAL.withdrawDate + 'All', null, null,
+      getTranslatedContent('Withdraw date', false, {
+        inputId: GLOBAL.withdrawDate,
+        type: 'checkbox',
+        class: 'toggle',
+        label: GLOBAL.withdrawDateOption,
+        checked: true
+      })) +
+    getDiv(GLOBAL.withdrawCost + 'All', null, null,
+      getTranslatedContent('Operation cost', false, {
+        inputId: GLOBAL.withdrawCost,
+        disabled: true
+      })) +
+    getDiv(GLOBAL.withdrawRecurrent + 'All', null, null,
+      getTranslatedContent('Current recurrent amount', false, {
+        inputId: GLOBAL.withdrawRecurrent,
+        disabled: true,
+        value: translate(GLOBAL.user.Recurrent)
+      }));
 
   const innerHTML = getPopupContent(id, content);
 
@@ -351,7 +525,7 @@ function withdraw() {
 
   // Events
   const fnc = () => $('#' + GLOBAL.withdrawCost).val(() =>
-    translate(toCurrency(getDaysBetweenDate(new Date(), getNextMonthDate()) * 4/100/365 * $('#' + id).val() || 0)));
+    translate(toCurrency(getDaysBetweenDate(new Date(), getNextMonthDate()) * 4 / 100 / 365 * $('#' + id).val() || 0)));
   $('#' + GLOBAL.withdrawAmount).keyup(fnc);
   fnc();
   const fnb = () => displayElement('#' + GLOBAL.withdrawCost + 'All',
@@ -374,7 +548,6 @@ function withdrawAmountValidation(result) {
     const value = toCurrency($('#' + id).val());
     const period = GLOBAL.withdrawPeriodOption[$('#' + GLOBAL.withdrawPeriod).is(':checked') ? 0 : 1];
     const isRecurrent = period == GLOBAL.withdrawPeriodOption[1];
-    const maxRecurrent = Math.max(GLOBAL.totalValue / 12, 100);
     if (isRecurrent && -parseFloat(toValue(value)) == parseFloat(toValue(GLOBAL.user.Recurrent))) {
       showSnackBar('The asked recurrent withdraw amount is the same as the current one !');
     } else if (isRecurrent && parseFloat(toValue(value)) > GLOBAL.maxRecurrent) {
@@ -384,23 +557,27 @@ function withdrawAmountValidation(result) {
       const date = toStringDate(!isNextMonth ? new Date(Math.min(addDaysToDate(5), getNextMonthDate(0))) : getNextMonthDate(5));
       const cost = !isNextMonth ? $('#' + GLOBAL.withdrawCost).val() : toCurrency(0);
 
-      const data = GLOBAL.data[GLOBAL.displayData.personal.id];
-
-      const content = '<table><tr>'
-      + getTranslatedContent('Amount to withdraw', true) + getTranslatedContent(value) + '</tr><tr>'
-      + getTranslatedContent('Withdraw period', true) + getTranslatedContent(period) + '</tr><tr>'
-      + getTranslatedContent('Withdraw date', true) + getTableReadOnlyContent(date) + '</tr><tr>'
-      + getTranslatedContent('Operation cost', true) + getTableReadOnlyContent(cost) + '</tr><tr>'
-      + getTranslatedContent('Recipient', true) + getTableReadOnlyContent(getFullName(GLOBAL.user)) + '</tr><tr>'
-      + getTranslatedContent('IBAN', true) + getTableReadOnlyContent(GLOBAL.user.IBAN) + '</tr><tr>'
-      + getTranslatedContent('Bank', true) + getTableReadOnlyContent(GLOBAL.user.Bank) + '</tr></table>';
+      const content = '<table><tr>' +
+        getTranslatedContent('Amount to withdraw', true) + getTranslatedContent(value) + '</tr><tr>' +
+        getTranslatedContent('Withdraw period', true) + getTranslatedContent(period) + '</tr><tr>' +
+        getTranslatedContent('Withdraw date', true) + getTableReadOnlyContent(date) + '</tr><tr>' +
+        getTranslatedContent('Operation cost', true) + getTableReadOnlyContent(cost) + '</tr><tr>' +
+        getTranslatedContent('Recipient', true) + getTableReadOnlyContent(getFullName(GLOBAL.user)) + '</tr><tr>' +
+        getTranslatedContent('IBAN', true) + getTableReadOnlyContent(GLOBAL.user.IBAN) + '</tr><tr>' +
+        getTranslatedContent('Bank', true) + getTableReadOnlyContent(GLOBAL.user.Bank) + '</tr></table>';
 
       const innerHTML = getPopupContent(withdraw.name, content, updateWithdraw.name);
 
       openPopup(innerHTML);
       addPopupButtonEvent(GLOBAL.validatePopupButton, false);
 
-      $('#popup').data(id, {value:value, period:period, date:date, cost:cost, content:content});
+      $('#popup').data(id, {
+        value: value,
+        period: period,
+        date: date,
+        cost: cost,
+        content: content
+      });
     }
   } else if (result == translate('CANCEL')) {
     closePopup();
@@ -412,19 +589,28 @@ function updateWithdraw() {
   const id = GLOBAL.withdrawAmount;
   const title = toFirstUpperCase(id.replace('Amount', ''));
   const popup = $('#popup').data(id);
-  const value = '-' + popup.value;   // Withdraw value should be negative
+  const value = '-' + popup.value; // Withdraw value should be negative
   const period = popup.period;
   const date = popup.date;
   const cost = popup.cost;
 
   // Get confirmation data ready
   const a = getTranslateData(title + ' ' + GLOBAL.confirmation);
-  const content = {ope:title, title:a.text, inst:a.tooltip, content:popup.content};
+  const content = {
+    ope: title,
+    title: a.text,
+    inst: a.tooltip,
+    content: popup.content
+  };
 
   confirmation(content);
 
   // Send email reminder to myself
-  const data = {date:date, movement:value, cost:cost};
+  const data = {
+    date: date,
+    movement: value,
+    cost: cost
+  };
   const isUnique = period == GLOBAL.withdrawPeriodOption[0];
 
   if (isUnique) {
@@ -458,16 +644,16 @@ function confirmation(content) {
   $('#' + id + 'Button').focus();
 
   // Send explicit Email to user
-  const details = content.content
-    ? content.content
-      .replace(getTranslateData('Enter your user id').tooltip, '')
-      .replace(getTranslateData('IBAN').tooltip, '')
-      .replace(getTranslateData('Bank').tooltip, '')
-      .replace(getTranslateData('Operation cost').tooltip, '')
-    : '';
+  const details = content.content ?
+    content.content
+    .replace(getTranslateData('Enter your user id').tooltip, '')
+    .replace(getTranslateData('IBAN').tooltip, '')
+    .replace(getTranslateData('Bank').tooltip, '')
+    .replace(getTranslateData('Operation cost').tooltip, '') :
+    '';
   const subject = content.title;
-  const html = (content.main ? '<p>' + content.main + '</p>' : '') + '<p>'
-    + getTranslateData(content.ope + ' mail').tooltip + ' :</p>' + details;
+  const html = (content.main ? '<p>' + content.main + '</p>' : '') + '<p>' +
+    getTranslateData(content.ope + ' mail').tooltip + ' :</p>' + details;
   var message = html
     .replace(/(<\/p>)/ig, '\n\n')
     .replace(/(<\/tr>)/ig, '\n')
@@ -476,7 +662,9 @@ function confirmation(content) {
   google.script.run
     .withSuccessHandler()
     .withFailureHandler(displayError)
-    .sendEmail(GLOBAL.user.Email, subject, message, {htmlBody:html});
+    .sendEmail(GLOBAL.user.Email, subject, message, {
+      htmlBody: html
+    });
 }
 
 function confirmationValidation(result) {
@@ -485,23 +673,28 @@ function confirmationValidation(result) {
 
 function insertHistoricRow(data) {
   if (data && data.movement) {
-    data = [[data.date ?? '', GLOBAL.user.ID, toCurrency(data.movement), data.cost ?? toCurrency(0)]];
+    data = [
+      [data.date ?? '', GLOBAL.user.ID, toCurrency(data.movement), data.cost ?? toCurrency(0)]
+    ];
 
     // Display added data in the historic tab
     const id = GLOBAL.displayData.historic.id;
     openTab(id);
     var d = [];
-    data[0].forEach(item => d.push(item));  // Make a copy of data to not be modified by other operation on data
+    data[0].forEach(item => d.push(item)); // Make a copy of data to not be modified by other operation on data
     GLOBAL.data[id].splice(1, 0, d);
     updateHistoricTable(id, GLOBAL.data[id]);
     setEvents();
 
     // Add data to the database
-    data[0][0] = data[0][0] ? toStringDate(data[0][0], true) : '';    // Reverse date as the format is incorrect
+    data[0][0] = data[0][0] ? toStringDate(data[0][0], true) : ''; // Reverse date as the format is incorrect
     google.script.run
       .withSuccessHandler(contents => setValue(GLOBAL.displayData.historic.formula.split('!')[0] + '!A2', data))
       .withFailureHandler(displayError)
-      .insertRows(GLOBAL.personalGID, data, {startRow:1, endCol:data.length});
+      .insertRows(GLOBAL.personalGID, data, {
+        startRow: 1,
+        endCol: data.length
+      });
   } else {
     throw 'data is not set or incomplete';
   }
@@ -517,7 +710,9 @@ function changeRecurrent(value) {
 
   // Add data to the database
   const baseFormula = GLOBAL.displayData[id].formula.split('!')[0] + '!';
-  setValue(baseFormula + convertNumberToColumn(i) + d[1][0], [[toValue(value)]]);
+  setValue(baseFormula + convertNumberToColumn(i) + d[1][0], [
+    [toValue(value)]
+  ]);
 }
 
 function getTranslatedContent(content, isHeader, data) {
@@ -525,17 +720,17 @@ function getTranslatedContent(content, isHeader, data) {
   const d = getTranslateData(content);
   if (!isReadOnly) {
     data.tooltip = d.tooltip;
-    data.style = (isEditableInput(data.type) ? 'width:104px;' : '')
-      + (data.type != 'checkbox' ? 'text-align:center;border:transparent;' : '')
-      + (data.style ?? '');
+    data.style = (isEditableInput(data.type) ? 'width:104px;' : '') +
+      (data.type != 'checkbox' ? 'text-align:center;border:transparent;' : '') +
+      (data.style ?? '');
   }
 
-  return isReadOnly
-    ? getTableReadOnlyContent(content, isHeader).replace(content, isHeader
-      ? '<div class="tooltip">' + d.text + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>'
-      : d.text)
-    : '<td><h2 style="cursor:default;line-height:45px;">' + d.text + '</h2></td>'
-      + (data.readonly || data.disabled ? getTableReadOnlyContent(data.value) : getTableEditableContent(data.value, data));
+  return isReadOnly ?
+    getTableReadOnlyContent(content, isHeader).replace(content, isHeader ?
+      '<div class="tooltip">' + d.text + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>' :
+      d.text) :
+    '<td><h2 style="cursor:default;line-height:45px;">' + d.text + '</h2></td>' +
+    (data.readonly || data.disabled ? getTableReadOnlyContent(data.value) : getTableEditableContent(data.value, data));
 }
 
 function CreateAckDebt() {
@@ -557,7 +752,7 @@ function CreateAckDebt() {
   // signature et date
 
   if (length > 0) {
-    const signDate = deposit[length-1][0];
+    const signDate = deposit[length - 1][0];
     // const { jsPDF } = window.jspdf;
     // const doc = new jsPDF();
     // doc.setFontSize(20);
@@ -585,27 +780,27 @@ function CreateAckDebt() {
     // doc.text(190, 160 + length * 5, 'Le prêteur, ' + getFullName(GLOBAL.user) + '\nDaté et signé               ', null, null, 'right');
     // doc.addImage(imgPath + 'Signature.png', 'PNG', 20, 170 + length * 5);
 
-    let doc = '<h2 align="center" style="color:black">Reconnaissance de dette</h2><br>'
-    + '<p>Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31), '
-    + 'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de '
-    + getFullName(GLOBAL.user) + ', né·e le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity
-    + ', demeurant à ce jour, ' + GLOBAL.user.Address + ' - ' + GLOBAL.user.PostalCode + ' ' + GLOBAL.user.City
-    + ', la somme de ' + getImgFromNumber(total) + getImgTag('€', 15) + getImgTag('', 15)
-    + getImgTag('(', 15) + getImgFromText(numberToText(total)) + getImgTag('euros', 15) + getImgTag(')', 15)
-    + ' à titre de prêt sous la forme du :</p><ul>';
+    let doc = '<h2 align="center" style="color:black">Reconnaissance de dette</h2><br>' +
+      '<p>Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31), ' +
+      'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de ' +
+      getFullName(GLOBAL.user) + ', né·e le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity +
+      ', demeurant à ce jour, ' + GLOBAL.user.Address + ' - ' + GLOBAL.user.PostalCode + ' ' + GLOBAL.user.City +
+      ', la somme de ' + getImgFromNumber(total) + getImgTag('€', 15) + getImgTag('', 15) +
+      getImgTag('(', 15) + getImgFromText(numberToText(total)) + getImgTag('euros', 15) + getImgTag(')', 15) +
+      ' à titre de prêt sous la forme du :</p><ul>';
     deposit.forEach(item => doc += '<li>Virement bancaire SEPA de ' + item[1] + ' euros, émis le ' + item[0] + '</li>');
-    doc += '</ul><p>Le remboursement de ce prêt interviendra de la façon suivante :</p>'
-    + '<ul><li>il sera remboursé immédiatement (moyennant le temps de virement de compte à compte'
-    + 'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique,'
-    + 'lettre ou autre moyen informatique), en une ou plusieurs fois, à la convenance du prêteur.</li></ul>'
-    + '<p>Ce prêt est consenti moyennant un intérêt de :</p>'
-    + '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an, '
-    + 'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.</li></ul><br><br>'
-    + '<span>L\'emprunteur, DE FROCOURT Florian,</span>'
-    + '<span style="float:right">Le·a prêteur·se, ' + getFullName(GLOBAL.user) + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé</span>'
-    + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé<br><br>'
-    + '&emsp;&emsp;&emsp;' + getImgTag('Le', 15) + '&emsp;' + getImgFromNumber(signDate)
-    + '<br>' + getImgTag('Signature');
+    doc += '</ul><p>Le remboursement de ce prêt interviendra de la façon suivante :</p>' +
+      '<ul><li>il sera remboursé immédiatement (moyennant le temps de virement de compte à compte ' +
+      'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique,' +
+      'lettre ou autre moyen informatique), en une ou plusieurs fois, à la convenance du prêteur.</li></ul>' +
+      '<p>Ce prêt est consenti moyennant un intérêt de :</p>' +
+      '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an, ' +
+      'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.</li></ul><br><br>' +
+      '<span>L\'emprunteur, DE FROCOURT Florian,</span>' +
+      '<span style="float:right">Le·a prêteur·se, ' + getFullName(GLOBAL.user) + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé</span>' +
+      '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé<br><br>' +
+      '&emsp;&emsp;&emsp;' + getImgTag('Le', 15) + '&emsp;' + getImgFromNumber(signDate) +
+      '<br>' + getImgTag('Signature');
 
     const title = translate(GLOBAL.ackDebt);
     // const data = doc.output('bloburl', title + '.pdf');
@@ -614,13 +809,21 @@ function CreateAckDebt() {
     //   + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
     //   + '<iframe src="' + data + '" style="border:none; top:0px; left:0px; bottom:0px;'
     //   + ' right:0px; width:100%; height:100%;" allowfullscreen></iframe>';
-    const html = '<span style="font-size:33px; padding:0px 0px 15px 0px;" '
-      + 'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>'
-      + '<button onclick="printHtml(\'#ackDebtDiv\', \'' + title + '\')">' + translate('Print') + '</button>'
-      + '<div id="ackDebtDiv" style="width:560px; position:relative; margin:25px auto; padding:25px; background:white;">' + doc + '</div>';
+    const html = '<span style="font-size:33px; padding:0px 0px 15px 0px;" ' +
+      'class="closebtn" onclick="closePopup(() => $(\'#popup\').removeAttr(\'style\'));">&times;</span>' +
+      '<button onclick="printHtml(\'#ackDebtDiv\', \'' + title + '\')">' + translate('Print') + '</button>' +
+      '<div id="ackDebtDiv" style="width:560px; position:relative; margin:25px auto; padding:25px; background:white;">' + doc + '</div>';
 
     openPopup(html);
-    $('#popup').css( { margin: '5%', height: 'auto', width: 'auto', minWidth:'650px', minHeight:'500px', overflow: 'auto', background: 'slategray' });
+    $('#popup').css({
+      margin: '5%',
+      height: 'auto',
+      width: 'auto',
+      minWidth: '650px',
+      minHeight: '500px',
+      overflow: 'auto',
+      background: 'slategray'
+    });
 
     // let mywindow = window.open('', 'PRINT', 'height=650,width=900,top=100,left=150');
     //
@@ -651,8 +854,8 @@ function CreateAckDebt() {
 }
 
 function getImgTag(name, height) {
-  return '<img style="cursor:default; filter:none; ' + (height ? 'height:' + height + 'px;' : '')
-    + '" src="' + GLOBAL.serverUrl + 'Img/AckDebt/' + name + '.png">';
+  return '<img style="cursor:default; filter:none; ' + (height ? 'height:' + height + 'px;' : '') +
+    '" src="' + GLOBAL.serverUrl + 'Img/AckDebt/' + name + '.png">';
 }
 
 function getImgFromNumber(number) {
@@ -670,14 +873,15 @@ function getImgFromText(text) {
   const height = 20;
   text = text.replaceAll('-', ' - ');
   const array = text.split(' ');
-  array.forEach((item, i) => html += getImgTag(item, height) + (item != '-' && array[i+1] != '-' ? getImgTag('', height) : ''));
+  array.forEach((item, i) => html += getImgTag(item, height) + (item != '-' && array[i + 1] != '-' ? getImgTag('', height) : ''));
 
   return html;
 }
 
 function numberToText(number) {
   const ones = ['', 'un ', 'deux ', 'trois ', 'quatre ', 'cinq ', 'six ', 'sept ', 'huit ', 'neuf ',
-    'dix ', 'onze ', 'douze ', 'treize ', 'quatorze ', 'quinze ', 'seize ', 'dix-sept ', 'dix-huit ', 'dix-neuf '];
+    'dix ', 'onze ', 'douze ', 'treize ', 'quatorze ', 'quinze ', 'seize ', 'dix-sept ', 'dix-huit ', 'dix-neuf '
+  ];
   const tens = ['', '', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', '', 'quatre-vingt', ''];
   const hundred = 'cent';
   const thousand = 'mille ';
@@ -685,13 +889,16 @@ function numberToText(number) {
   if (text.length <= 6) {
     const n = ('000000' + text).substr(-6).match(/^(\d{1})(\d{2})(\d{1})(\d{2})$/);
     if (n) {
-      const junc = i => { const a = i[0]; const b = tens[a] ? i[1] : Number(i[1])+10;
-        return a == 8 && b == 0 ? 's' : a < 8 && (b == 1 || b == 11) ? ' et ' : b >= 1 ? '-' : ''; };
+      const junc = i => {
+        const a = i[0];
+        const b = tens[a] ? i[1] : Number(i[1]) + 10;
+        return a == 8 && b == 0 ? 's' : a < 8 && (b == 1 || b == 11) ? ' et ' : b >= 1 ? '-' : '';
+      };
       let str = '';
       str += n[1] != 0 ? (n[1] > 1 ? ones[Number(n[1])] : '') + hundred + (n[1] > 1 ? 's ' : ' ') : '';
       str += (n[2] != 0 ? (n[2] > 1 ? ones[Number(n[2])] || tens[n[2][0]] + ' ' + ones[n[2][1]] : '') : '') + (n[1] + n[2] != 0 ? thousand : '');
       str += n[3] != 0 ? (n[3] > 1 ? ones[Number(n[3])] : '') + hundred + (n[3] > 1 ? 's ' : ' ') : '';
-      str += n[4] != 0 ? (ones[Number(n[4])] || (tens[n[4][0]] ? tens[n[4][0]] + junc(n[4]) + ones[n[4][1]] : tens[Number(n[4][0])-1] + junc(n[4]) + ones[Number(n[4][1])+10])) : '';
+      str += n[4] != 0 ? (ones[Number(n[4])] || (tens[n[4][0]] ? tens[n[4][0]] + junc(n[4]) + ones[n[4][1]] : tens[Number(n[4][0]) - 1] + junc(n[4]) + ones[Number(n[4][1]) + 10])) : '';
       return str.trim();
     }
   } else {
@@ -700,8 +907,8 @@ function numberToText(number) {
 }
 
 function printHtml(id, title) {
-  const html = '<html><head><link rel="stylesheet" href="' + GLOBAL.scriptUrl + 'Stylesheet.css"><title>' + title + '</title>'
-    + '</head><body style="margin:0% 20%;">' + $(id).html() + '</body></html>';
+  const html = '<html><head><link rel="stylesheet" href="' + GLOBAL.scriptUrl + 'Stylesheet.css"><title>' + title + '</title>' +
+    '</head><body style="margin:0% 20%;">' + $(id).html() + '</body></html>';
   const printWindow = window.open('', '', 'width=' + screen.width + ',height=' + screen.height);
   printWindow.document.write(html);
   printWindow.document.close();
@@ -713,32 +920,34 @@ function getFullName(person) {
   return person.FamilyName.toUpperCase() + ' ' + person.FirstName;
 }
 
-function convertNumberToColumn(number) {    // 0 => A, 1 => B, etc
+function convertNumberToColumn(number) { // 0 => A, 1 => B, etc
   var t;
   var s = '';
   while (number > 0) {
     t = (number - 1) % 26;
     s = String.fromCharCode(66 + t) + s;
-    number = (number - t)/26 | 0;
+    number = (number - t) / 26 | 0;
   }
 
   return s;
 }
 
 function validateIbanChecksum(iban) {
-  const ibanStripped = iban.replace(/[^A-Z0-9]+/gi,'') //keep numbers and letters only
+  const ibanStripped = iban.replace(/[^A-Z0-9]+/gi, '') //keep numbers and letters only
     .toUpperCase(); //calculation expects upper-case
   const m = ibanStripped.match(/^([A-Z]{2})([0-9]{2})([A-Z0-9]{9,30})$/);
-  if(!m) return false;
+  if (!m) return false;
 
-  const numbericed = (m[3] + m[1] + m[2]).replace(/[A-Z]/g,function(ch){
+  const numbericed = (m[3] + m[1] + m[2]).replace(/[A-Z]/g, function(ch) {
     //replace upper-case characters by numbers 10 to 35
-    return (ch.charCodeAt(0)-55);
+    return (ch.charCodeAt(0) - 55);
   });
   //The resulting number would be to long for javascript to handle without loosing precision.
   //So the trick is to chop the string up in smaller parts.
   const mod97 = numbericed.match(/\d{1,7}/g)
-    .reduce(function(total, curr){ return Number(total + curr)%97;},'');
+    .reduce(function(total, curr) {
+      return Number(total + curr) % 97;
+    }, '');
 
   return (mod97 === 1);
 }

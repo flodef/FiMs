@@ -2,23 +2,23 @@ initHTML();
 
 function initHTML() {
   const body =
-  getDiv('content', 'contentOverlay', null,
-    getDiv('mainHeading') +
-    getDiv('tabContainer') +
-    getDiv('loaderBar', 'loaderBar') +
-    getDiv('mainContent') +
-    getDiv('footer'))
-  + getDiv('scrollDiv', 'contentOverlay', 'center')
-  + getDiv('menuDiv', 'contentOverlay', 'right')
-  + getOverlayDiv('loader', 'shadeOverlay')
-  + getOverlayDiv('popup', 'shadeOverlay')
-  + getOverlayDiv('alert')
-  + getDiv('snackbar');
+    getDiv('content', 'contentOverlay', null,
+      getDiv('mainHeading') +
+      getDiv('tabContainer') +
+      getDiv('loaderBar', 'loaderBar') +
+      getDiv('mainContent') +
+      getDiv('footer')) +
+    getDiv('scrollDiv', 'contentOverlay', 'center') +
+    getDiv('menuDiv', 'contentOverlay', 'right') +
+    getOverlayDiv('loader', 'shadeOverlay') +
+    getOverlayDiv('popup', 'shadeOverlay') +
+    getOverlayDiv('alert') +
+    getDiv('snackbar');
   document.body.innerHTML = body;
 
-  document.getElementById('tabContainer').classList.add('hidden');  // Hide the tabContainer as it displays an empty bar
+  document.getElementById('tabContainer').classList.add('hidden'); // Hide the tabContainer as it displays an empty bar
 
-  loadScript(0);    // Load every script one after the other
+  loadScript(0); // Load every script one after the other
 }
 
 async function loadScript(i) {
@@ -48,11 +48,35 @@ async function loadScript(i) {
 }
 
 async function waitForScript(scriptName) {
-  const fn = () => { if (scriptName.includes('jquery.min')) { try { return $(); } catch { return false; } }
-  else if (scriptName.includes('xlsx')) { try { return XLSX; } catch { return false; } }
-  else if (scriptName.includes('Google')) { try { return google; } catch { return false; } }
-  else if (scriptName.includes('Common')) { try { return GLOBAL.data; } catch { return false; } }
-  else { return true; } };
+  const fn = () => {
+    if (scriptName.includes('jquery.min')) {
+      try {
+        return $();
+      } catch {
+        return false;
+      }
+    } else if (scriptName.includes('xlsx')) {
+      try {
+        return XLSX;
+      } catch {
+        return false;
+      }
+    } else if (scriptName.includes('Google')) {
+      try {
+        return google;
+      } catch {
+        return false;
+      }
+    } else if (scriptName.includes('Common')) {
+      try {
+        return GLOBAL.data;
+      } catch {
+        return false;
+      }
+    } else {
+      return true;
+    }
+  };
   while (!fn()) {
     await new Promise(r => setTimeout(r, 100));
   }
@@ -64,19 +88,21 @@ function setLoaderBar(value) {
     const item = $(loader);
     item.html(item.html() || '<span></span>');
     const span = item.children('span');
-    span.data('origWidth', value*item.width())
+    span.data('origWidth', value * item.width())
       .width(span.width() || 0)
-      .animate({width: span.data('origWidth')}, 3000);
+      .animate({
+        width: span.data('origWidth')
+      }, 3000);
   } catch (e) {
-    loader.innerHTML = '<span style="width:' + value*100 + '%"></span>';
+    loader.innerHTML = '<span style="width:' + value * 100 + '%"></span>';
   }
 }
 
 function getDiv(id, cssClass, align, content = '') {
-  return '<div' + addAttr('id', id) + addAttr('align', align)
-    + addAttr('class', cssClass ? cssClass + (cssClass.toLowerCase().endsWith('overlay')
-      && !cssClass.toLowerCase().includes('content') ? ' hidden' : '') : '')
-    + '>' + content + '</div>';
+  return '<div' + addAttr('id', id) + addAttr('align', align) +
+    addAttr('class', cssClass ? cssClass + (cssClass.toLowerCase().endsWith('overlay') &&
+      !cssClass.toLowerCase().includes('content') ? ' hidden' : '') : '') +
+    '>' + content + '</div>';
 }
 
 function getOverlayDiv(id, cssClass = 'overlay') {
@@ -84,6 +110,6 @@ function getOverlayDiv(id, cssClass = 'overlay') {
 }
 
 function addAttr(name, value, isSingle) {
-  return name && (value || value == 0)
-    ? ' ' + name + (!isSingle ? '="' + value.toString().trim() + '"' : '') : '';
+  return name && (value || value == 0) ?
+    ' ' + name + (!isSingle ? '="' + value.toString().trim() + '"' : '') : '';
 }
