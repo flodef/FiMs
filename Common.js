@@ -442,7 +442,7 @@ function checkElement(e) {
     const m = parseInt(e.maxLength);
     const maxLength = !isNaN(m) && m > 0 ? m : 30;
     const pattern = e.pattern ||
-      (type == 'email' ? '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9]+)*$' :
+      (//type == 'email' ? '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9]+)*$' :
         type == 'iban' ? '^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$'
         // : type == "url" ? "^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$"
         :
