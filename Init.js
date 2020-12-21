@@ -75,8 +75,8 @@ function setLoaderBar(value) {
 function getDiv(id, cssClass, align, content = '') {
   return '<div' + addAttr('id', id) + addAttr('align', align)
     + addAttr('class', cssClass ? cssClass + (cssClass.toLowerCase().endsWith('overlay')
-      && !cssClass.toLowerCase().includes('content') ? ' hidden' : '') : '') + '>'
-    + content + '</div>';
+      && !cssClass.toLowerCase().includes('content') ? ' hidden' : '') : '')
+    + '>' + content + '</div>';
 }
 
 function getOverlayDiv(id, cssClass = 'overlay') {

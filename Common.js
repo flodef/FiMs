@@ -41,7 +41,7 @@ function loadPage() {
   var mainContentHTML = '';
   var tabContainerHTML = '';
   GLOBAL.displayId.forEach(id => {
-    mainContentHTML += getDiv(id + 'Div');
+    mainContentHTML += getDiv(id + 'Div', 'mainDiv');
     const tableHTML = getTableTitle(id, true);
     setTable(id, tableHTML);
     tabContainerHTML += getTitle(id);
