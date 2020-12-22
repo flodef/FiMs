@@ -7,6 +7,8 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 
 - Load each page on demand (show loader bar)
 - Recurrent edit in personal should not refresh the page
+- Ass Double authentication
+- Remove user Data from xls
 
 - FAQ : 
 	- Add theme to group Q/A
