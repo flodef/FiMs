@@ -35,7 +35,7 @@ GLOBAL.displayData = {
   },
   'personal': {
     id: 'personal',
-    formula: 'Associate!A:AA',
+    formula: 'Associate!A:Z',
     updateTable: updatePersonalTable,
     loadOnce: true,
     filter: 1
