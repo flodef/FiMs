@@ -235,23 +235,23 @@ function getTableValidatableContent(id, content, range, expected) {
     (!expected || content == expected ? 'transparent' : 'pink') + '">' +
     '<div style="position:relative"><span>' + content + '</span>' +
     '<div style="position:absolute;left:35%;top:50%;" class="checkmark" value="' + toValue(content) + '"' +
-    'onclick="if(!$(this).hasClass(\'draw\')) { ' + getUpdateContent(id, range, GLOBAL.dummy) + ' }">' +
+    'onclick="if(!$(this).hasClass(\'draw\')) { ' + getUpdateContent( {id:id, range:range}, GLOBAL.dummy) + ' }">' +
     '</div></div></td>';
 }
 
 function getEditCellHandler(expected, data) {
   return ' onfocusout="const error = getElementValidity(this); $(this).data(\'error\', error); if (error) { $(this).focus(); showSnackBar(error); } else { ' +
-    (data && data.id && data.range ? getUpdateContent(data.id, data.range, expected) : '') + ' }"' +
+    (data && data.id && data.range ? getUpdateContent(data, expected) : '') + ' }"' +
     ' onkeyup="if (!GLOBAL.handleEvent && event.which == 13) { $(this).blur() } else if (!GLOBAL.handleEvent && event.which == 27)' +
     ' { this.value = \'' + expected + '\'; } autoAdaptWidth(this);' +
     (data && data.inputId && data.erase ? ' $(\'#' + data.inputId + 'Erase\').css(\'visibility\', $(this).val() ? \'visible\' : \'hidden\')' : '') +
     '" oninput="autoAdaptWidth(this);"';
 }
 
-function getUpdateContent(id, range, expected) {
+function getUpdateContent(data, expected) {
   return 'if (this.value != \'' + expected + '\') ' +
-    '{ setValue(\'' + range + '\', [[this.value || this.getAttribute(\'value\')]]' +
-    (id ? id != GLOBAL.settings ? ', () => updateValues(\'' + id + '\', true)' :
+    '{ setValue(\'' + data.range + '\', [[this.value || this.getAttribute(\'value\')]]' +
+    (data.id ? data.id != GLOBAL.settings ? ', () => updateValues(\'' + data.id + '\', true)' :
       ', () => getValue({ id:GLOBAL.settings, formula:GLOBAL.settingsFormula }, null, true, updateAllValues)' :
       '') + '); }';
 }

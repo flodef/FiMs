@@ -259,7 +259,6 @@ function updatePersonalTable(id, contents) {
 
     GLOBAL.personalData.forEach(item => {
       const i = item.index;
-      item.id = id;
       item.range = baseFormula + convertNumberToColumn(i) + contents[1][0];
       item.value = item.readonly || item.disabled ? translate(contents[1][i]) : contents[1][i];
       item.min = recurrentCol ? -GLOBAL.maxRecurrent : null;

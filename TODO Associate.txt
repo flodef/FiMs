@@ -7,10 +7,9 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 
 - Load each page on demand (show loader bar)
 - Recurrent edit in personal should not refresh the page
-- Ass Double authentication
-- Remove user Data from xls
+- Add authentication + blocking after 3 attempts when modifying personal data
 
-- FAQ : 
+- FAQ :
 	- Add theme to group Q/A
 	- Q can be folded
 	- Q : What happened if new deposit ?
@@ -24,7 +23,7 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 	- Send mail if personal data has been modified
 	- Add erase button to editable text
 
-- Contact form directly in the app(ou encore mieux, directement sur <a href="https://github.com/flodef/FiMS/issues/new" target="_blank">github</a> (nécessite un compte grauit)</td>) with : 
+- Contact form directly in the app(ou encore mieux, directement sur <a href="https://github.com/flodef/FiMS/issues/new" target="_blank">github</a> (nécessite un compte grauit)</td>) with :
 	- BUG (inside or with github)
 	- Idea
 	- New question in FAQ
