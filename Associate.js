@@ -384,17 +384,17 @@ function setUserId(id) {
         setHtml('#' + displayId + 'Div', ''); // Clear all tab content except faq
         GLOBAL.data[displayId] = null; // Delete data in order to reload it
       }
-      displayElement('#' + displayId + 'Button', false); // Hide all tab
+      displayElement('#' + displayId + 'Button', false, 0); // Hide all tab
     });
     setHtml('#scrollDiv', ''); // Clear the scrollDiv
-    displayElement('#' + faqId + 'Div', false); // Hide Faq content
+    displayElement('#' + faqId + 'Div', false, 0); // Hide Faq content
     if ($('#loaderBar').is(":hidden")) {
-      displayElement('#loaderBar', true); // Display the loader bar
+      displayElement('#loaderBar', true, 0); // Display the loader bar
       animateLoaderBar(); // Animate the loader bar
     };
 
     if (id) {
-      displayElement('#tabContainer', false); // Hide the tab container
+      displayElement('#tabContainer', false, 0); // Hide the tab container
       GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1]; // Create user account formula
       updateAllValues();
     } else { // No user
