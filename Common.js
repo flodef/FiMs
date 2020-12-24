@@ -7,7 +7,6 @@ GLOBAL.loadingQueueCount = 0;
 GLOBAL.hasAlreadyUpdated = [];
 GLOBAL.handleEvent = true;
 
-
 /**
  * Run initializations on web app load.
  */
