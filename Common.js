@@ -236,9 +236,9 @@ function getTableValidatableContent(id, content, range, expected) {
     '<div style="position:relative"><span>' + content + '</span>' +
     '<div style="position:absolute;left:35%;top:50%;" class="checkmark" value="' + toValue(content) + '"' +
     'onclick="if(!$(this).hasClass(\'draw\')) { ' + getUpdateContent({
-      id: id,
-      range: range
-    }, GLOBAL.dummy) + ' }">' +
+    id: id,
+    range: range
+  }, GLOBAL.dummy) + ' }">' +
     '</div></div></td>';
 }
 
@@ -262,9 +262,9 @@ function getUpdateContent(data, expected) {
 function getSubTableTitle(id, title, range) {
   return '<tr><td colspan="10"><input value="' + title + '" class="tableTitle auto" minLength="3"' +
     ' maxLength="30" style="font-size:16px;"' + getEditCellHandler(title, {
-      id: id,
-      range: range
-    }) +
+    id: id,
+    range: range
+  }) +
     '"></input></td></tr>';
 }
 
@@ -374,8 +374,8 @@ function getColor(value, isDisabled = false, isCur = true, forcedColor) {
   var number = toValue(value);
   return forcedColor ? forcedColor :
     isDisabled || (!isNaN(number) && number == 0) ? 'wheat' :
-    isCur ? number > 0 ? 'green' : 'red' :
-    'black';
+      isCur ? number > 0 ? 'green' : 'red' :
+        'black';
 }
 
 function setTable(id, tableHTML) {
@@ -448,9 +448,9 @@ function checkElement(e) {
       ( //type == 'email' ? '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9]+)*$' :
         type == 'iban' ? '^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$' :
         // type == "url" ? "^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$" :
-        type == 'url' ? '.' :
-        type == 'name' ? '^[A-zÀ-ú -]{0,' + maxLength + '}$' :
-        '^[A-zÀ-ú0-9, ()]{0,' + maxLength + '}$');
+          type == 'url' ? '.' :
+            type == 'name' ? '^[A-zÀ-ú -]{0,' + maxLength + '}$' :
+              '^[A-zÀ-ú0-9, ()]{0,' + maxLength + '}$');
     const regexp = new RegExp(pattern);
     while (e.value && (!regexp.test(e.value) || e.value.length > maxLength)) {
       e.value = e.value.slice(0, -1);
@@ -465,7 +465,7 @@ function getElementValidity(e) {
 
   return e.value.length < minLength ? 'Value should have at least ' + minLength + ' character(s) !' :
     e.min && e.value && parseFloat(e.value) < parseFloat(e.min) ? 'Value should be at least ' + roundDown(e.min, parseInt(e.dataset.precision) || 2) + e.dataset.symbol :
-    null;
+      null;
 }
 
 function selectName(e, index) {
@@ -508,6 +508,8 @@ function getValue(data, func, forceReload, success) {
         .withSuccessHandler(fn)
         .withFailureHandler(displayError)
         .getSheetValues(data.formula, data.filter != null ? GLOBAL.user.ID : null, data.filter);
+    } else {
+      displayLoading(id, false);
     }
   } else {
     ++GLOBAL.loadingQueueCount;
@@ -559,9 +561,9 @@ function refreshTotal(id) {
       for (var j = 0; j < item.length; ++j) {
         a[j] += j == 0 ? 1 :
           j == 1 ? item[5].innerHTML ? 1 : 0 :
-          j == 2 ? item[7].innerHTML ? 1 : 0 :
-          j == 3 ? item[8].innerHTML ? 1 : 0 :
-          toValue(item[j].innerHTML);
+            j == 2 ? item[7].innerHTML ? 1 : 0 :
+              j == 3 ? item[8].innerHTML ? 1 : 0 :
+                toValue(item[j].innerHTML);
       }
     };
     var footerFunc = () =>
@@ -753,10 +755,10 @@ function shouldRebalance(value) {
 
 function toValue(content) {
   return content ? parseFloat(String(content).replaceAll(',', '')
-      .replaceAll(' ', '')
-      .replaceAll('$', '')
-      .replaceAll('€', '')
-      .replaceAll('%', '')) :
+    .replaceAll(' ', '')
+    .replaceAll('$', '')
+    .replaceAll('€', '')
+    .replaceAll('%', '')) :
     0;
 }
 
@@ -771,8 +773,8 @@ function toCurrency(content, precision = 2, symbol = '€') {
 
   return i + neg > 9 ? str.slice(0, i - 9) + ',' + str.slice(i - 9, i - 6) + ',' + str.slice(i - 6, i - 3) + ',' + str.slice(i - 3) :
     i + neg > 6 ? str.slice(0, i - 6) + ',' + str.slice(i - 6, i - 3) + ',' + str.slice(i - 3) :
-    i + neg > 3 ? str.slice(0, i - 3) + ',' + str.slice(i - 3) :
-    str;
+      i + neg > 3 ? str.slice(0, i - 3) + ',' + str.slice(i - 3) :
+        str;
 }
 
 function toStringDate(date, isMDY) {

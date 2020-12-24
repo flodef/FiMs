@@ -235,8 +235,8 @@ function validateAddForm() {
 
   var tOpe = !tType ? name :
     tQty < 0 ? 'SELL' :
-    tQty > 0 ? 'BUY' :
-    'DIVIDEND';
+      tQty > 0 ? 'BUY' :
+        'DIVIDEND';
 
   var val = parseFloat($('#transactionValue').val());
   var tVal = !isNaN(val) && val != 0 ? val : '';
@@ -245,11 +245,11 @@ function validateAddForm() {
 
   var errorMsg = tQty && isNaN(tQty) ? 'Quantity should be an Integer.' :
     tVal && isNaN(tVal) ? 'Value should be a Number.' :
-    tName && !tQty && (!tVal || tVal <= 0) ? 'Coupon value should be positive.' :
-    !tName && !tVal ? 'Approvisionnement/Cost Value should be set.' :
-    tQty && !tVal ? 'The Value should be set if the Quantity is set.' :
-    tUnit && tUnit < 0 ? 'Quantity should have an opposite sign as Value.' :
-    '';
+      tName && !tQty && (!tVal || tVal <= 0) ? 'Coupon value should be positive.' :
+        !tName && !tVal ? 'Approvisionnement/Cost Value should be set.' :
+          tQty && !tVal ? 'The Value should be set if the Quantity is set.' :
+            tUnit && tUnit < 0 ? 'Quantity should have an opposite sign as Value.' :
+              '';
 
   if (!errorMsg) {
     insertHistoricRow([
@@ -679,8 +679,8 @@ function updateInvestmentTable(id, contents) {
   for (var i = 0; i < row; ++i) {
     var bgcolor = i == row - 1 ? null :
       contents[i][GLOBAL.tendencyCol].includes('BUY') ? 'lightgreen' :
-      contents[i][GLOBAL.tendencyCol].includes('SELL') ? 'lightcoral' :
-      null;
+        contents[i][GLOBAL.tendencyCol].includes('SELL') ? 'lightcoral' :
+          null;
     var color = bgcolor ? 'black' : null;
     tableHTML += i == 0 ? '<thead>' : '';
     tableHTML += i == 0 ? '<tr>' : '<tr title="' + contents[i][7] + '"' +
@@ -693,10 +693,10 @@ function updateInvestmentTable(id, contents) {
       // Next div dur = 45, Est div = 46, Div / month = 47
       var con = i == 0 || j != 12 ?
         i == 0 || j < 23 || j > 37 ?
-        contents[i][j] :
-        (contents[i][j] ? toCurrency(contents[i][j], 3) : '') + ' (' + contents[i][j + 1] + ')' :
+          contents[i][j] :
+          (contents[i][j] ? toCurrency(contents[i][j], 3) : '') + ' (' + contents[i][j + 1] + ')' :
         contents[i][12] ?
-        toCurrency(contents[i][j], 4) : '';
+          toCurrency(contents[i][j], 4) : '';
       var isDisabled = (j == 18 || j == 19 || j == GLOBAL.tendencyCol) &&
         !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
       tableHTML += j != 12 || i == 0 || i == row - 1 ?
@@ -748,8 +748,8 @@ function updateHistoricTable(id, contents) {
     for (var j = 0; j < col; ++j) {
       var value = j < contents[i].length && contents[i][j] ?
         j != 5 || i == 0 ?
-        contents[i][j] :
-        toCurrency(contents[i][j], 4) :
+          contents[i][j] :
+          toCurrency(contents[i][j], 4) :
         '';
       tableHTML += j != GLOBAL.histoIdCol // Don't display the Historic ID
         ?

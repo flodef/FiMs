@@ -49,115 +49,115 @@ GLOBAL.displayData = {
 };
 GLOBAL.menuButton = ['deposit', 'withdraw', 'connect'];
 GLOBAL.personalData = [{
-    index: 1,
-    readonly: true,
-    type: 'name',
-    minLength: 5,
-    maxLength: 10,
-    required: true
-  }, // ID
-  {
-    index: 15,
-    readonly: true,
-    type: 'name',
-    required: true
-  }, // First name
-  {
-    index: 16,
-    readonly: true,
-    type: 'name',
-    required: true
-  }, // Family name
-  {
-    index: 14,
-    readonly: true,
-    type: 'email',
-    required: true
-  }, // Email
-  {
-    index: 17,
-    disabled: true,
-    type: 'date',
-    required: true
-  }, // Birth date
-  {
-    index: 18,
-    readonly: true,
-    type: 'text',
-    required: true
-  }, // Birth city
-  {
-    index: 19,
-    readonly: true,
-    type: 'text',
-    required: true,
-    maxLength: 100
-  }, // Address
-  {
-    index: 20,
-    readonly: true,
-    type: 'text',
-    required: true,
-    pattern: '^[0-9]{5}$'
-  }, // Postal code
-  {
-    index: 21,
-    readonly: true,
-    type: 'name',
-    required: true
-  }, // City
-  {
-    index: 22,
-    readonly: true,
-    type: 'iban',
-    required: true
-  }, // IBAN
-  {
-    index: 23,
-    readonly: true,
-    type: 'name',
-    required: true
-  }, // Bank
-  {
-    index: 24,
-    readonly: true,
-    type: 'name',
-    required: true
-  }, // Association
-  {
-    index: 25,
-    type: 'url'
-  }, // Web page
-  {
-    index: 2,
-    type: 'euro',
-    max: 0,
-    required: true
-  }, // Recurrent
-  {
-    index: 6,
-    disabled: true
-  }, // Estimate rate
-  {
-    index: 7,
-    disabled: true
-  }, // Estimate gain
-  {
-    index: 5,
-    disabled: true
-  }, // Financed project
-  {
-    index: 3,
-    disabled: true
-  }, // Charity
-  {
-    index: 4,
-    disabled: true
-  }, // Donated
-  {
-    index: 8,
-    disabled: true
-  }, // Duration
+  index: 1,
+  readonly: true,
+  type: 'name',
+  minLength: 5,
+  maxLength: 10,
+  required: true
+}, // ID
+{
+  index: 15,
+  readonly: true,
+  type: 'name',
+  required: true
+}, // First name
+{
+  index: 16,
+  readonly: true,
+  type: 'name',
+  required: true
+}, // Family name
+{
+  index: 14,
+  readonly: true,
+  type: 'email',
+  required: true
+}, // Email
+{
+  index: 17,
+  disabled: true,
+  type: 'date',
+  required: true
+}, // Birth date
+{
+  index: 18,
+  readonly: true,
+  type: 'text',
+  required: true
+}, // Birth city
+{
+  index: 19,
+  readonly: true,
+  type: 'text',
+  required: true,
+  maxLength: 100
+}, // Address
+{
+  index: 20,
+  readonly: true,
+  type: 'text',
+  required: true,
+  pattern: '^[0-9]{5}$'
+}, // Postal code
+{
+  index: 21,
+  readonly: true,
+  type: 'name',
+  required: true
+}, // City
+{
+  index: 22,
+  readonly: true,
+  type: 'iban',
+  required: true
+}, // IBAN
+{
+  index: 23,
+  readonly: true,
+  type: 'name',
+  required: true
+}, // Bank
+{
+  index: 24,
+  readonly: true,
+  type: 'name',
+  required: true
+}, // Association
+{
+  index: 25,
+  type: 'url'
+}, // Web page
+{
+  index: 2,
+  type: 'euro',
+  max: 0,
+  required: true
+}, // Recurrent
+{
+  index: 6,
+  disabled: true
+}, // Estimate rate
+{
+  index: 7,
+  disabled: true
+}, // Estimate gain
+{
+  index: 5,
+  disabled: true
+}, // Financed project
+{
+  index: 3,
+  disabled: true
+}, // Charity
+{
+  index: 4,
+  disabled: true
+}, // Donated
+{
+  index: 8,
+  disabled: true
+}, // Duration
 ];
 
 GLOBAL.user = [];
@@ -220,16 +220,12 @@ function updateHistoricTable(id, contents) {
       for (var j = 0; j < col; ++j) {
         tableHTML += j != 1 ? getTranslatedContent(contents[i][j], i == 0) : ''; // Don't add the ID column
         tableHTML += j == col - 1 ?
-          i == 0 ? getTranslatedContent(GLOBAL.Status, true) // Add a status column
-          :
-          contents[i][0] && new Date(toStringDate(contents[i][0], true)) <= new Date() ?
-          parseFloat(contents[i][j]) <= 0 ?
-          getTableCheckmark(GLOBAL.completedStatus) // Completed
-          :
-          getTableImage(GLOBAL.DonationStatus) // Donation
-          :
-          getTableLoaderBar(GLOBAL.pendingStatus) // Pending
-          :
+          i == 0 ? getTranslatedContent(GLOBAL.Status, true) : // Add a status column
+            contents[i][0] && new Date(toStringDate(contents[i][0], true)) <= new Date() ?
+              parseFloat(contents[i][j]) <= 0 ?
+                getTableCheckmark(GLOBAL.completedStatus) : // Completed
+                getTableImage(GLOBAL.DonationStatus) : // Donation
+              getTableLoaderBar(GLOBAL.pendingStatus) : // Pending
           '';
       }
       tableHTML += '</tr>';
@@ -388,10 +384,10 @@ function setUserId(id) {
     });
     setHtml('#scrollDiv', ''); // Clear the scrollDiv
     displayElement('#' + faqId + 'Div', false, 0); // Hide Faq content
-    if ($('#loaderBar').is(":hidden")) {
+    if ($('#loaderBar').is(':hidden')) {
       displayElement('#loaderBar', true, 0); // Display the loader bar
       animateLoaderBar(); // Animate the loader bar
-    };
+    }
 
     if (id) {
       displayElement('#tabContainer', false, 0); // Hide the tab container
@@ -484,13 +480,13 @@ function updateDeposit() {
 function withdraw() {
   const id = GLOBAL.withdrawAmount;
   const content = getTranslatedContent('Amount to withdraw', false, {
-      inputId: id,
-      type: 'euro',
-      min: Math.min(100, GLOBAL.totalValue),
-      max: GLOBAL.totalValue,
-      erase: true,
-      placeholder: translate('withdraw')
-    }) +
+    inputId: id,
+    type: 'euro',
+    min: Math.min(100, GLOBAL.totalValue),
+    max: GLOBAL.totalValue,
+    erase: true,
+    placeholder: translate('withdraw')
+  }) +
     getTranslatedContent('Withdraw period', false, {
       inputId: GLOBAL.withdrawPeriod,
       type: 'checkbox',
@@ -646,10 +642,10 @@ function confirmation(content) {
   // Send explicit Email to user
   const details = content.content ?
     content.content
-    .replace(getTranslateData('Enter your user id').tooltip, '')
-    .replace(getTranslateData('IBAN').tooltip, '')
-    .replace(getTranslateData('Bank').tooltip, '')
-    .replace(getTranslateData('Operation cost').tooltip, '') :
+      .replace(getTranslateData('Enter your user id').tooltip, '')
+      .replace(getTranslateData('IBAN').tooltip, '')
+      .replace(getTranslateData('Bank').tooltip, '')
+      .replace(getTranslateData('Operation cost').tooltip, '') :
     '';
   const subject = content.title;
   const html = (content.main ? '<p>' + content.main + '</p>' : '') + '<p>' +
