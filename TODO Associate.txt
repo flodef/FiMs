@@ -6,7 +6,6 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 -------------TEST-------------
 
 - Load each page on demand (show loader bar)
-- Recurrent edit in personal should not refresh the page
 - Add authentication + blocking after 3 attempts when modifying personal data
 
 - FAQ :

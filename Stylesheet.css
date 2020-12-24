@@ -87,7 +87,9 @@ marquee {
 }
 
 .mainDiv {
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 25px;
 }
 
 .topMenu {

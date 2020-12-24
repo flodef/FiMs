@@ -176,8 +176,6 @@ $(() => {
 });
 
 function init() {
-  GLOBAL.displayId.forEach(id => displayElement('#' + id + 'Button', false, 0)); // Hide all tab on init
-
   google.script.run
     .withSuccessHandler(setUserId)
     .withFailureHandler(displayError)
@@ -307,8 +305,12 @@ function updatePersonalTable(id, contents) {
 
     tableHTML += '</table></marquee>';
     setHtml('#scrollDiv', tableHTML);
+  } else {
+    GLOBAL.totalValue = 0;
+    GLOBAL.maxRecurrent = 0;
   }
 
+  displayElement('#' + id + 'Button', hasContent, 0); // Hide this tab if empty
   displayElement('#depositButton', hasContent); // Show the deposit button
   displayElement('#withdrawButton', GLOBAL.totalValue > 0); // Show the withdraw button
 }
@@ -331,8 +333,9 @@ function updateFaqTable(id, contents) {
   tableHTML += '</div>';
 
   processTable(id, tableHTML);
+  openTabAfterConnect(id);
 
-  openTabAfterConnect(id); // Activate first tab as open by default
+  displayElement('#' + id + 'Button', true, 0); // Display tab when loaded
   displayElement('#connectButton', true); // Show the connect button
 }
 
@@ -375,31 +378,29 @@ function setUserId(id) {
     GLOBAL.user = [];
     GLOBAL.user.ID = id;
 
+    GLOBAL.currentDisplayedId = null; // Unselect the current displayed tab
     GLOBAL.displayId.forEach(displayId => {
       if (displayId != faqId) {
-        $('#' + displayId + 'Div').html(''); // Clear all tab content except faq
+        setHtml('#' + displayId + 'Div', ''); // Clear all tab content except faq
+        GLOBAL.data[displayId] = null; // Delete data in order to reload it
       }
-      displayElement('#' + displayId + 'Button', id, 0); // Display/Hide all tab depending on the connection state
+      displayElement('#' + displayId + 'Button', false); // Hide all tab
     });
-    GLOBAL.currentDisplayedId = null; // Unselect the current displayed tab
+    setHtml('#scrollDiv', ''); // Clear the scrollDiv
+    displayElement('#' + faqId + 'Div', false); // Hide Faq content
+    if ($('#loaderBar').is(":hidden")) {
+      displayElement('#loaderBar', true); // Display the loader bar
+      animateLoaderBar(); // Animate the loader bar
+    };
 
     if (id) {
+      displayElement('#tabContainer', false); // Hide the tab container
       GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1]; // Create user account formula
-      GLOBAL.displayId.forEach(id => {
-        if (id != faqId) {
-          updateValues(id, true)
-        }
-      }); // Load all data except faq
       updateAllValues();
     } else { // No user
-      openTab(faqId); // Open first the faq tab (in case of disconnection)
-      $('#scrollDiv').html(''); // Clear the scroll marquee content
-      displayElement('#' + faqId + 'Button', true, 0); // Display only the faq
-      if (!GLOBAL.data[faqId]) { // Don't load twice the faq
-        updateValues(faqId); // Load only the faq
-      }
       displayElement('#depositButton', false, 0); // Hide the deposit button
       displayElement('#withdrawButton', false, 0); // Hide the withdraw button
+      updateValues(faqId); // Load only the faq
     }
   }
 }

@@ -235,7 +235,10 @@ function getTableValidatableContent(id, content, range, expected) {
     (!expected || content == expected ? 'transparent' : 'pink') + '">' +
     '<div style="position:relative"><span>' + content + '</span>' +
     '<div style="position:absolute;left:35%;top:50%;" class="checkmark" value="' + toValue(content) + '"' +
-    'onclick="if(!$(this).hasClass(\'draw\')) { ' + getUpdateContent( {id:id, range:range}, GLOBAL.dummy) + ' }">' +
+    'onclick="if(!$(this).hasClass(\'draw\')) { ' + getUpdateContent({
+      id: id,
+      range: range
+    }, GLOBAL.dummy) + ' }">' +
     '</div></div></td>';
 }
 
@@ -442,7 +445,7 @@ function checkElement(e) {
     const m = parseInt(e.maxLength);
     const maxLength = !isNaN(m) && m > 0 ? m : 30;
     const pattern = e.pattern ||
-      (//type == 'email' ? '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9]+)*$' :
+      ( //type == 'email' ? '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:.[a-zA-Z0-9]+)*$' :
         type == 'iban' ? '^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$' :
         // type == "url" ? "^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$" :
         type == 'url' ? '.' :
@@ -478,27 +481,31 @@ function selectName(e, index) {
 function getValue(data, func, forceReload, success) {
   const id = data.id;
   if (!id || (id && $('#loading').text() == '')) {
-    if (!id || forceReload || !GLOBAL.hasAlreadyUpdated[id]) {
-      displayLoading(id, true);
+    const fn = contents => {
+      if (id) {
+        GLOBAL.data[id] = contents;
+      }
+      if (func) {
+        func(id, contents);
+      }
+      if (success) {
+        success();
+      }
+      displayLoading(id, false);
 
+      if (id && !GLOBAL.loadingQueueCount) {
+        setEvents(); // Set events when everything has been loaded
+        displayElement('#tabContainer', true); // Display the tab container
+      }
+    };
+
+    displayLoading(id, true);
+
+    if (id && GLOBAL.data[id] && GLOBAL.displayData[id].loadOnce) {
+      fn(GLOBAL.data[id]);
+    } else if (!id || forceReload || !GLOBAL.hasAlreadyUpdated[id]) {
       google.script.run
-        .withSuccessHandler(contents => {
-          if (id) {
-            GLOBAL.data[id] = contents;
-          }
-          if (func) {
-            func(id, contents);
-          }
-          if (success) {
-            success();
-          }
-          displayLoading(id, false);
-
-          if (id && !GLOBAL.loadingQueueCount) {
-            setEvents(); // Set events when everything has been loaded
-            displayElement('#tabContainer', true); // Display the tab container
-          }
-        })
+        .withSuccessHandler(fn)
         .withFailureHandler(displayError)
         .getSheetValues(data.formula, data.filter != null ? GLOBAL.user.ID : null, data.filter);
     }

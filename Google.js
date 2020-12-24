@@ -147,6 +147,8 @@ class Run {
         }).catch(this.#fh);
     }
 
+    await new Promise(r => setTimeout(r, 2000)); // Simulate loading data on spreadsheet
+
     return this._getData(range);
   }
 

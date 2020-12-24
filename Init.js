@@ -82,7 +82,7 @@ async function waitForScript(scriptName) {
   }
 }
 
-function setLoaderBar(value) {
+function setLoaderBar(value = 1) {
   const loader = document.getElementById('loaderBar');
   try {
     const item = $(loader);
