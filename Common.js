@@ -493,7 +493,7 @@ function getValue(data, func, forceReload, success) {
       }
       displayLoading(id, false);
 
-      if (id && !GLOBAL.loadingQueueCount) {
+      if (id && !GLOBAL.loadingQueueCount && GLOBAL.displayId.includes(id)) {
         setEvents(); // Set events when everything has been loaded
         displayElement('#tabContainer', true); // Display the tab container
       }
