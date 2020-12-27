@@ -1,3 +1,6 @@
+/*global GLOBAL, $, jQuery, onKeyUp, google, getDiv, init, addAttr */
+
+
 /**
  * Functions that are shared between main app and associate app.
  */
@@ -126,11 +129,6 @@ function processTable(id, tableHTML, shouldFilter) {
   }
 }
 
-function getTableEditableCell(contents, data) {
-  return getTableReadOnlyContent(contents[index - 1][0], false) +
-    getTableEditableContent(contents[index - 1][1], data);
-}
-
 function getTableValidatableCell(id, contents, index, range, expected) {
   return getTableReadOnlyContent(contents[index - 1][0], false) +
     getTableValidatableContent(id, contents[index - 1][1], range, expected);
@@ -143,10 +141,10 @@ function getTableReadOnlyCell(contents, index) {
 
 function getTableReadOnlyContent(content = '', isHeader, isDisabled, color) {
   if (!isHeader) {
-    var matches = /\(([^)]+)\)/.exec(content);
-    var value = matches ? matches[matches.length - 1] : content;
-    var isCur = /(€|%|\$)/.test(value);
-    var color = getColor(value, isDisabled, isCur, color);
+    const matches = /\(([^)]+)\)/.exec(content);
+    const value = matches ? matches[matches.length - 1] : content;
+    const isCur = /(€|%|\$)/.test(value);
+    color = getColor(value, isDisabled, isCur, color);
     return '<td align="center" style="color:' + color + '">' + content + '</td>';
   } else {
     return '<th align="center">' + content + '</th>';
@@ -161,7 +159,7 @@ function getTableEditableContent(content, data) {
   if (data) {
     data.inputId = data.inputId || getRandomId(); // Generates a random Id if it does not have any
     classText = data.class || '';
-    symbol = data.type == 'euro' ? ' €' : data.type == 'percent' ? ' %' : data.type == 'radio' ? content : '';
+    data.symbol = data.type == 'euro' ? ' €' : data.type == 'percent' ? ' %' : data.type == 'radio' ? content : '';
     const isToggle = data.class && data.class.includes('toggle');
     label = data.label ?
       '<div id="' + data.inputId + 'Div" style="top:55px;left:-320px;position:relative;text-align:right;">' +
@@ -201,7 +199,6 @@ function getAttributesFromData(data) {
   var attr = '';
   var type = 'text'; // Type is text by default
   if (data) {
-    data.symbol = data.type == 'euro' ? ' €' : data.type == 'percent' ? ' %' : data.type == 'radio' ? content : '';
     if (isNumberInput(data.type)) {
       const min = roundDown(data.min, data.precision) ?? 0;
       const max = roundDown(data.max, data.precision) ?? 0;
@@ -406,9 +403,8 @@ function setTabContainer(innerHTML) {
 }
 
 function toggleItem(id, item, shouldDisplay) {
-  var isCurrentId = item.id == id;
-  var shouldDisplay = shouldDisplay && isCurrentId;
-  displayElement(item, shouldDisplay, isCurrentId ? 1000 : 0);
+  const isCurrentId = item.id == id;
+  displayElement(item, shouldDisplay && isCurrentId, isCurrentId ? 1000 : 0);
 }
 
 function autoAdaptWidth(e) {
@@ -554,8 +550,10 @@ function filterTable(id, shouldReload) {
 }
 
 function refreshTotal(id) {
+  var calculateFunc;
+  var footerFunc;
   if (id == GLOBAL.displayData.historic.id) {
-    var calculateFunc = (i, item) => {
+    calculateFunc = (i, item) => {
       item = $(item).children('td');
       for (var j = 0; j < item.length; ++j) {
         a[j] += j == 0 ? 1 :
@@ -565,7 +563,7 @@ function refreshTotal(id) {
                 toValue(item[j].innerHTML);
       }
     };
-    var footerFunc = () =>
+    footerFunc = () =>
       '<td colspan="3" align="center">' + a[0] + ' rows</td>' +
       '<td>' + a[4].toFixed(0) + '</td>' +
       '<td>' + toCurrency(a[5] / a[1]) + '</td>' +
@@ -573,13 +571,13 @@ function refreshTotal(id) {
       '<td title="' + toCurrency(a[7] / a[2]) + '">' + toCurrency(a[7]) + '</td>' +
       '<td title="' + toCurrency(a[8] / a[3]) + '">' + toCurrency(a[8]) + '</td>';
   } else if (id == GLOBAL.displayData.evolution.id) {
-    var calculateFunc = (i, item) => {
+    calculateFunc = (i, item) => {
       item = $(item).children('td');
       for (var j = 0; j < item.length; ++j) {
         a[j] += j == 0 ? 1 : toValue(item[j].innerHTML);
       }
     };
-    var footerFunc = () => {
+    footerFunc = () => {
       var footer = '';
       for (var i = 1; i < a.length; i++) {
         footer += '<td>' + toCurrency(a[i] / a[0], 2, i < 5 ? '%' : '€') + '</td>';
@@ -804,7 +802,7 @@ function toJQueryDate(date, isMDY) { // yyyy-MM-dd
 }
 
 function addDaysToDate(daysToAdd = 0, date) {
-  var date = typeof(date) == 'object' ? date : new Date();
+  date = typeof(date) == 'object' ? date : new Date();
   date.setDate(date.getDate() + daysToAdd);
 
   return date;

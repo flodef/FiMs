@@ -1,3 +1,12 @@
+/*global GLOBAL, google, $, getValue, loadPage, displayError, getTableTitle, processTable,
+displayElement, toStringDate, getTableCheckmark, getTableImage, getTableLoaderBar, indexOf, toValue,
+translate, setHtml, getLink, openTab, getPopupContent, openPopup, addPopupButtonEvent, closePopup,
+animateLoaderBar, updateAllValues, updateValues, toCurrency, getTableReadOnlyContent, toFirstUpperCase,
+getTranslateData, getDiv, getDaysBetweenDate, getNextMonthDate, showSnackBar, addDaysToDate, roundDown,
+setEvents, setValue, isEditableInput, getTableEditableContent */
+/* exported init, onKeyUp, connect, userIdValidation, depositAmountValidation, withdrawAmountValidation,
+printHtml */
+
 GLOBAL.translation = 'translation';
 GLOBAL.translationFormula = 'Translation!A:D';
 GLOBAL.depositAmount = 'depositAmount';

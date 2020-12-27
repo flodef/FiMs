@@ -1,3 +1,10 @@
+/* global GLOBAL, $, google, restrainFormula, updateAllValues, loadPage, getMenuButton, displayElement,
+getValue, overDisplay, toStringDate, displayError, setValue, executionSuccess, updateValues, indexOf,
+showLoader, toValue, toCurrency, getTableTitle, getSubTableTitle, getTableReadOnlyCell,
+getTableValidatableCell, processTable, getTableReadOnlyContent, openTab, shouldRebalance, getColor,
+getTableEditableContent, selectName */
+/* exported init, onKeyUp */
+
 GLOBAL.cost = 'COST';
 GLOBAL.approv = 'APPROVISIONNEMENT';
 GLOBAL.dummy = 'XXXXXX';
@@ -349,7 +356,7 @@ function validateUploadForm() {
         if (data && data.length > 1) {
           if (data[0][0] == 'Date' && data[0][1] == 'Heure') {
             google.script.run
-              .withSuccessHandler(function(contents) {
+              .withSuccessHandler(contents => {
                 setValue('Account!A1', data);
 
                 const histoData = {
@@ -774,7 +781,7 @@ function updateStandardTable(id, contents) {
     tableHTML += '<tr>';
     for (var j = 0; j < col; ++j) {
       const c = contents[i][j];
-      const t = /(€|%|\$|\/|[^\.\d])/.test(c) ? c : toCurrency(c, 4); // Transform to currency numbers without currency symbol
+      const t = /(€|%|\$|\/|[^.\d])/.test(c) ? c : toCurrency(c, 4); // Transform to currency numbers without currency symbol
       tableHTML += getTableReadOnlyContent(t, i == 0);
     }
     tableHTML += '</tr>';
