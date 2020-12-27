@@ -311,8 +311,8 @@ function sortTransactionValues() {
 }
 
 function validateDeleteForm(index, rowCnt, func = () => {}) {
-  var index = index ? index : indexOf(GLOBAL.data[GLOBAL.displayData.historic.id], GLOBAL.dummy, GLOBAL.histoIdCol);
-  var rowCnt = rowCnt ? rowCnt : 1;
+  index = index ? index : indexOf(GLOBAL.data[GLOBAL.displayData.historic.id], GLOBAL.dummy, GLOBAL.histoIdCol);
+  rowCnt = rowCnt ? rowCnt : 1;
 
   if (index !== null && index * rowCnt > 0) {
     $('#snackbar').text((rowCnt == 1 ? 'Transaction' : rowCnt + ' Transactions') + ' deleted');
@@ -397,7 +397,7 @@ function compareResultData(id, contents) {
     var errCnt = 0;
     var historicData = GLOBAL.data[GLOBAL.displayData.historic.id];
     var data = [];
-    for (var i = contents.length - 1; i > 0; --i) { // Don't insert the header and reverse loop
+    for (let i = contents.length - 1; i > 0; --i) { // Don't insert the header and reverse loop
       var row = contents[i];
       var isEmpty = toValue(row[GLOBAL.histoIdCol - 1]) == 0;
       var start = 0;
@@ -405,7 +405,7 @@ function compareResultData(id, contents) {
 
       if (!isEmpty) {
         do {
-          var index = indexOf(historicData, row[GLOBAL.histoIdCol], GLOBAL.histoIdCol, start);
+          const index = indexOf(historicData, row[GLOBAL.histoIdCol], GLOBAL.histoIdCol, start);
           if (index == null) {
             if (indexOf(row, '#', null, null, (a, b) => a.startsWith(b)) == null) { // Check for error in spreadsheet (starts with #)
               data.push(row);
@@ -450,8 +450,9 @@ function compareResultData(id, contents) {
     if (dai.length == 0) {
       f(dai.length);
     } else {
-      for (var i = dai.length - 1; i >= 0; --i) { // Reverse loop
-        validateDeleteForm(dai[i][0], dai[i][1], () => f(i));
+      const fn = i => f(i);
+      for (let i = dai.length - 1; i >= 0; --i) { // Reverse loop
+        validateDeleteForm(dai[i][0], dai[i][1], fn(i));
       }
     }
   } else {
@@ -545,13 +546,13 @@ function insertRows(data, id, dupCnt, errCnt, total) {
     insertHistoricRow(data, id);
 
     if (dupCnt > 0) {
-      var msg = errCnt == 0 ?
+      const msg = errCnt == 0 ?
         dupCnt + ' duplicate(s) found, ' + (total - dupCnt) + ' row(s) added.' :
         dupCnt + ' duplicate(s) found, ' + (total - dupCnt - errCnt) + ' row(s) added and ' + errCnt + ' row(s) in error.';
       displayError(msg, errCnt == 0);
     }
   } else {
-    var msg = errCnt == 0 ?
+    const msg = errCnt == 0 ?
       'The imported file contains only duplicates (' + dupCnt + ' found).' :
       dupCnt + ' duplicate(s) found and ' + errCnt + ' row(s) in error.';
     displayError(msg, errCnt == 0);
@@ -650,7 +651,7 @@ function updateDashboardTable(id, contents) {
   // Set the scrolling panel
   tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
   tableHTML += '<tr>' + getTableReadOnlyCell(contents, contents.length - 1) + '</tr>'; // Dirty way to display the "Time since last update"
-  for (var i = 0; i < settings[ln - 2].length; ++i) {
+  for (let i = 0; i < settings[ln - 2].length; ++i) {
     tableHTML += '<tr>';
     tableHTML += getTableReadOnlyContent(settings[ln - 2][i], false);
     tableHTML += getTableReadOnlyContent(contents[settings[ln * 2 - 1][i] - 1][1], false);
@@ -751,8 +752,7 @@ function updateHistoricTable(id, contents) {
           contents[i][j] :
           toCurrency(contents[i][j], 4) :
         '';
-      tableHTML += j != GLOBAL.histoIdCol // Don't display the Historic ID
-        ?
+      tableHTML += j != GLOBAL.histoIdCol ? // Don't display the Historic ID
         getTableReadOnlyContent(value, i == 0, false, isDummy ? 'black' : null) :
         '';
     }

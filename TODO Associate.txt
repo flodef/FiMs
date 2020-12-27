@@ -7,6 +7,9 @@ CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 
 - Load each page on demand (show loader bar)
 - Add authentication + blocking after 3 attempts when modifying personal data
+- Display button one after the other while it's loading
+- Look at the loading of data, because it skip turn
+- Add Download of Pdf with a button (use html2pdf)
 
 - FAQ :
 	- Add theme to group Q/A
