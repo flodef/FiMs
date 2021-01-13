@@ -1,9 +1,11 @@
 -------------TEST-------------
-- Status should be pending if date is > today()
 - When withdraw is done at the end of the month, it should display the end of the month (not +5)
-- Check everymonth if Recurrent > Total in appscript, otherwise send an alert message
-CHECK MONDAY IF VALUE AUTO UPDATE IN ASSOCIATE
 -------------TEST-------------
+
+- BUG : order mail confirmation has changed and is not properly handled anymore
+- MAIN : When updating account file, show historic tab
+- MAIN : When updating allocation, add tick if it's the same
+- MAIN : Do not update settings in the app after changing subtitle
 
 - Load each page on demand (show loader bar)
 - Add authentication + blocking after 3 attempts when modifying personal data
