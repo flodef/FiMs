@@ -781,7 +781,7 @@ function toStringDate(date, isMDY) {
       date.replace(/(^|\/)0+/g, '$1').split('/')[isMDY ? 0 : 1] + '/' +
       date.split('/')[2] :
       null;
-  } else if (typeof(date) == 'object') {
+  } else if (date && typeof(date) == 'object') {
     let day = date.getDate();
     let month = date.getMonth() + 1; //January is 0!
     const year = date.getFullYear();
