@@ -742,7 +742,7 @@ function updateHistoricTable(id, contents) {
 
   displayElement('#uploadButton', true);
   displayElement('#addButton', true);
-  displayElement('#deleteButton', indexOf(contents, GLOBAL.dummy, GLOBAL.histoIdCol));
+  displayElement('#removeButton', indexOf(contents, GLOBAL.dummy, GLOBAL.histoIdCol));
 
   var row = contents.length;
   var col = contents[0].length;
