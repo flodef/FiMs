@@ -494,17 +494,15 @@ function getValue(data, func, forceReload, success) {
       }
     };
 
-    displayLoading(id, true);
-
     if (id && GLOBAL.data[id] && GLOBAL.displayData[id].loadOnce) {
+      displayLoading(id, true);
       fn(GLOBAL.data[id]);
     } else if (!id || forceReload || !GLOBAL.hasAlreadyUpdated[id]) {
+      displayLoading(id, true);
       google.script.run
         .withSuccessHandler(fn)
         .withFailureHandler(displayError)
         .getSheetValues(data.formula, data.filter != null ? GLOBAL.user.ID : null, data.filter);
-    } else {
-      displayLoading(id, false);
     }
   } else {
     ++GLOBAL.loadingQueueCount;
