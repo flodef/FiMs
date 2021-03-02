@@ -1,3 +1,8 @@
+/* global HtmlService, PropertiesService, GmailApp, Sheets */
+/* exported doGet, sendRecapEmail, sendEmail, getSheetValues, setSheetValues,
+clearSheetValues, insertRows, deleteRows, sortColumn */
+
+
 const workInProgress = false;
 const ownEmail = 'fdefroco@gmail.com';
 
@@ -44,11 +49,11 @@ function setProperty(key, value) {
 }
 
 function sendRecapEmail(subject) {
-  MailApp.sendEmail(ownEmail, subject, '');
+  GmailApp.sendEmail(ownEmail, subject, '');
 }
 
 function sendEmail(recipient, subject, message, options) {
-  MailApp.sendEmail(recipient, subject, message, options);
+  GmailApp.sendEmail(recipient, subject, message, options);
 }
 
 /**

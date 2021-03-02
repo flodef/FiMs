@@ -1,3 +1,8 @@
+/* global SpreadsheetApp, CacheService, GmailApp */
+/* exported dailyUpdate, nightlyUpdate, monthlyUpdate, updatePrice, cachePrice,
+processMail */
+
+
 // MAIN SPREADSHEET
 const SS = SpreadsheetApp.getActiveSpreadsheet();
 
@@ -10,7 +15,6 @@ const MONINT_ROW = 58;          // Should be the "Monthly interest" row
 
 // INVESTMENT COLS
 const TYPE_COL = 1;             // Should be the "Type" column
-const TITLE_COL = 5;            // Should be the "Title" column
 const ISIN_COL = 6;             // Should be the "Isin" column
 const LABEL_COL = 8;            // Should be the "Label" column
 const PRICE_COL = 12;           // Should be the "Price" column
@@ -20,50 +24,37 @@ const ESTDIV_COL = 47;          // Should be the "Est div" column
 
 // ALLOCATION ROWS
 const CURALL_ROW = 12;          // Should be the "Current allocation" row
-const AVAALL_ROW = 13;          // Should be the "Available allocation" row
 const REQALL_ROW = 14;          // Should be the "Requested allocation" row
 
-// ASSOCIATE COLS
-const ASSNAME_COL = 2;          // Should be the "ID" column
-const ASSRECU_COL = 3;          // Should be the "Recurrent" column
-const ASSDEPO_COL = 9;          // Should be the "Deposit" column
-
 // SHEET NAMES
-const DASHBOARD = "Dashboard";   // The "Dashboard" sheet name
-const INVESTMENT = "Investment"; // The "Investment" sheet name
-const EXPENSES = "Expenses";     // The "Expenses" sheet name
-const EXPHISTO = "ExpensesHistoric"; // The "ExpensesHistoric" sheet name
-const HISTORIC = "Historic";     // The "Historic" sheet name
-const ALLOCATION = "Allocation"; // The "Allocation" sheet name
-const ALLOCHIST = "AllocationHistoric"; // The "AllocationHistoric" sheet name
-const EVOLUTION = "Evolution";   // The "Evolution" sheet name
-const SELECTION = "Selection";   // The "Selection" sheet name
-const ASSOCIATE = "Associate";      // The "Associate" sheet name
-const BANKACC = "BankAccount";   // The "BankAccount" sheet name
-const INTEREST = "Interest";     // The "Interest" sheet name
-const ALERT = "Alert";           // The "Alert" sheet name
-const PRICE = "Price";           // The "Price" sheet name
-const ASSMODEL = "AssociateModel";  // The "AssociateModel" sheet name
-const ASSHISTO = "AssociateHistoric";  // The "AssociateHistoric" sheet name
+const DASHBOARD = 'Dashboard';   // The "Dashboard" sheet name
+const INVESTMENT = 'Investment'; // The "Investment" sheet name
+const EXPENSES = 'Expenses';     // The "Expenses" sheet name
+const EXPHISTO = 'ExpensesHistoric'; // The "ExpensesHistoric" sheet name
+const HISTORIC = 'Historic';     // The "Historic" sheet name
+const ALLOCATION = 'Allocation'; // The "Allocation" sheet name
+const ALLOCHIST = 'AllocationHistoric'; // The "AllocationHistoric" sheet name
+const EVOLUTION = 'Evolution';   // The "Evolution" sheet name
+const BANKACC = 'BankAccount';   // The "BankAccount" sheet name
+const INTEREST = 'Interest';     // The "Interest" sheet name
+const ALERT = 'Alert';           // The "Alert" sheet name
+const PRICE = 'Price';           // The "Price" sheet name
 
 // WEB LINKS
-const SSLINK = "https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw/edit#gid=";
-const DEGLINK = "https://trader.degiro.nl/login/fr#/login";
-const APPLINK = "https://goo.gl/amjmSv";
-const BLGLINK = "https://www.bloomberg.com/quote/";
+const SSLINK = 'https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw/edit#gid=';
+const DEGLINK = 'https://trader.degiro.nl/login/fr#/login';
+const APPLINK = 'https://goo.gl/amjmSv';
 
 // VARIOUS
-const MAIL = "fdefroco@gmail.com";
-const LOADING = "Loading...";
-const DUMMY = "XXXXXX";
-const OK = "OK";
+const MAIL = 'fdefroco@gmail.com';
+const LOADING = 'Loading...';
+const DUMMY = 'XXXXXX';
 const FR = 2;     // First Row
 const FC = 1;     // First Column
 const FH = 9;     // First working Hour
 const LH = 17;    // Last working hour
 const FD = 1;     // First working day
 const LD = 5;     // Last working day
-const FM = 0;     // First month (january)
 
 
 function dailyUpdate() {
@@ -71,8 +62,8 @@ function dailyUpdate() {
   const x = new Date();
   const d = x.getDay();
   if (d >= FD && d <= LD) {
-    this._updateClosePrice();
-    this._sendEvolution();
+    _updateClosePrice();
+    _sendEvolution();
   }
 }
 
@@ -81,35 +72,35 @@ function nightlyUpdate() {
   const x = new Date();
   const d = x.getDay();
   if (d >= FD && d <= LD) {      // dividend update should be processed on morning of the current day
-      this._updateDividend();
+    _updateDividend();
   }
   if (d >= FD+1 && d <= LD+1) {  // add one day as the script is executed on the next night
-    this._updateEvolution();
-    this._updateInterest();
-    this._updateValues();
+    _updateEvolution();
+    _updateInterest();
+    _updateValues();
   }
-};
+}
 
 function monthlyUpdate() {
-  this._updateAllocation();
-  this._updateExpense();
+  _updateAllocation();
+  _updateExpense();
 }
 
 function updatePrice() {
   var cache = CacheService.getScriptCache();
-  var values = cache.getAll(["mr", "updateArray"]);
-  if ((this._isMarketOpen()) && values["mr"]) {
-    cache.removeAll(["mr", "updateArray"]);
-    var mr = Number(values["mr"]);
-    var updateArray = values["updateArray"] ? values["updateArray"].split(",") : [];
+  var values = cache.getAll(['mr', 'updateArray']);
+  if ((_isMarketOpen()) && values['mr']) {
+    cache.removeAll(['mr', 'updateArray']);
+    var mr = Number(values['mr']);
+    var updateArray = values['updateArray'] ? values['updateArray'].split(',') : [];
 
-    var sheet = this._getSheet(INVESTMENT);
+    var sheet = _getSheet(INVESTMENT);
     var formula = sheet.getRange(1, PRICE_COL);
     if (updateArray.length == 0 || updateArray.length >= mr) {
-      this._copyFormula(formula, sheet.getRange(FR, PRICE_COL, mr, 1));  // Update by copying the main formula into all cells
+      _copyFormula(formula, sheet.getRange(FR, PRICE_COL, mr, 1));  // Update by copying the main formula into all cells
     } else {
       for (var i = 0; i < updateArray.length; ++i) {
-        this._copyFormula(formula, sheet.getRange(Number(updateArray[i])+FR, PRICE_COL));  // Update by copying the main formula into individual cells
+        _copyFormula(formula, sheet.getRange(Number(updateArray[i])+FR, PRICE_COL));  // Update by copying the main formula into individual cells
       }
     }
   }
@@ -118,11 +109,11 @@ function updatePrice() {
 //=IMPORTXML("https://www.investing.com/etfs/"&$D2,"//title")
 //=TRIM(INDEX(IMPORTXML("https://www.investing.com/etfs/"&$D2,"//span[@class='elp']"),4,1))
 function cachePrice() {
-  if (this._isMarketOpen()) {
-    var sheet = this._getSheet(INVESTMENT);
+  if (_isMarketOpen()) {
+    var sheet = _getSheet(INVESTMENT);
     var lr = sheet.getMaxRows();
     var mr = lr-FR;
-    var isUpdateFreezed = sheet.getRange(lr, PRICE_COL+1).getValue() != "";
+    var isUpdateFreezed = sheet.getRange(lr, PRICE_COL+1).getValue() != '';
     var range = sheet.getRange(FR, PRICE_COL, mr, 1);
     var val = range.getValues();
     var cache = CacheService.getScriptCache();
@@ -138,9 +129,9 @@ function cachePrice() {
         updateArray.push(i);  // Add index of values to update into an array
       }
 
-      if (!this._isLoading(v)) {
+      if (!_isLoading(v)) {
         sheet.getRange(i+FR, PRICE_COL).clearContent();   // Clear costly formula to update
-        if (v && !this._isError(v) && !isUpdateFreezed) {
+        if (v && !_isError(v) && !isUpdateFreezed) {
           sheet.getRange(i+FR, PRICE_COL+1).setValue(v);  // Cache the value
           sheet.getRange(i+FR, LASTUPD_COL).setValue(x);  // Set the last updated date
         }
@@ -148,7 +139,7 @@ function cachePrice() {
     }
 
     if ((isEmpty || updateArray.length > 0) && !isUpdateFreezed) {
-      cache.putAll({ "mr" : mr.toString(), "updateArray" : updateArray.join() });
+      cache.putAll({ 'mr' : mr.toString(), 'updateArray' : updateArray.join() });
     }
   }
 }
@@ -157,7 +148,7 @@ function processMail() {
   var x = new Date();
   var h = x.getHours();
   if (h >= FH && h <= LH) {
-    var sheet = this._getSheet(ALERT);
+    var sheet = _getSheet(ALERT);
     var array = sheet.getSheetValues(FR, FC, -1, 5);
 
     var alertThread = [];
@@ -169,12 +160,12 @@ function processMail() {
           var thr = thread[i];
           var sub = thr.getFirstMessageSubject();
           if (sub) {
-            var id = this._indexOf(array, sub, 3);
-            var fn = id != null ? function x(thr, id) { if (!alertThread[id]) { alertThread[id] = thr; } else { this._archiveMessage(thr); } }
-            : sub == "Rapport du solde de vos comptes" ? function x(thr) { this._processAccountBalance(thr); }
-            : sub == "Alerte sur opération recherchée" ? function x(thr) { this._processAccountTransaction(thr); }
-            : sub.substring(0, 21) == "DEGIRO - Avis d’opéré" ? function x(thr) { this._processStockTrade(thr); }
-            : null;
+            var id = _indexOf(array, sub, 3);
+            var fn = id != null ? function x(thr, id) { if (!alertThread[id]) { alertThread[id] = thr; } else { _archiveMessage(thr); } }
+              : sub == 'Rapport du solde de vos comptes' ? function x(thr) { _processAccountBalance(thr); }
+                : sub == 'Alerte sur opération recherchée' ? function x(thr) { _processAccountTransaction(thr); }
+                  : sub.substring(0, 21) == 'DEGIRO - Avis d’opéré' ? function x(thr) { _processStockTrade(thr); }
+                    : null;
 
             if (fn) {
               fn(thr, id);
@@ -186,7 +177,7 @@ function processMail() {
 
     // Send mails
     var a = [];
-    for (var i = 0 ; i < array.length; i++) {
+    for (i = 0 ; i < array.length; i++) {
       var row = array[i];
       var value = row[0];
       var shouldDelete = false;
@@ -197,7 +188,7 @@ function processMail() {
         if (time >= 60 || value != row[1]) {
           t = [value, x];
           shouldDelete = true;
-          this._sendMessage(row[3], row[4].replace("$X", value).replace("$DEGLINK", DEGLINK).replace("$APPLINK", APPLINK));
+          _sendMessage(row[3], row[4].replace('$X', value).replace('$DEGLINK', DEGLINK).replace('$APPLINK', APPLINK));
         }
       } else {
         t = [null, null];
@@ -206,15 +197,15 @@ function processMail() {
 
       a.push(t);
 
-      this._archiveMessage(shouldDelete ? alertThread[i] : null, true);
+      _archiveMessage(shouldDelete ? alertThread[i] : null, true);
     }
 
-    this._setRangeValues(sheet, FR, FC+1, a);
+    _setRangeValues(sheet, FR, FC+1, a);
   }
 }
 
 function _processAccountBalance(thread) {
-  var sheet = this._getSheet(BANKACC);
+  var sheet = _getSheet(BANKACC);
   var range = sheet.getDataRange();
   var label = range.getNotes();
   // var lr = label.length;
@@ -223,50 +214,50 @@ function _processAccountBalance(thread) {
   var messages = thread.getMessages();
   for (var j = 0 ; j < messages.length; j++) {
     var cnt = messages[j].getPlainBody();
-    var a = cnt.split("\n");
+    var a = cnt.split('\n');
     for (var k = 0; k < a.length; k++) {
-      var b = a[k].split(" ");
-      if (b[3] == "-" && b[b.length-1] == "EUR") {
+      var b = a[k].split(' ');
+      if (b[3] == '-' && b[b.length-1] == 'EUR') {
         var val = b[b.length-2];
         var name = b[4];
 
         // Update bank account
-        var index = this._indexOf(label, name, 0);
+        var index = _indexOf(label, name, 0);
         if (index != null) {
           sheet.getRange(index+1, lc).setValue(val);
         } else {
-          throw("Bank name not found in BankAccount sheet : " + name);
+          throw('Bank name not found in BankAccount sheet : ' + name);
         }
       }
     }
   }
 
-  this._archiveMessage(thread, true);
+  _archiveMessage(thread, true);
 }
 
 function _processAccountTransaction(thread) {
-  var sheet = this._getSheet(EXPHISTO);
+  var sheet = _getSheet(EXPHISTO);
   var array = sheet.getSheetValues(FR, FC, -1, 3);
 
   var messages = thread.getMessages();
   for (var j = 0 ; j < messages.length; j++) {
     var cnt = messages[j].getPlainBody();
-    var a = cnt.split("\n");
+    var a = cnt.split('\n');
     for (var k = 0; k < a.length; k++) {
-      var b = a[k].split(" ");
+      var b = a[k].split(' ');
 
-      if (b[3] == "-" && b[b.length-1] == "EUR") {
+      if (b[3] == '-' && b[b.length-1] == 'EUR') {
         var val = b[b.length-2];
-        var date = this._toStringDate(b[4]);
-        var label = b.slice(6, b.length-2).join(" ");
-        var slab = b.slice(6, b.length-4).join(" ");
+        var date = _toStringDate(b[4]);
+        var label = b.slice(6, b.length-2).join(' ');
+        var slab = b.slice(6, b.length-4).join(' ');
 
-        var index = this._indexOf(array, parseFloat(val), 2);
+        var index = _indexOf(array, parseFloat(val), 2);
 
         // Check for duplicate
         var color;
         if (index != null && array[index][1].toString().indexOf(slab) != -1) {
-          if (date != this._toStringDate(array[index][0])) {
+          if (date != _toStringDate(array[index][0])) {
             // Compare date with one week difference
             var d1 = new Date(date);
             var d2 = array[index][0];
@@ -274,36 +265,36 @@ function _processAccountTransaction(thread) {
 
             // Over one week, no problem otherwise signal it
             if (d1 > d2) {
-              color = "white";
+              color = 'white';
             } else {
-              color = "red";
+              color = 'red';
 
-              var msg = "Date: " + _toStringDate(date)
-              + "\nLabel: " + label
-              + "\nValue: " + this._round(val, 2, " €")
-              + "\n" + SSLINK + "298395308";
-              this._sendMessage("Expense duplicate", msg);
+              var msg = 'Date: ' + _toStringDate(date)
+              + '\nLabel: ' + label
+              + '\nValue: ' + _round(val, 2, ' €')
+              + '\n' + SSLINK + '298395308';
+              _sendMessage('Expense duplicate', msg);
             }
           }
         } else {
-          color = "white";
+          color = 'white';
         }
 
         if (color) {
           var data = [[date, label, val]];
-          this._insertFirstRow(sheet, data, true);
+          _insertFirstRow(sheet, data, true);
           sheet.getRange(FR, FC, 1, array[0].length).setBackground(color);
         }
       }
     }
   }
 
-  this._archiveMessage(thread, true);
+  _archiveMessage(thread, true);
 }
 
 function _processStockTrade(thread) {
   // Get ids from investment table
-  var sheet = this._getSheet(INVESTMENT);
+  var sheet = _getSheet(INVESTMENT);
   var array = sheet.getSheetValues(FR, FC, -1, Math.max(TYPE_COL, ISIN_COL, LABEL_COL));
 
   // Add historic from stock trade mail
@@ -317,38 +308,38 @@ function _processStockTrade(thread) {
     var message = messages[j];
     var date = _toDate(message.getDate());
     var cnt = message.getPlainBody();
-    var a = cnt.split("\n");
+    var a = cnt.split('\n');
     var tc = Math.round((a.length-hea-foo)/pdl);  // Number of transaction to process
 
     var k = hea+1;    // Skip first rows as it is mail crap
     while(k < a.length) {
-      var b = a[k].split("*");
-      if (b[0].split(" ")[0] == "Date") {
-        var isin = a[k+1].split("*")[1];                                                                    // Code ISIN *JE00B1VS3770*
-        var qty = a[k+6].split("*")[1];                                                                     // Quantité *190*
-        var cur = a[k+8].split("*")[1].substr(0, 3);                                                        // Montant devise locale *USD 8 434,10*
-        var amount = Number(a[k+9].split("*")[1].replace(new RegExp("[A-Z ]", 'g'),"").replace(",", "."));  // Montant *EUR 8 434,10*
-        var cost = Number(a[k+11].split("*")[1].replace(new RegExp("[A-Z ]", 'g'),"").replace(",", "."));   // Frais *EUR -3,69*
+      var b = a[k].split('*');
+      if (b[0].split(' ')[0] == 'Date') {
+        var isin = a[k+1].split('*')[1];                                                                    // Code ISIN *JE00B1VS3770*
+        var qty = a[k+6].split('*')[1];                                                                     // Quantité *190*
+        var cur = a[k+8].split('*')[1].substr(0, 3);                                                        // Montant devise locale *USD 8 434,10*
+        var amount = Number(a[k+9].split('*')[1].replace(new RegExp('[A-Z ]', 'g'),'').replace(',', '.'));  // Montant *EUR 8 434,10*
+        var cost = Number(a[k+11].split('*')[1].replace(new RegExp('[A-Z ]', 'g'),'').replace(',', '.'));   // Frais *EUR -3,69*
 
-        var row = this._indexOf(array, isin, ISIN_COL-1);
+        var row = _indexOf(array, isin, ISIN_COL-1);
         if (row >= 0) {
           var label = array[row][LABEL_COL-1];
           var type = array[row][TYPE_COL-1];
 
           if (cost != 0) {
-            this._insertHistoricRow(date, type, label, null, null, null, cost);  //(date, type, label, trans, quantity, price, value, tag)
+            _insertHistoricRow(date, type, label, null, null, null, cost);  //(date, type, label, trans, quantity, price, value, tag)
           }
 
-          var trans = amount < 0 ? "BUY" : "SELL";
+          var trans = amount < 0 ? 'BUY' : 'SELL';
           var quantity = amount < 0 ? qty : -qty;
-          var price = this._round(Math.abs(amount / quantity), 4);
+          var price = _round(Math.abs(amount / quantity), 4);
           var value = amount;
-          var tag = cur == "EUR" ? null : DUMMY;  // Add dummy if currency is not Euro, as the exchange rate fee is not known
-          this._insertHistoricRow(date, type, label, trans, quantity, price, value, tag);  //(date, type, label, trans, quantity, price, value, tag)
+          var tag = cur == 'EUR' ? null : DUMMY;  // Add dummy if currency is not Euro, as the exchange rate fee is not known
+          _insertHistoricRow(date, type, label, trans, quantity, price, value, tag);  //(date, type, label, trans, quantity, price, value, tag)
 
           ++ta;
         } else {
-          throw("ISIN not found in Investment sheet : " + isin);
+          throw('ISIN not found in Investment sheet : ' + isin);
         }
 
         k += pdl;                      // Skip all the processed data
@@ -358,23 +349,23 @@ function _processStockTrade(thread) {
     }
 
     if (ta != tc) {
-      throw("All stock transaction has not been processed : " + ta + " transaction(s) added insead of " + tc);
+      throw('All stock transaction has not been processed : ' + ta + ' transaction(s) added insead of ' + tc);
     }
   }
 
-  this._archiveMessage(thread);
+  _archiveMessage(thread);
 }
 
 function _updateClosePrice() {
-  var sheet = this._getSheet(INVESTMENT);
+  var sheet = _getSheet(INVESTMENT);
   var lr = sheet.getMaxRows();
   var mr = lr-FR;
   var formula = sheet.getRange(lr, PRICE_COL);
   var range = sheet.getRange(FR, PRICE_COL, mr, 1);
 
-  sheet.getRange(lr, PRICE_COL+1).setValue("");   // Unfreeze update process in case it's still there
+  sheet.getRange(lr, PRICE_COL+1).setValue('');   // Unfreeze update process in case it's still there
 
-  this._copyFormula(formula, range);
+  _copyFormula(formula, range);
 
   for (var i = 0; i < mr; ++i) {
     var v;
@@ -382,9 +373,9 @@ function _updateClosePrice() {
 
     do  {
       v = r.getValue();
-    } while (this._isLoading(v));
+    } while (_isLoading(v));
 
-    if (!this._isError(v)) {
+    if (!_isError(v)) {
       sheet.getRange(i+FR, PRICE_COL+1).setValue(v);  // Cache the value
     }
   }
@@ -394,31 +385,31 @@ function _updateClosePrice() {
 
 function _sendEvolution() {
   // Get values
-  var sheet = this._getSheet(PRICE);
+  var sheet = _getSheet(PRICE);
   var array = sheet.getSheetValues(FR, FC, 2, -1);
+  var msg = '';
 
   // Check for difference
-  if (this._checkPriceDiff(array)) {
+  if (_checkPriceDiff(array)) {
     // Daily Performance mail
-    var sheet = this._getSheet(EVOLUTION);
-    var array = sheet.getSheetValues(1, FC, 2, -1);
+    sheet = _getSheet(EVOLUTION);
+    array = sheet.getSheetValues(1, FC, 2, -1);
 
-    var msg = "";
     for (var i = 5; i < array[0].length; ++i) {
-      msg += array[0][i] + ": " + this._round(array[1][i], 2, " €") + "\n";
+      msg += array[0][i] + ': ' + _round(array[1][i], 2, ' €') + '\n';
     }
     msg += APPLINK;
 
-    this._sendMessage("Daily Stock report", msg);
+    _sendMessage('Daily Stock report', msg);
   } else {
-    var msg = "If today is bank holiday, delete the message, otherwise check spreadsheet.";
-    this._sendMessage("No update for Evolution/Price", msg);
+    msg = 'If today is bank holiday, delete the message, otherwise check spreadsheet.';
+    _sendMessage('No update for Evolution/Price', msg);
   }
 }
 
 function _updateEvolution() {
   // Get values
-  var sheet = this._getSheet(PRICE);
+  var sheet = _getSheet(PRICE);
   var array = sheet.getSheetValues(FR, FC, 2, -1);
 
   // Delete last price if older than one year
@@ -436,27 +427,27 @@ function _updateEvolution() {
   } while (shouldDelete);
 
   // Check for difference
-  if (this._checkPriceDiff(array)) {
+  if (_checkPriceDiff(array)) {
     // Update price
-    this._copyFirstRow(sheet, array);
+    _copyFirstRow(sheet, array);
 
     // Update evolution
-    var sheet = this._getSheet(EVOLUTION);
-    var array = sheet.getSheetValues(FR, FC, 1, -1);
-    this._copyFirstRow(sheet, array);
+    sheet = _getSheet(EVOLUTION);
+    array = sheet.getSheetValues(FR, FC, 1, -1);
+    _copyFirstRow(sheet, array);
   }
 }
 
 function _updateInterest() {
   // Get dashboard mandatory data
-  var sheet = this._getSheet(DASHBOARD);
+  var sheet = _getSheet(DASHBOARD);
   var lc = sheet.getMaxColumns();
   var rate = sheet.getRange(INTRAT_ROW, lc).getValue();
 
   // Get current date
-  var sheet = this._getSheet(INTEREST);
+  sheet = _getSheet(INTEREST);
   var array = sheet.getSheetValues(FR, FC, -1, 1);
-  var d = this._toDate();      // Get date without hours to match range's date
+  var d = _toDate();      // Get date without hours to match range's date
   d.setDate(d.getDate() - 1);  // Yesterday's date as script is executed the next night
 
   // Retrieve current & last columns
@@ -464,9 +455,9 @@ function _updateInterest() {
   var col = 0;
   var end = 0;
   var v;
-  while (v != "" && ++i < array.length) {
+  while (v != '' && ++i < array.length) {
     v = array[i][0];
-    var isEmpty = v == "";
+    var isEmpty = v == '';
     col = !isEmpty && v <= d ? i : col;
     end = !isEmpty ? i : end;
   }
@@ -483,23 +474,23 @@ function _updateInterest() {
 
 function _updateDividend() {
   // Get dividend from investment table
-  var sheet = this._getSheet(INVESTMENT);
+  var sheet = _getSheet(INVESTMENT);
   var array = sheet.getSheetValues(FR, FC, -1, Math.max(TYPE_COL, LABEL_COL, NEXTDIV_COL, ESTDIV_COL));
-  var today = this._toDate();
+  var today = _toDate();
   var x = [];
 
   for (var i = 0; i < array.length; ++i) {
     if (array[i][NEXTDIV_COL-1] && array[i][NEXTDIV_COL-1] <= today) {
-      x.push([today, array[i][TYPE_COL-1], array[i][LABEL_COL-1], "DIVIDEND", "", "", this._round(array[i][ESTDIV_COL-1], 2), DUMMY]);
+      x.push([today, array[i][TYPE_COL-1], array[i][LABEL_COL-1], 'DIVIDEND', '', '', _round(array[i][ESTDIV_COL-1], 2), DUMMY]);
     }
   }
 
   // Insert the monthly interest into the historic
   if (x.length > 0) {
-    var sheet = this._getSheet(HISTORIC);
-    for (var i = 0; i < x.length; ++i) {
+    sheet = _getSheet(HISTORIC);
+    for (i = 0; i < x.length; ++i) {
       var data = [x[i]];
-      this._insertFirstRow(sheet, data, true);
+      _insertFirstRow(sheet, data, true);
     }
   }
 }
@@ -508,8 +499,8 @@ function _updateValues() {
   //'=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(query(importhtml("http://www.global-rates.com/interest-rates/eonia/eonia.aspx","table",19), "select Col2 limit 1 offset 0", 1),"%",""),",",".")/100))'
   //'=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(query(importhtml("https://www.cbanque.com/placement/taux_livreta.php","table",1), "select Col2 limit 1 offset 1", 1),"%",""),",",".")/100))';
   var col = 2;
-  var sheet = this._getSheet(DASHBOARD);
-  this._copyValue(sheet, EONIA_ROW, col, "http://www.global-rates.com/interest-rates/eonia/eonia.aspx", 19, 0);
+  var sheet = _getSheet(DASHBOARD);
+  _copyValue(sheet, EONIA_ROW, col, 'http://www.global-rates.com/interest-rates/eonia/eonia.aspx', 19, 0);
 }
 
 function _copyValue(sheet, row, col, url, table, offset) {
@@ -519,31 +510,31 @@ function _copyValue(sheet, row, col, url, table, offset) {
   range.setValue(value);
   do  {
     value = range.getValue();
-  } while (this._isLoading(value));
+  } while (_isLoading(value));
 
-  if (!this._isError(value)) {
+  if (!_isError(value)) {
     range.setValue(value);  // Copy only the value
   }
 }
 
 function _updateAllocation() {
   // Search if entries have already been added
-  var allocSheet = this._getSheet(ALLOCHIST);
+  var allocSheet = _getSheet(ALLOCHIST);
   var lr = Math.min(allocSheet.getMaxRows(), 3);
   var allocArray = allocSheet.getSheetValues(FR, FC, lr, -1);
   if (!_isCurrentMonth(allocArray)) {
     // Retrieve values from the dashboard
-    var sheet = this._getSheet(DASHBOARD);
+    var sheet = _getSheet(DASHBOARD);
     var lc = sheet.getMaxColumns();
     var array = sheet.getSheetValues(FR, lc, -1, 1);
-    var portValue = this._toFixed(array[PORVAL_ROW-FR][0], 2);
-    var monint = this._toFixed(array[MONINT_ROW-FR][0], 2);
-    var monpay = this._toFixed(array[MONPAY_ROW-FR][0], 0);
+    var portValue = _toFixed(array[PORVAL_ROW-FR][0], 2);
+    var monint = _toFixed(array[MONINT_ROW-FR][0], 2);
+    var monpay = _toFixed(array[MONPAY_ROW-FR][0], 0);
 
     // Set the new requested allocation as the current one
-    var sheet = this._getSheet(ALLOCATION);
-    var lc = sheet.getMaxColumns();
-    var array = sheet.getSheetValues(FR, lc, -1, 1);
+    sheet = _getSheet(ALLOCATION);
+    lc = sheet.getMaxColumns();
+    array = sheet.getSheetValues(FR, lc, -1, 1);
     var alloc = array[REQALL_ROW-FR][0];
     if (alloc) {
       sheet.getRange(CURALL_ROW, lc).setValue(alloc); // copy requested alloc into current alloc
@@ -553,63 +544,59 @@ function _updateAllocation() {
     }
 
     // Set the values into the allocation historic
-    this._setRangeValues(allocSheet, 3, FC, [allocArray[1]]);    // Copy only values into previous row (archive)
+    _setRangeValues(allocSheet, 3, FC, [allocArray[1]]);    // Copy only values into previous row (archive)
 
     var date = _toStringDate();
     var data = [[date, portValue, alloc]];
-    this._insertFirstRow(allocSheet, data);
+    _insertFirstRow(allocSheet, data);
 
     // Insert the monthly interest into the historic
-    var date = _toDate();              // Get date without hours
+    date = _toDate();              // Get date without hours
     date.setDate(date.getDate() - 1);  // Yesterday's date as interest are added for the last day of the previous month
-    this._insertHistoricRow(date, null, null, null, null, null, monint);  //(date, type, label, trans, quantity, price, value)
+    _insertHistoricRow(date, null, null, null, null, null, monint);  //(date, type, label, trans, quantity, price, value)
 
     // Insert the monthly interest into the historic
     if (monpay > 0) {
-      var date = _toDate();              // Get date without hours
-      this._insertHistoricRow(date, null, null, "APPROVISIONNEMENT", null, null, monpay);  //(date, type, label, trans, quantity, price, value)
-      this._sendMessage("Account withdrawal: " + monpay + " €", "");
+      date = _toDate();              // Get date without hours
+      _insertHistoricRow(date, null, null, 'APPROVISIONNEMENT', null, null, monpay);  //(date, type, label, trans, quantity, price, value)
+      _sendMessage('Account withdrawal: ' + monpay + ' €', '');
     }
   }
 }
 
 function _updateExpense() {
-  var sheet = this._getSheet(EXPENSES);
+  var sheet = _getSheet(EXPENSES);
   var array = sheet.getSheetValues(FR, FC, 2, -1);
   if (!_isCurrentMonth(array)) {
     // Add new month
-    var data = [[this._toDate()]];
-    this._insertFirstRow(sheet, data);
+    var data = [[_toDate()]];
+    _insertFirstRow(sheet, data);
 
     // Archive previous month
-    this._setRangeValues(sheet, FR+2, FC, [array[1]]);    // Copy only values into previous row (archive)
+    _setRangeValues(sheet, FR+2, FC, [array[1]]);    // Copy only values into previous row (archive)
 
     // Archive expenses historic
-    var sheet = this._getSheet(EXPHISTO);
+    sheet = _getSheet(EXPHISTO);
     var lc = sheet.getMaxColumns();
-    var array = sheet.getSheetValues(FR+1, lc, -1, 1);
-    this._setRangeValues(sheet, FR+1, lc, array);    // Copy only values into previous row (archive)
- }
+    array = sheet.getSheetValues(FR+1, lc, -1, 1);
+    _setRangeValues(sheet, FR+1, lc, array);    // Copy only values into previous row (archive)
+  }
 }
 
 function _insertHistoricRow(date, type, label, trans, quantity, price, value, tag) {
-  var sheet = this._getSheet(HISTORIC);
+  var sheet = _getSheet(HISTORIC);
 
-  date = date ? date : this._toDate();
-  type = type ? type : "";
-  label = label ? label : "";
-  trans = trans ? trans : "COST";
-  quantity = quantity ? quantity : "";
-  price = price ? price : "";
+  date = date ? date : _toDate();
+  type = type ? type : '';
+  label = label ? label : '';
+  trans = trans ? trans : 'COST';
+  quantity = quantity ? quantity : '';
+  price = price ? price : '';
   value = value ? value : 0;
-  tag = tag ? tag : label + "@" + trans + "@" + quantity + "@" + value; //Vanguard S&P 500 UCITS ETF@COST@@-3.69
+  tag = tag ? tag : label + '@' + trans + '@' + quantity + '@' + value; //Vanguard S&P 500 UCITS ETF@COST@@-3.69
 
   var data = [[date, type, label, trans, quantity, price, value, tag]];
-  this._insertFirstRow(sheet, data, true);
-}
-
-function _importXml(row, table) {
-  return '=IMPORTXML("' + BLGLINK + '" & A' + row + ' & ":" & C' + row + ', "' + table + '")';
+  _insertFirstRow(sheet, data, true);
 }
 
 function _checkPriceDiff(array) {
@@ -650,7 +637,7 @@ function _copyFormula(formula, range) {
 
 function _insertFirstRow(sheet, data, isFast, lc) {
   var lr = sheet.getMaxRows();
-  var lc = lc ? lc : sheet.getMaxColumns();
+  lc = lc ? lc : sheet.getMaxColumns();
 
   if (lr >= FR) {
     if (!isFast) {  // Insert a row at the end, then copy all the data with an offset
@@ -665,13 +652,13 @@ function _insertFirstRow(sheet, data, isFast, lc) {
     sheet.getRange(lr+1, FC, 1, lc).clearFormat();
   }
 
-  this._setRangeValues(sheet, FR, FC, data);
+  _setRangeValues(sheet, FR, FC, data);
 }
 
 function _copyFirstRow(sheet, array) {
-  if (!this._isCurrentDay(array)) {
-    this._insertFirstRow(sheet, null, true);
-    this._setRangeValues(sheet, FR + 1, FC, [array[0]]);    // Copy only values into previous row (archive)
+  if (!_isCurrentDay(array)) {
+    _insertFirstRow(sheet, null, true);
+    _setRangeValues(sheet, FR + 1, FC, [array[0]]);    // Copy only values into previous row (archive)
   }
 }
 
@@ -687,16 +674,16 @@ function _isMarketOpen() {
 
 function _toFixed(value, precision) {
   var str = value.toString();
-  str += (str.indexOf(".") != -1 ? "" : ".") + Array(precision+1).join('0');
-  return str.slice(0, str.indexOf(".") + precision + Math.min(precision, 1));
+  str += (str.indexOf('.') != -1 ? '' : '.') + Array(precision+1).join('0');
+  return str.slice(0, str.indexOf('.') + precision + Math.min(precision, 1));
 }
 
 function _round(value, precision, symbol) {
   var mult = Math.pow(10, precision);
-  var sup = symbol == "%" ? 100 : 1;
-  var symbol = typeof(symbol) === "string" ? symbol : 0;
+  var sup = symbol == '%' ? 100 : 1;
+  symbol = typeof(symbol) === 'string' ? symbol : '';
 
-  return this._toFixed(Math.round(value * sup * mult) / mult, precision) + symbol;
+  return _toFixed(Math.round(value * sup * mult) / mult, precision) + symbol;
 }
 
 function _isCurrentDay(array) {
@@ -708,30 +695,30 @@ function _isCurrentMonth(array) {
 }
 
 function _toDate(date) {
-  date = typeof(date) == "object" ? date : new Date();
+  date = typeof(date) == 'object' ? date : new Date();
   date.setHours(0, 0, 0, 0);
   return date;
 }
 
 function _toStringDate(date) {
-  if (typeof(date) == "string") {
-    return date && date.split("/").length == 3
-    ? date.replace(/(^|\/)0+/g, "$1").split("/")[1] + "/"
-    + date.replace(/(^|\/)0+/g, "$1").split("/")[0] + "/"
-    + date.split("/")[2]
-    : null;
-  } else if (typeof(date) == "object") {
+  if (typeof(date) == 'string') {
+    return date && date.split('/').length == 3
+      ? date.replace(/(^|\/)0+/g, '$1').split('/')[1] + '/'
+    + date.replace(/(^|\/)0+/g, '$1').split('/')[0] + '/'
+    + date.split('/')[2]
+      : null;
+  } else if (typeof(date) == 'object') {
     var day = date.getDate();
     var month = date.getMonth() + 1;
     var year = date.getFullYear();
-    return month + "/" + day + "/" + year;
+    return month + '/' + day + '/' + year;
   } else {
     return _toStringDate(new Date());
   }
 }
 
 function _indexOf(array, value, index, start) {
-  var index = index >= 0 ? index : null;
+  index = index >= 0 ? index : null;
   var x = parseInt(start) ? parseInt(start) : 0;
 
   var i = null;
@@ -746,16 +733,12 @@ function _indexOf(array, value, index, start) {
   return i;
 }
 
-function _isNumber(number) {
-  return typeof(number) === "number" && !isNaN(number);
-}
-
 function _isLoading(value) {
-  return typeof(value) === "string" && (value == LOADING || value == "");
+  return typeof(value) === 'string' && (value == LOADING || value == '');
 }
 
 function _isError(value) {
-  return typeof(value) === "string" && value.substring(0, 1) === '#';
+  return typeof(value) === 'string' && value.substring(0, 1) === '#';
 }
 
 function _archiveMessage(thread, shouldDelete) {
@@ -770,25 +753,5 @@ function _archiveMessage(thread, shouldDelete) {
 }
 
 function _sendMessage(object, message) {
-  MailApp.sendEmail(MAIL, object, message);
-}
-
-/**
- * Gets the current sheet name.
- *
- * @return The current sheet name.
- * @customfunction
- */
-function SHEETNAME() {
-  return SS.getActiveSheet().getSheetName();
-}
-
-/**
- * Gets the interest rate.
- *
- * @return The interest rate.
- * @customfunction
- */
-function INTERESTRATE() {
-  return 1.25/100;
+  GmailApp.sendEmail(MAIL, object, message);
 }
