@@ -78,7 +78,7 @@ function updateAssociate() {
           var d = _toDate();      // Get date without hours to match range's date
           d.setDate(d.getDate() + 5);  // Take around 5 days to make a bank transfer
 
-          const data = [[d, name, Math.max(recu, -total)]];
+          const data = [[d, name, Math.max(recu, -total), 0]];
           _insertFirstRow(histoSheet, data);
         }
       }

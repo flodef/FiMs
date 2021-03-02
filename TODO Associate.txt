@@ -4,7 +4,6 @@
 
 - BUG : order mail confirmation has changed and is not properly handled anymore
 - BUG : When monthly cost added, it should not have trailing 0
-- BUG : Loading without login display a loading bar without button
 - BUG : Operation cost not displayed while trying to withdraw
 - MAIN : When updating account file, show historic tab
 - MAIN : When updating allocation, add tick if it's the same
