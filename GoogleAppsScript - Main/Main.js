@@ -154,7 +154,7 @@ function processMail() {
     var alertThread = [];
     var unread = GmailApp.getInboxUnreadCount();
     if (unread > 0) {
-      var thread = GmailApp.getInboxThreads(0, unread);   // Get the first unread mails to speed up things
+      var thread = GmailApp.search('is:unread label:inbox');  // Get first unread mails
       for (var i = 0 ; i < thread.length; i++) {
         if (thread[i].isUnread()) {
           var thr = thread[i];
@@ -315,6 +315,12 @@ function _processStockTrade(thread) {
     while(k < a.length) {
       var b = a[k].split('*');
       if (b[0].split(' ')[0] == 'Date') {
+        //TODO
+        //isin = 179 / 400 / 621  " <strong>IE00B3XXRP09</strong> "
+        //quantity = 239 / 460   " <strong>15</strong> "
+        //Montant devise locale = 263 / 484  <strong>EUR 922,05</strong> "
+        //amount = 275 / 496 " <strong>EUR 922,05</strong> "
+        //cost = 323 / 544" <strong>EUR 0,00</strong> "  //Cout total
         var isin = a[k+1].split('*')[1];                                                                    // Code ISIN *JE00B1VS3770*
         var qty = a[k+6].split('*')[1];                                                                     // Quantité *190*
         var cur = a[k+8].split('*')[1].substr(0, 3);                                                        // Montant devise locale *USD 8 434,10*
