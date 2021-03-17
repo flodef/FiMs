@@ -44,7 +44,7 @@ GLOBAL.displayData = {
   },
   'personal': {
     id: 'personal',
-    formula: 'Associate!A:Z',
+    formula: 'Associate!A:AB',
     updateTable: updatePersonalTable,
     loadOnce: true,
     filter: 1
@@ -70,9 +70,15 @@ GLOBAL.personalData = [{
   readonly: true,
   type: 'name',
   required: true
-}, // First name
+}, // Gender
 {
   index: 16,
+  readonly: true,
+  type: 'name',
+  required: true
+}, // First name
+{
+  index: 17,
   readonly: true,
   type: 'name',
   required: true
@@ -84,57 +90,57 @@ GLOBAL.personalData = [{
   required: true
 }, // Email
 {
-  index: 17,
+  index: 18,
   disabled: true,
   type: 'date',
   required: true
 }, // Birth date
 {
-  index: 18,
+  index: 19,
   readonly: true,
   type: 'text',
   required: true
 }, // Birth city
 {
-  index: 19,
+  index: 20,
   readonly: true,
   type: 'text',
   required: true,
   maxLength: 100
 }, // Address
 {
-  index: 20,
+  index: 21,
   readonly: true,
   type: 'text',
   required: true,
   pattern: '^[0-9]{5}$'
 }, // Postal code
 {
-  index: 21,
+  index: 22,
   readonly: true,
   type: 'name',
   required: true
 }, // City
 {
-  index: 22,
+  index: 23,
   readonly: true,
   type: 'iban',
   required: true
 }, // IBAN
 {
-  index: 23,
+  index: 24,
   readonly: true,
   type: 'name',
   required: true
 }, // Bank
 {
-  index: 24,
+  index: 25,
   readonly: true,
   type: 'name',
   required: true
 }, // Association
 {
-  index: 25,
+  index: 26,
   type: 'url'
 }, // Web page
 {
