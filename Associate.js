@@ -796,7 +796,7 @@ function CreateAckDebt() {
     deposit.forEach(item => doc += '<li>Virement bancaire SEPA de ' + item[1] + ' euros, émis le ' + item[0] + '</li>');
     doc += '</ul><p>Le remboursement de ce prêt interviendra de la façon suivante :</p>' +
       '<ul><li>il sera remboursé immédiatement (moyennant le temps de virement de compte à compte ' +
-      'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique,' +
+      'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique, ' +
       'lettre ou autre moyen informatique), en une ou plusieurs fois, à la convenance du prêteur.</li></ul>' +
       '<p>Ce prêt est consenti moyennant un intérêt de :</p>' +
       '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an, ' +
