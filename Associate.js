@@ -70,7 +70,7 @@ GLOBAL.personalData = [{
   readonly: true,
   type: 'name',
   required: true
-}, // Gender
+}, // Civility
 {
   index: 16,
   readonly: true,
