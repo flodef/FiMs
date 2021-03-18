@@ -35,7 +35,7 @@ until [ $retry = "N" ]; do
 done
 
 retry=
-mv "$url" "./Data/"
+mv -f "$url" "./Data/"
 clear
 
 file="FiMs Associate"
@@ -67,7 +67,7 @@ until [ $retry = "N" ]; do
 done
 
 retry=
-mv "$url" "./Data/"
+mv -f "$url" "./Data/"
 clear
 
 http-server
