@@ -791,10 +791,11 @@ function CreateAckDebt() {
     // doc.text(190, 160 + length * 5, 'Le prêteur, ' + getFullName(GLOBAL.user) + '\nDaté et signé               ', null, null, 'right');
     // doc.addImage(imgPath + 'Signature.png', 'PNG', 20, 170 + length * 5);
 
+    const isMale = GLOBAL.user.Civility == 'Mr';
     let doc = '<h2 align="center" style="color:black">Reconnaissance de dette</h2><br>' +
       '<p>Je soussigné, DE FROCOURT Florian Henri Olivier, né le 06/04/1982, à Toulouse (31), ' +
       'résidant à ce jour, 5 route de Pentrez - 78550 SAINT-NIC, reconnais avoir reçu de ' +
-      getFullName(GLOBAL.user) + ', né·e le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity +
+      getFullName(GLOBAL.user) + ', né' + (isMale ? '' : 'e') + ' le ' + GLOBAL.user.BirthDate + ', à ' + GLOBAL.user.BirthCity +
       ', demeurant à ce jour, ' + GLOBAL.user.Address + ' - ' + GLOBAL.user.PostalCode + ' ' + GLOBAL.user.City +
       ', la somme de ' + getImgFromNumber(total) + getImgTag('€', 15) + getImgTag('', 15) +
       getImgTag('(', 15) + getImgFromText(numberToText(total)) + getImgTag('euros', 15) + getImgTag(')', 15) +
@@ -807,9 +808,9 @@ function CreateAckDebt() {
       '<p>Ce prêt est consenti moyennant un intérêt de :</p>' +
       '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an, ' +
       'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.</li></ul><br><br>' +
-      '<span>L\'emprunteur, DE FROCOURT Florian,</span>' +
-      '<span style="float:right">Le·a prêteur·se, ' + getFullName(GLOBAL.user) + '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé</span>' +
-      '<br>&emsp;&emsp;&emsp;&emsp;&emsp;Daté et signé<br><br>' +
+      '<span>&emsp;&emsp;L\'emprunteur,</span>' +
+      '<span style="float:right">&emsp;&emsp;&nbsp;' + (isMale ? '&nbsp;Le' : 'La') + ' prêteu' + (isMale ? 'r' : 'se') + ',<br>' + getFullName(GLOBAL.user) + '<br>&emsp;&emsp;Daté et signé</span>' +
+      '<br>DE FROCOURT Florian,<br>&emsp;&emsp;Daté et signé<br><br>' +
       '&emsp;&emsp;&emsp;' + getImgTag('Le', 15) + '&emsp;' + getImgFromNumber(signDate) +
       '<br>' + getImgTag('Signature');
 
@@ -943,22 +944,22 @@ function convertNumberToColumn(number) { // 0 => A, 1 => B, etc
   return s;
 }
 
-function validateIbanChecksum(iban) {
-  const ibanStripped = iban.replace(/[^A-Z0-9]+/gi, '') //keep numbers and letters only
-    .toUpperCase(); //calculation expects upper-case
-  const m = ibanStripped.match(/^([A-Z]{2})([0-9]{2})([A-Z0-9]{9,30})$/);
-  if (!m) return false;
-
-  const numbericed = (m[3] + m[1] + m[2]).replace(/[A-Z]/g, function(ch) {
-    //replace upper-case characters by numbers 10 to 35
-    return (ch.charCodeAt(0) - 55);
-  });
-  //The resulting number would be to long for javascript to handle without loosing precision.
-  //So the trick is to chop the string up in smaller parts.
-  const mod97 = numbericed.match(/\d{1,7}/g)
-    .reduce(function(total, curr) {
-      return Number(total + curr) % 97;
-    }, '');
-
-  return (mod97 === 1);
-}
+// function validateIbanChecksum(iban) {
+//   const ibanStripped = iban.replace(/[^A-Z0-9]+/gi, '') //keep numbers and letters only
+//     .toUpperCase(); //calculation expects upper-case
+//   const m = ibanStripped.match(/^([A-Z]{2})([0-9]{2})([A-Z0-9]{9,30})$/);
+//   if (!m) return false;
+//
+//   const numbericed = (m[3] + m[1] + m[2]).replace(/[A-Z]/g, function(ch) {
+//     //replace upper-case characters by numbers 10 to 35
+//     return (ch.charCodeAt(0) - 55);
+//   });
+//   //The resulting number would be to long for javascript to handle without loosing precision.
+//   //So the trick is to chop the string up in smaller parts.
+//   const mod97 = numbericed.match(/\d{1,7}/g)
+//     .reduce(function(total, curr) {
+//       return Number(total + curr) % 97;
+//     }, '');
+//
+//   return (mod97 === 1);
+// }
