@@ -292,7 +292,7 @@ function insertHistoricRow(data, sid) {
     if (id && gid && endCol) {
       google.script.run
         //.withSuccessHandler(contents => setValue(id + "!A2", data, sortTransactionValues))
-        .withSuccessHandler(contents => setValue(sid + '!A2', data,
+        .withSuccessHandler(() => setValue(sid + '!A2', data,
           () => {
             executionSuccess();
             updateValues(id, true);
@@ -310,12 +310,12 @@ function insertHistoricRow(data, sid) {
   }
 }
 
-function sortTransactionValues() {
-  google.script.run
-    .withSuccessHandler(contents => executionSuccess())
-    .withFailureHandler(displayError)
-    .sortColumn(9, 0, true);
-}
+// function sortTransactionValues() {
+//   google.script.run
+//     .withSuccessHandler(contents => executionSuccess())
+//     .withFailureHandler(displayError)
+//     .sortColumn(9, 0, true);
+// }
 
 function validateDeleteForm(index, rowCnt, func = () => {}) {
   index = index ? index : indexOf(GLOBAL.data[GLOBAL.displayData.historic.id], GLOBAL.dummy, GLOBAL.histoIdCol);
@@ -327,7 +327,7 @@ function validateDeleteForm(index, rowCnt, func = () => {}) {
     // showLoader(true);
 
     google.script.run
-      .withSuccessHandler(contents => {
+      .withSuccessHandler(() => {
         func();
         executionSuccess();
         updateValues(GLOBAL.displayData.historic.id, true);
@@ -358,20 +358,24 @@ function validateUploadForm() {
             const af = GLOBAL.accountFormula.split(',');
             google.script.run
               .withSuccessHandler(() => {
-                setValue('Account!A1', data);
+                google.script.run
+                  .withSuccessHandler(() => {
+                    setValue('Account!A1', data);
 
-                const histoData = {
-                  id: GLOBAL.displayData.historic.id,
-                  formula: restrainFormula(GLOBAL.displayData.historic.formula, -1, -1)
-                };
-                const resultData = {
-                  id: GLOBAL.account,
-                  formula: GLOBAL.resultFormula
-                };
-                getValue(histoData, null, true, () => getValue(resultData, compareResultData, true, executionSuccess));
+                    const histoData = {
+                      id: GLOBAL.displayData.historic.id,
+                      formula: restrainFormula(GLOBAL.displayData.historic.formula, -1, -1)
+                    };
+                    const resultData = {
+                      id: GLOBAL.account,
+                      formula: GLOBAL.resultFormula
+                    };
+                    getValue(histoData, null, true, () => getValue(resultData, compareResultData, true, executionSuccess));
+                  })
+                  .withFailureHandler(displayError)
+                  .clearSheetValues(af[0]);
               })
               .withFailureHandler(displayError)
-              .clearSheetValues(af[0])
               .clearSheetValues(af[1]);
           } else if (data[0][0] == 'dateOp' && data[0][1] == 'dateVal') {
             const data = {
