@@ -16,7 +16,7 @@ GLOBAL.tendencyCol = 22;
 GLOBAL.settings = 'settings';
 GLOBAL.account = 'account';
 GLOBAL.resultFormula = 'Result!A:H';
-GLOBAL.accountFormula = 'Account!A:L';
+GLOBAL.accountFormula = 'Account!A:L,Account!X:AK';
 GLOBAL.expHistoFormula = 'ExpensesHistoric!A:C';
 GLOBAL.allocationFormula = 'Allocation!B14';
 GLOBAL.settingsFormula = 'Settings!A:F';
@@ -355,8 +355,9 @@ function validateUploadForm() {
 
         if (data && data.length > 1) {
           if (data[0][0] == 'Date' && data[0][1] == 'Heure') {
+            const af = GLOBAL.accountFormula.split[','];
             google.script.run
-              .withSuccessHandler(contents => {
+              .withSuccessHandler({
                 setValue('Account!A1', data);
 
                 const histoData = {
@@ -370,7 +371,8 @@ function validateUploadForm() {
                 getValue(histoData, null, true, () => getValue(resultData, compareResultData, true, executionSuccess));
               })
               .withFailureHandler(displayError)
-              .clearSheetValues(GLOBAL.accountFormula);
+              .clearSheetValues(af[0])
+              .clearSheetValues(af[1]);
           } else if (data[0][0] == 'dateOp' && data[0][1] == 'dateVal') {
             const data = {
               id: GLOBAL.account,
