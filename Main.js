@@ -355,7 +355,7 @@ function validateUploadForm() {
 
         if (data && data.length > 1) {
           if (data[0][0] == 'Date' && data[0][1] == 'Heure') {
-            const af = GLOBAL.accountFormula.split[','];
+            const af = GLOBAL.accountFormula.split(',');
             google.script.run
               .withSuccessHandler(() => {
                 setValue('Account!A1', data);
