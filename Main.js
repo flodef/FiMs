@@ -357,7 +357,7 @@ function validateUploadForm() {
           if (data[0][0] == 'Date' && data[0][1] == 'Heure') {
             const af = GLOBAL.accountFormula.split[','];
             google.script.run
-              .withSuccessHandler({
+              .withSuccessHandler(() => {
                 setValue('Account!A1', data);
 
                 const histoData = {
