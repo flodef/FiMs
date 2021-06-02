@@ -360,6 +360,8 @@ function validateUploadForm() {
               .withSuccessHandler(() => {
                 google.script.run
                   .withSuccessHandler(() => {
+                    openTab(GLOBAL.displayData.historic.id);
+
                     setValue('Account!A1', data);
 
                     const histoData = {

@@ -1,5 +1,10 @@
-/*global GLOBAL, $, jQuery, onKeyUp, google, getDiv, init, addAttr */
-
+/*global GLOBAL, $, jQuery, onKeyUp, google, getDiv, init, addAttr, cancelForm */
+/* exported openTab, openPopup, closePopup, loadPage, animateLoaderBar,
+updateAllValues, processTable, getTableValidatableCell, getTableReadOnlyCell,
+getTableEditableContent, getSubTableTitle, getTableCheckmark, getTableLoaderBar,
+getTableImage, toggleItem, getElementValidity, selectName, setValue, overDisplay,
+executionSuccess, getPopupContent, addPopupButtonEvent, shouldRebalance,
+addDaysToDate, getNextMonthDate, getDaysBetweenDate, restrainFormula */
 
 /**
  * Functions that are shared between main app and associate app.
@@ -515,7 +520,7 @@ function getValue(data, func, forceReload, success) {
 
 function setValue(range, value, success) {
   google.script.run
-    .withSuccessHandler(contents => {
+    .withSuccessHandler(() => {
       if (success) {
         success();
       }
@@ -525,7 +530,7 @@ function setValue(range, value, success) {
     .setSheetValues(range, value);
 }
 
-function filterTable(id, shouldReload) {
+function filterTable(id/*, shouldReload*/) {
   // const histoId = GLOBAL.displayData.historic.id;
   // const investId = GLOBAL.displayData.investment.id;
   // const evolId = GLOBAL.displayData.evolution.id;
