@@ -89,7 +89,7 @@ function openTab(id, isFirstLoading) {
     displayElement('#' + id + 'Div', true); // Show the current tab
     $('#' + id + 'Button').addClass('active'); // Add an "active" class to the button that opened the tab
 
-    if (!isFirstLoading && !GLOBAL.displayData[id].loadOnce) {
+    if (!isFirstLoading && (!GLOBAL.displayData[id] || !GLOBAL.displayData[id].loadOnce)) {
       updateValues(id);
     }
   }
@@ -494,7 +494,7 @@ function getValue(data, func, forceReload, success) {
       }
     };
 
-    if (id && GLOBAL.data[id] && GLOBAL.displayData[id].loadOnce) {
+    if (id && GLOBAL.data[id] && GLOBAL.displayData[id] && GLOBAL.displayData[id].loadOnce) {
       displayLoading(id, true);
       fn(GLOBAL.data[id]);
     } else if (!id || forceReload || !GLOBAL.hasAlreadyUpdated[id]) {
