@@ -557,13 +557,13 @@ function refreshTotal(id) {
   var footerFunc;
   if (id == GLOBAL.displayData.historic.id) {
     calculateFunc = (i, item) => {
-      item = $(item).children('td');
-      for (var j = 0; j < item.length; ++j) {
+      items = $(item).children('td');
+      for (var j = 0; j < items.length; ++j) {
         a[j] += j == 0 ? 1 :
-          j == 1 ? item[5].innerHTML ? 1 : 0 :
-            j == 2 ? item[7].innerHTML ? 1 : 0 :
-              j == 3 ? item[8].innerHTML ? 1 : 0 :
-                toValue(item[j].innerHTML);
+          j == 1 ? items[5].innerHTML ? 1 : 0 :
+            j == 2 ? items[7].innerHTML ? 1 : 0 :
+              j == 3 ? items[8].innerHTML ? 1 : 0 :
+                toValue(items[j].innerHTML);
       }
     };
     footerFunc = () =>
@@ -575,27 +575,29 @@ function refreshTotal(id) {
       '<td title="' + toCurrency(a[8] / a[3]) + '">' + toCurrency(a[8]) + '</td>';
   } else if (id == GLOBAL.displayData.evolution.id) {
     calculateFunc = (i, item) => {
-      item = $(item).children('td');
-      for (var j = 0; j < item.length; ++j) {
-        a[j] += j == 0 ? 1 : toValue(item[j].innerHTML);
+      items = $(item).children('td');
+      for (var j = 0; j < items.length; ++j) {
+        a[j] += j == 0 ? 1 : toValue(items[j].innerHTML);
       }
     };
     footerFunc = () => {
       var footer = '';
       for (var i = 1; i < a.length; i++) {
-        footer += '<td>' + toCurrency(a[i] / a[0], 2, i < 5 ? '%' : '€') + '</td>';
+        footer += '<td>' + toCurrency(a[i] / a[0], 2,
+          items[i].innerHTML.includes('%') ? '%' : '€') + '</td>';
       }
       return footer;
     };
   }
 
   if (calculateFunc) {
+    var items;
     var max = !$('#' + id + 'Filter').is(':checked') ?
       GLOBAL.dataPreloadRowLimit : $('#' + id + 'Table tbody tr').length;
     var elem = $('#' + id + 'Table tbody tr:visible').length == 0 ?
       $('#' + id + 'Table tbody tr:lt(' + max + ')') :
       $('#' + id + 'Table tbody tr:visible');
-    var a = new Array(elem.length).fill(0);
+    var a = new Array($(elem[0]).children('td').length).fill(0);
     elem.each(calculateFunc);
     $('#' + id + 'Footer').html('<td>TOTAL</td>' + footerFunc());
   }
@@ -769,7 +771,7 @@ function toCurrency(content, precision = 2, symbol = '€') {
   var i = str.indexOf('.') != -1 ? str.indexOf('.') : ln;
   str = i != ln ? str.slice(0, i + precision + 1).replace(/0+$/g, '') : str + '.';
   var j = str.length - str.indexOf('.') - 1;
-  str = (j < 2 ? str + '0'.repeat(2 - j) : str) + ' ' + symbol;
+  str = (j < 2 ? str + '0'.repeat(2 - j) : str) + (symbol == '%' ? '' : ' ') + symbol;
 
   return i + neg > 9 ? str.slice(0, i - 9) + ',' + str.slice(i - 9, i - 6) + ',' + str.slice(i - 6, i - 3) + ',' + str.slice(i - 3) :
     i + neg > 6 ? str.slice(0, i - 6) + ',' + str.slice(i - 6, i - 3) + ',' + str.slice(i - 3) :

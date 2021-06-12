@@ -38,7 +38,7 @@ GLOBAL.displayData = {
   },
   'evolution': {
     id: 'evolution',
-    formula: restrainFormula('Evolution!A:J'),
+    formula: restrainFormula('Evolution!A:K'),
     updateTable: updateStandardTable
   },
   'price': {
