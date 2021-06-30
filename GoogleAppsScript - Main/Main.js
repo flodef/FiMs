@@ -486,8 +486,12 @@ function _updateDividend() {
   var x = [];
 
   for (var i = 0; i < array.length; ++i) {
-    if (array[i][NEXTDIV_COL-1] && array[i][NEXTDIV_COL-1] <= today) {
-      x.push([today, array[i][TYPE_COL-1], array[i][LABEL_COL-1], 'DIVIDEND', '', '', _round(array[i][ESTDIV_COL-1], 2), DUMMY]);
+    const div = _round(array[i][ESTDIV_COL-1], 2);
+    if (div > 0 && array[i][NEXTDIV_COL-1] && array[i][NEXTDIV_COL-1] <= today) {
+      x.push([today, array[i][TYPE_COL-1], array[i][LABEL_COL-1], 'DIVIDEND', '', '', div, DUMMY]);
+    } else if (div < 0) {
+      _sendMessage('Negative Dividend',
+        'There is a problem with a dividend. It should always be positive!');
     }
   }
 
