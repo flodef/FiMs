@@ -278,7 +278,7 @@ function getTitle(id) {
 function getTableTitle(id, disabled, tooltip, colspan) {
   return '<table id="' + id + 'Content" class="tabContent"><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">' +
     '<tr style="background-color:white;"><td></td>' +
-    (false ? '<td id="' + id + 'Switch" class="mainSwitch ' +
+    (id ? '<td id="' + id + 'Switch" class="mainSwitch ' +
       ($('#' + id + 'Switch').is(':visible') ? '' : 'hidden') + '">' +
       getTooltip('<label class="switch" style="border:30px;margin:7px 0px 0px 0px;">' +
         '<input id="' + id + 'Filter" type="checkbox" ' + ($('#' + id + 'Filter').is(':checked') ? 'checked' : '') +
@@ -573,7 +573,7 @@ function refreshTotal(id) {
       '<td title="' + toCurrency(a[6] / a[0]) + '">' + toCurrency(a[6]) + '</td>' +
       '<td title="' + toCurrency(a[7] / a[2]) + '">' + toCurrency(a[7]) + '</td>' +
       '<td title="' + toCurrency(a[8] / a[3]) + '">' + toCurrency(a[8]) + '</td>';
-  } else if (id == GLOBAL.displayData.evolution.id) {
+  } else {
     calculateFunc = (i, item) => {
       items = $(item).children('td');
       for (var j = 0; j < items.length; ++j) {

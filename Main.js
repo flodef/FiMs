@@ -140,6 +140,202 @@ function init() {
   }, null, true, updateAllValues);
 }
 
+function onKeyUp(e) {
+  if (!$('#addTransactionForm').is(':animated') &&
+    !$('#deleteTransactionForm').is(':animated') &&
+    !$('#uploadFileForm').is(':animated') &&
+    !$('#actionButton').is(':animated') &&
+    !$('#loaderOverlay').is(':visible')) {
+    if ($('#alertOverlay').is(':visible')) {
+      displayElement('#alertOverlay', false);
+    } else if (!$('#actionButton').is(':visible')) {
+      if (e.keyCode === 13) { // Enter
+        if ($('#addTransactionForm').is(':visible')) {
+          validateAddForm();
+        } else if ($('#deleteTransactionForm').is(':visible')) {
+          validateDeleteForm();
+        } else if ($('#uploadFileForm').is(':visible')) {
+          validateUploadForm();
+        }
+      } else if (e.keyCode === 27) { // Esc
+        cancelForm();
+      }
+    } else {
+      if (!$('input[type="number"]').is(':focus') && !$('input[type="text"]').is(':focus')) {
+        if (e.keyCode === 186) { // $
+          rebalanceStocks();
+        } else if (e.keyCode === 107 || e.keyCode === 187) { // +
+          addTransaction();
+        } else if (e.keyCode === 109 || e.keyCode === 189) { // -
+          deleteTransaction();
+        } else if (e.keyCode === 85) { // U
+          uploadAccountFile();
+        } else if (e.keyCode === 82) { // R
+          updateAllValues();
+        }
+      }
+    }
+  }
+}
+
+function updateDashboardTable(id, contents) {
+  var settings = GLOBAL.data[GLOBAL.settings];
+  var tableHTML = getTableTitle(id);
+
+  var isFirstLoading = $('#' + id + 'Button').prop('disabled');
+
+  // Set the dashboard table
+  var allocation = contents[indexOf(contents, GLOBAL.requestedAllocation, 0)][1]; // Requested allocation
+  var ln = settings.length / 2; // Take the full sheet row count, don't count the miror with numbers (/2)
+  for (var i = 0; i < ln - 2; i++) { // Remove the two last row for scroll (-2)
+    tableHTML += getSubTableTitle(GLOBAL.settings, settings[i][0], 'Settings!A' + (i + 1));
+    tableHTML += '<tr>';
+    for (var j = 1; j < settings[i].length; j++) {
+      tableHTML += i != 4 || j != 3 ?
+        getTableReadOnlyCell(contents, settings[i + ln][j]) :
+        getTableValidatableCell(id, contents, settings[i + ln][j], GLOBAL.allocationFormula, allocation);
+    }
+    tableHTML += '</tr>';
+  }
+
+  processTable(id, tableHTML);
+
+  // Set the scrolling panel
+  tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll"><table>';
+  tableHTML += '<tr>' + getTableReadOnlyCell(contents, contents.length - 1) + '</tr>'; // Dirty way to display the "Time since last update"
+  for (let i = 0; i < settings[ln - 2].length; ++i) {
+    tableHTML += '<tr>';
+    tableHTML += getTableReadOnlyContent(settings[ln - 2][i], false);
+    tableHTML += getTableReadOnlyContent(contents[settings[ln * 2 - 1][i] - 1][1], false);
+    tableHTML += '</tr>';
+  }
+
+  tableHTML += '</table></marquee>';
+  $('#scrollDiv').html(tableHTML);
+
+  if (isFirstLoading) {
+    displayElement('#loaderBar', false, 0); // Hide the loader bar
+    openTab(id, true); // Activate first tab as open by default
+  }
+}
+
+function updateInvestmentTable(id, contents) {
+  displayElement('#rebalanceButton', shouldRebalance(contents[contents.length - 1][GLOBAL.rebalCol]));
+
+  clearTransactionName();
+
+  var tags = [];
+
+  var row = contents.length;
+  var col = contents[0].length;
+  var tableHTML = getTableTitle(id, false, GLOBAL.rebalanceButtonToolTip, col - 1);
+  for (var i = 0; i < row; ++i) {
+    var bgcolor = i == row - 1 ? null :
+      contents[i][GLOBAL.tendencyCol].includes('BUY') ? 'lightgreen' :
+        contents[i][GLOBAL.tendencyCol].includes('SELL') ? 'lightcoral' :
+          null;
+    var color = bgcolor ? 'black' : null;
+    tableHTML += i == 0 ? '<thead>' : '';
+    tableHTML += i == 0 ? '<tr>' : '<tr title="' + contents[i][7] + '"' +
+      (bgcolor ? 'style="background-color:' + bgcolor + ';color:' + color + ';font-weight:bold;"' : '') + '>';
+    //for (var j = 0; j < contents[i].length; ++j)
+    for (var j of [0, 10, 12, 14, 18, 19, 22, 32, 23, 29, 34, 36, 45, 46, 47]) { // Select only the interesting columns
+      // Name = 7, Shares = 10, Price = 12, Sell = 14, Rebalance = 18, Provision = 19, Tendency = 22,
+      // Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 23 to 29, Trans profit = 32,
+      // Dist gap = 33, Avg price = 34, Avg gap = 35, Avg lm price = 36, Avg lm progress = 37,
+      // Next div dur = 45, Est div = 46, Div / month = 47
+      var con = i == 0 || j != 12 ?
+        i == 0 || j < 23 || j > 37 ?
+          contents[i][j] :
+          (contents[i][j] ? toCurrency(contents[i][j], 3) : '') + ' (' + contents[i][j + 1] + ')' :
+        contents[i][12] ?
+          toCurrency(contents[i][j], 4) : '';
+      var isDisabled = (j == 18 || j == 19 || j == GLOBAL.tendencyCol) &&
+        !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
+      tableHTML += j != 12 || i == 0 || i == row - 1 ?
+        getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color) :
+        getTableEditableContent(con, {
+          id: id,
+          range: 'Investment!M' + (i + 1),
+          required: true,
+          precision: 3,
+          min: toValue(con) * 0.75,
+          max: toValue(con) * 1.25,
+          type: 'euro'
+        });
+    }
+    tableHTML += '</tr>';
+    tableHTML += i == 0 ? '</thead><tbody>' : i == row - 2 ? '</tbody><tfoot>' : i == row - 1 ? '</tfoot>' : '';
+
+    if (i != 0 && i != row - 1) {
+      tags.push(contents[i][7]);
+      addTransactionName(contents[i][0], contents[i][7]);
+    }
+  }
+
+  addTransactionName('', GLOBAL.cost);
+  addTransactionName('', GLOBAL.approv);
+
+  processTable(id, tableHTML, true);
+
+  // $("#" + id + "Search").easyAutocomplete({ data: tags, list: { match: { enabled: true } } });
+  // $("#" + id + "Search").autocomplete({ source: tags });
+}
+
+function updateHistoricTable(id, contents) {
+  $('.validateButton').prop('disabled', true);
+
+  displayElement('#uploadButton', true);
+  displayElement('#addButton', true);
+  displayElement('#removeButton', indexOf(contents, GLOBAL.dummy, GLOBAL.histoIdCol));
+
+  var row = contents.length;
+  var col = contents[0].length;
+  var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
+  for (var i = 0; i < row; ++i) {
+    var isDummy = contents[i][GLOBAL.histoIdCol] == GLOBAL.dummy;
+    tableHTML += i == 0 ? '<thead>' : '';
+    tableHTML += !isDummy ?
+      '<tr>' :
+      '<tr style="background-color: red;">'; // Row becomes red if it is a dummy
+    for (var j = 0; j < col; ++j) {
+      var value = j < contents[i].length && contents[i][j] ?
+        j != 5 || i == 0 ?
+          contents[i][j] :
+          toCurrency(contents[i][j], 4) :
+        '';
+      tableHTML += j != GLOBAL.histoIdCol ? // Don't display the Historic ID
+        getTableReadOnlyContent(value, i == 0, false, isDummy ? 'black' : null) :
+        '';
+    }
+    tableHTML += '</tr>';
+    tableHTML += i == 0 ? '</thead><tbody>' : i == row - 2 ? '</tbody>' : '';
+  }
+
+  processTable(id, tableHTML, true);
+
+  $('.validateButton').prop('disabled', false);
+}
+
+function updateStandardTable(id, contents) {
+  const row = contents.length;
+  const col = contents[0].length;
+  var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
+  for (var i = 0; i < row; ++i) {
+    tableHTML += i == 0 ? '<thead>' : '';
+    tableHTML += '<tr>';
+    for (var j = 0; j < col; ++j) {
+      const c = contents[i][j];
+      const t = /(€|%|\$|\/|[^.\d])/.test(c) ? c : toCurrency(c, 4); // Transform to currency numbers without currency symbol
+      tableHTML += getTableReadOnlyContent(t, i == 0);
+    }
+    tableHTML += '</tr>';
+    tableHTML += i == 0 ? '</thead><tbody>' : i == row - 1 ? '</tbody>' : '';
+  }
+
+  processTable(id, tableHTML, true);
+}
+
 function rebalanceStocks() {
   //   updateValues(GLOBAL.displayData.investment.id);
   //
@@ -592,44 +788,6 @@ function cancelForm() {
   $('#mainFocus').focus();
 }
 
-function onKeyUp(e) {
-  if (!$('#addTransactionForm').is(':animated') &&
-    !$('#deleteTransactionForm').is(':animated') &&
-    !$('#uploadFileForm').is(':animated') &&
-    !$('#actionButton').is(':animated') &&
-    !$('#loaderOverlay').is(':visible')) {
-    if ($('#alertOverlay').is(':visible')) {
-      displayElement('#alertOverlay', false);
-    } else if (!$('#actionButton').is(':visible')) {
-      if (e.keyCode === 13) { // Enter
-        if ($('#addTransactionForm').is(':visible')) {
-          validateAddForm();
-        } else if ($('#deleteTransactionForm').is(':visible')) {
-          validateDeleteForm();
-        } else if ($('#uploadFileForm').is(':visible')) {
-          validateUploadForm();
-        }
-      } else if (e.keyCode === 27) { // Esc
-        cancelForm();
-      }
-    } else {
-      if (!$('input[type="number"]').is(':focus') && !$('input[type="text"]').is(':focus')) {
-        if (e.keyCode === 186) { // $
-          rebalanceStocks();
-        } else if (e.keyCode === 107 || e.keyCode === 187) { // +
-          addTransaction();
-        } else if (e.keyCode === 109 || e.keyCode === 189) { // -
-          deleteTransaction();
-        } else if (e.keyCode === 85) { // U
-          uploadAccountFile();
-        } else if (e.keyCode === 82) { // R
-          updateAllValues();
-        }
-      }
-    }
-  }
-}
-
 function addTransactionName(type, label) {
   $('#transactionName').append($('<option>', {
     title: type,
@@ -639,162 +797,4 @@ function addTransactionName(type, label) {
 
 function clearTransactionName() {
   $('#transactionName').children('option').remove();
-}
-
-function updateDashboardTable(id, contents) {
-  var settings = GLOBAL.data[GLOBAL.settings];
-  var tableHTML = getTableTitle(id);
-
-  var isFirstLoading = $('#' + id + 'Button').prop('disabled');
-
-  // Set the dashboard table
-  var allocation = contents[indexOf(contents, GLOBAL.requestedAllocation, 0)][1]; // Requested allocation
-  var ln = settings.length / 2; // Take the full sheet row count, don't count the miror with numbers (/2)
-  for (var i = 0; i < ln - 2; i++) { // Remove the two last row for scroll (-2)
-    tableHTML += getSubTableTitle(GLOBAL.settings, settings[i][0], 'Settings!A' + (i + 1));
-    tableHTML += '<tr>';
-    for (var j = 1; j < settings[i].length; j++) {
-      tableHTML += i != 4 || j != 3 ?
-        getTableReadOnlyCell(contents, settings[i + ln][j]) :
-        getTableValidatableCell(id, contents, settings[i + ln][j], GLOBAL.allocationFormula, allocation);
-    }
-    tableHTML += '</tr>';
-  }
-
-  processTable(id, tableHTML);
-
-  // Set the scrolling panel
-  tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
-  tableHTML += '<tr>' + getTableReadOnlyCell(contents, contents.length - 1) + '</tr>'; // Dirty way to display the "Time since last update"
-  for (let i = 0; i < settings[ln - 2].length; ++i) {
-    tableHTML += '<tr>';
-    tableHTML += getTableReadOnlyContent(settings[ln - 2][i], false);
-    tableHTML += getTableReadOnlyContent(contents[settings[ln * 2 - 1][i] - 1][1], false);
-    tableHTML += '</tr>';
-  }
-
-  tableHTML += '</table></marquee>';
-  $('#scrollDiv').html(tableHTML);
-
-  if (isFirstLoading) {
-    displayElement('#loaderBar', false, 0); // Hide the loader bar
-    openTab(id, true); // Activate first tab as open by default
-  }
-}
-
-function updateInvestmentTable(id, contents) {
-  displayElement('#rebalanceButton', shouldRebalance(contents[contents.length - 1][GLOBAL.rebalCol]));
-
-  clearTransactionName();
-
-  var tags = [];
-
-  var row = contents.length;
-  var col = contents[0].length;
-  var tableHTML = getTableTitle(id, false, GLOBAL.rebalanceButtonToolTip, col - 1);
-  for (var i = 0; i < row; ++i) {
-    var bgcolor = i == row - 1 ? null :
-      contents[i][GLOBAL.tendencyCol].includes('BUY') ? 'lightgreen' :
-        contents[i][GLOBAL.tendencyCol].includes('SELL') ? 'lightcoral' :
-          null;
-    var color = bgcolor ? 'black' : null;
-    tableHTML += i == 0 ? '<thead>' : '';
-    tableHTML += i == 0 ? '<tr>' : '<tr title="' + contents[i][7] + '"' +
-      (bgcolor ? 'style="background-color:' + bgcolor + ';color:' + color + ';font-weight:bold;"' : '') + '>';
-    //for (var j = 0; j < contents[i].length; ++j)
-    for (var j of [0, 10, 12, 14, 18, 19, 22, 32, 23, 29, 34, 36, 45, 46, 47]) { // Select only the interesting columns
-      // Name = 7, Shares = 10, Price = 12, Sell = 14, Rebalance = 18, Provision = 19, Tendency = 22,
-      // Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 23 to 29, Trans profit = 32,
-      // Dist gap = 33, Avg price = 34, Avg gap = 35, Avg lm price = 36, Avg lm progress = 37,
-      // Next div dur = 45, Est div = 46, Div / month = 47
-      var con = i == 0 || j != 12 ?
-        i == 0 || j < 23 || j > 37 ?
-          contents[i][j] :
-          (contents[i][j] ? toCurrency(contents[i][j], 3) : '') + ' (' + contents[i][j + 1] + ')' :
-        contents[i][12] ?
-          toCurrency(contents[i][j], 4) : '';
-      var isDisabled = (j == 18 || j == 19 || j == GLOBAL.tendencyCol) &&
-        !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
-      tableHTML += j != 12 || i == 0 || i == row - 1 ?
-        getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color) :
-        getTableEditableContent(con, {
-          id: id,
-          range: 'Investment!M' + (i + 1),
-          required: true,
-          precision: 3,
-          min: toValue(con) * 0.75,
-          max: toValue(con) * 1.25,
-          type: 'euro'
-        });
-    }
-    tableHTML += '</tr>';
-    tableHTML += i == 0 ? '</thead><tbody>' : i == row - 2 ? '</tbody><tfoot>' : i == row - 1 ? '</tfoot>' : '';
-
-    if (i != 0 && i != row - 1) {
-      tags.push(contents[i][7]);
-      addTransactionName(contents[i][0], contents[i][7]);
-    }
-  }
-
-  addTransactionName('', GLOBAL.cost);
-  addTransactionName('', GLOBAL.approv);
-
-  processTable(id, tableHTML, true);
-
-  // $("#" + id + "Search").easyAutocomplete({ data: tags, list: { match: { enabled: true } } });
-  // $("#" + id + "Search").autocomplete({ source: tags });
-}
-
-function updateHistoricTable(id, contents) {
-  $('.validateButton').prop('disabled', true);
-
-  displayElement('#uploadButton', true);
-  displayElement('#addButton', true);
-  displayElement('#removeButton', indexOf(contents, GLOBAL.dummy, GLOBAL.histoIdCol));
-
-  var row = contents.length;
-  var col = contents[0].length;
-  var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
-  for (var i = 0; i < row; ++i) {
-    var isDummy = contents[i][GLOBAL.histoIdCol] == GLOBAL.dummy;
-    tableHTML += i == 0 ? '<thead>' : '';
-    tableHTML += !isDummy ?
-      '<tr>' :
-      '<tr style="background-color: red;">'; // Row becomes red if it is a dummy
-    for (var j = 0; j < col; ++j) {
-      var value = j < contents[i].length && contents[i][j] ?
-        j != 5 || i == 0 ?
-          contents[i][j] :
-          toCurrency(contents[i][j], 4) :
-        '';
-      tableHTML += j != GLOBAL.histoIdCol ? // Don't display the Historic ID
-        getTableReadOnlyContent(value, i == 0, false, isDummy ? 'black' : null) :
-        '';
-    }
-    tableHTML += '</tr>';
-    tableHTML += i == 0 ? '</thead><tbody>' : i == row - 2 ? '</tbody>' : '';
-  }
-
-  processTable(id, tableHTML, true);
-
-  $('.validateButton').prop('disabled', false);
-}
-
-function updateStandardTable(id, contents) {
-  const row = contents.length;
-  const col = contents[0].length;
-  var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
-  for (var i = 0; i < row; ++i) {
-    tableHTML += i == 0 ? '<thead>' : '';
-    tableHTML += '<tr>';
-    for (var j = 0; j < col; ++j) {
-      const c = contents[i][j];
-      const t = /(€|%|\$|\/|[^.\d])/.test(c) ? c : toCurrency(c, 4); // Transform to currency numbers without currency symbol
-      tableHTML += getTableReadOnlyContent(t, i == 0);
-    }
-    tableHTML += '</tr>';
-    tableHTML += i == 0 ? '</thead><tbody>' : i == row - 1 ? '</tbody>' : '';
-  }
-
-  processTable(id, tableHTML, true);
 }

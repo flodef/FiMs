@@ -197,7 +197,7 @@ function init() {
     .getProperty('userId');
 }
 
-function onKeyUp(e) {}
+function onKeyUp() {}
 
 function updateAccountTable(id, contents) {
   const hasContent = contents;
@@ -306,7 +306,7 @@ function updatePersonalTable(id, contents) {
     }
 
     // Set the scrolling panel
-    tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll" style="width:250px;height:60px;margin:15px"><table>';
+    tableHTML = '<marquee direction="down" scrollamount="1" behavior="scroll"><table>';
     for (var i = totalCol; i >= depositCol; --i) {
       tableHTML += '<tr>';
       tableHTML += getTranslatedContent(contents[0][i]);
@@ -487,7 +487,7 @@ function updateDeposit() {
   // Send email reminder to myself
   const subject = title + ': ' + value + ' for ' + GLOBAL.user.ID;
   google.script.run
-    .withSuccessHandler(contents => insertHistoricRow(data))
+    .withSuccessHandler(() => insertHistoricRow(data))
     .withFailureHandler(displayError)
     .sendRecapEmail(subject);
 }
@@ -635,7 +635,7 @@ function updateWithdraw() {
 
   const subject = period + ' ' + title + ': ' + value + ' for ' + GLOBAL.user.ID + ' for the ' + date;
   google.script.run
-    .withSuccessHandler(contents => isUnique ? insertHistoricRow(data) : changeRecurrent(value))
+    .withSuccessHandler(() => isUnique ? insertHistoricRow(data) : changeRecurrent(value))
     .withFailureHandler(displayError)
     .sendRecapEmail(subject);
 }
@@ -678,7 +678,7 @@ function confirmation(content) {
     });
 }
 
-function confirmationValidation(result) {
+function confirmationValidation() {
   closePopup();
 }
 
@@ -700,7 +700,7 @@ function insertHistoricRow(data) {
     // Add data to the database
     data[0][0] = data[0][0] ? toStringDate(data[0][0], true) : ''; // Reverse date as the format is incorrect
     google.script.run
-      .withSuccessHandler(contents => setValue(GLOBAL.displayData.historic.formula.split('!')[0] + '!A2', data))
+      .withSuccessHandler(() => setValue(GLOBAL.displayData.historic.formula.split('!')[0] + '!A2', data))
       .withFailureHandler(displayError)
       .insertRows(GLOBAL.personalGID, data, {
         startRow: 1,

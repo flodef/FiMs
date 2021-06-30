@@ -74,6 +74,11 @@ a.button {
 }
 
 marquee {
+  width: 320px;
+  height: 60px;
+  margin: 15px;
+  font-weight: bold;
+  font-size: large;
   background-color: rgba(255, 255, 255, 0.8);
 }
 
