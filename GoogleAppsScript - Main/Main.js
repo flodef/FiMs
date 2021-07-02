@@ -480,29 +480,33 @@ function _updateInterest() {
 
 function _updateDividend() {
   // Get dividend from investment table
-  var sheet = _getSheet(INVESTMENT);
-  var array = sheet.getSheetValues(FR, FC, -1, Math.max(TYPE_COL, LABEL_COL, NEXTDIV_COL, ESTDIV_COL));
-  var today = _toDate();
-  var x = [];
+  let sheet = _getSheet(INVESTMENT);
+  const array = sheet.getSheetValues(FR, FC, -1, Math.max(TYPE_COL, LABEL_COL, NEXTDIV_COL, ESTDIV_COL));
+  const today = _toDate();
+  // const x = [];
 
   for (var i = 0; i < array.length; ++i) {
-    const div = _round(array[i][ESTDIV_COL-1], 2);
-    if (div > 0 && array[i][NEXTDIV_COL-1] && array[i][NEXTDIV_COL-1] <= today) {
-      x.push([today, array[i][TYPE_COL-1], array[i][LABEL_COL-1], 'DIVIDEND', '', '', div, DUMMY]);
-    } else if (div < 0) {
-      _sendMessage('Negative Dividend',
-        'There is a problem with a dividend. It should always be positive!');
+    if (array[i][NEXTDIV_COL-1] && array[i][NEXTDIV_COL-1] <= today) {
+      const div = _round(array[i][ESTDIV_COL-1], 2);
+      if (div >= 0) {
+        // x.push([today, array[i][TYPE_COL-1], array[i][LABEL_COL-1], 'DIVIDEND', '', '', div, div > 0 ? DUMMY : '']);
+        _insertHistoricRow(today, array[i][TYPE_COL-1], array[i][LABEL_COL-1],
+          'DIVIDEND', '', '', div, div > 0 ? DUMMY : '');
+      } else {
+        _sendMessage('Negative Dividend',
+          'There is a problem with a dividend. It should always be positive!');
+      }
     }
   }
 
   // Insert the monthly interest into the historic
-  if (x.length > 0) {
-    sheet = _getSheet(HISTORIC);
-    for (i = 0; i < x.length; ++i) {
-      var data = [x[i]];
-      _insertFirstRow(sheet, data, true);
-    }
-  }
+  // if (x.length > 0) {
+  //   sheet = _getSheet(HISTORIC);
+  //   for (i = 0; i < x.length; ++i) {
+  //     var data = [x[i]];
+  //     _insertFirstRow(sheet, data, true);
+  //   }
+  // }
 }
 
 function _updateValues() {
@@ -566,7 +570,7 @@ function _updateAllocation() {
     _insertHistoricRow(date, null, null, null, null, null, monint);  //(date, type, label, trans, quantity, price, value)
 
     // Insert the monthly interest into the historic
-    if (monpay > 0) {
+    if (monpay < 0) {
       date = _toDate();              // Get date without hours
       _insertHistoricRow(date, null, null, 'APPROVISIONNEMENT', null, null, monpay);  //(date, type, label, trans, quantity, price, value)
       _sendMessage('Account withdrawal: ' + monpay + ' €', '');
