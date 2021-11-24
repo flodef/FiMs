@@ -9,9 +9,8 @@ const SS = SpreadsheetApp.getActiveSpreadsheet();
 // DASHBOARD ROWS
 const MONPAY_ROW = 20;          // Should be the "Monthly payment" row
 const PORVAL_ROW = 38;          // Should be the "Current portfolio value" row
-const EONIA_ROW = 56;           // Should be the "EONIA" row
-const INTRAT_ROW = 57;          // Should be the "Interest rate" row
-const MONINT_ROW = 58;          // Should be the "Monthly interest" row
+const INTRAT_ROW = 56;          // Should be the "Interest rate" row
+const MONINT_ROW = 57;          // Should be the "Monthly interest" row
 
 // INVESTMENT COLS
 const TYPE_COL = 1;             // Should be the "Type" column
@@ -77,7 +76,6 @@ function nightlyUpdate() {
   if (d >= FD+1 && d <= LD+1) {  // add one day as the script is executed on the next night
     _updateEvolution();
     _updateInterest();
-    _updateValues();
   }
 }
 
@@ -509,27 +507,27 @@ function _updateDividend() {
   // }
 }
 
-function _updateValues() {
-  //'=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(query(importhtml("http://www.global-rates.com/interest-rates/eonia/eonia.aspx","table",19), "select Col2 limit 1 offset 0", 1),"%",""),",",".")/100))'
-  //'=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(query(importhtml("https://www.cbanque.com/placement/taux_livreta.php","table",1), "select Col2 limit 1 offset 1", 1),"%",""),",",".")/100))';
-  var col = 2;
-  var sheet = _getSheet(DASHBOARD);
-  _copyValue(sheet, EONIA_ROW, col, 'http://www.global-rates.com/interest-rates/eonia/eonia.aspx', 19, 0);
-}
+// function _updateValues() {
+//'=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(query(importhtml("http://www.global-rates.com/interest-rates/eonia/eonia.aspx","table",19), "select Col2 limit 1 offset 0", 1),"%",""),",",".")/100))'
+//'=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(query(importhtml("https://www.cbanque.com/placement/taux_livreta.php","table",1), "select Col2 limit 1 offset 1", 1),"%",""),",",".")/100))';
+//var col = 2;
+//var sheet = _getSheet(DASHBOARD);
+//_copyValue(sheet, EONIA_ROW, col, 'http://www.global-rates.com/interest-rates/eonia/eonia.aspx', 19, 0);
+// }
 
-function _copyValue(sheet, row, col, url, table, offset) {
-  var value = '=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(QUERY(IMPORTHTML("' + url + '","table",' + table + '), "select Col2 limit 1 offset ' + offset + '", 1),"%",""),",",".")/100))';
-  var range = sheet.getRange(row, col);
-
-  range.setValue(value);
-  do  {
-    value = range.getValue();
-  } while (_isLoading(value));
-
-  if (!_isError(value)) {
-    range.setValue(value);  // Copy only the value
-  }
-}
+// function _copyValue(sheet, row, col, url, table, offset) {
+//   var value = '=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(QUERY(IMPORTHTML("' + url + '","table",' + table + '), "select Col2 limit 1 offset ' + offset + '", 1),"%",""),",",".")/100))';
+//   var range = sheet.getRange(row, col);
+//
+//   range.setValue(value);
+//   do  {
+//     value = range.getValue();
+//   } while (_isLoading(value));
+//
+//   if (!_isError(value)) {
+//     range.setValue(value);  // Copy only the value
+//   }
+// }
 
 function _updateAllocation() {
   // Search if entries have already been added
