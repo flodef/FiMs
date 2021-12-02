@@ -136,13 +136,12 @@ GLOBAL.personalData = [{
 {
   index: 25,
   readonly: true,
-  type: 'name',
-  required: true
-}, // Association
+  type: 'name'
+}, // Succession
 {
   index: 26,
-  type: 'url'
-}, // Web page
+  type: 'radio'
+}, // Newsletter
 {
   index: 2,
   type: 'euro',
