@@ -140,7 +140,8 @@ GLOBAL.personalData = [{
 }, // Succession
 {
   index: 26,
-  type: 'radio'
+  type: 'name',  //type: 'radio'
+  required: true
 }, // Newsletter
 {
   index: 2,
