@@ -17,7 +17,7 @@ until [ $retry = "N" ]; do
   xdg-open $goo
   clear
 
-  for n in {15..0}; do
+  for n in {55..0}; do
     echo "Waiting for file to be downloaded ..."
     echo $n secondes restantes
     sleep 1
