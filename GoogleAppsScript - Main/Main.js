@@ -331,7 +331,7 @@ function _processStockTrade(thread) {
           var type = array[row][TYPE_COL-1];
 
           if (cost != 0) {
-            _insertHistoricRow(date, type, label, null, null, null, cost);  //(date, type, label, trans, quantity, price, value, tag)
+            _insertHistoricRow(date, type, label, null, null, null, cost);
           }
 
           var trans = amount < 0 ? 'BUY' : 'SELL';
@@ -339,7 +339,7 @@ function _processStockTrade(thread) {
           var price = _round(Math.abs(amount / quantity), 4);
           var value = amount;
           var tag = cur == 'EUR' ? null : DUMMY;  // Add dummy if currency is not Euro, as the exchange rate fee is not known
-          _insertHistoricRow(date, type, label, trans, quantity, price, value, tag);  //(date, type, label, trans, quantity, price, value, tag)
+          _insertHistoricRow(date, type, label, trans, quantity, price, value, tag);
 
           ++ta;
         } else {
@@ -565,13 +565,13 @@ function _updateAllocation() {
     // Insert the monthly interest into the historic
     date = _toDate();              // Get date without hours
     date.setDate(date.getDate() - 1);  // Yesterday's date as interest are added for the last day of the previous month
-    _insertHistoricRow(date, null, null, null, null, null, monint);  //(date, type, label, trans, quantity, price, value)
+    _insertHistoricRow(date, null, null, null, null, null, monint);
 
-    // Insert the monthly interest into the historic
+    // Insert the monthly approvisionnement into the historic
     if (monpay < 0) {
       date = _toDate();              // Get date without hours
-      _insertHistoricRow(date, null, null, 'APPROVISIONNEMENT', null, null, monpay);  //(date, type, label, trans, quantity, price, value)
-      _sendMessage('Account withdrawal: ' + monpay + ' €', '');
+      _insertHistoricRow(date, null, null, 'APPROVISIONNEMENT', null, null, monpay, DUMMY);
+      //_sendMessage('Account withdrawal: ' + monpay + ' €', '');
     }
   }
 }

@@ -12,8 +12,6 @@ const ASSCHAR_COL = 4;          // Should be the "Charity" column
 const ASSDEPO_COL = 10;          // Should be the "Deposit" column
 const ASSTOTAL_COL = 14;         // Should be the "Total" column
 const ASSMAIL_COL = 15;          // Should be the "EMail" column
-const ASSASSO_COL = 25;          // Should be the "Association" column
-const ASSLINK_COL = 26;          // Should be the "Web Page" column
 
 // SHEET NAMES
 const ASSOCIATE = 'Associate';      // The "Associate" sheet name
@@ -101,28 +99,23 @@ function sendCharity() {
       const name = associateArray[i][ASSNAME_COL-1];
       const char = associateArray[i][ASSCHAR_COL-1];
       const mail = associateArray[i][ASSMAIL_COL-1];
-      const assoc = associateArray[i][ASSASSO_COL-1];
-      const link = associateArray[i][ASSLINK_COL-1];
 
       // Send charity message if amount < 1
       if (char <= -1) {
         const money = _round(-char, 2, ' €');
         const message = 'Cher(e) ' + name + ',\n\n'
         + 'Tout d\'abord, mes meilleurs voeux pour cette nouvelle année qui commence, je l\'espère, le plus magnifiquement pour toi.\n\n'
-        + 'Comme chaque année, je tiens tout particulièrement à reverser 5,5% des gains récoltés par notre projet de financement participatif.\n'
+        + 'Comme chaque année, je tiens tout particulièrement à reverser 10% des gains récoltés par notre projet de financement participatif.\n'
         + 'Cette année, ce pourcentage représente la somme de ' + money + ' !\n\n'
-        + (assoc
-          ? 'C\'est déjà ça de gagné pour l\'association "' + assoc + '", que tu as choisie. Un énorme merci pour elle.\n'
-           + 'J\'attends le justificatif de ton don, don que tu peux faire grâce au lien suivant : ' + link + '\n'
-          : 'Malheureusement, tu n\'as pas (encore) choisie d\'association à qui effectuer un don ... N\'hésite pas à me contacter sous peu afin de changer ça !\n')
-        + 'Sans réponse de ta part, je ferai ce don à ta place pour l\'association de mon choix (Les Restos du Coeur) d\'ici le 31 janvier.\n\n'
+        + 'Tu recevras donc très prochainement cet argent sur ton compte.\n'
+        + 'Libre à toi de le verser ou non à l\'association ou personne de ton choix.\n\n'
         + 'Enfin, toute ma reconnaissance pour ta confiance et ton investissement qui aide, à notre échelle, l\'épanouissement de l\'économie locale et solidaire.\n\n'
         + 'Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n'
         + 'Flo';
 
         GmailApp.sendEmail(mail, object, message);
 
-        recap += ' - ' + name + ' (' + mail + ') : don de '+ money + (assoc ? ' à "' + assoc + '" (' + link + ')' : '') + '\n';
+        recap += ' - ' + name + ' (' + mail + ') : don de '+ money + '\n';
       }
     }
 
