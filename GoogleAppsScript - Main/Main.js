@@ -42,7 +42,7 @@ const PRICE = 'Price';           // The "Price" sheet name
 // WEB LINKS
 const SSLINK = 'https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw/edit#gid=';
 const DEGLINK = 'https://trader.degiro.nl/login/fr#/login';
-const APPLINK = 'https://goo.gl/amjmSv';
+const APPLINK = 'https://bit.ly/FiMsMain';
 
 // VARIOUS
 const MAIL = 'fdefroco@gmail.com';
@@ -400,7 +400,12 @@ function _sendEvolution() {
     array = sheet.getSheetValues(1, FC, 2, -1);
 
     for (var i = 5; i < array[0].length; ++i) {
-      msg += array[0][i] + ': ' + _round(array[1][i], 2, ' €') + '\n';
+      const label = array[0][i];
+      const value = array[1][i];
+      const isRate = label.toLowerCase().includes('rate')
+        || label.toLowerCase().includes('ratio');
+      msg += label + ': '
+        + (isRate ? _round(value*100, 0, ' %') : _round(value, 2, ' €')) + '\n';
     }
     msg += APPLINK;
 
