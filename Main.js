@@ -28,7 +28,7 @@ GLOBAL.displayData = {
   },
   'investment': {
     id: 'investment',
-    formula: 'Investment!A:AV',
+    formula: 'Investment!A:AW',
     updateTable: updateInvestmentTable
   },
   'historic': {
@@ -239,11 +239,11 @@ function updateInvestmentTable(id, contents) {
     tableHTML += i == 0 ? '<tr>' : '<tr title="' + contents[i][7] + '"' +
       (bgcolor ? 'style="background-color:' + bgcolor + ';color:' + color + ';font-weight:bold;"' : '') + '>';
     //for (var j = 0; j < contents[i].length; ++j)
-    for (var j of [0, 10, 12, 14, 18, 19, 22, 32, 23, 29, 34, 36, 45, 46, 47]) { // Select only the interesting columns
+    for (var j of [0, 10, 12, 14, 18, 19, 22, 32, 23, 29, 34, 36, 38, 46, 47, 48]) { // Select only the interesting columns
       // Name = 7, Shares = 10, Price = 12, Sell = 14, Rebalance = 18, Provision = 19, Tendency = 22,
       // Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 23 to 29, Trans profit = 32,
       // Dist gap = 33, Avg price = 34, Avg gap = 35, Avg lm price = 36, Avg lm progress = 37,
-      // Next div dur = 45, Est div = 46, Div / month = 47
+      // Price rate = 38, Next div dur = 46, Est div = 47, Div / month = 48
       var con = i == 0 || j != 12 ?
         i == 0 || j < 23 || j > 37 ?
           contents[i][j] :
