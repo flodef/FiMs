@@ -4,7 +4,7 @@ updateAllValues, processTable, getTableValidatableCell, getTableReadOnlyCell,
 getTableEditableContent, getSubTableTitle, getTableCheckmark, getTableLoaderBar,
 getTableImage, toggleItem, getElementValidity, selectName, setValue, overDisplay,
 executionSuccess, getPopupContent, addPopupButtonEvent, shouldRebalance,
-addDaysToDate, getNextMonthDate, getDaysBetweenDate, restrainFormula */
+addDaysToDate, getNextMonthDate, getDaysBetweenDate, restrainFormula, finishLoading */
 
 /**
  * Functions that are shared between main app and associate app.
@@ -58,8 +58,10 @@ function loadPage() {
 
   $('#mainContent').html(mainContentHTML); // Set the app main content
 
-  setTabContainer(tabContainerHTML);
-  displayElement('.tabContent', false, 0);
+  $('#tabContainer').html(tabContainerHTML); // Set the tab buttons content
+  $('.tabLinks').css('width', 100 / GLOBAL.displayId.length + '%'); // Tab buttons should be centered
+  displayElement('.tabLinks', false, 0);    // Hide the tab buttons
+  displayElement('.tabContent', false, 0);  // Hide the tab content
 
   // Set the footer
   $('#footer').html('<table style="table-layout:fixed;"><tr>' +
@@ -126,12 +128,18 @@ function closePopup(complete = () => {}) {
 
 function processTable(id, tableHTML, shouldFilter) {
   setTable(id, tableHTML + (shouldFilter && !tableHTML.includes('<tfoot>') ? '<tfoot><tr id="' + id + 'Footer"></tr></tfoot>' : ''));
-  $('#' + id + 'Button').prop('disabled', false); // Activate button
+  displayElement('#' + id + 'Button', true);      // Show button
   $('.auto').each((i, item) => autoAdaptWidth(item)); // Auto adapt all auto element
 
   if (shouldFilter) {
     filterTable(id);
   }
+}
+
+function finishLoading(id, isFirstLoading) {
+  displayElement('#loaderBar', false, 0); // Hide the loader bar
+  displayElement('#tabContainer', true);  // Display the tab container
+  openTab(id, isFirstLoading);            // Activate first tab as open by default
 }
 
 function getTableValidatableCell(id, contents, index, range, expected) {
@@ -271,7 +279,7 @@ function getSubTableTitle(id, title, range) {
 
 function getTitle(id) {
   const title = translate(id);
-  return '<button disabled id="' + id + 'Button" class="tabLinks" onclick="openTab(\'' + id + '\')">' +
+  return '<button id="' + id + 'Button" class="tabLinks" onclick="openTab(\'' + id + '\')">' +
     toFirstUpperCase(title) + '</button>';
 }
 
@@ -402,11 +410,6 @@ function setEvents() {
     });
 }
 
-function setTabContainer(innerHTML) {
-  $('#tabContainer').html(innerHTML); // Set the tab buttons content
-  $('.tabLinks').css('width', 100 / GLOBAL.displayId.length + '%'); // Tab buttons should be centered
-}
-
 function toggleItem(id, item, shouldDisplay) {
   const isCurrentId = item.id == id;
   displayElement(item, shouldDisplay && isCurrentId, isCurrentId ? 1000 : 0);
@@ -495,7 +498,6 @@ function getValue(data, func, forceReload, success) {
 
       if (id && !GLOBAL.loadingQueueCount && GLOBAL.displayId.includes(id)) {
         setEvents(); // Set events when everything has been loaded
-        displayElement('#tabContainer', true); // Display the tab container
       }
     };
 

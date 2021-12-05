@@ -1,9 +1,10 @@
 /*global GLOBAL, google, $, getValue, loadPage, displayError, getTableTitle, processTable,
-displayElement, toStringDate, getTableCheckmark, getTableImage, getTableLoaderBar, indexOf, toValue,
-translate, setHtml, getLink, openTab, getPopupContent, openPopup, addPopupButtonEvent, closePopup,
-animateLoaderBar, updateAllValues, updateValues, toCurrency, getTableReadOnlyContent, toFirstUpperCase,
-getTranslateData, getDiv, getDaysBetweenDate, getNextMonthDate, showSnackBar, addDaysToDate, roundDown,
-setEvents, setValue, isEditableInput, getTableEditableContent */
+displayElement, toStringDate, getTableCheckmark, getTableImage, getTableLoaderBar,
+indexOf, toValue, translate, setHtml, getLink, openTab, getPopupContent, openPopup,
+addPopupButtonEvent, closePopup, animateLoaderBar, updateAllValues, updateValues,
+toCurrency, getTableReadOnlyContent, toFirstUpperCase, getTranslateData, getDiv,
+getDaysBetweenDate, getNextMonthDate, showSnackBar, addDaysToDate, roundDown,
+setEvents, setValue, isEditableInput, getTableEditableContent, finishLoading */
 /* exported init, onKeyUp, connect, userIdValidation, depositAmountValidation, withdrawAmountValidation,
 confirmationValidation, printHtml */
 
@@ -352,8 +353,7 @@ function updateFaqTable(id, contents) {
 
 function openTabAfterConnect(id) {
   if (!GLOBAL.currentDisplayedId || GLOBAL.currentDisplayedId == GLOBAL.displayData.FAQ.id) {
-    displayElement('#loaderBar', false, 0); // Hide the loader bar
-    openTab(id);
+    finishLoading(id);
   }
 }
 

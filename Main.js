@@ -1,8 +1,9 @@
-/* global GLOBAL, $, google, restrainFormula, updateAllValues, loadPage, getMenuButton, displayElement,
-getValue, overDisplay, toStringDate, displayError, setValue, executionSuccess, updateValues, indexOf,
-showLoader, toValue, toCurrency, getTableTitle, getSubTableTitle, getTableReadOnlyCell,
-getTableValidatableCell, processTable, getTableReadOnlyContent, openTab, shouldRebalance, getColor,
-getTableEditableContent, selectName */
+/* global GLOBAL, $, google, restrainFormula, updateAllValues, loadPage,
+getMenuButton, displayElement, getValue, overDisplay, toStringDate, displayError,
+setValue, executionSuccess, updateValues, indexOf, showLoader, toValue, toCurrency,
+getTableTitle, getSubTableTitle, getTableReadOnlyCell, getTableValidatableCell,
+processTable, getTableReadOnlyContent, openTab, shouldRebalance, getColor,
+getTableEditableContent, selectName, finishLoading */
 /* exported init, onKeyUp */
 
 GLOBAL.cost = 'COST';
@@ -182,7 +183,7 @@ function updateDashboardTable(id, contents) {
   var settings = GLOBAL.data[GLOBAL.settings];
   var tableHTML = getTableTitle(id);
 
-  var isFirstLoading = $('#' + id + 'Button').prop('disabled');
+  var isFirstLoading = $('#' + id + 'Button').is(':hidden');
 
   // Set the dashboard table
   var allocation = contents[indexOf(contents, GLOBAL.requestedAllocation, 0)][1]; // Requested allocation
@@ -214,8 +215,7 @@ function updateDashboardTable(id, contents) {
   $('#scrollDiv').html(tableHTML);
 
   if (isFirstLoading) {
-    displayElement('#loaderBar', false, 0); // Hide the loader bar
-    openTab(id, true); // Activate first tab as open by default
+    finishLoading(id, isFirstLoading);
   }
 }
 
