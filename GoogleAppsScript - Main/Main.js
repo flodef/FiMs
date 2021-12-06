@@ -104,8 +104,6 @@ function updatePrice() {
   }
 }
 
-//=IMPORTXML("https://www.investing.com/etfs/"&$D2,"//title")
-//=TRIM(INDEX(IMPORTXML("https://www.investing.com/etfs/"&$D2,"//span[@class='elp']"),4,1))
 function cachePrice() {
   if (_isMarketOpen()) {
     var sheet = _getSheet(INVESTMENT);
@@ -206,7 +204,6 @@ function _processAccountBalance(thread) {
   var sheet = _getSheet(BANKACC);
   var range = sheet.getDataRange();
   var label = range.getNotes();
-  // var lr = label.length;
   var lc = label[0].length;
 
   var messages = thread.getMessages();
@@ -456,8 +453,8 @@ function _updateInterest() {
   // Get current date
   sheet = _getSheet(INTEREST);
   var array = sheet.getSheetValues(FR, FC, -1, 1);
-  var d = _toDate();      // Get date without hours to match range's date
-  d.setDate(d.getDate() - 1);  // Yesterday's date as script is executed the next night
+  var d = _toDate();            // Get date without hours to match range's date
+  d.setDate(d.getDate() - 1);   // Yesterday's date as script is executed the next night
 
   // Retrieve current & last columns
   var i = -1;
@@ -492,7 +489,6 @@ function _updateDividend() {
     if (array[i][NEXTDIV_COL-1] && array[i][NEXTDIV_COL-1] <= today) {
       const div = _round(array[i][ESTDIV_COL-1], 2);
       if (div >= 0) {
-        // x.push([today, array[i][TYPE_COL-1], array[i][LABEL_COL-1], 'DIVIDEND', '', '', div, div > 0 ? DUMMY : '']);
         _insertHistoricRow(today, array[i][TYPE_COL-1], array[i][LABEL_COL-1],
           'DIVIDEND', '', '', div, div > 0 ? DUMMY : '');
       } else {
@@ -501,27 +497,16 @@ function _updateDividend() {
       }
     }
   }
-
-  // Insert the monthly interest into the historic
-  // if (x.length > 0) {
-  //   sheet = _getSheet(HISTORIC);
-  //   for (i = 0; i < x.length; ++i) {
-  //     var data = [x[i]];
-  //     _insertFirstRow(sheet, data, true);
-  //   }
-  // }
 }
 
 // function _updateValues() {
 //'=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(query(importhtml("http://www.global-rates.com/interest-rates/eonia/eonia.aspx","table",19), "select Col2 limit 1 offset 0", 1),"%",""),",",".")/100))'
-//'=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(query(importhtml("https://www.cbanque.com/placement/taux_livreta.php","table",1), "select Col2 limit 1 offset 1", 1),"%",""),",",".")/100))';
 //var col = 2;
 //var sheet = _getSheet(DASHBOARD);
 //_copyValue(sheet, EONIA_ROW, col, 'http://www.global-rates.com/interest-rates/eonia/eonia.aspx', 19, 0);
 // }
 
 // function _copyValue(sheet, row, col, url, table, offset) {
-//   var value = '=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(QUERY(IMPORTHTML("' + url + '","table",' + table + '), "select Col2 limit 1 offset ' + offset + '", 1),"%",""),",",".")/100))';
 //   var range = sheet.getRange(row, col);
 //
 //   range.setValue(value);
@@ -635,10 +620,6 @@ function _checkPriceDiff(array) {
 // ************************************
 
 function _getSheet(sheetName) {
-//  var sheet = SpreadsheetApp.getActiveSheet();
-//  return sheet && sheet.getName() == sheetName
-//  ? sheet
-//  : SpreadsheetApp.setActiveSheet(SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName));
   return SS.getSheetByName(sheetName);
 }
 
