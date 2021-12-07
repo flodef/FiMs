@@ -17,9 +17,9 @@ const TYPE_COL = 1;             // Should be the "Type" column
 const ISIN_COL = 6;             // Should be the "Isin" column
 const LABEL_COL = 8;            // Should be the "Label" column
 const PRICE_COL = 12;           // Should be the "Price" column
-const LASTUPD_COL = 43;         // Should be the "Last upd" column
-const NEXTDIV_COL = 45;         // Should be the "Next div" column
-const ESTDIV_COL = 47;          // Should be the "Est div" column
+const LASTUPD_COL = 44;         // Should be the "Last upd" column
+const NEXTDIV_COL = 46;         // Should be the "Next div" column
+const ESTDIV_COL = 48;          // Should be the "Est div" column
 
 // ALLOCATION ROWS
 const CURALL_ROW = 12;          // Should be the "Current allocation" row
