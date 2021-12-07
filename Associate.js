@@ -51,6 +51,12 @@ GLOBAL.displayData = {
     loadOnce: true,
     filter: 1
   },
+  'global': {
+    id: 'global',
+    formula: 'Dashboard!A:B',
+    updateTable: updateGlobalTable,
+    loadOnce: true
+  },
   'FAQ': {
     id: 'FAQ',
     formula: 'FAQ!A:B',
@@ -176,6 +182,7 @@ GLOBAL.personalData = [{
   disabled: true
 }, // Duration
 ];
+GLOBAL.globalData = [36, 37, 33, 1, 57, 55, 21, 31, 32, 35, 39, 40, 52, 58, 59, 62, 63, 64, 70];
 
 GLOBAL.user = [];
 
@@ -326,6 +333,32 @@ function updatePersonalTable(id, contents) {
   displayElement('#' + id + 'Button', hasContent, 0); // Hide this tab if empty
   displayElement('#depositButton', hasContent); // Show the deposit button
   displayElement('#withdrawButton', GLOBAL.totalValue > 0); // Show the withdraw button
+}
+
+function updateGlobalTable(id, contents) {
+  const hasContent = contents && contents.length > 1;
+  if (hasContent) {
+    var tableHTML = getTableTitle(id);
+
+    GLOBAL.globalData.forEach(i => {
+      --i;  // Hack to handle the difference between spreadsheet column and array index
+      const item =
+      {
+        value: translate(contents[i][1]),
+        readonly: true
+      };
+
+      tableHTML += '<tr>';
+      tableHTML += getTranslatedContent(contents[i][0], false, item);
+      tableHTML += '</tr>';
+    });
+
+    processTable(id, tableHTML);
+    openTabAfterConnect(id);
+
+  }
+
+  displayElement('#' + id + 'Button', hasContent, 0); // Hide this tab if empty
 }
 
 function updateFaqTable(id, contents) {
