@@ -152,15 +152,16 @@ function getTableReadOnlyCell(contents, index) {
     getTableReadOnlyContent(contents[index - 1][1], false);
 }
 
-function getTableReadOnlyContent(content = '', isHeader, isDisabled, color) {
+function getTableReadOnlyContent(content = '', isHeader, isDisabled, color, tooltip) {
+  const html = getTooltip(content, tooltip);
   if (!isHeader) {
     const matches = /\(([^)]+)\)/.exec(content);
     const value = matches ? matches[matches.length - 1] : content;
     const isCur = /(€|%|\$)/.test(value);
     color = getColor(value, isDisabled, isCur, color);
-    return '<td align="center" style="color:' + color + '">' + content + '</td>';
+    return '<td align="center" style="color:' + color + '">' + html + '</td>';
   } else {
-    return '<th align="center">' + content + '</th>';
+    return '<th align="center">' + html + '</th>';
   }
 }
 
@@ -688,8 +689,8 @@ function getTranslateData(content) {
     };
     if (!isNaN(content.replace(/€|%|,/g, ''))) { // Numbers
       [',', '.'].forEach(fnb);
-    } else if (/\d/.test(content) && (content.includes('month') || content.includes('year'))) { // Duration
-      ['months', 'year'].forEach(fnb);
+    } else if (/\d/.test(content) && (content.includes('day') || content.includes('month') || content.includes('year'))) { // Duration
+      ['day', 'months', 'year'].forEach(fnb);
     } else { // Text
       const num = content.replace(/^[^0-9€%]+|[^0-9€%]+$/g, ''); // Extranct number and symbols from content
       const trans = num ? content.replace(num, '*') : content; // Replace number by * to find translation

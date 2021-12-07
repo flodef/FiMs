@@ -524,6 +524,9 @@ input:checked + .slider:before {
   margin-left: -60px;
   opacity: 0;
   transition: opacity 3s;
+  font-size: small;
+  font-weight: normal;
+  line-height: 20px;
 }
 
 .tooltip .tooltiptext::after {

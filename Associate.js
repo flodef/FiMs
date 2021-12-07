@@ -1,10 +1,11 @@
-/*global GLOBAL, google, $, getValue, loadPage, displayError, getTableTitle, processTable,
+/*global GLOBAL, google, $, getValue, loadPage, displayError, getTableTitle,
 displayElement, toStringDate, getTableCheckmark, getTableImage, getTableLoaderBar,
 indexOf, toValue, translate, setHtml, getLink, openTab, getPopupContent, openPopup,
 addPopupButtonEvent, closePopup, animateLoaderBar, updateAllValues, updateValues,
 toCurrency, getTableReadOnlyContent, toFirstUpperCase, getTranslateData, getDiv,
 getDaysBetweenDate, getNextMonthDate, showSnackBar, addDaysToDate, roundDown,
-setEvents, setValue, isEditableInput, getTableEditableContent, finishLoading */
+setEvents, setValue, isEditableInput, getTableEditableContent, finishLoading,
+processTable, getTooltip */
 /* exported init, onKeyUp, connect, userIdValidation, depositAmountValidation, withdrawAmountValidation,
 confirmationValidation, printHtml */
 
@@ -736,12 +737,14 @@ function getTranslatedContent(content, isHeader, data) {
       (data.style ?? '');
   }
 
-  return isReadOnly ?
-    getTableReadOnlyContent(content, isHeader).replace(content, isHeader ?
-      '<div class="tooltip">' + d.text + (d.tooltip ? '<span class="tooltiptext">' + d.tooltip + '</span>' : '') + '</div>' :
-      d.text) :
-    '<td><h2 style="cursor:default;line-height:45px;">' + d.text + '</h2></td>' +
-    (data.readonly || data.disabled ? getTableReadOnlyContent(data.value) : getTableEditableContent(data.value, data));
+  return isReadOnly
+    ? getTableReadOnlyContent(content, isHeader).replace(content, isHeader
+      ? getTooltip(d.text, d.tooltip) : d.text)
+    : '<td><h2 style="cursor:default;line-height:45px;">'
+      + getTooltip(d.text, d.tooltip) + '</h2></td>'
+      + (data.readonly || data.disabled
+        ? getTableReadOnlyContent(data.value, null, null, null, data.tooltip)
+        : getTableEditableContent(data.value, data));
 }
 
 function CreateAckDebt() {
