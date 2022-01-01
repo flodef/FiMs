@@ -94,13 +94,14 @@ function sendCharity() {
 
     const object = 'Don annuel à une oeuvre de charité';
     var recap = 'Liste des dons :\n';
+    var total = 0;
     for (var i = 0; i < associateArray.length; ++i) {
       // Retrieve associate account data
       const name = associateArray[i][ASSNAME_COL-1];
       const char = associateArray[i][ASSCHAR_COL-1];
       const mail = associateArray[i][ASSMAIL_COL-1];
 
-      // Send charity message if amount < 1
+      // Send charity message if amount <= -1
       if (char <= -1) {
         const money = _round(-char, 2, ' €');
         const message = 'Cher(e) ' + name + ',\n\n'
@@ -115,11 +116,13 @@ function sendCharity() {
 
         GmailApp.sendEmail(mail, object, message);
 
+        total += -char;
         recap += ' - ' + name + ' (' + mail + ') : don de '+ money + '\n';
       }
     }
 
     // Recap message send to myself
+    recap += '\nTOTAL = ' + _round(total, 2, ' €');
     _sendMessage(object, recap);
   }
 }
