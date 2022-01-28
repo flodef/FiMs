@@ -33,7 +33,7 @@ GLOBAL.withdrawDateOption = ['Start of next month', 'Immediat'];
 GLOBAL.displayData = {
   'account': {
     id: 'account',
-    formula: '!A:N',
+    formula: '!A:N13',
     updateTable: updateAccountTable,
     loadOnce: true
   },

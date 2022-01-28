@@ -34,22 +34,22 @@ GLOBAL.displayData = {
   },
   'historic': {
     id: 'historic',
-    formula: restrainFormula('Historic!A:J'),
+    formula: restrainFormula('Historic!A:J', 0, 100),
     updateTable: updateHistoricTable
   },
   'evolution': {
     id: 'evolution',
-    formula: restrainFormula('Evolution!A:K'),
+    formula: restrainFormula('Evolution!A:K', 0, 100),
     updateTable: updateStandardTable
   },
   'price': {
     id: 'price',
-    formula: restrainFormula('Price!A:G'),
+    formula: restrainFormula('Price!A:G', 0, 100),
     updateTable: updateStandardTable
   },
   'allocation': {
     id: 'allocation',
-    formula: restrainFormula('AllocationHistoric!A:P'),
+    formula: restrainFormula('AllocationHistoric!A:P', 0, 12),
     updateTable: updateStandardTable
   }
 };

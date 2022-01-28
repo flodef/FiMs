@@ -595,7 +595,7 @@ function refreshTotal(id) {
 
   if (calculateFunc) {
     var items;
-    var max = !$('#' + id + 'Filter').is(':checked') ?
+    var max = $('#' + id + 'Filter').is(':checked') ?
       GLOBAL.dataPreloadRowLimit : $('#' + id + 'Table tbody tr').length;
     var elem = $('#' + id + 'Table tbody tr:visible').length == 0 ?
       $('#' + id + 'Table tbody tr:lt(' + max + ')') :
@@ -865,7 +865,7 @@ function restrainFormula(formula, low, high) {
   if (low != -1 && high != -1) {
     var a = formula.split(':');
     a[0] += low > 1 ? low : 1;
-    a[1] += high > 1 ? high : GLOBAL.dataPreloadRowLimit + 1;
+    a[1] += high > 1 ? high + 1 : GLOBAL.dataPreloadRowLimit + 1;
     formula = a[0] + ':' + a[1];
   }
 
