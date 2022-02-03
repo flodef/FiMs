@@ -44,7 +44,7 @@ GLOBAL.displayData = {
   },
   'price': {
     id: 'price',
-    formula: restrainFormula('Price!A:G', 0, 300),
+    formula: restrainFormula('Price!A:G', 0, 500),
     updateTable: updateStandardTable
   },
   'allocation': {
