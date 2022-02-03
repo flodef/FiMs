@@ -5,7 +5,7 @@ addPopupButtonEvent, closePopup, animateLoaderBar, updateAllValues, updateValues
 toCurrency, getTableReadOnlyContent, toFirstUpperCase, getTranslateData, getDiv,
 getDaysBetweenDate, getNextMonthDate, showSnackBar, addDaysToDate, roundDown,
 setEvents, setValue, isEditableInput, getTableEditableContent, finishLoading,
-processTable, getTooltip */
+processTable, getTooltip, restrainFormula */
 /* exported init, onKeyUp, connect, userIdValidation, depositAmountValidation, withdrawAmountValidation,
 confirmationValidation, printHtml */
 
@@ -33,7 +33,7 @@ GLOBAL.withdrawDateOption = ['Start of next month', 'Immediat'];
 GLOBAL.displayData = {
   'account': {
     id: 'account',
-    formula: '!A:N13',
+    formula: '!A:N',
     updateTable: updateAccountTable,
     loadOnce: true
   },
@@ -440,7 +440,8 @@ function setUserId(id) {
 
     if (id) {
       displayElement('#tabContainer', false, 0); // Hide the tab container
-      GLOBAL.displayData.account.formula = id + '!' + GLOBAL.displayData.account.formula.split('!')[1]; // Create user account formula
+      GLOBAL.displayData.account.formula = restrainFormula(id + '!' +
+        GLOBAL.displayData.account.formula.split('!')[1], 0, 12); // Create user account formula
       updateAllValues();
     } else { // No user
       displayElement('#depositButton', false, 0); // Hide the deposit button
