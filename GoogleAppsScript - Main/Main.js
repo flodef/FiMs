@@ -46,6 +46,7 @@ const APPLINK = 'https://bit.ly/FiMsMain';
 
 // VARIOUS
 const MAIL = 'fdefroco@gmail.com';
+const URGMAIL = 'flodef@pm.me';
 const LOADING = 'Loading...';
 const DUMMY = 'XXXXXX';
 const FR = 2;     // First Row
@@ -184,7 +185,7 @@ function processMail() {
         if (time >= 60 || value != row[1]) {
           t = [value, x];
           shouldDelete = true;
-          _sendMessage(row[3], row[4].replace('$X', value).replace('$DEGLINK', DEGLINK).replace('$APPLINK', APPLINK));
+          _sendMessage(row[3], row[4].replace('$X', value).replace('$DEGLINK', DEGLINK).replace('$APPLINK', APPLINK), true);
         }
       } else {
         t = [null, null];
@@ -750,6 +751,6 @@ function _archiveMessage(thread, shouldDelete) {
   }
 }
 
-function _sendMessage(object, message) {
-  GmailApp.sendEmail(MAIL, object, message);
+function _sendMessage(object, message, isUrgent) {
+  GmailApp.sendEmail(MAIL + (isUrgent ? ',' + URGMAIL : ''), object, message);
 }
