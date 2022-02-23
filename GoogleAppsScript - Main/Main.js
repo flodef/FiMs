@@ -552,7 +552,7 @@ function _updateAllocation() {
     _setRangeValues(allocSheet, 3, FC, [allocArray[1]]);    // Copy only values into previous row (archive)
 
     var date = _toStringDate();
-    var data = [[date, portValue, portValue+assValue, alloc]];
+    var data = [[date, portValue+assValue, portValue, alloc]];
     _insertFirstRow(allocSheet, data);
 
     // Insert the monthly interest into the historic
