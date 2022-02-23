@@ -34,12 +34,12 @@ GLOBAL.displayData = {
   },
   'historic': {
     id: 'historic',
-    formula: restrainFormula('Historic!A:J', 0, 100),
+    formula: restrainFormula('Historic!A:J', 0, 300),
     updateTable: updateHistoricTable
   },
   'evolution': {
     id: 'evolution',
-    formula: restrainFormula('Evolution!A:K', 0, 100),
+    formula: restrainFormula('Evolution!A:L', 0, 300),
     updateTable: updateStandardTable
   },
   'price': {
@@ -49,7 +49,7 @@ GLOBAL.displayData = {
   },
   'allocation': {
     id: 'allocation',
-    formula: restrainFormula('AllocationHistoric!A:P', 0, 12),
+    formula: restrainFormula('AllocationHistoric!A:Q', 0, 12),
     updateTable: updateStandardTable
   }
 };
@@ -239,13 +239,14 @@ function updateInvestmentTable(id, contents) {
     tableHTML += i == 0 ? '<tr>' : '<tr title="' + contents[i][7] + '"' +
       (bgcolor ? 'style="background-color:' + bgcolor + ';color:' + color + ';font-weight:bold;"' : '') + '>';
     //for (var j = 0; j < contents[i].length; ++j)
-    for (var j of [0, 10, 12, 14, 18, 19, 22, 32, 23, 29, 34, 36, 38, 46, 47, 48]) { // Select only the interesting columns
-      // Name = 7, Shares = 10, Price = 12, Sell = 14, Rebalance = 18, Provision = 19, Tendency = 22,
-      // Daily result	Rate	Dividend	Rate	Stock	Rate	Total	Rate = 23 to 29, Trans profit = 32,
-      // Dist gap = 33, Avg price = 34, Avg gap = 35, Avg lm price = 36, Avg lm progress = 37,
-      // Price rate = 38, Next div dur = 46, Est div = 47, Div / month = 48
+    for (var j of [0, 10, 12, 14, 15, 16, 17, 21, 30, 22, 28, 32, 34, 36, 44, 45, 46]) { // Select only the interesting columns (to check them, use the formula "=COLUMN()-1")
+      // Type = 0, Shares = 10, Price = 12, Sell = 14, Estimation = 15, Rebalance = 16,
+      // Provision = 17, Tendency = 21, Trans profit + Dist gap = 30,
+      // Daily result + Rate = 22, Total + Rate = 28,
+      // Avg price + Avg gap = 32, Avg lm price + Avg lm prog = 34,
+      // Price rate = 36, Next div dur = 44, Est div = 45, Div / month = 46
       var con = i == 0 || j != 12 ?
-        i == 0 || j < 23 || j > 37 ?
+        i == 0 || j <= 21 || j >= 36 ?  // Solo values (without percentage)
           contents[i][j] :
           (contents[i][j] ? toCurrency(contents[i][j], 3) : '') + ' (' + contents[i][j + 1] + ')' :
         contents[i][12] ?

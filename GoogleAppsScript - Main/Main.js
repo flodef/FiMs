@@ -8,18 +8,19 @@ const SS = SpreadsheetApp.getActiveSpreadsheet();
 
 // DASHBOARD ROWS
 const MONPAY_ROW = 20;          // Should be the "Monthly payment" row
+const ASSVAL_ROW = 33;          // Should be the "Associates" row
 const PORVAL_ROW = 38;          // Should be the "Current portfolio value" row
-const INTRAT_ROW = 56;          // Should be the "Interest rate" row
-const MONINT_ROW = 57;          // Should be the "Monthly interest" row
+const INTRAT_ROW = 57;          // Should be the "Degiro Interest rate" row
+const MONINT_ROW = 58;          // Should be the "Degiro interest" row
 
 // INVESTMENT COLS
 const TYPE_COL = 1;             // Should be the "Type" column
 const ISIN_COL = 6;             // Should be the "Isin" column
 const LABEL_COL = 8;            // Should be the "Label" column
 const PRICE_COL = 12;           // Should be the "Price" column
-const LASTUPD_COL = 44;         // Should be the "Last upd" column
-const NEXTDIV_COL = 46;         // Should be the "Next div" column
-const ESTDIV_COL = 48;          // Should be the "Est div" column
+const LASTUPD_COL = 42;         // Should be the "Last upd" column
+const NEXTDIV_COL = 44;         // Should be the "Next div" column
+const ESTDIV_COL = 46;          // Should be the "Est div" column
 
 // ALLOCATION ROWS
 const CURALL_ROW = 12;          // Should be the "Current allocation" row
@@ -531,6 +532,7 @@ function _updateAllocation() {
     var lc = sheet.getMaxColumns();
     var array = sheet.getSheetValues(FR, lc, -1, 1);
     var portValue = _toFixed(array[PORVAL_ROW-FR][0], 2);
+    var assValue = _toFixed(array[ASSVAL_ROW-FR][0], 2);
     var monint = _toFixed(array[MONINT_ROW-FR][0], 2);
     var monpay = _toFixed(array[MONPAY_ROW-FR][0], 0);
 
@@ -550,7 +552,7 @@ function _updateAllocation() {
     _setRangeValues(allocSheet, 3, FC, [allocArray[1]]);    // Copy only values into previous row (archive)
 
     var date = _toStringDate();
-    var data = [[date, portValue, alloc]];
+    var data = [[date, portValue, portValue+assValue, alloc]];
     _insertFirstRow(allocSheet, data);
 
     // Insert the monthly interest into the historic
