@@ -12,8 +12,8 @@ GLOBAL.dummy = 'XXXXXX';
 GLOBAL.dataPreloadRowLimit = 10;
 GLOBAL.timeBetweenReload = 60;
 GLOBAL.histoIdCol = 7;
-GLOBAL.rebalCol = 18;
-GLOBAL.tendencyCol = 22;
+GLOBAL.rebalCol = 16;
+GLOBAL.tendencyCol = 21;
 GLOBAL.settings = 'settings';
 GLOBAL.account = 'account';
 GLOBAL.resultFormula = 'Result!A:H';
@@ -251,11 +251,11 @@ function updateInvestmentTable(id, contents) {
           (contents[i][j] ? toCurrency(contents[i][j], 3) : '') + ' (' + contents[i][j + 1] + ')' :
         contents[i][12] ?
           toCurrency(contents[i][j], 4) : '';
-      var isDisabled = (j == 18 || j == 19 || j == GLOBAL.tendencyCol) &&
+      var isDisabled = (j == 16 || j == 17 || j == GLOBAL.tendencyCol) &&
         !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
-      tableHTML += j != 12 || i == 0 || i == row - 1 ?
-        getTableReadOnlyContent(con, i == 0, isDisabled, j == 32 ? getColor(contents[i][j]) : color) :
-        getTableEditableContent(con, {
+      tableHTML += j != 12 || i == 0 || i == row - 1
+        ? getTableReadOnlyContent(con, i == 0, isDisabled, j == 30 ? getColor(contents[i][j]) : color)  // HACK: Don't display Trans profit
+        : getTableEditableContent(con, {
           id: id,
           range: 'Investment!M' + (i + 1),
           required: true,
