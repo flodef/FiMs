@@ -182,7 +182,7 @@ GLOBAL.personalData = [{
   disabled: true
 }, // Duration
 ];
-GLOBAL.globalData = [36, 37, 33, 1, 57, 55, 21, 31, 32, 35, 39, 40, 52, 58, 59, 62, 63, 64, 70];
+GLOBAL.globalData = [36, 37, 33, 1, 58, 56, 21, 31, 32, 35, 39, 40, 52, 59, 60, 63, 64, 65, 71];
 
 GLOBAL.user = [];
 
