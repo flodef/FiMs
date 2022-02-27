@@ -10,7 +10,6 @@ const SS = SpreadsheetApp.getActiveSpreadsheet();
 const MONPAY_ROW = 20;          // Should be the "Monthly payment" row
 const ASSVAL_ROW = 33;          // Should be the "Associates" row
 const PORVAL_ROW = 38;          // Should be the "Current portfolio value" row
-const INTRAT_ROW = 57;          // Should be the "Degiro Interest rate" row
 const MONINT_ROW = 58;          // Should be the "Degiro interest" row
 
 // INVESTMENT COLS
@@ -36,7 +35,6 @@ const ALLOCATION = 'Allocation'; // The "Allocation" sheet name
 const ALLOCHIST = 'AllocationHistoric'; // The "AllocationHistoric" sheet name
 const EVOLUTION = 'Evolution';   // The "Evolution" sheet name
 const BANKACC = 'BankAccount';   // The "BankAccount" sheet name
-const INTEREST = 'Interest';     // The "Interest" sheet name
 const ALERT = 'Alert';           // The "Alert" sheet name
 const PRICE = 'Price';           // The "Price" sheet name
 
@@ -77,7 +75,6 @@ function nightlyUpdate() {
   }
   if (d >= FD+1 && d <= LD+1) {  // add one day as the script is executed on the next night
     _updateEvolution();
-    _updateInterest();
   }
 }
 
@@ -443,40 +440,6 @@ function _updateEvolution() {
     sheet = _getSheet(EVOLUTION);
     array = sheet.getSheetValues(FR, FC, 1, -1);
     _copyFirstRow(sheet, array);
-  }
-}
-
-function _updateInterest() {
-  // Get dashboard mandatory data
-  var sheet = _getSheet(DASHBOARD);
-  var lc = sheet.getMaxColumns();
-  var rate = sheet.getRange(INTRAT_ROW, lc).getValue();
-
-  // Get current date
-  sheet = _getSheet(INTEREST);
-  var array = sheet.getSheetValues(FR, FC, -1, 1);
-  var d = _toDate();            // Get date without hours to match range's date
-  d.setDate(d.getDate() - 1);   // Yesterday's date as script is executed the next night
-
-  // Retrieve current & last columns
-  var i = -1;
-  var col = 0;
-  var end = 0;
-  var v;
-  while (v != '' && ++i < array.length) {
-    v = array[i][0];
-    var isEmpty = v == '';
-    col = !isEmpty && v <= d ? i : col;
-    end = !isEmpty ? i : end;
-  }
-
-  // Update interest data
-  var fr = FR+col;
-  var mr = FR+end-fr+1;
-  var lr = array.length+FR-(mr+fr);
-  sheet.getRange(fr, 4, mr).setValue(rate);
-  if (lr) {
-    sheet.getRange(mr+fr, 4, lr).setValue(null);
   }
 }
 
