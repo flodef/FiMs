@@ -7,7 +7,7 @@ processMail */
 const SS = SpreadsheetApp.getActiveSpreadsheet();
 
 // DASHBOARD ROWS
-const MONPAY_ROW = 20;          // Should be the "Monthly payment" row
+const MONPAY_ROW = 19;          // Should be the "Monthly payment" row
 const ASSVAL_ROW = 33;          // Should be the "Associates" row
 const PORVAL_ROW = 38;          // Should be the "Current portfolio value" row
 const MONINT_ROW = 58;          // Should be the "Degiro interest" row
@@ -494,10 +494,10 @@ function _updateAllocation() {
     var sheet = _getSheet(DASHBOARD);
     var lc = sheet.getMaxColumns();
     var array = sheet.getSheetValues(FR, lc, -1, 1);
-    var portValue = _toFixed(array[PORVAL_ROW-FR][0], 2);
-    var assValue = _toFixed(array[ASSVAL_ROW-FR][0], 2);
-    var monint = _toFixed(array[MONINT_ROW-FR][0], 2);
-    var monpay = _toFixed(array[MONPAY_ROW-FR][0], 0);
+    var portValue = array[PORVAL_ROW-FR][0];
+    var assValue = array[ASSVAL_ROW-FR][0];
+    var monint = array[MONINT_ROW-FR][0];
+    var monpay = array[MONPAY_ROW-FR][0];
 
     // Set the new requested allocation as the current one
     sheet = _getSheet(ALLOCATION);
@@ -515,19 +515,19 @@ function _updateAllocation() {
     _setRangeValues(allocSheet, 3, FC, [allocArray[1]]);    // Copy only values into previous row (archive)
 
     var date = _toStringDate();
-    var data = [[date, portValue+assValue, portValue, alloc]];
+    var data = [[date, _toFixed(portValue+assValue), _toFixed(portValue), alloc]];
     _insertFirstRow(allocSheet, data);
 
     // Insert the monthly interest into the historic
     date = _toDate();              // Get date without hours
     date.setDate(date.getDate() - 1);  // Yesterday's date as interest are added for the last day of the previous month
-    _insertHistoricRow(date, null, null, null, null, null, monint);
+    _insertHistoricRow(date, null, null, null, null, null, _toFixed(monint));
 
     // Insert the monthly approvisionnement into the historic
     if (monpay < 0) {
       date = _toDate();              // Get date without hours
-      _insertHistoricRow(date, null, null, 'APPROVISIONNEMENT', null, null, monpay, DUMMY);
-      //_sendMessage('Account withdrawal: ' + monpay + ' €', '');
+      _insertHistoricRow(date, null, null, 'APPROVISIONNEMENT', null, null,
+        _toFixed(monpay, 0), DUMMY);
     }
   }
 }
@@ -636,7 +636,7 @@ function _isMarketOpen() {
 
 
 
-function _toFixed(value, precision) {
+function _toFixed(value, precision = 2) {
   var str = value.toString();
   str += (str.indexOf('.') != -1 ? '' : '.') + Array(precision+1).join('0');
   return str.slice(0, str.indexOf('.') + precision + Math.min(precision, 1));
