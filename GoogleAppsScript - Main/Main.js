@@ -1,6 +1,6 @@
-/* global SpreadsheetApp, CacheService, GmailApp */
+/* global SpreadsheetApp, CacheService, GmailApp, UrlFetchApp */
 /* exported dailyUpdate, nightlyUpdate, monthlyUpdate, updatePrice, cachePrice,
-processMail */
+processMail, IMPORTURL */
 
 
 // MAIN SPREADSHEET
@@ -718,4 +718,30 @@ function _archiveMessage(thread, shouldDelete) {
 
 function _sendMessage(object, message, isUrgent) {
   GmailApp.sendEmail(MAIL + (isUrgent ? ',' + URGMAIL : ''), object, message);
+}
+
+
+function IMPORTURL(url, str, isMulti) {
+  //var url = "https://www.investing.com/etfs/ishares-usd-treasury-bond-20yr-de?cid=956312";
+  //var str = "//span[@id='last_last']";        //input
+  //var str = '<span.*id="last_last".*>(.*)<';  //output
+  //var url = "https://www.zonebourse.com/cours/etf/ISHARES-TREASURY-BOND-2-24002505/";
+  //var str = "//td[@id='zbjsfv_dr']";          //input
+  //var str = '<td.*id="zbjsfv_dr".*>\n*(.*)';  //output
+  //var isMulti = true;
+  let content = '';
+  const format = str
+    .replaceAll('\'','"')
+    .replaceAll('//','<')
+    .replaceAll('[@','.*')
+    .replaceAll(']',(isMulti ? '.*>\\n*(.*)' : '.*>(.*)<'));
+  const regex = new RegExp(format);
+  var response = UrlFetchApp.fetch(url);
+  if (response) {
+    const html = response.getContentText();
+    if (html) {
+      content = regex.exec(html)[1].trim();
+    }
+  }
+  return content;
 }
