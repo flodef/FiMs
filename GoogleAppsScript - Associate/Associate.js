@@ -1,5 +1,5 @@
 /* global SpreadsheetApp, GmailApp */
-/* exported updateAssociate, sendCharity */
+/* exported updateAssociate, sendCharity, SHEETNAME */
 
 
 // MAIN SPREADSHEET
@@ -50,12 +50,10 @@ function updateAssociate() {
         const index = sheet.getIndex();
         SS.setActiveSheet(sheet);
         SS.moveActiveSheet(index - 1);
-        const range = sheet.getRange(FR, lc);
-        const value = range.getValue();
-        range.setValue(value.replace('SheetName', name));
-        sheet.getRange(FR, lc).setValue('=IF(ROW()=2,"' + name + '",ROW()-1)');
+        sheet.getRange(FR, lc).setValue('=IF(ROW()=2,"' + name + '",INDEX(O:O,ROW()-1))');
         sheet.hideColumns(lc);
         sheet.setFrozenRows(1);
+        sheet.showSheet();
         sheet.protect().setWarningOnly(true);
       }
 
@@ -128,6 +126,9 @@ function sendCharity() {
 }
 
 
+function SHEETNAME() {
+  return SpreadsheetApp.getActiveSheet().getName();
+}
 
 // ************************************
 // ***** COMMON LIBRARY FUNCTIONS *****
