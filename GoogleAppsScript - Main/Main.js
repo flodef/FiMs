@@ -14,12 +14,12 @@ const MONINT_ROW = 58;          // Should be the "Degiro interest" row
 
 // INVESTMENT COLS
 const TYPE_COL = 1;             // Should be the "Type" column
-const ISIN_COL = 6;             // Should be the "Isin" column
-const LABEL_COL = 8;            // Should be the "Label" column
-const PRICE_COL = 12;           // Should be the "Price" column
-const LASTUPD_COL = 42;         // Should be the "Last upd" column
-const NEXTDIV_COL = 44;         // Should be the "Next div" column
-const ESTDIV_COL = 46;          // Should be the "Est div" column
+const ISIN_COL = 5;             // Should be the "Isin" column
+const LABEL_COL = 7;            // Should be the "Label" column
+const PRICE_COL = 9;            // Should be the " " column (formula in title)
+const LASTUPD_COL = 39;         // Should be the "Last upd" column
+const NEXTDIV_COL = 41;         // Should be the "Next div" column
+const ESTDIV_COL = 43;          // Should be the "Est div" column
 
 // ALLOCATION ROWS
 const CURALL_ROW = 12;          // Should be the "Current allocation" row
