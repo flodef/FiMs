@@ -851,7 +851,7 @@ function CreateAckDebt() {
       '&emsp;&emsp;&emsp;' + getImgTag('Le', 15) + '&emsp;' + getImgFromNumber(signDate) +
       '<br>' + getImgTag('Signature');
 
-    const title = translate(GLOBAL.ackDebt);
+    const title = translate(GLOBAL.ackDebt) + ' - FiMs ' + GLOBAL.user.ID;
     // const data = doc.output('bloburl', title + '.pdf');
     // This piece of code doesn't work on Google App Script
     // const html = '<span style="color:black; font-size:33px; padding:0px 0px 15px 0px;" '
