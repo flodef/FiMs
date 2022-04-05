@@ -837,14 +837,14 @@ function CreateAckDebt() {
       ', la somme de ' + getImgFromNumber(total) + getImgTag('€', 15) + getImgTag('', 15) +
       getImgTag('(', 15) + getImgFromText(numberToText(total)) + getImgTag('euros', 15) + getImgTag(')', 15) +
       ' à titre de prêt sous la forme du :</p><ul>';
-    deposit.forEach(item => doc += '<li>Virement bancaire SEPA de ' + item[1] + ' euros, émis le ' + item[0] + '</li>');
+    deposit.forEach(item => doc += '<li>Virement bancaire SEPA de ' + item[1] + ' euros, reçu le ' + item[0] + '</li>');
     doc += '</ul><p>Le remboursement de ce prêt interviendra de la façon suivante :</p>' +
       '<ul><li>il sera remboursé immédiatement (moyennant le temps de virement de compte à compte ' +
       'pouvant aller jusqu\'à 5 jours ouvrés), sur simple demande écrite (courrier électronique, ' +
       'lettre ou autre moyen informatique), en une ou plusieurs fois, à la convenance du prêteur.</li></ul>' +
       '<p>Ce prêt est consenti moyennant un intérêt de :</p>' +
-      '<ul><li>pourcentage librement choisi par l\'emprunteur, ne pouvant pas être en deça de 1,25% l\'an, ' +
-      'intérêt qui, s\'il n\'est pas réclamé, viendra s\'ajouter mensuellement au capital emprunté.</li></ul><br><br>' +
+      '<ul><li>pourcentage librement choisi par l\'emprunteur, à minima 1,2% l\'an et à maxima le taux d\'usure en vigueur au moment de la signature de la présente reconnaissance de dette. ' +
+      'En l\'absence de reclamation de la part du prêteur, l\'intérêt viendra s\'ajouter au capital emprunté à la fin de chaque mois calendaire.</li></ul><br><br>' +
       '<span>&emsp;&emsp;L\'emprunteur,</span>' +
       '<span style="float:right">&emsp;&emsp;&nbsp;' + (isMale ? '&nbsp;Le' : 'La') + ' prêteu' + (isMale ? 'r' : 'se') + ',<br>' + getFullName(GLOBAL.user) + '<br>&emsp;&emsp;Daté et signé</span>' +
       '<br>DE FROCOURT Florian,<br>&emsp;&emsp;Daté et signé<br><br>' +
