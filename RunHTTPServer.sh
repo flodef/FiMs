@@ -1,22 +1,24 @@
 #!/bin/bash
 
 ext=".xlsx"
-dir="$HOME/Téléchargements/"
+#dir="$HOME/Downloads/"   # Ubuntu
+dir="/mnt/chromeos/MyFiles/Downloads/"   #Chrome OS
 gs="https://docs.google.com/spreadsheets/d/"
 ge="/export?format=xlsx&id="
 
 file="FiMs Main"
 sid="1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw"
 
+retry="Y"
 url="$dir$file$ext"
 goo="$gs$sid$ge$sid"
 
+echo "Lauching script ..."
 clear
 echo "Download spreadsheet" $file "(Y/N) ?"
 read retry
 until [ $retry = "N" ]; do
-  rm $url
-  echo $url
+  rm -f "$url"
 
   xdg-open $goo
   clear
@@ -28,6 +30,7 @@ until [ $retry = "N" ]; do
     clear
     if [ -f "$url" ]; then
       retry="N"
+      mv -f "$url" "./Data/"
       break
     fi
   done
@@ -37,15 +40,13 @@ until [ $retry = "N" ]; do
     read retry
   fi
 done
-
-retry="Y"
-mv -f "$url" "./Data/"
 
 
 
 file="FiMs Associate"
 sid="1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU"
 
+retry="Y"
 url="$dir$file$ext"
 goo="$gs$sid$ge$sid"
 
@@ -53,8 +54,7 @@ clear
 echo "Download spreadsheet" $file "(Y/N) ?"
 read retry
 until [ $retry = "N" ]; do
-  rm $url
-  echo $url
+  rm -f "$url"
 
   xdg-open $goo
   clear
@@ -66,6 +66,7 @@ until [ $retry = "N" ]; do
     clear
     if [ -f "$url" ]; then
       retry="N"
+      mv -f "$url" "./Data/"
       break
     fi
   done
@@ -75,15 +76,13 @@ until [ $retry = "N" ]; do
     read retry
   fi
 done
-
-retry="Y"
-mv -f "$url" "./Data/"
 
 
 
 file="FiMs Crypto"
 sid="1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI"
 
+retry="Y"
 url="$dir$file$ext"
 goo="$gs$sid$ge$sid"
 
@@ -91,8 +90,7 @@ clear
 echo "Download spreadsheet" $file "(Y/N) ?"
 read retry
 until [ $retry = "N" ]; do
-  rm $url
-  echo $url
+  rm -f "$url"
 
   xdg-open $goo
   clear
@@ -104,6 +102,7 @@ until [ $retry = "N" ]; do
     clear
     if [ -f "$url" ]; then
       retry="N"
+      mv -f "$url" "./Data/"
       break
     fi
   done
@@ -114,8 +113,6 @@ until [ $retry = "N" ]; do
   fi
 done
 
-retry="Y"
-mv -f "$url" "./Data/"
 
 clear
-http-server
+http-server     # Install NPM first, then http-server

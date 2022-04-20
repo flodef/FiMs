@@ -102,5 +102,6 @@ MOVE %url% .\Data
 CLS
 
 :end
+REM Install NPM first, then http-server
 START /B http-server
 EXIT
