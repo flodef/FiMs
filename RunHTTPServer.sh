@@ -13,7 +13,9 @@ retry="Y"
 url="$dir$file$ext"
 goo="$gs$sid$ge$sid"
 
+clear
 echo "Lauching script ..."
+sleep 1
 clear
 echo "Download spreadsheet" $file "(Y/N) ?"
 read retry
