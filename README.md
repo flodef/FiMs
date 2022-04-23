@@ -74,23 +74,40 @@ Once you've installed Node.js, you can use the following npm command to install 
 - On Windows: start a command line by running "cmd" in the search / run bar, then use : `$ npm install @google/clasp -g`
 
 ### Google Apps Script
+<<<<<<< HEAD
 #### 1. Clasp Login
 Log into clasp by using the command: `$ clasp login` in the command line.
 After authorizing clasp to access your Google Drive account, you should get a .clasprc.json file.
 
 #### 2. Script ID
+=======
+####1. Clasp Login
+Log into clasp by using the command: `$ clasp login` in the command line.
+After authorizing clasp to access your Google Drive account, you should get a .clasprc.json file.
+
+####2. Script ID
+>>>>>>> e838c1ad15bf2717799f4a7fa8f554022a3d63dd
 Upload the Data files from the Data folder, in Google drive.
 Open the spreadsheet file in Google sheet. Then open the menu "Extensions > Apps Script".
 In the code editor, you should see a "Project Settings" menu, in the toolbar on the left.
 In the Project Settings, you should find the Script ID and make a copy of it.
 
+<<<<<<< HEAD
 #### 3. Push edited files
+=======
+####3. Push edited files
+>>>>>>> e838c1ad15bf2717799f4a7fa8f554022a3d63dd
 Each file has a corresponding folder: for example, Associate --> GoogleAppsScript - Associate, and so on
 In each folder, you have 2 push command: Push.bat for Windows, Push.sh for Linux.
 Open them and paste the Script ID instead of the one already there: clasp push YourScriptID
 You also have to change the Script ID in the file .clasp.json.
 After editing a file in one of the GoogleAppsScript folder, use one of the push command.
 
+<<<<<<< HEAD
 #### 4. WebApp Deployment
 The web app is a bit different as it necessits a Deployment script to be in prod.
+=======
+####4. WebApp Deployment
+The web app is a bit different as it necessit a Deployment script to be in prod.
+>>>>>>> e838c1ad15bf2717799f4a7fa8f554022a3d63dd
 After pushing the file and properly testing it (/dev), use the Deploy command to deploy it in production (/exec)
