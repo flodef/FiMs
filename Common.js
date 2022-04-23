@@ -593,17 +593,15 @@ function refreshTotal(id) {
     };
   }
 
-  if (calculateFunc) {
-    var items;
-    var max = $('#' + id + 'Filter').is(':checked') ?
-      GLOBAL.dataPreloadRowLimit : $('#' + id + 'Table tbody tr').length;
-    var elem = $('#' + id + 'Table tbody tr:visible').length == 0 ?
-      $('#' + id + 'Table tbody tr:lt(' + max + ')') :
-      $('#' + id + 'Table tbody tr:visible');
-    var a = new Array($(elem[0]).children('td').length).fill(0);
-    elem.each(calculateFunc);
-    $('#' + id + 'Footer').html('<td>TOTAL</td>' + footerFunc());
-  }
+  var items;
+  var max = $('#' + id + 'Filter').is(':checked') ?
+    GLOBAL.dataPreloadRowLimit : $('#' + id + 'Table tbody tr').length;
+  var elem = $('#' + id + 'Table tbody tr:visible').length == 0 ?
+    $('#' + id + 'Table tbody tr:lt(' + max + ')') :
+    $('#' + id + 'Table tbody tr:visible');
+  var a = new Array($(elem[0]).children('td').length).fill(0);
+  elem.each(calculateFunc);
+  $('#' + id + 'Footer').html('<td>TOTAL</td>' + footerFunc());
 }
 
 function showSnackBar(text) {
