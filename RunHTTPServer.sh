@@ -116,5 +116,41 @@ until [ $retry = "N" ]; do
 done
 
 
+
+file="FiMs Pay"
+sid="1lH6uLLPKZyltpxP83qUMr6veIyIQjzGm-qxaIh2ihIU"
+
+retry="Y"
+url="$dir$file$ext"
+goo="$gs$sid$ge$sid"
+
+clear
+echo "Download spreadsheet" $file "(Y/N) ?"
+read retry
+until [ $retry = "N" ]; do
+  rm -f "$url"
+
+  xdg-open $goo
+  clear
+
+  for n in {55..0}; do
+    echo "Waiting for file to be downloaded ..."
+    echo $n secondes restantes
+    sleep 1
+    clear
+    if [ -f "$url" ]; then
+      retry="N"
+      mv -f "$url" "./Data/"
+      break
+    fi
+  done
+
+  if [ $retry != "N" ]; then
+    echo "File not found. Check your Internet connexion. Retry (Y/N) ?"
+    read retry
+  fi
+done
+
+
 clear
 http-server     # Install NPM first, then http-server
