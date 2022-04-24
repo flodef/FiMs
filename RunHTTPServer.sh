@@ -6,7 +6,7 @@ dir="/mnt/chromeos/MyFiles/Downloads/"   #Chrome OS
 gs="https://docs.google.com/spreadsheets/d/"
 ge="/export?format=xlsx&id="
 
-file="FiMs Main"
+file="FiMs TradFi"
 sid="1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw"
 
 retry="Y"
@@ -81,7 +81,7 @@ done
 
 
 
-file="FiMs Crypto"
+file="FiMs DeFi"
 sid="1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI"
 
 retry="Y"

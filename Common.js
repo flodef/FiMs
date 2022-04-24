@@ -7,7 +7,7 @@ executionSuccess, getPopupContent, addPopupButtonEvent, shouldRebalance,
 addDaysToDate, getNextMonthDate, getDaysBetweenDate, restrainFormula, finishLoading */
 
 /**
- * Functions that are shared between main app and associate app.
+ * Functions that are shared between apps.
  */
 
 GLOBAL.data = [];
@@ -73,7 +73,7 @@ function loadPage() {
 
   $(document).ready(() => $('#mainFocus').focus()); // Set the main focus (replace autofocus attribute)
 
-  init(); // Call init() proper to specialized script (Main or Associate)
+  init(); // Call init() proper to specialized script
 }
 
 function animateLoaderBar(item, duration = 3000) {

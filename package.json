@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flodef/FM.git"
+    "url": "git+https://github.com/flodef/FiMs.git"
   },
   "author": "Flodef",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/flodef/FM/issues"
+    "url": "https://github.com/flodef/FiMs/issues"
   },
-  "homepage": "https://github.com/flodef/FM#readme",
+  "homepage": "https://github.com/flodef/FiMs#readme",
   "devDependencies": {
     "eslint": "^7.15.0",
     "eslint-config-standard": "^16.0.2",

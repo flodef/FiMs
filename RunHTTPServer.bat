@@ -4,7 +4,7 @@ SET dir="C:\Users\fdefr\Downloads\"
 SET gs="https://docs.google.com/spreadsheets/d/"
 SET ge="/export?format=xlsx&id="
 
-SET file="FiMs Main"
+SET file="FiMs TradFi"
 SET sid="1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw"
 
 SET url=%%dir%%file%%ext
@@ -70,7 +70,7 @@ CLS
 
 
 :ccc
-SET file="FiMs Crypto"
+SET file="FiMs DeFi"
 SET sid="1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI"
 
 SET url=%%dir%%file%%ext

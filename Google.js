@@ -42,11 +42,11 @@ class Run {
   }
   doGet(e) {
     const userId = e.get("id") ?? "";
-    const isMain = userId == "Flodef";
+    const isMain = userId == "TradFi";
     const favIcon = 'Img/Favicon.png';
-    const pageTitle = isMain ? 'FiMs Main' : 'FiMs Associate';
+    const pageTitle = isMain ? 'FiMs TradFi' : 'FiMs Associate';
     const fileName = !Run.#workInProgress ? 'Index' : 'WorkInProgress';
-    const spreadsheetId = isMain ? "Data/FiMs Main.xlsx" : "Data/FiMs Associate.xlsx";
+    const spreadsheetId = isMain ? "Data/FiMs TradFi.xlsx" : "Data/FiMs Associate.xlsx";
 
     this.setProperty("userId", userId);
     this.setProperty("pageTitle", pageTitle);

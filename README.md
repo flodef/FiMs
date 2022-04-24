@@ -47,8 +47,8 @@ Alternatively, you can access it by using the connexion button, in the upper rig
 A test associate is already in the spreadsheet file. Its ID is "Tester".
 To access it, go to http://127.0.0.1:8080/?id=Tester or type "Tester" after clicking the connexion button.
 
-If you want to access the Main page, you can go to http://127.0.0.1:8080/?id=Flodef
-The id to access the Main page is "Flodef", but you can change it in the Google.js file, class Run, function doGet(e)
+If you want to access the TradFi page, you can go to http://127.0.0.1:8080/?id=TradFi
+The id to access the TradFi page is "TradFi", but you can change it in the Google.js file, class Run, function doGet(e)
 
 ### 2. Online data & local server
 Upload the Data files from the Data folder, in Google drive.
