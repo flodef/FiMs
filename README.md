@@ -102,3 +102,4 @@ After editing a file in one of the GoogleAppsScript folder, use one of the `Push
 The web app is a bit different as it necessits a Deployment script to be in prod.
 After pushing the file and properly testing it (/dev), use the `Deploy` script to deploy it in production (/exec)
 (see chapter _How to Use_).
+During maintenance, i.e. while updating prod and testing, use the `WorkInProgress` page by setting the workInProgress flag to `true` in GoogleAppsScript - WebApp > Code.js
