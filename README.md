@@ -10,6 +10,7 @@
 ## Requirements
 Node.js is a cross-platform JavaScript run-time environment built on Chrome’s JavaScript designed to execute JavaScript code on the server-side. With Node.js, you can build scalable network applications.
 npm is the default package manager for Node.js that helps developers to share and reuse their code.
+Installing Node.js requires administrative privileges.
 
 ## Installation on Debian / Ubuntu
 ### 1. Installing Node.js and npm from the Debian / Ubuntu repositories:
@@ -33,12 +34,15 @@ Once the repository is added to install Node.js and npm type:
 Download the lastest version of Node.js and install it via the msi installer at https://nodejs.org/
 
 ## How to Use
-### 1. Local data & server
-If you want to execute the app in local, execute the http server by using the RunHTTPServer script in the FiMs folder :
-- On Debian / Ubuntu command line: `$ ./RunHTTPServer.sh`
+To use clasp command, you can open a command line window and type your command,
+or use the scripts that are already done (RunHTTPServer, Push, Deploy, ...).
+To execute the script, go first to the containing folder :
+- On Debian / Ubuntu command line: `$ sh _script_.sh`
 - On Debian / Ubuntu explorer : right click on the shell script (.sh), then "execute as a program"
 - On Windows : Double click on the batch script (.bat)
 
+### 1. Local data & server
+If you want to execute the app in local, execute the http server by using the `RunHTTPServer` script in the FiMs folder (see chapter _How to Use_).
 When asked to downlad spreadsheet, type "N" for No.
 When the http server is running, run a web browser and go to http://127.0.0.1:8080/
 You should get the Associate page.
@@ -55,18 +59,20 @@ Upload the Data files from the Data folder, in Google drive.
 In the RunHTTPServer script, change the sid of the data spreadsheet.
 The sid can be found in the url of the file on Google drive:
 https://docs.google.com/spreadsheets/d/SID
-Once it's done, you can now download the data files, then run the local http server by using the RunHTTPServer script.
+Once it's done, you can now download the data files, then run the local http server by using the `RunHTTPServer` script
+(see chapter _How to Use_).
 
 ### 3. Online data & server
 Upload the Data files from the Data folder, in Google drive.
-In the folder GoogleAppsScript - WebApp, change the sid of the data spreadsheet in the Code.js file.
+In the folder "GoogleAppsScript - WebApp", change the sid of the data spreadsheet in the Code.js file.
 The sid can be found in the url of the file on Google drive:
 https://docs.google.com/spreadsheets/d/SID
 Instead of using a local server, create a copy of the project in Github.
 
 ## How to Edit
 ### Requirements
-clasp is written in Node.js and distributed via the npm tool. Prior to using clasp, you must have Node.js version 4.7.4 or later installed. Installing Node.js requires administrative privileges.
+Clasp is written in Node.js and distributed via the npm tool.
+Prior to using clasp, you must have Node.js version 4.7.4 or later installed.
 
 ### Installing clasp from npm
 Once you've installed Node.js, you can use the following npm command to install clasp:
@@ -76,7 +82,7 @@ Once you've installed Node.js, you can use the following npm command to install 
 ### Google Apps Script
 #### 1. Clasp Login
 Log into clasp by using the command: `$ clasp login` in the command line.
-After authorizing clasp to access your Google Drive account, you should get a .clasprc.json file.
+After authorizing clasp to access your Google Drive account, you should get a `.clasprc.json` file.
 
 #### 2. Script ID
 Upload the Data files from the Data folder, in Google drive.
@@ -85,12 +91,14 @@ In the code editor, you should see a "Project Settings" menu, in the toolbar on 
 In the Project Settings, you should find the Script ID and make a copy of it.
 
 #### 3. Push edited files
-Each file has a corresponding folder: for example, Associate --> GoogleAppsScript - Associate, and so on
-In each folder, you have 2 push command: Push.bat for Windows, Push.sh for Linux.
+Each file has a corresponding folder: for example, Associate --> "GoogleAppsScript - Associate", and so on...
+In each folder, you have 2 push command: `Push.bat` for Windows, `Push.sh` for Linux.
 Open them and paste the Script ID instead of the one already there: clasp push YourScriptID
-You also have to change the Script ID in the file .clasp.json.
-After editing a file in one of the GoogleAppsScript folder, use one of the push command.
+You also have to change the Script ID in the file `.clasp.json`.
+After editing a file in one of the GoogleAppsScript folder, use one of the `Push` script
+(see chapter _How to Use_).
 
 #### 4. WebApp Deployment
 The web app is a bit different as it necessits a Deployment script to be in prod.
-After pushing the file and properly testing it (/dev), use the Deploy command to deploy it in production (/exec)
+After pushing the file and properly testing it (/dev), use the `Deploy` script to deploy it in production (/exec)
+(see chapter _How to Use_).
