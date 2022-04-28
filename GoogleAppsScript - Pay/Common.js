@@ -1,7 +1,8 @@
 /* global SpreadsheetApp, GmailApp, UrlFetchApp */
 /* exported _getSheet,_copyFormula, _copyFirstRow, _isMarketOpen, _round,
 _isCurrentMonth, _toDate, _indexOf, _isLoading, _isError, _archiveMessage,
-_sendMessage, IMPORTURL, SHEETNAME, FM, LM */
+_sendMessage, _deleteOlderThanAYear, _AreRowsDifferent,
+IMPORTURL, SHEETNAME, FM, LM */
 
 // MAIN SPREADSHEET
 const SS = SpreadsheetApp.getActiveSpreadsheet();
@@ -59,6 +60,39 @@ function _copyFirstRow(sheet, array) {
     _insertFirstRow(sheet, null, true);
     _setRangeValues(sheet, FR + 1, FC, [array[0]]);    // Copy only values into previous row (archive)
   }
+}
+
+function _AreRowsDifferent(array) {
+  let isDiff = false;
+
+  if (array.length == 2) {
+    // Check for difference
+    const lc = array[0].length-1;
+    let i = 0;    // Skip first column which is the date
+    while (!isDiff && ++i <= lc) {
+      isDiff = array[0][i] != array[1][i] ? true : isDiff;
+    }
+  } else {
+    throw('Array should have 2 rows but have ' + array.length + ' instead.');
+  }
+
+  return isDiff;
+}
+
+function _deleteOlderThanAYear(sheet) {
+  let lr = sheet.getMaxRows();
+  const lyd = _toDate();
+  lyd.setFullYear(lyd.getFullYear()-1);
+  lyd.setMonth(lyd.getMonth()-1);
+  let shouldDelete;
+  do {
+    const oldDate = sheet.getRange(lr, FC).getValue();
+    shouldDelete = oldDate < lyd;
+    if (shouldDelete) {
+      sheet.deleteRow(lr);
+      --lr;
+    }
+  } while (shouldDelete);
 }
 
 function _isMarketOpen() {

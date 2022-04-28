@@ -1,7 +1,8 @@
 /* global CacheService, GmailApp, FR, FC, FH, LH, FD, LD, LOADING,
 _isMarketOpen, _getSheet, _copyFormula, _isLoading, _isError, _indexOf, _toDate
 _archiveMessage, _sendMessage, _setRangeValues, _toStringDate, _round, _toFixed
-_insertFirstRow, _copyFirstRow, _isCurrentMonth */
+_insertFirstRow, _copyFirstRow, _isCurrentMonth, _deleteOlderThanAYear,
+_AreRowsDifferent */
 /* exported dailyUpdate, nightlyUpdate, monthlyUpdate, updatePrice, cachePrice,
 processMail, IMPORTURL */
 
@@ -383,7 +384,7 @@ function _sendEvolution() {
   var msg = '';
 
   // Check for difference
-  if (_checkPriceDiff(array)) {
+  if (_AreRowsDifferent(array)) {
     // Daily Performance mail
     sheet = _getSheet(EVOLUTION);
     array = sheet.getSheetValues(1, FC, 2, -1);
@@ -407,25 +408,14 @@ function _sendEvolution() {
 
 function _updateEvolution() {
   // Get values
-  var sheet = _getSheet(PRICE);
-  var array = sheet.getSheetValues(FR, FC, 2, -1);
+  let sheet = _getSheet(PRICE);
+  let array = sheet.getSheetValues(FR, FC, 2, -1);
 
   // Delete last price if older than one year
-  var lr = sheet.getMaxRows();
-  var lyd = _toDate();
-  lyd.setFullYear(lyd.getFullYear()-1);
-  lyd.setMonth(lyd.getMonth()-1);
-  do {
-    var oldDate = sheet.getRange(lr, FC).getValue();
-    var shouldDelete = oldDate < lyd;
-    if (shouldDelete) {
-      sheet.deleteRow(lr);
-      --lr;
-    }
-  } while (shouldDelete);
+  _deleteOlderThanAYear(sheet);
 
   // Check for difference
-  if (_checkPriceDiff(array)) {
+  if (_AreRowsDifferent(array)) {
     // Update price
     _copyFirstRow(sheet, array);
 
@@ -558,16 +548,4 @@ function _insertHistoricRow(date, type, label, trans, quantity, price, value, ta
 
   var data = [[date, type, label, trans, quantity, price, value, tag]];
   _insertFirstRow(sheet, data, true);
-}
-
-function _checkPriceDiff(array) {
-  // Check for difference
-  var lc = (array[0].length-1)/2;
-  var i = 0;    // Skip first column which is the date
-  var isDiff = false;
-  while (!isDiff && ++i <= lc) {
-    isDiff = array[0][i] != array[1][i] ? true : isDiff;
-  }
-
-  return isDiff;
 }
