@@ -34,10 +34,11 @@ Once the repository is added to install Node.js and npm type:
 Download the lastest version of Node.js and install it via the msi installer at https://nodejs.org/
 
 ## How to Use
-To use clasp command, you can open a command line window and type your command,
-or use the scripts that are already done (RunHTTPServer, Push, Deploy, ...).
+The app needs some command line instructions / file download / file copy to be used.
+To simplify the use, many scripts that automate the process are already there.
+To use those scripts, you can open a command line window and type your command (RunHTTPServer, Push, Deploy, ...).
 To execute the script, go first to the containing folder :
-- On Debian / Ubuntu command line: `$ sh _script_.sh`
+- On Debian / Ubuntu command line: open a command line and type `$ sh _script_.sh`
 - On Debian / Ubuntu explorer : right click on the shell script (.sh), then "execute as a program"
 - On Windows : Double click on the batch script (.bat)
 
@@ -71,6 +72,7 @@ Instead of using a local server, create a copy of the project in Github.
 
 ## How to Edit
 ### Requirements
+Clasp lets you to develop your Apps Script projects locally. You can write code on your own computer and upload it to Apps Script when you're done. You can also download existing Apps Script projects so that you can edit them when you're offline. Since the code is local, you can use your favorite development tools like git when building Apps Script projects.
 Clasp is written in Node.js and distributed via the npm tool.
 Prior to using clasp, you must have Node.js version 4.7.4 or later installed.
 
@@ -96,7 +98,8 @@ In each folder, you have 2 push command: `Push.bat` for Windows, `Push.sh` for L
 Open them and paste the Script ID instead of the one already there: clasp push YourScriptID
 You also have to change the Script ID in the file `.clasp.json`.
 After editing a file in one of the GoogleAppsScript folder, use one of the `Push` script
-(see chapter _How to Use_).
+(see chapter _How to Use_). Alternatively, it is possible to update all the script at once,
+using `PushAll` script in the root folder.
 
 #### 4. WebApp Deployment
 The web app is a bit different as it necessits a Deployment script to be in prod.
