@@ -78,19 +78,19 @@ function monthlyUpdate() {
 }
 
 function updatePrice() {
-  var cache = CacheService.getScriptCache();
-  var values = cache.getAll(['mr', 'updateArray']);
+  const cache = CacheService.getScriptCache();
+  const values = cache.getAll(['mr', 'updateArray']);
   if ((_isMarketOpen()) && values['mr']) {
     cache.removeAll(['mr', 'updateArray']);
-    var mr = Number(values['mr']);
-    var updateArray = values['updateArray'] ? values['updateArray'].split(',') : [];
+    const mr = Number(values['mr']);
+    const updateArray = values['updateArray'] ? values['updateArray'].split(',') : [];
 
-    var sheet = _getSheet(INVESTMENT);
-    var formula = sheet.getRange(1, PRICE_COL);
+    const sheet = _getSheet(INVESTMENT);
+    const formula = sheet.getRange(1, PRICE_COL);
     if (updateArray.length == 0 || updateArray.length >= mr) {
       _copyFormula(formula, sheet.getRange(FR, PRICE_COL, mr, 1));  // Update by copying the main formula into all cells
     } else {
-      for (var i = 0; i < updateArray.length; ++i) {
+      for (let i = 0; i < updateArray.length; ++i) {
         _copyFormula(formula, sheet.getRange(Number(updateArray[i])+FR, PRICE_COL));  // Update by copying the main formula into individual cells
       }
     }
@@ -99,20 +99,19 @@ function updatePrice() {
 
 function cachePrice() {
   if (_isMarketOpen()) {
-    var sheet = _getSheet(INVESTMENT);
-    var lr = sheet.getMaxRows();
-    var mr = lr-FR;
-    var isUpdateFreezed = sheet.getRange(lr, PRICE_COL+1).getValue() != '';
-    var range = sheet.getRange(FR, PRICE_COL, mr, 1);
-    var val = range.getValues();
-    var cache = CacheService.getScriptCache();
-    var x = new Date();
-    var isEmpty = true;
-    var updateArray = [];
+    const sheet = _getSheet(INVESTMENT);
+    const lr = sheet.getMaxRows();
+    const mr = lr-FR;
+    const isUpdateFreezed = sheet.getRange(lr, PRICE_COL+1).getValue() != '';
+    const range = sheet.getRange(FR, PRICE_COL, mr, 1);
+    const val = range.getValues();
+    const cache = CacheService.getScriptCache();
+    const x = new Date();
+    let isEmpty = true;
+    const updateArray = [];
 
-    var j = 0;
-    for (var i = 0; i < mr; ++i) {
-      var v = val[i][j];
+    for (let i = 0; i < mr; ++i) {
+      const v = val[i][0];
       isEmpty = !v && isEmpty;
       if (v != LOADING) {
         updateArray.push(i);  // Add index of values to update into an array
@@ -134,23 +133,23 @@ function cachePrice() {
 }
 
 function processMail() {
-  var x = new Date();
-  var h = x.getHours();
+  const x = new Date();
+  const h = x.getHours();
   if (h >= FH && h <= LH) {
-    var sheet = _getSheet(ALERT);
-    var array = sheet.getSheetValues(FR, FC, -1, 5);
+    const sheet = _getSheet(ALERT);
+    const array = sheet.getSheetValues(FR, FC, -1, 5);
 
-    var alertThread = [];
-    var unread = GmailApp.getInboxUnreadCount();
+    const alertThread = [];
+    const unread = GmailApp.getInboxUnreadCount();
     if (unread > 0) {
-      var thread = GmailApp.search('is:unread label:inbox');  // Get first unread mails
-      for (var i = 0 ; i < thread.length; i++) {
+      const thread = GmailApp.search('is:unread label:inbox');  // Get first unread mails
+      for (let i = 0 ; i < thread.length; i++) {
         if (thread[i].isUnread()) {
-          var thr = thread[i];
-          var sub = thr.getFirstMessageSubject();
+          const thr = thread[i];
+          const sub = thr.getFirstMessageSubject();
           if (sub) {
-            var id = _indexOf(array, sub, 3);
-            var fn = id != null ? function x(thr, id) { if (!alertThread[id]) { alertThread[id] = thr; } else { _archiveMessage(thr); } }
+            const id = _indexOf(array, sub, 3);
+            const fn = id != null ? function x(thr, id) { if (!alertThread[id]) { alertThread[id] = thr; } else { _archiveMessage(thr); } }
               : sub == 'Rapport du solde de vos comptes' ? function x(thr) { _processAccountBalance(thr); }
                 : sub == 'Alerte sur opération recherchée' ? function x(thr) { _processAccountTransaction(thr); }
                   : sub.substring(0, 21) == 'DEGIRO - Avis d’opéré' ? function x(thr) { _processStockTrade(thr); }
@@ -165,14 +164,14 @@ function processMail() {
     }
 
     // Send mails
-    var a = [];
-    for (i = 0 ; i < array.length; i++) {
-      var row = array[i];
-      var value = row[0];
-      var shouldDelete = false;
-      var t = [row[1], row[2]];
+    const a = [];
+    for (let i = 0 ; i < array.length; i++) {
+      const row = array[i];
+      const value = row[0];
+      let shouldDelete = false;
+      let t = [row[1], row[2]];
 
-      var time = row[2] ? (x.getTime() - row[2].getTime())/1000/60 : 60;
+      const time = row[2] ? (x.getTime() - row[2].getTime())/1000/60 : 60;
       if (value > 0) {
         if (time >= 60 || value != row[1]) {
           t = [value, x];
@@ -194,23 +193,23 @@ function processMail() {
 }
 
 function _processAccountBalance(thread) {
-  var sheet = _getSheet(BANKACC);
-  var range = sheet.getDataRange();
-  var label = range.getNotes();
-  var lc = label[0].length;
+  const sheet = _getSheet(BANKACC);
+  const range = sheet.getDataRange();
+  const label = range.getNotes();
+  const lc = label[0].length;
 
-  var messages = thread.getMessages();
-  for (var j = 0 ; j < messages.length; j++) {
-    var cnt = messages[j].getPlainBody();
-    var a = cnt.split('\n');
-    for (var k = 0; k < a.length; k++) {
-      var b = a[k].split(' ');
+  const messages = thread.getMessages();
+  for (let j = 0 ; j < messages.length; j++) {
+    const cnt = messages[j].getPlainBody();
+    const a = cnt.split('\n');
+    for (let k = 0; k < a.length; k++) {
+      const b = a[k].split(' ');
       if (b[3] == '-' && b[b.length-1] == 'EUR') {
-        var val = b[b.length-2];
-        var name = b[4];
+        const val = b[b.length-2];
+        const name = b[4];
 
         // Update bank account
-        var index = _indexOf(label, name, 0);
+        const index = _indexOf(label, name, 0);
         if (index != null) {
           sheet.getRange(index+1, lc).setValue(val);
         } else {
@@ -224,31 +223,31 @@ function _processAccountBalance(thread) {
 }
 
 function _processAccountTransaction(thread) {
-  var sheet = _getSheet(EXPHISTO);
-  var array = sheet.getSheetValues(FR, FC, -1, 3);
+  const sheet = _getSheet(EXPHISTO);
+  const array = sheet.getSheetValues(FR, FC, -1, 3);
 
-  var messages = thread.getMessages();
-  for (var j = 0 ; j < messages.length; j++) {
-    var cnt = messages[j].getPlainBody();
-    var a = cnt.split('\n');
-    for (var k = 0; k < a.length; k++) {
-      var b = a[k].split(' ');
+  const messages = thread.getMessages();
+  for (let j = 0 ; j < messages.length; j++) {
+    const cnt = messages[j].getPlainBody();
+    const a = cnt.split('\n');
+    for (let k = 0; k < a.length; k++) {
+      const b = a[k].split(' ');
 
       if (b[3] == '-' && b[b.length-1] == 'EUR') {
-        var val = b[b.length-2];
-        var date = _toStringDate(b[4]);
-        var label = b.slice(6, b.length-2).join(' ');
-        var slab = b.slice(6, b.length-4).join(' ');
+        const val = b[b.length-2];
+        const date = _toStringDate(b[4]);
+        const label = b.slice(6, b.length-2).join(' ');
+        const slab = b.slice(6, b.length-4).join(' ');
 
-        var index = _indexOf(array, parseFloat(val), 2);
+        const index = _indexOf(array, parseFloat(val), 2);
 
         // Check for duplicate
-        var color;
+        let color;
         if (index != null && array[index][1].toString().indexOf(slab) != -1) {
           if (date != _toStringDate(array[index][0])) {
             // Compare date with one week difference
-            var d1 = new Date(date);
-            var d2 = array[index][0];
+            const d1 = new Date(date);
+            const d2 = array[index][0];
             d2.setDate(d2.getDate()+7);
 
             // Over one week, no problem otherwise signal it
@@ -257,7 +256,7 @@ function _processAccountTransaction(thread) {
             } else {
               color = 'red';
 
-              var msg = 'Date: ' + _toStringDate(date)
+              const msg = 'Date: ' + _toStringDate(date)
               + '\nLabel: ' + label
               + '\nValue: ' + _round(val, 2, ' €')
               + '\n' + SSLINK + '298395308';
@@ -269,7 +268,7 @@ function _processAccountTransaction(thread) {
         }
 
         if (color) {
-          var data = [[date, label, val]];
+          const data = [[date, label, val]];
           _insertFirstRow(sheet, data, true);
           sheet.getRange(FR, FC, 1, array[0].length).setBackground(color);
         }
@@ -282,26 +281,26 @@ function _processAccountTransaction(thread) {
 
 function _processStockTrade(thread) {
   // Get ids from investment table
-  var sheet = _getSheet(INVESTMENT);
-  var array = sheet.getSheetValues(FR, FC, -1, Math.max(TYPE_COL, ISIN_COL, LABEL_COL));
+  const sheet = _getSheet(INVESTMENT);
+  const array = sheet.getSheetValues(FR, FC, -1, Math.max(TYPE_COL, ISIN_COL, LABEL_COL));
 
   // Add historic from stock trade mail
-  var pdl = 15;     // Length of data to process
-  var hea = 6;      // Length of the header
-  var foo = 28;     // Length of the footer
-  var ta = 0;       // Number of transaction added
+  const pdl = 15;     // Length of data to process
+  const hea = 6;      // Length of the header
+  const foo = 28;     // Length of the footer
+  let ta = 0;       // Number of transaction added
 
-  var messages = thread.getMessages();
-  for (var j = 0 ; j < messages.length; j++) {
-    var message = messages[j];
-    var date = _toDate(message.getDate());
-    var cnt = message.getPlainBody();
-    var a = cnt.split('\n');
-    var tc = Math.round((a.length-hea-foo)/pdl);  // Number of transaction to process
+  const messages = thread.getMessages();
+  for (let j = 0 ; j < messages.length; j++) {
+    const message = messages[j];
+    const date = _toDate(message.getDate());
+    const cnt = message.getPlainBody();
+    const a = cnt.split('\n');
+    const tc = Math.round((a.length-hea-foo)/pdl);  // Number of transaction to process
 
-    var k = hea+1;    // Skip first rows as it is mail crap
+    let k = hea+1;    // Skip first rows as it is mail crap
     while(k < a.length) {
-      var b = a[k].split('*');
+      const b = a[k].split('*');
       if (b[0].split(' ')[0] == 'Date') {
         //TODO
         //isin = 179 / 400 / 621  " <strong>IE00B3XXRP09</strong> "
@@ -309,26 +308,26 @@ function _processStockTrade(thread) {
         //Montant devise locale = 263 / 484  <strong>EUR 922,05</strong> "
         //amount = 275 / 496 " <strong>EUR 922,05</strong> "
         //cost = 323 / 544" <strong>EUR 0,00</strong> "  //Cout total
-        var isin = a[k+1].split('*')[1];                                                                    // Code ISIN *JE00B1VS3770*
-        var qty = a[k+6].split('*')[1];                                                                     // Quantité *190*
-        var cur = a[k+8].split('*')[1].substr(0, 3);                                                        // Montant devise locale *USD 8 434,10*
-        var amount = Number(a[k+9].split('*')[1].replace(new RegExp('[A-Z ]', 'g'),'').replace(',', '.'));  // Montant *EUR 8 434,10*
-        var cost = Number(a[k+11].split('*')[1].replace(new RegExp('[A-Z ]', 'g'),'').replace(',', '.'));   // Frais *EUR -3,69*
+        const isin = a[k+1].split('*')[1];                                                                    // Code ISIN *JE00B1VS3770*
+        const qty = a[k+6].split('*')[1];                                                                     // Quantité *190*
+        const cur = a[k+8].split('*')[1].substr(0, 3);                                                        // Montant devise locale *USD 8 434,10*
+        const amount = Number(a[k+9].split('*')[1].replace(new RegExp('[A-Z ]', 'g'),'').replace(',', '.'));  // Montant *EUR 8 434,10*
+        const cost = Number(a[k+11].split('*')[1].replace(new RegExp('[A-Z ]', 'g'),'').replace(',', '.'));   // Frais *EUR -3,69*
 
-        var row = _indexOf(array, isin, ISIN_COL-1);
+        const row = _indexOf(array, isin, ISIN_COL-1);
         if (row >= 0) {
-          var label = array[row][LABEL_COL-1];
-          var type = array[row][TYPE_COL-1];
+          const label = array[row][LABEL_COL-1];
+          const type = array[row][TYPE_COL-1];
 
           if (cost != 0) {
             _insertHistoricRow(date, type, label, null, null, null, cost);
           }
 
-          var trans = amount < 0 ? 'BUY' : 'SELL';
-          var quantity = amount < 0 ? qty : -qty;
-          var price = _round(Math.abs(amount / quantity), 4);
-          var value = amount;
-          var tag = cur == 'EUR' ? null : DUMMY;  // Add dummy if currency is not Euro, as the exchange rate fee is not known
+          const trans = amount < 0 ? 'BUY' : 'SELL';
+          const quantity = amount < 0 ? qty : -qty;
+          const price = _round(Math.abs(amount / quantity), 4);
+          const value = amount;
+          const tag = cur == 'EUR' ? null : DUMMY;  // Add dummy if currency is not Euro, as the exchange rate fee is not known
           _insertHistoricRow(date, type, label, trans, quantity, price, value, tag);
 
           ++ta;
@@ -351,19 +350,19 @@ function _processStockTrade(thread) {
 }
 
 function _updateClosePrice() {
-  var sheet = _getSheet(INVESTMENT);
-  var lr = sheet.getMaxRows();
-  var mr = lr-FR;
-  var formula = sheet.getRange(lr, PRICE_COL);
-  var range = sheet.getRange(FR, PRICE_COL, mr, 1);
+  const sheet = _getSheet(INVESTMENT);
+  const lr = sheet.getMaxRows();
+  const mr = lr-FR;
+  const formula = sheet.getRange(lr, PRICE_COL);
+  const range = sheet.getRange(FR, PRICE_COL, mr, 1);
 
   sheet.getRange(lr, PRICE_COL+1).setValue('');   // Unfreeze update process in case it's still there
 
   _copyFormula(formula, range);
 
-  for (var i = 0; i < mr; ++i) {
-    var v;
-    var r = sheet.getRange(i+FR, PRICE_COL);
+  for (let i = 0; i < mr; ++i) {
+    let v;
+    const r = sheet.getRange(i+FR, PRICE_COL);
 
     do  {
       v = r.getValue();
@@ -379,9 +378,9 @@ function _updateClosePrice() {
 
 function _sendEvolution() {
   // Get values
-  var sheet = _getSheet(PRICE);
-  var array = sheet.getSheetValues(FR, FC, 2, -1);
-  var msg = '';
+  let sheet = _getSheet(PRICE);
+  let array = sheet.getSheetValues(FR, FC, 2, -1);
+  let msg = '';
 
   // Check for difference
   if (_AreRowsDifferent(array)) {
@@ -389,7 +388,7 @@ function _sendEvolution() {
     sheet = _getSheet(EVOLUTION);
     array = sheet.getSheetValues(1, FC, 2, -1);
 
-    for (var i = 5; i < array[0].length; ++i) {
+    for (let i = 5; i < array[0].length; ++i) {
       const label = array[0][i];
       const value = array[1][i];
       const isRate = label.toLowerCase().includes('rate')
@@ -433,7 +432,7 @@ function _updateDividend() {
   const today = _toDate();
   // const x = [];
 
-  for (var i = 0; i < array.length; ++i) {
+  for (let i = 0; i < array.length; ++i) {
     if (array[i][NEXTDIV_COL-1] && array[i][NEXTDIV_COL-1] <= today) {
       const div = _round(array[i][ESTDIV_COL-1], 2);
       if (div >= 0) {
@@ -449,13 +448,13 @@ function _updateDividend() {
 
 // function _updateValues() {
 //'=TO_PERCENT(VALUE(SUBSTITUTE(SUBSTITUTE(query(importhtml("http://www.global-rates.com/interest-rates/eonia/eonia.aspx","table",19), "select Col2 limit 1 offset 0", 1),"%",""),",",".")/100))'
-//var col = 2;
-//var sheet = _getSheet(DASHBOARD);
+//const col = 2;
+//const sheet = _getSheet(DASHBOARD);
 //_copyValue(sheet, EONIA_ROW, col, 'http://www.global-rates.com/interest-rates/eonia/eonia.aspx', 19, 0);
 // }
 
 // function _copyValue(sheet, row, col, url, table, offset) {
-//   var range = sheet.getRange(row, col);
+//   const range = sheet.getRange(row, col);
 //
 //   range.setValue(value);
 //   do  {
@@ -469,24 +468,24 @@ function _updateDividend() {
 
 function _updateAllocation() {
   // Search if entries have already been added
-  var allocSheet = _getSheet(ALLOCHIST);
-  var lr = Math.min(allocSheet.getMaxRows(), 3);
-  var allocArray = allocSheet.getSheetValues(FR, FC, lr, -1);
+  const allocSheet = _getSheet(ALLOCHIST);
+  const lr = Math.min(allocSheet.getMaxRows(), 3);
+  const allocArray = allocSheet.getSheetValues(FR, FC, lr, -1);
   if (!_isCurrentMonth(allocArray)) {
     // Retrieve values from the dashboard
-    var sheet = _getSheet(DASHBOARD);
-    var lc = sheet.getMaxColumns();
-    var array = sheet.getSheetValues(FR, lc, -1, 1);
-    var portValue = array[PORVAL_ROW-FR][0];
-    var assValue = array[ASSVAL_ROW-FR][0];
-    var monint = array[MONINT_ROW-FR][0];
-    var monpay = array[MONPAY_ROW-FR][0];
+    let sheet = _getSheet(DASHBOARD);
+    let lc = sheet.getMaxColumns();
+    let array = sheet.getSheetValues(FR, lc, -1, 1);
+    const portValue = array[PORVAL_ROW-FR][0];
+    const assValue = array[ASSVAL_ROW-FR][0];
+    const monint = array[MONINT_ROW-FR][0];
+    const monpay = array[MONPAY_ROW-FR][0];
 
     // Set the new requested allocation as the current one
     sheet = _getSheet(ALLOCATION);
     lc = sheet.getMaxColumns();
     array = sheet.getSheetValues(FR, lc, -1, 1);
-    var alloc = array[REQALL_ROW-FR][0];
+    let alloc = array[REQALL_ROW-FR][0];
     if (alloc) {
       sheet.getRange(CURALL_ROW, lc).setValue(alloc); // copy requested alloc into current alloc
       sheet.getRange(REQALL_ROW, lc).clearContent();  // erase requested alloc
@@ -497,8 +496,8 @@ function _updateAllocation() {
     // Set the values into the allocation historic
     _setRangeValues(allocSheet, 3, FC, [allocArray[1]]);    // Copy only values into previous row (archive)
 
-    var date = _toStringDate();
-    var data = [[date, _toFixed(portValue+assValue), _toFixed(portValue), alloc]];
+    let date = _toStringDate();
+    const data = [[date, _toFixed(portValue+assValue), _toFixed(portValue), alloc]];
     _insertFirstRow(allocSheet, data);
 
     // Insert the monthly interest into the historic
@@ -516,11 +515,11 @@ function _updateAllocation() {
 }
 
 function _updateExpense() {
-  var sheet = _getSheet(EXPENSES);
-  var array = sheet.getSheetValues(FR, FC, 2, -1);
+  let sheet = _getSheet(EXPENSES);
+  let array = sheet.getSheetValues(FR, FC, 2, -1);
   if (!_isCurrentMonth(array)) {
     // Add new month
-    var data = [[_toDate()]];
+    const data = [[_toDate()]];
     _insertFirstRow(sheet, data);
 
     // Archive previous month
@@ -528,14 +527,14 @@ function _updateExpense() {
 
     // Archive expenses historic
     sheet = _getSheet(EXPHISTO);
-    var lc = sheet.getMaxColumns();
+    const lc = sheet.getMaxColumns();
     array = sheet.getSheetValues(FR+1, lc, -1, 1);
     _setRangeValues(sheet, FR+1, lc, array);    // Copy only values into previous row (archive)
   }
 }
 
 function _insertHistoricRow(date, type, label, trans, quantity, price, value, tag) {
-  var sheet = _getSheet(HISTORIC);
+  const sheet = _getSheet(HISTORIC);
 
   date = date ? date : _toDate();
   type = type ? type : '';
@@ -546,6 +545,6 @@ function _insertHistoricRow(date, type, label, trans, quantity, price, value, ta
   value = value ? value : 0;
   tag = tag ? tag : label + '@' + trans + '@' + quantity + '@' + value; //Vanguard S&P 500 UCITS ETF@COST@@-3.69
 
-  var data = [[date, type, label, trans, quantity, price, value, tag]];
+  const data = [[date, type, label, trans, quantity, price, value, tag]];
   _insertFirstRow(sheet, data, true);
 }

@@ -24,7 +24,7 @@ function updateAssociate() {
   const associateSheet = _getSheet(ASSOCIATE);
   const associateArray = associateSheet.getSheetValues(FR, FC, -1, ASSTOTAL_COL);
 
-  for (var i = 0; i < associateArray.length; ++i) {
+  for (let i = 0; i < associateArray.length; ++i) {
     // Retrieve associate account data
     const depo = associateArray[i][ASSDEPO_COL-1];
     const total = associateArray[i][ASSTOTAL_COL-1];
@@ -34,7 +34,7 @@ function updateAssociate() {
       const recu = associateArray[i][ASSRECU_COL-1];
 
       // If the sheet does not exist, create a new associate sheet from the model
-      var sheet = _getSheet(name);
+      let sheet = _getSheet(name);
       if (!sheet) {
         const modelSheet = _getSheet(ASSMODEL);
         sheet = modelSheet.copyTo(SS);
@@ -65,7 +65,7 @@ function updateAssociate() {
           }
 
           const histoSheet = _getSheet(ASSHISTO);
-          var d = _toDate();      // Get date without hours to match range's date
+          const d = _toDate();      // Get date without hours to match range's date
           d.setDate(d.getDate() + 5);  // Take around 5 days to make a bank transfer
 
           const data = [[d, name, Math.max(recu, -total), 0]];
@@ -85,9 +85,9 @@ function sendCharity() {
     const associateArray = associateSheet.getSheetValues(FR, FC, -1, -1);
 
     const object = 'Don annuel à une oeuvre de charité';
-    var recap = 'Liste des dons :\n';
-    var total = 0;
-    for (var i = 0; i < associateArray.length; ++i) {
+    let recap = 'Liste des dons :\n';
+    let total = 0;
+    for (let i = 0; i < associateArray.length; ++i) {
       // Retrieve associate account data
       const name = associateArray[i][ASSNAME_COL-1];
       const char = associateArray[i][ASSCHAR_COL-1];

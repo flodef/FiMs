@@ -1,7 +1,7 @@
 /* global SpreadsheetApp, GmailApp, UrlFetchApp */
 /* exported _getSheet,_copyFormula, _copyFirstRow, _isMarketOpen, _round,
 _isCurrentMonth, _toDate, _indexOf, _isLoading, _isError, _archiveMessage,
-_sendMessage, _deleteOlderThanAYear, _AreRowsDifferent,
+_sendMessage, _deleteOlderThanAYear, _AreRowsDifferent, _isSubHour
 IMPORTURL, SHEETNAME, FM, LM */
 
 // MAIN SPREADSHEET
@@ -36,7 +36,7 @@ function _copyFormula(formula, range) {
 }
 
 function _insertFirstRow(sheet, data, isFast, lc) {
-  var lr = sheet.getMaxRows();
+  const lr = sheet.getMaxRows();
   lc = lc ? lc : sheet.getMaxColumns();
 
   if (lr >= FR) {
@@ -96,24 +96,31 @@ function _deleteOlderThanAYear(sheet) {
 }
 
 function _isMarketOpen() {
-  var x = new Date();
-  var d = x.getDay();
-  var h = x.getHours();
+  const x = new Date();
+  const d = x.getDay();
+  const h = x.getHours();
 
   return d >= FD && d <= LD && h >= FH && h <= LH;
 }
 
 
 
+function _isSubHour(period = 1, offset = 0) {
+  const x = new Date();
+  const m = x.getMinutes();
+
+  return m%period == offset;
+}
+
 function _toFixed(value, precision = 2) {
-  var str = value.toString();
+  let str = value.toString();
   str += (str.indexOf('.') != -1 ? '' : '.') + Array(precision+1).join('0');
   return str.slice(0, str.indexOf('.') + precision + Math.min(precision, 1));
 }
 
 function _round(value, precision, symbol) {
-  var mult = Math.pow(10, precision);
-  var sup = symbol == '%' ? 100 : 1;
+  const mult = Math.pow(10, precision);
+  const sup = symbol == '%' ? 100 : 1;
   symbol = typeof(symbol) === 'string' ? symbol : '';
 
   return _toFixed(Math.round(value * sup * mult) / mult, precision) + symbol;
@@ -141,9 +148,9 @@ function _toStringDate(date) {
     + date.split('/')[2]
       : null;
   } else if (typeof(date) == 'object') {
-    var day = date.getDate();
-    var month = date.getMonth() + 1;
-    var year = date.getFullYear();
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
     return month + '/' + day + '/' + year;
   } else {
     return _toStringDate(new Date());
@@ -152,9 +159,9 @@ function _toStringDate(date) {
 
 function _indexOf(array, value, index, start) {
   index = index >= 0 ? index : null;
-  var x = parseInt(start) ? parseInt(start) : 0;
+  let x = parseInt(start) ? parseInt(start) : 0;
 
-  var i = null;
+  let i = null;
   if (Array.isArray(array)) {
     while(x < array.length
           && ((index == null && array[x] != value)
@@ -191,13 +198,13 @@ function _sendMessage(object, message, isUrgent) {
 
 
 function IMPORTURL(url, str, isMulti) {
-  //var url = "https://www.investing.com/etfs/ishares-usd-treasury-bond-20yr-de?cid=956312";
-  //var str = "//span[@id='last_last']";        //input
-  //var str = '<span.*id="last_last".*>(.*)<';  //output
-  //var url = "https://www.zonebourse.com/cours/etf/ISHARES-TREASURY-BOND-2-24002505/";
-  //var str = "//td[@id='zbjsfv_dr']";          //input
-  //var str = '<td.*id="zbjsfv_dr".*>\n*(.*)';  //output
-  //var isMulti = true;
+  //const url = "https://www.investing.com/etfs/ishares-usd-treasury-bond-20yr-de?cid=956312";
+  //const str = "//span[@id='last_last']";        //input
+  //const str = '<span.*id="last_last".*>(.*)<';  //output
+  //const url = "https://www.zonebourse.com/cours/etf/ISHARES-TREASURY-BOND-2-24002505/";
+  //const str = "//td[@id='zbjsfv_dr']";          //input
+  //const str = '<td.*id="zbjsfv_dr".*>\n*(.*)';  //output
+  //const isMulti = true;
   let content = '';
   const format = str
     .replaceAll('\'','"')
@@ -205,7 +212,7 @@ function IMPORTURL(url, str, isMulti) {
     .replaceAll('[@','.*')
     .replaceAll(']',(isMulti ? '.*>\\n*(.*)' : '.*>(.*)<'));
   const regex = new RegExp(format);
-  var response = UrlFetchApp.fetch(url);
+  const response = UrlFetchApp.fetch(url);
   if (response) {
     const html = response.getContentText();
     if (html) {
