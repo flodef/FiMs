@@ -25,10 +25,13 @@ until [ $retry = "N" ]; do
   xdg-open $goo
   clear
 
-  for n in {55..0}; do
+  #for i in {55..0}; do
+  i=55;
+  until [ $i = 0 ]; do
     echo "Waiting for file to be downloaded ..."
-    echo $n secondes restantes
+    echo $i secondes restantes
     sleep 1
+    i=$((i-1))
     clear
     if [ -f "$url" ]; then
       retry="N"
@@ -61,10 +64,13 @@ until [ $retry = "N" ]; do
   xdg-open $goo
   clear
 
-  for n in {55..0}; do
+  #for i in {55..0}; do
+  i=55;
+  until [ $i = 0 ]; do
     echo "Waiting for file to be downloaded ..."
-    echo $n secondes restantes
+    echo $i secondes restantes
     sleep 1
+    i=$((i-1))
     clear
     if [ -f "$url" ]; then
       retry="N"
@@ -97,10 +103,13 @@ until [ $retry = "N" ]; do
   xdg-open $goo
   clear
 
-  for n in {55..0}; do
+  #for i in {55..0}; do
+  i=55;
+  until [ $i = 0 ]; do
     echo "Waiting for file to be downloaded ..."
-    echo $n secondes restantes
+    echo $i secondes restantes
     sleep 1
+    i=$((i-1))
     clear
     if [ -f "$url" ]; then
       retry="N"
@@ -133,10 +142,13 @@ until [ $retry = "N" ]; do
   xdg-open $goo
   clear
 
-  for n in {55..0}; do
+  #for i in {55..0}; do
+  i=55;
+  until [ $i = 0 ]; do
     echo "Waiting for file to be downloaded ..."
-    echo $n secondes restantes
+    echo $i secondes restantes
     sleep 1
+    i=$((i-1))
     clear
     if [ -f "$url" ]; then
       retry="N"
