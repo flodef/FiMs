@@ -57,9 +57,12 @@ function cachePrice() {
       }
     }
 
-    // If not values have been cached, set the offset to cache Price again
+    // If not values have been cached, set the offset to cache Price again,
+    // otherwise remove the manual cache, set in case of loading error
     if (cached != lr-1) {
       cache.put('offset', offset+1);
+    } else {
+      _getSheet(PRICECACHE).getRange(1, FORMULA_COL-1).clearContent();
     }
   }
 }
