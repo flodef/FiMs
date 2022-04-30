@@ -62,7 +62,7 @@ function cachePrice() {
     if (cached != lr-1) {
       cache.put('offset', offset+1);
     } else {
-      _getSheet(PRICECACHE).getRange(1, FORMULA_COL-1).clearContent();
+      sheet.getRange(1, FORMULA_COL-1).clearContent();
     }
   }
 }
