@@ -2,7 +2,7 @@
 _isMarketOpen, _getSheet, _copyFormula, _isLoading, _isError, _indexOf, _toDate
 _archiveMessage, _sendMessage, _setRangeValues, _toStringDate, _round, _toFixed
 _insertFirstRow, _copyFirstRow, _isCurrentMonth, _deleteOlderThanAYear,
-_AreRowsDifferent */
+_AreRowsDifferent, _toCurrency, _toPercent */
 /* exported dailyUpdate, nightlyUpdate, monthlyUpdate, updatePrice, cachePrice,
 processMail, IMPORTURL */
 
@@ -234,12 +234,12 @@ function _processAccountTransaction(thread) {
       const b = a[k].split(' ');
 
       if (b[3] == '-' && b[b.length-1] == 'EUR') {
-        const val = b[b.length-2];
+        const value = b[b.length-2];
         const date = _toStringDate(b[4]);
         const label = b.slice(6, b.length-2).join(' ');
         const slab = b.slice(6, b.length-4).join(' ');
 
-        const index = _indexOf(array, parseFloat(val), 2);
+        const index = _indexOf(array, parseFloat(value), 2);
 
         // Check for duplicate
         let color;
@@ -258,7 +258,7 @@ function _processAccountTransaction(thread) {
 
               const msg = 'Date: ' + _toStringDate(date)
               + '\nLabel: ' + label
-              + '\nValue: ' + _round(val, 2, ' €')
+              + '\nValue: ' + _toCurrency(value)
               + '\n' + SSLINK + '298395308';
               _sendMessage('Expense duplicate', msg);
             }
@@ -268,7 +268,7 @@ function _processAccountTransaction(thread) {
         }
 
         if (color) {
-          const data = [[date, label, val]];
+          const data = [[date, label, value]];
           _insertFirstRow(sheet, data, true);
           sheet.getRange(FR, FC, 1, array[0].length).setBackground(color);
         }
@@ -394,7 +394,7 @@ function _sendEvolution() {
       const isRate = label.toLowerCase().includes('rate')
         || label.toLowerCase().includes('ratio');
       msg += label + ': '
-        + (isRate ? _round(value*100, 0, ' %') : _round(value, 2, ' €')) + '\n';
+        + (isRate ? _toPercent(value) : _toCurrency(value)) + '\n';
     }
     msg += APPLINK;
 

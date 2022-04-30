@@ -1,10 +1,12 @@
 /* global _getSheet, _deleteOlderThanAYear, _copyFirstRow, _AreRowsDifferent,
-_toDate, _isCurrentMonth, _isSubHour, _isLoading, _isError, FR, FC, CacheService */
+_toDate, _isCurrentMonth, _isSubHour, _isLoading, _isError, _sendMessage,
+_toPercent, FR, FC, CacheService */
 /* exported nightlyUpdate, monthlyUpdate, updatePrice, cachePrice */
 
 
 
 // SHEET NAMES
+const DASHBOARD = 'Dashboard';    // The "Dashboard" sheet name
 const EVOLUTION = 'Evolution';    // The "Evolution" sheet name
 const PRICE = 'Price';            // The "Price" sheet name
 const HISTORIC = 'Historic';      // The "Historic" sheet name
@@ -14,8 +16,13 @@ const PRICECACHE = 'PriceCache';  // The "Price" sheet name
 const FORMULA_COL = 3;            // Should be the "Formula" column
 const PRICE_COL = 5;              // Should be the "Price" column
 
+// DASHBOARD ROWS
+const LENDING_ROW = 3;            // Should be the "Apricot borrow" row ! FROM THE BOTTOM !
+
 // MISC
 const PRICE_UPDATE = 10;          // Number of minutes between price updates
+const LENDING_ALERT = 0.95;       // Percentage above when an alert should be send
+
 
 
 function nightlyUpdate() {
@@ -29,11 +36,22 @@ function monthlyUpdate() {
 
 function updatePrice() {
   if (_isSubHour(PRICE_UPDATE, 0)) {
+    // Remove the offset to avoid caching if it failed until there
     const cache = CacheService.getScriptCache();
     cache.remove('offset');
 
+    // Modify the cell to update the formula and load data
     const range = _getSheet(PRICECACHE).getRange(FR, FORMULA_COL-1);
-    range.setValue(range.getValue() == '' ? ' ' : '');  // Modify the cell to update the formula and load data
+    range.setValue(range.getValue() == '' ? ' ' : '');
+
+    const sheet = _getSheet(DASHBOARD);
+    const lr = sheet.getMaxRows();
+    const lc = sheet.getMaxColumns();
+    const l = sheet.getRange(lr-LENDING_ROW, lc).getValue();
+    if (l > LENDING_ALERT) {
+      _sendMessage('Lending ratio limit reached', 'The Lending ratio is at ' +
+      _toPercent(l, 1) + '. Check it out !!', true);
+    }
   }
 }
 

@@ -1,8 +1,8 @@
 /* global SpreadsheetApp, GmailApp, UrlFetchApp */
 /* exported _getSheet,_copyFormula, _copyFirstRow, _isMarketOpen, _round,
 _isCurrentMonth, _toDate, _indexOf, _isLoading, _isError, _archiveMessage,
-_sendMessage, _deleteOlderThanAYear, _AreRowsDifferent, _isSubHour
-IMPORTURL, SHEETNAME, FM, LM */
+_sendMessage, _deleteOlderThanAYear, _AreRowsDifferent, _isSubHour, _toPercent,
+_toCurrency, IMPORTURL, SHEETNAME, FM, LM */
 
 // MAIN SPREADSHEET
 const SS = SpreadsheetApp.getActiveSpreadsheet();
@@ -155,6 +155,14 @@ function _toStringDate(date) {
   } else {
     return _toStringDate(new Date());
   }
+}
+
+function _toPercent(value, precision = 0) {
+  return _round(value*100, precision, ' %');
+}
+
+function _toCurrency(value, precision = 2) {
+  return _round(value, precision, ' €');
 }
 
 function _indexOf(array, value, index, start) {
