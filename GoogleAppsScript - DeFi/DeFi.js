@@ -44,13 +44,14 @@ function updatePrice() {
     const range = _getSheet(PRICECACHE).getRange(FR, FORMULA_COL-1);
     range.setValue(range.getValue() == '' ? ' ' : '');
 
+    // Send an alert if the lending ratio reached a certain amount
     const sheet = _getSheet(DASHBOARD);
     const lr = sheet.getMaxRows();
     const lc = sheet.getMaxColumns();
     const l = sheet.getRange(lr-LENDING_ROW, lc).getValue();
-    if (l > LENDING_ALERT) {
-      _sendMessage('Lending ratio limit reached', 'The Lending ratio is at ' +
-      _toPercent(l, 1) + '. Check it out !!', true);
+    if (Math.abs(l) > LENDING_ALERT) {
+      _sendMessage('Lending ratio limit reached', 'The Lending ratio is at '
+      + _toPercent(l, 1) + '. Check it out !!', true);
     }
   }
 }
