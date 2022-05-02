@@ -53,7 +53,7 @@ function withdraw() {
 
         // Delete processed transactions
         for (let j = deleteArray.length-1; j >= 0; --j) {
-          if (deleteArray[j] != FR) {
+          if (deleteArray[j] != FR || tsheet.getMaxRows() != FR) {
             tsheet.deleteRow(deleteArray[j]);
           } else {
             tsheet.getRange(FR, FC, 1, paidArray[j].length).clearContent();
@@ -95,7 +95,7 @@ function withdraw() {
             message += 'Le somme de ' + toPayCrypto + ' a été versée sur le'
             + ' compte crypto à l\'adresse ' + cryptoAdd + '\n\n';
             recap += 'Crypto : ' + toPayCrypto + '\n'
-            + 'Adresse : ' + cryptoAdd;
+            + 'Adresse : ' + cryptoAdd + '\n\n';
           }
 
           // Add all the transactions historic
