@@ -235,7 +235,7 @@ function _processAccountTransaction(thread) {
 
       if (b[3] == '-' && b[b.length-1] == 'EUR') {
         const value = b[b.length-2];
-        const date = _toStringDate(b[4]);
+        const date = _toStringDate(b[4], 'EN');
         const label = b.slice(6, b.length-2).join(' ');
         const slab = b.slice(6, b.length-4).join(' ');
 
@@ -244,7 +244,7 @@ function _processAccountTransaction(thread) {
         // Check for duplicate
         let color;
         if (index != null && array[index][1].toString().indexOf(slab) != -1) {
-          if (date != _toStringDate(array[index][0])) {
+          if (date != _toStringDate(array[index][0], 'EN')) {
             // Compare date with one week difference
             const d1 = new Date(date);
             const d2 = array[index][0];
@@ -496,7 +496,7 @@ function _updateAllocation() {
     // Set the values into the allocation historic
     _setRangeValues(allocSheet, 3, FC, [allocArray[1]]);    // Copy only values into previous row (archive)
 
-    let date = _toStringDate();
+    let date = _toStringDate(null, 'EN');
     const data = [[date, _toFixed(portValue+assValue), _toFixed(portValue), alloc]];
     _insertFirstRow(allocSheet, data);
 

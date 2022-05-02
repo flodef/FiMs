@@ -2,7 +2,7 @@
 /* exported _getSheet,_copyFormula, _copyFirstRow, _isMarketOpen, _round,
 _isCurrentMonth, _toDate, _indexOf, _isLoading, _isError, _archiveMessage,
 _sendMessage, _deleteOlderThanAYear, _AreRowsDifferent, _isSubHour, _toPercent,
-_toCurrency, IMPORTURL, SHEETNAME, FM, LM */
+_toCurrency, _toStringTime, IMPORTURL, SHEETNAME, FM, LM */
 
 // MAIN SPREADSHEET
 const SS = SpreadsheetApp.getActiveSpreadsheet();
@@ -126,12 +126,12 @@ function _round(value, precision, symbol) {
   return _toFixed(Math.round(value * sup * mult) / mult, precision) + symbol;
 }
 
-function _isCurrentDay(array) {
-  return array && array.length > 0 ? _toStringDate() == _toStringDate(array[0][0]) : false;
+function _isCurrentDay(array, i = 0, j = 0) {
+  return array && array.length > 0 ? _toStringDate() == _toStringDate(array[i][j]) : false;
 }
 
-function _isCurrentMonth(array) {
-  return array && array.length > 0 ? new Date().getMonth() == array[0][0].getMonth() : false;
+function _isCurrentMonth(array, i = 0, j = 0) {
+  return array && array.length > 0 ? new Date().getMonth() == array[i][j].getMonth() : false;
 }
 
 function _toDate(date) {
@@ -140,29 +140,56 @@ function _toDate(date) {
   return date;
 }
 
-function _toStringDate(date) {
+function _toStringDate(date, locale = 'FR') {
   if (typeof(date) == 'string') {
     return date && date.split('/').length == 3
-      ? date.replace(/(^|\/)0+/g, '$1').split('/')[1] + '/'
-    + date.replace(/(^|\/)0+/g, '$1').split('/')[0] + '/'
-    + date.split('/')[2]
+      ? locale == 'FR'
+        ? date.replace(/(^|\/)0+/g, '$1').split('/')[0] + '/'
+        + date.replace(/(^|\/)0+/g, '$1').split('/')[1] + '/'
+        + date.split('/')[2]
+        : date.replace(/(^|\/)0+/g, '$1').split('/')[1] + '/'
+        + date.replace(/(^|\/)0+/g, '$1').split('/')[0] + '/'
+        + date.split('/')[2]
       : null;
   } else if (typeof(date) == 'object') {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    return month + '/' + day + '/' + year;
+    return locale == 'FR'
+      ? day + '/' + month + '/' + year
+      : month + '/' + day + '/' + year;
   } else {
-    return _toStringDate(new Date());
+    return _toStringDate(new Date(), locale);
   }
 }
+
+function _toStringTime(date, locale = 'FR') {
+  if (typeof(date) == 'string') {
+    return _toStringDate(date, locale);
+  } else if (typeof(date) == 'object') {
+    const day = ('0'  + date.getDate()).slice(-2);
+    const month = ('0'  + (date.getMonth()+1)).slice(-2);
+    const year = date.getFullYear();
+    const hours = ('0'  + date.getHours()).slice(-2);
+    const min = ('0'  + date.getMinutes()).slice(-2);
+    const sec = ('0'  + date.getSeconds()).slice(-2);
+
+    return locale == 'FR'
+      ? day + '/' + month + '/' + year + ' ' + hours + ':' + min + ':' + sec
+      : month + '/' + day + '/' + year + ' ' + hours + ':' + min + ':' + sec;
+  } else {
+    return _toStringTime(new Date(), locale);
+  }
+}
+
 
 function _toPercent(value, precision = 0) {
   return _round(value*100, precision, ' %');
 }
 
-function _toCurrency(value, precision = 2) {
-  return _round(value, precision, ' €');
+function _toCurrency(value, precision = 2, locale = 'FR') {
+  return (locale == 'FR' ? '' : '$')
+   + _round(value, precision, locale == 'FR' ? ' €' : '');
 }
 
 function _indexOf(array, value, index, start) {
