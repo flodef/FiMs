@@ -94,6 +94,14 @@ In the Project Settings, you should find the Script ID and make a copy of it.
 
 #### 3. Push edited files
 Each file has a corresponding folder: for example, Associate --> "GoogleAppsScript - Associate", and so on...
+##### 1. Time zone
+Update the timezone in the file `appsscript.json` corresponding to your time zone (currently set to "timeZone": "Europe/Paris").
+You can select which time zone you are in, in the GoogleAppsScript Editor > Project Settings > General Settings.
+After selecting your current time zone, activate the option `Show "appsscript.json" manifest file in the editor`.
+Go back to the editor, display the file `appsscript.json` and copy your time zone.
+You can then deactivate the option if needed, and copy your time zone in your local file `appsscript.json`.
+
+##### 1. Push local files
 In each folder, you have 2 push command: `Push.bat` for Windows, `Push.sh` for Linux.
 Open them and paste the Script ID instead of the one already there: clasp push YourScriptID
 You also have to change the Script ID in the file `.clasp.json`.
