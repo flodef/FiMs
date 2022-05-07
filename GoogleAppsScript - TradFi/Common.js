@@ -233,13 +233,13 @@ function _sendMessage(object, message, isUrgent) {
 
 
 function IMPORTURL(url, str, isMulti) {
-  //const url = "https://www.investing.com/etfs/ishares-usd-treasury-bond-20yr-de?cid=956312";
-  //const str = "//span[@id='last_last']";        //input
-  //const str = '<span.*id="last_last".*>(.*)<';  //output
-  //const url = "https://www.zonebourse.com/cours/etf/ISHARES-TREASURY-BOND-2-24002505/";
-  //const str = "//td[@id='zbjsfv_dr']";          //input
-  //const str = '<td.*id="zbjsfv_dr".*>\n*(.*)';  //output
-  //const isMulti = true;
+  //url = "https://www.investing.com/etfs/ishares-usd-treasury-bond-20yr-de?cid=956312";
+  //str = "//span[@id='last_last']";        //input
+  //str = '<span.*id="last_last".*>(.*)<';  //output
+  //url = "https://www.zonebourse.com/cours/etf/ISHARES-TREASURY-BOND-2-24002505/";
+  //str = "//td[@id='zbjsfv_dr']";          //input
+  //str = '<td.*id="zbjsfv_dr".*>\n*(.*)';  //output
+  //isMulti = true;
   let content = '';
   const format = str
     .replaceAll('\'','"')
@@ -251,7 +251,10 @@ function IMPORTURL(url, str, isMulti) {
   if (response) {
     const html = response.getContentText();
     if (html) {
-      content = regex.exec(html)[1].trim();
+      const exec = regex.exec(html);
+      content = exec ? exec[1].trim() : '#ERROR: regex pattern not found.';
+    } else {
+      content = '#ERROR: html content is empty.';
     }
   }
   return content;

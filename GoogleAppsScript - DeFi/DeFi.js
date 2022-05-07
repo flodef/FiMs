@@ -13,8 +13,8 @@ const HISTORIC = 'Historic';      // The "Historic" sheet name
 const PRICECACHE = 'PriceCache';  // The "Price" sheet name
 
 // CACHEPRICE COLS
-const FORMULA_COL = 3;            // Should be the "Formula" column
-const PRICE_COL = 5;              // Should be the "Price" column
+const PRICE_COL = 2;              // Should be the "Price" column
+const FORMULA_COL = 5;            // Should be the "Formula" column
 
 // DASHBOARD ROWS
 const LENDING_ROW = 3;            // Should be the "Apricot borrow" row ! FROM THE BOTTOM !
@@ -41,8 +41,7 @@ function updatePrice() {
     cache.remove('offset');
 
     // Modify the cell to update the formula and load data
-    const range = _getSheet(PRICECACHE).getRange(FR, FORMULA_COL-1);
-    range.setValue(range.getValue() == '' ? ' ' : '');
+    _updateFormula();
 
     // Send an alert if the lending ratio reached a certain amount
     const sheet = _getSheet(DASHBOARD);
@@ -62,7 +61,8 @@ function cachePrice() {
   if (_isSubHour(PRICE_UPDATE, offset)) {
     const sheet = _getSheet(PRICECACHE);
     const lr = sheet.getMaxRows();
-    const range = sheet.getRange(FR, PRICE_COL, lr, 1);
+    const lc = sheet.getMaxColumns();
+    const range = sheet.getRange(FR, lc, lr, 1);
     const val = range.getValues();
     const x = new Date();
     let cached = 0;
@@ -70,8 +70,8 @@ function cachePrice() {
     for (let i = 0; i < lr-1; ++i) {
       const v = val[i][0];
       if (v && !_isLoading(v) && !_isError(v)) {
-        sheet.getRange(i+FR, PRICE_COL+1).setValue(v);  // Cache the value
-        sheet.getRange(i+FR, PRICE_COL+2).setValue(x);  // Set the last updated date
+        sheet.getRange(i+FR, PRICE_COL).setValue(v);  // Cache the value
+        sheet.getRange(i+FR, PRICE_COL+1).setValue(x);  // Set the last updated date
         ++cached;
       }
     }
@@ -80,10 +80,17 @@ function cachePrice() {
     // otherwise remove the manual cache, set in case of loading error
     if (cached != lr-1) {
       cache.put('offset', offset+1);
+      _updateFormula();
     } else {
       sheet.getRange(1, FORMULA_COL-1).clearContent();
     }
   }
+}
+
+// Modify the cell to update the formula and load data
+function _updateFormula() {
+  const range = _getSheet(PRICECACHE).getRange(FR, FORMULA_COL-1);
+  range.setValue(range.getValue() == '' ? ' ' : '');
 }
 
 function _updateEvolution() {
@@ -115,6 +122,6 @@ function _updateHistoric() {
 
     const date = _toDate();                 // Get date without hours
     date.setMonth(date.getMonth() + 1, 1);  // Set the date at the first of next month
-    sheet.getRange(FR+1, FC).setValue(date);
+    sheet.getRange(FR+1, FC).setValue(date);// Update the previous month date
   }
 }
