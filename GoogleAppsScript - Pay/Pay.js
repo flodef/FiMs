@@ -17,7 +17,7 @@ const IBAN_COL = 4;             // Should be the "IBAN" column
 const TRATE_COL = 5;            // Should be the "Rate" column
 const CRYPTOADD_COL = 6;        // Should be the "Crypto Address" column
 const DRATE_COL = 7;            // Should be the "Rate" column
-const NOTPAID_COL = 9;          // Should be the "Not Paid" column
+const NOTPAID_COL = 10;          // Should be the "Not Paid" column
 
 // SHEET NAMES
 const MERCHANT = 'Merchant';                  // The "Merchant" sheet name
