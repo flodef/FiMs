@@ -9,10 +9,10 @@ processMail, IMPORTURL */
 
 
 // DASHBOARD ROWS
-const MONPAY_ROW = 19;          // Should be the "Monthly payment" row
-const ASSVAL_ROW = 33;          // Should be the "Associates" row
-const PORVAL_ROW = 38;          // Should be the "Current portfolio value" row
-const MONINT_ROW = 58;          // Should be the "Degiro interest" row
+const MONPAY_ROW = 20;          // Should be the "Monthly payment" row
+const ASSVAL_ROW = 34;          // Should be the "Associates" row
+const PORVAL_ROW = 39;          // Should be the "Current portfolio value" row
+const MONINT_ROW = 59;          // Should be the "Degiro interest" row
 
 // INVESTMENT COLS
 const TYPE_COL = 1;             // Should be the "Type" column
