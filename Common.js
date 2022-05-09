@@ -37,7 +37,7 @@ function loadPage() {
   // Set the app buttons
   var tableHTML = '<table id="actionButton" class="topMenu">' +
     '<div id="focus" style="height:0px;">' +
-    '<input id="mainFocus" type="image" src="' + GLOBAL.serverUrl + 'Img/0BYg1.png" style="height:0px;" tabindex="1">' +
+    '<input id="mainFocus" type="image" src="' + GLOBAL.serverUrl + 'Img/Image/0BYg1.png" style="height:0px;" tabindex="1">' +
     '</div><tr>';
   GLOBAL.menuButton.forEach(item => {
     tableHTML += getMenuButton(item);
@@ -318,7 +318,7 @@ function getTableLoaderBar(content) {
 
 function getTableImage(content) {
   return '<td align="center">' + getTooltip(
-    '<img src="' + GLOBAL.serverUrl + 'Img/' + content + '.png" ' +
+    '<img src="' + GLOBAL.serverUrl + 'Img/Image/' + content + '.png" ' +
     ' onclick="displayElement(this, false, 0);displayElement(this, true, 3000)">', translate(content)) + '</td>';
 }
 
@@ -328,7 +328,7 @@ function getMenuButton(item) {
   const fn = item.fn ? item.fn.name : id;
 
   return '<td style="padding: 0px;">' + getTooltip('<input id="' + id + 'Button" class="actionButton"' +
-    ' src="' + GLOBAL.serverUrl + 'Img/' + img + '.png" type="image" tabindex="2" onclick="' +
+    ' src="' + GLOBAL.serverUrl + 'Img/Button/' + img + '.png" type="image" tabindex="2" onclick="' +
     fn + '()">', translate(img)) + '</td>';
 }
 

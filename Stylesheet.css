@@ -176,7 +176,7 @@ marquee {
 /* Search bar */
 .mainSearch {
   border-radius: 25px;
-  background-image: url('Img/searchicon.png');
+  background-image: url('Img/Image/searchicon.png');
   /* Add a search icon to input */
   background-position: 6px 4px;
   /* Position the search icon */

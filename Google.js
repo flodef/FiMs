@@ -46,7 +46,7 @@ class Run {
   doGet(e) {
     const userId = e.get('id') ?? '';
     const isMain = userId == 'TradFi';
-    const favIcon = 'Img/Favicon.png';
+    const favIcon = 'Img/Image/Favicon.png';
     const pageTitle = isMain ? 'FiMs TradFi' : 'FiMs Associate';
     const fileName = !Run.#workInProgress ? 'Index' : 'WorkInProgress';
     const spreadsheetId = isMain ? 'Data/FiMs TradFi.xlsx' : 'Data/FiMs Associate.xlsx';

@@ -19,7 +19,7 @@ function doGet(e) {
 //  return ContentService.createTextOutput(output);
   const userId = e && e.parameter && e.parameter.id ? e.parameter.id : '';
   const isMain = userId == 'TradFi';
-  const favIcon = 'https://raw.githubusercontent.com/flodef/FiMS/master/Img/Favicon2.png';
+  const favIcon = 'https://raw.githubusercontent.com/flodef/FiMS/master/Img/Image/Favicon2.png';
   const pageTitle = isMain ? 'FiMs TradFi' : 'FiMs Associate';
   const fileName = !workInProgress ? 'Index' : 'WorkInProgress';
   const spreadsheetId = isMain ? '1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw' : '1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU';
