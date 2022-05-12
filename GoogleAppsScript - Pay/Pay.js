@@ -82,8 +82,8 @@ function withdraw() {
           let message = 'FiMs Pay a effectué un virement d\'un montant de ' + toPayTrad
           + ' pour l\'entreprise ' + company
           + ' sur le compte IBAN : ' + iban + '\n\n';
-          recap += 'Entreprise : ' + company + '\n'
-          + 'Virement : ' + toPayTrad + '\n'
+          recap += 'Company : ' + company + '\n'
+          + 'Wire Transfer : ' + toPayTrad + '\n'
           + 'IBAN : ' + iban + '\n\n';
 
           // Add a message specific to crypto withdraw
@@ -94,8 +94,8 @@ function withdraw() {
 
             message += 'Le somme de ' + toPayCrypto + ' a été versée sur le'
             + ' compte crypto à l\'adresse ' + cryptoAdd + '\n\n';
-            recap += 'Crypto : ' + toPayCrypto + '\n'
-            + 'Adresse : ' + cryptoAdd + '\n\n';
+            recap += 'Crypto Transfer : ' + toPayCrypto + '\n'
+            + 'Address : ' + cryptoAdd + '\n\n';
           }
 
           // Add all the transactions historic
@@ -115,6 +115,7 @@ function withdraw() {
 
   // Send a recap with all the transactions total to process the paiements
   if (recap != '') {
+    recap += '/!\\ Don\'t forget to withdraw crypto from FiMs Pay account /!\\';
     _sendMessage(recapObj, recap, true);
   }
 }
