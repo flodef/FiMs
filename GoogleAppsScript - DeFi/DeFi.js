@@ -57,7 +57,8 @@ function updatePrice() {
 
 function cachePrice() {
   const cache = CacheService.getScriptCache();
-  const offset = cache.get('offset') ?? 1;
+  const cv = cache.get('offset');
+  const offset = cv ? Number(cv) : 1;
   if (_isSubHour(PRICE_UPDATE, offset)) {
     const sheet = _getSheet(PRICECACHE);
     const lr = sheet.getMaxRows();
@@ -79,7 +80,7 @@ function cachePrice() {
     // If not values have been cached, set the offset to cache Price again,
     // otherwise remove the manual cache, set in case of loading error
     if (cached != lr-1) {
-      cache.put('offset', offset+1);
+      cache.put('offset', (offset+1));
       _updateFormula();
     } else {
       sheet.getRange(1, FORMULA_COL-1).clearContent();
