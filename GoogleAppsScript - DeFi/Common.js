@@ -240,6 +240,8 @@ function IMPORTURL(url, str, isMulti) {
   //str = "//td[@id='zbjsfv_dr']";          //input
   //str = '<td.*id="zbjsfv_dr".*>\n*(.*)';  //output
   //isMulti = true;
+  url = "https://app.apricot.one";
+  str = "//"; //div[class='AssetLabel_name__16xkt assetLabelName'];
   let content = '';
   const format = str
     .replaceAll('\'','"')
@@ -252,7 +254,7 @@ function IMPORTURL(url, str, isMulti) {
     const html = response.getContentText();
     if (html) {
       const exec = regex.exec(html);
-      content = exec ? exec[1].trim() : '#ERROR: regex pattern not found.';
+      content = exec ? exec.length >=2 ? exec[1].trim() : html : '#ERROR: regex pattern not found.';
     } else {
       content = '#ERROR: html content is empty.';
     }

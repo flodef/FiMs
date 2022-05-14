@@ -17,11 +17,11 @@ const PRICE_COL = 2;              // Should be the "Price" column
 const FORMULA_COL = 5;            // Should be the "Formula" column
 
 // DASHBOARD ROWS
-const LENDING_ROW = 3;            // Should be the "Apricot borrow" row ! FROM THE BOTTOM !
+const LENDING_ROW = 4;            // Should be the "Apricot borrow" row ! FROM THE BOTTOM !
 
 // MISC
 const PRICE_UPDATE = 10;          // Number of minutes between price updates
-const LENDING_ALERT = 0.95;       // Percentage above when an alert should be send
+const LENDING_ALERT = 0.75;       // Percentage above when an alert should be send
 
 
 
@@ -47,7 +47,7 @@ function updatePrice() {
     const sheet = _getSheet(DASHBOARD);
     const lr = sheet.getMaxRows();
     const lc = sheet.getMaxColumns();
-    const l = sheet.getRange(lr-LENDING_ROW, lc).getValue();
+    const l = sheet.getRange(lr-LENDING_ROW+1, lc).getValue();
     if (Math.abs(l) > LENDING_ALERT) {
       _sendMessage('Lending ratio limit reached', 'The Lending ratio is at '
       + _toPercent(l, 1) + '. Check it out !!', true);
