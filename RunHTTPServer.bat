@@ -137,6 +137,11 @@ CLS
 
 
 :end
-REM Install NPM first, then http-server
+
+REM Asks for the User Id, then open the browser in parallel, while the http server is starting
+SET /p user= User ID ('TradFi' for FiMs TradFi, can also be void) :
+START /B RunLocalHost.bat %user%
+
+REM Start the http server (Install NPM first, then http-server)
 START /B http-server
 EXIT

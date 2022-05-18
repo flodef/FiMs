@@ -38,22 +38,22 @@ The app needs some command line instructions / file download / file copy to be u
 To simplify the use, many scripts that automate the process are already there.
 To use those scripts, you can open a command line window and type your command (RunHTTPServer, Push, Deploy, ...).
 To execute the script, go first to the containing folder :
-- On Debian / Ubuntu command line: open a command line and type `$ sh _script_.sh`
-- On Debian / Ubuntu explorer : right click on the shell script (.sh), then "execute as a program"
+- On Debian / Ubuntu command line: open a command line and type `$ ./_MyScript_.sh` where _MyScript_ should be replace by the script to execute
+- On Debian / Ubuntu explorer : right click on the shell script (_MyScript_.sh), then "execute as a program"
 - On Windows : Double click on the batch script (.bat)
 
 ### 1. Local data & server
 If you want to execute the app in local, execute the http server by using the `RunHTTPServer` script in the FiMs folder (see chapter _How to Use_).
-When asked to downlad spreadsheet, type "N" for No.
-When the http server is running, run a web browser and go to http://127.0.0.1:8080/
-You should get the Associate page.
-If you want to access a specific Associate page, add an associate in the spreadsheet in Data/FiMs Associate.xlsx.
+When asked to downlad spreadsheet, type "N" for No. 
+When asked a User ID : 
+- If you wand to get the Associate page with no user logged, you can leave it blank.
+- If you want to access a specific Associate page, add an associate in the spreadsheet in Data/FiMs Associate.xlsx.
 Alternatively, you can access it by using the connexion button, in the upper right corner.
-A test associate is already in the spreadsheet file. Its ID is "Tester".
-To access it, go to http://127.0.0.1:8080/?id=Tester or type "Tester" after clicking the connexion button.
-
-If you want to access the TradFi page, you can go to http://127.0.0.1:8080/?id=TradFi
+A test associate is already in the spreadsheet file. Its ID is "Flodef".
+To access it, go to http://127.0.0.1:8080/?id=Flodef or type "Flodef" after clicking the connexion button.
+- If you want to access the TradFi page, you can go to http://127.0.0.1:8080/?id=TradFi
 The id to access the TradFi page is "TradFi", but you can change it in the Google.js file, class Run, function doGet(e)
+A web browser should open at http://127.0.0.1:8080/ with the User ID you entered.
 
 ### 2. Online data & local server
 Upload the Data files from the Data folder, in Google drive.
@@ -101,9 +101,9 @@ After selecting your current time zone, activate the option `Show "appsscript.js
 Go back to the editor, display the file `appsscript.json` and copy your time zone.
 You can then deactivate the option if needed, and copy your time zone in your local file `appsscript.json`.
 
-##### 1. Push local files
+##### 2. Push local files
 In each folder, you have 2 push command: `Push.bat` for Windows, `Push.sh` for Linux.
-Open them and paste the Script ID instead of the one already there: clasp push YourScriptID
+Open them and paste the Script ID instead of the one already there: clasp push _YourScriptID_
 You also have to change the Script ID in the file `.clasp.json`.
 After editing a file in one of the GoogleAppsScript folder, use one of the `Push` script
 (see chapter _How to Use_). Alternatively, it is possible to update all the script at once,

@@ -46,7 +46,7 @@ GLOBAL.displayData = {
   },
   'personal': {
     id: 'personal',
-    formula: 'Associate!A:AB',
+    formula: 'Associate!A:N',
     updateTable: updatePersonalTable,
     loadOnce: true,
     filter: 1
@@ -73,7 +73,7 @@ GLOBAL.personalData = [{
   maxLength: 10,
   required: true
 }, // ID
-{
+/*{
   index: 15,
   readonly: true,
   type: 'name',
@@ -150,7 +150,7 @@ GLOBAL.personalData = [{
   index: 26,
   type: 'name',  //type: 'radio'
   required: true
-}, // Newsletter
+}, // Newsletter*/
 {
   index: 2,
   type: 'euro',
