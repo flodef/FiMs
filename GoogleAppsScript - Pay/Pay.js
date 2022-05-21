@@ -35,7 +35,7 @@ function withdraw() {
 
   // Processing transactions for each merchant (by id)
   for (let i = 0; i < array.length; ++i) {
-    if (_isCurrentDay(array, i, lc-1)) {
+    if (_isToday(array, i, lc-1)) {
       const tsheet = _getSheet(TRANSACTIONS);
       if (tsheet.getRange(FR, FC).getValue() != '') {
         const tarray = tsheet.getSheetValues(FR, FC, -1, -1);

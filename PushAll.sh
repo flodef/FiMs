@@ -10,6 +10,11 @@ cd GoogleAppsScript\ -\ DeFi/
 sh Push.sh
 cd ..
 
+#ID
+cd GoogleAppsScript\ -\ ID/
+sh Push.sh
+cd ..
+
 #Pay
 cd GoogleAppsScript\ -\ Pay/
 sh Push.sh

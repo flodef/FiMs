@@ -56,7 +56,7 @@ function _insertFirstRow(sheet, data, isFast, lc) {
 }
 
 function _copyFirstRow(sheet, array) {
-  if (!_isCurrentDay(array)) {
+  if (!_isToday(array)) {
     _insertFirstRow(sheet, null, true);
     _setRangeValues(sheet, FR + 1, FC, [array[0]]);    // Copy only values into previous row (archive)
   }
@@ -126,8 +126,12 @@ function _round(value, precision, symbol) {
   return _toFixed(Math.round(value * sup * mult) / mult, precision) + symbol;
 }
 
-function _isCurrentDay(array, i = 0, j = 0) {
+function _isToday(array, i = 0, j = 0) {
   return array && array.length > 0 ? _toStringDate() == _toStringDate(array[i][j]) : false;
+}
+
+function _isCurrentDay(array, i = 0, j = 0) {
+  return array && array.length > 0 ? new Date().getDay() == array[i][j].getDay() : false;
 }
 
 function _isCurrentMonth(array, i = 0, j = 0) {
@@ -240,8 +244,6 @@ function IMPORTURL(url, str, isMulti) {
   //str = "//td[@id='zbjsfv_dr']";          //input
   //str = '<td.*id="zbjsfv_dr".*>\n*(.*)';  //output
   //isMulti = true;
-  url = "https://app.apricot.one";
-  str = "//"; //div[class='AssetLabel_name__16xkt assetLabelName'];
   let content = '';
   const format = str
     .replaceAll('\'','"')
@@ -254,7 +256,7 @@ function IMPORTURL(url, str, isMulti) {
     const html = response.getContentText();
     if (html) {
       const exec = regex.exec(html);
-      content = exec ? exec.length >=2 ? exec[1].trim() : html : '#ERROR: regex pattern not found.';
+      content = exec ? exec[1].trim() : '#ERROR: regex pattern not found.';
     } else {
       content = '#ERROR: html content is empty.';
     }

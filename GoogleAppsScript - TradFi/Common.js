@@ -56,7 +56,7 @@ function _insertFirstRow(sheet, data, isFast, lc) {
 }
 
 function _copyFirstRow(sheet, array) {
-  if (!_isCurrentDay(array)) {
+  if (!_isToday(array)) {
     _insertFirstRow(sheet, null, true);
     _setRangeValues(sheet, FR + 1, FC, [array[0]]);    // Copy only values into previous row (archive)
   }
@@ -126,8 +126,12 @@ function _round(value, precision, symbol) {
   return _toFixed(Math.round(value * sup * mult) / mult, precision) + symbol;
 }
 
-function _isCurrentDay(array, i = 0, j = 0) {
+function _isToday(array, i = 0, j = 0) {
   return array && array.length > 0 ? _toStringDate() == _toStringDate(array[i][j]) : false;
+}
+
+function _isCurrentDay(array, i = 0, j = 0) {
+  return array && array.length > 0 ? new Date().getDay() == array[i][j].getDay() : false;
 }
 
 function _isCurrentMonth(array, i = 0, j = 0) {

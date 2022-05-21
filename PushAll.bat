@@ -9,6 +9,11 @@ cd GoogleAppsScript\ -\ DeFi/
 START /B /WAIT Push.bat
 cd ..
 
+#ID
+cd GoogleAppsScript\ -\ ID/
+START /B /WAIT Push.bat
+cd ..
+
 #Pay
 cd GoogleAppsScript\ -\ Pay/
 START /B /WAIT Push.bat

@@ -81,17 +81,17 @@ function sendCharity() {
   const m = x.getMonth();
   if (m == FM) {
     // Retrieve associate main data
-    const associateSheet = _getSheet(ASSOCIATE);
-    const associateArray = associateSheet.getSheetValues(FR, FC, -1, -1);
+    const sheet = _getSheet(ASSOCIATE);
+    const array = sheet.getSheetValues(FR, FC, -1, -1);
 
     const object = 'Don annuel à une oeuvre de charité';
     let recap = 'Liste des dons :\n';
     let total = 0;
-    for (let i = 0; i < associateArray.length; ++i) {
+    for (let i = 0; i < array.length; ++i) {
       // Retrieve associate account data
-      const name = associateArray[i][ASSNAME_COL-1];
-      const char = associateArray[i][ASSCHAR_COL-1];
-      const mail = associateArray[i][ASSMAIL_COL-1];
+      const name = array[i][ASSNAME_COL-1];
+      const char = array[i][ASSCHAR_COL-1];
+      const mail = array[i][ASSMAIL_COL-1];
 
       // Send charity message if amount <= -1
       if (char <= -1) {

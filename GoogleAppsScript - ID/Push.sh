@@ -1,0 +1,2 @@
+#!/bin/bash
+clasp pull 12OS9XA_azIIr1LaZXbPAVWk_9PC43YeXYZJH2u4k86hbcbw4uVhNPAph
