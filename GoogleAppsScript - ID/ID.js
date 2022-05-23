@@ -47,11 +47,11 @@ function reminderBirthday() {
   for (let i = 0; i < array.length; ++i) {
     const birthday = [[array[i][BIRTHDAY_COL-1]]];
 
-    if (_isCurrentMonth(birthday) && _isCurrentDay(birthday)) {
+    if (_isCurrentDay(birthday) && _isCurrentMonth(birthday)) {
       const name = array[i][ID_COL-1];
       const email = array[i][EMAIL_COL-1];
       const object = name + '\'s Birthday (FiMs Associate)';
-      _sendMessage(object, 'Happy Birthday ' + name + ' !!!\n\nWish her/him by email at ' + email);
+      _sendMessage(object, 'Happy Birthday ' + name + ' !!!\n\nWish her/him by email at ' + email, true);
     }
   }
 }

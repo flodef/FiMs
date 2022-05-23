@@ -131,7 +131,7 @@ function _isToday(array, i = 0, j = 0) {
 }
 
 function _isCurrentDay(array, i = 0, j = 0) {
-  return array && array.length > 0 ? new Date().getDay() == array[i][j].getDay() : false;
+  return array && array.length > 0 ? new Date().getDate() == array[i][j].getDate() : false;
 }
 
 function _isCurrentMonth(array, i = 0, j = 0) {
