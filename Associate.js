@@ -33,7 +33,7 @@ GLOBAL.withdrawDateOption = ['Start of next month', 'Immediat'];
 GLOBAL.displayData = {
   'account': {
     id: 'account',
-    formula: '!A:N',
+    formula: '!A:O',
     updateTable: updateAccountTable,
     loadOnce: true
   },
@@ -46,7 +46,7 @@ GLOBAL.displayData = {
   },
   'personal': {
     id: 'personal',
-    formula: 'Associate!A:N',
+    formula: 'Associate!A:Q',
     updateTable: updatePersonalTable,
     loadOnce: true,
     filter: 1
@@ -73,6 +73,42 @@ GLOBAL.personalData = [{
   maxLength: 10,
   required: true
 }, // ID
+{
+  index: 15,
+  readonly: true,
+  type: 'email',
+  required: true
+}, // Email
+{
+  index: 2,
+  type: 'euro',
+  max: 0,
+  required: true
+}, // Recurrent
+{
+  index: 6,
+  disabled: true
+}, // Estimate rate
+{
+  index: 7,
+  disabled: true
+}, // Estimate gain
+{
+  index: 5,
+  disabled: true
+}, // Financed project
+{
+  index: 3,
+  disabled: true
+}, // Charity
+{
+  index: 4,
+  disabled: true
+}, // Donated
+{
+  index: 8, 
+  disabled: true
+}, // Duration
 /*{
   index: 15,
   readonly: true,
@@ -91,12 +127,6 @@ GLOBAL.personalData = [{
   type: 'name',
   required: true
 }, // Family name
-{
-  index: 14,
-  readonly: true,
-  type: 'email',
-  required: true
-}, // Email
 {
   index: 18,
   disabled: true,
@@ -151,36 +181,6 @@ GLOBAL.personalData = [{
   type: 'name',  //type: 'radio'
   required: true
 }, // Newsletter*/
-{
-  index: 2,
-  type: 'euro',
-  max: 0,
-  required: true
-}, // Recurrent
-{
-  index: 6,
-  disabled: true
-}, // Estimate rate
-{
-  index: 7,
-  disabled: true
-}, // Estimate gain
-{
-  index: 5,
-  disabled: true
-}, // Financed project
-{
-  index: 3,
-  disabled: true
-}, // Charity
-{
-  index: 4,
-  disabled: true
-}, // Donated
-{
-  index: 8,
-  disabled: true
-}, // Duration
 ];
 GLOBAL.globalData = [36, 37, 33, 1, 58, 56, 21, 31, 32, 35, 39, 40, 52, 59, 60, 63, 64, 65, 71];
 

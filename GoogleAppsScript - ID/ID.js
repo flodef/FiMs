@@ -1,14 +1,13 @@
-/* global GmailApp, FR, FC, SS, FM, _getSheet, _isCurrentMonth, _copyFirstRow,
-_sendMessage, _toDate, _insertFirstRow, _round*/
-/* exported updateAssociate, sendCharity */
+/* global FR, FC, _getSheet, _isCurrentMonth, _isCurrentDay, _sendMessage*/
+/* exported reminderNewsLetter, reminderBirthday */
 
 
 
 // ASSOCIATE COLS
 const ID_COL = 2;               // Should be the "ID" column
 const EMAIL_COL = 3;            // Should be the "EMail" column
-const BIRTHDAY_COL = 7;         // Should be the "Newsletter" column
-const NEWSLETTER_COL = 15;      // Should be the "Newsletter" column
+const BIRTHDAY_COL = 7;         // Should be the "Birth date" column
+const NEWSLETTER_COL = 16;      // Should be the "Newsletter" column
 
 // SHEET NAMES
 const ID = 'ID';                // The "ID" sheet name

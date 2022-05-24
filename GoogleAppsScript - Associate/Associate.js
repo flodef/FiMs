@@ -8,9 +8,9 @@ _sendMessage, _toDate, _insertFirstRow, _round*/
 const ASSNAME_COL = 2;          // Should be the "ID" column
 const ASSRECU_COL = 3;          // Should be the "Recurrent" column
 const ASSCHAR_COL = 4;          // Should be the "Charity" column
-const ASSDEPO_COL = 10;          // Should be the "Deposit" column
-const ASSTOTAL_COL = 14;         // Should be the "Total" column
-const ASSMAIL_COL = 15;          // Should be the "EMail" column
+const ASSDEPO_COL = 11;         // Should be the "Deposit" column
+const ASSTOTAL_COL = 15;        // Should be the "Total" column
+const ASSMAIL_COL = 16;         // Should be the "EMail" column
 
 // SHEET NAMES
 const ASSOCIATE = 'Associate';      // The "Associate" sheet name
