@@ -1,8 +1,8 @@
 /* global SpreadsheetApp, GmailApp, UrlFetchApp */
 /* exported _getSheet,_copyFormula, _copyFirstRow, _isMarketOpen, _round,
-_isCurrentMonth, _toDate, _indexOf, _isLoading, _isError, _archiveMessage,
-_sendMessage, _deleteOlderThanAYear, _AreRowsDifferent, _isSubHour, _toPercent,
-_toCurrency, _toStringTime, IMPORTURL, SHEETNAME, FM, LM */
+_isCurrentDay, _isCurrentMonth, _toDate, _indexOf, _isLoading, _isError, 
+_archiveMessage, _sendMessage, _deleteOlderThanAYear, _AreRowsDifferent, 
+_isSubHour, _toPercent, _toCurrency, _toStringTime, IMPORTURL, SHEETNAME, FM, LM */
 
 // MAIN SPREADSHEET
 const SS = SpreadsheetApp.getActiveSpreadsheet();
@@ -145,8 +145,8 @@ function _toDate(date) {
 }
 
 function _toStringDate(date, locale = 'FR') {
-  if (typeof(date) == 'string') {
-    return date && date.split('/').length == 3
+  if (date && typeof(date) === 'string') {
+    return date.split('/').length == 3
       ? locale == 'FR'
         ? date.replace(/(^|\/)0+/g, '$1').split('/')[0] + '/'
         + date.replace(/(^|\/)0+/g, '$1').split('/')[1] + '/'
@@ -155,7 +155,7 @@ function _toStringDate(date, locale = 'FR') {
         + date.replace(/(^|\/)0+/g, '$1').split('/')[0] + '/'
         + date.split('/')[2]
       : null;
-  } else if (typeof(date) == 'object') {
+  } else if (date && typeof(date) === 'object') {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();

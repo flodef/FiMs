@@ -487,22 +487,22 @@ function _updateAllocation() {
     array = sheet.getSheetValues(FR, lc, -1, 1);
     let alloc = array[REQALL_ROW-FR][0];
     if (alloc) {
-      sheet.getRange(CURALL_ROW, lc).setValue(alloc); // copy requested alloc into current alloc
-      sheet.getRange(REQALL_ROW, lc).clearContent();  // erase requested alloc
+      sheet.getRange(CURALL_ROW, lc).setValue(alloc);     // Copy requested alloc into current alloc
+      sheet.getRange(REQALL_ROW, lc).clearContent();      // Erase requested alloc
     } else {
-      alloc = array[CURALL_ROW-FR][0];                // get the alloc from current if not set
+      alloc = array[CURALL_ROW-FR][0];                    // Get the alloc from current if not set
     }
 
     // Set the values into the allocation historic
-    _setRangeValues(allocSheet, 3, FC, [allocArray[1]]);    // Copy only values into previous row (archive)
+    _setRangeValues(allocSheet, 3, FC, [allocArray[1]]);  // Copy only values into previous row (archive)
 
-    let date = _toStringDate(null, 'EN');
+    let date = _toDate();                                 // Get date without hours
+    date.setDate(1);                                      // Set the date to the first day of the month
     const data = [[date, _toFixed(portValue+assValue), _toFixed(portValue), alloc]];
     _insertFirstRow(allocSheet, data);
 
     // Insert the monthly interest into the historic
-    date = _toDate();              // Get date without hours
-    date.setDate(date.getDate() - 1);  // Yesterday's date as interest are added for the last day of the previous month
+    date.setDate(0);   // Yesterday's date as interest are added for the last day of the previous month
     _insertHistoricRow(date, null, null, null, null, null, _toFixed(monint));
 
     // Insert the monthly approvisionnement into the historic
