@@ -34,22 +34,10 @@ function updateAssociate() {
       const recu = associateArray[i][ASSRECU_COL-1];
 
       // If the sheet does not exist, create a new associate sheet from the model
-      let sheet = _getSheet(name);
-      if (!sheet) {
-        const modelSheet = _getSheet(ASSMODEL);
-        sheet = modelSheet.copyTo(SS);
-        const lc = modelSheet.getMaxColumns();
-
-        sheet.setName(name);
-        const index = sheet.getIndex();
-        SS.setActiveSheet(sheet);
-        SS.moveActiveSheet(index - 1);
-        sheet.getRange(FR, lc).setValue('=IF(ROW()=2,"' + name + '",INDEX(O:O,ROW()-1))');
-        sheet.hideColumns(lc);
-        sheet.setFrozenRows(1);
-        sheet.showSheet();
-        sheet.protect().setWarningOnly(true);
-      }
+      const sheet = _copySheetFromModel(name, ASSMODEL);
+      const lc = sheet.getMaxColumns();
+      sheet.getRange(FR, lc).setValue(name);
+      sheet.hideColumns(lc);
 
       const array = sheet.getSheetValues(FR, FC, 1, -1);
 

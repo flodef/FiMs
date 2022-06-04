@@ -21,7 +21,7 @@ const LENDING_ROW = 4;            // Should be the "Apricot borrow" row ! FROM T
 
 // MISC
 const PRICE_UPDATE = 10;          // Number of minutes between price updates
-const LENDING_ALERT = 0.75;       // Percentage above when an alert should be send
+const LENDING_ALERT = 0.95;       // Percentage above when an alert should be send
 
 
 
@@ -41,7 +41,7 @@ function updatePrice() {
     cache.remove('offset');
 
     // Modify the cell to update the formula and load data
-    _updateFormula();
+    _updateFormula(_getSheet(PRICECACHE), FR, FORMULA_COL-1);
 
     // Send an alert if the lending ratio reached a certain amount
     const sheet = _getSheet(DASHBOARD);
@@ -81,17 +81,11 @@ function cachePrice() {
     // otherwise remove the manual cache, set in case of loading error
     if (cached != lr-1) {
       cache.put('offset', (offset+1));
-      _updateFormula();
+      _updateFormula(sheet, FR, FORMULA_COL-1);
     } else {
       sheet.getRange(1, FORMULA_COL-1).clearContent();
     }
   }
-}
-
-// Modify the cell to update the formula and load data
-function _updateFormula() {
-  const range = _getSheet(PRICECACHE).getRange(FR, FORMULA_COL-1);
-  range.setValue(range.getValue() == '' ? ' ' : '');
 }
 
 function _updateEvolution() {

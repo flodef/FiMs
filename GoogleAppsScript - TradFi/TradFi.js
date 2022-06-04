@@ -496,6 +496,7 @@ function _updateAllocation() {
     // Set the values into the allocation historic
     _setRangeValues(allocSheet, 3, FC, [allocArray[1]]);  // Copy only values into previous row (archive)
 
+    //let date = _toStringDate(null, 'EN');                 // Get the current date in english format
     let date = _toDate();                                 // Get date without hours
     date.setDate(1);                                      // Set the date to the first day of the month
     const data = [[date, _toFixed(portValue+assValue), _toFixed(portValue), alloc]];

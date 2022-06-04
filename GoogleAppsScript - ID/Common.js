@@ -2,7 +2,9 @@
 /* exported _getSheet,_copyFormula, _copyFirstRow, _isMarketOpen, _round,
 _isCurrentDay, _isCurrentMonth, _toDate, _indexOf, _isLoading, _isError, 
 _archiveMessage, _sendMessage, _deleteOlderThanAYear, _AreRowsDifferent, 
-_isSubHour, _toPercent, _toCurrency, _toStringTime, IMPORTURL, SHEETNAME, FM, LM */
+_isSubHour, _toPercent, _toCurrency, _toStringTime, _copySheetFromModel,
+_updateFormula, _isCurrentHour, TO_PURE_DATE, TO_TIMESTAMP, IMPORTURL, 
+SHEETNAME, FM, LM */
 
 // MAIN SPREADSHEET
 const SS = SpreadsheetApp.getActiveSpreadsheet();
@@ -21,18 +23,43 @@ const FM = 0;     // First month (january)
 const LM = 11;    // Last month (december)
 
 
-function _getSheet(sheetName) {
-  return SS.getSheetByName(sheetName);
+function _getSheet(sheetName, sheet) {
+  return sheet ? sheet : SS.getSheetByName(sheetName);
+}
+
+function _copySheetFromModel(newSheetName, modelSheetName) {
+  let sheet = _getSheet(newSheetName);
+  if (!sheet) {
+    const modelSheet = _getSheet(modelSheetName);
+    sheet = modelSheet.copyTo(SS);
+    const index = sheet.getIndex();
+
+    modelSheet.hideSheet();
+    sheet.setName(newSheetName);
+    SS.setActiveSheet(sheet);
+    SS.moveActiveSheet(index - 1);
+    sheet.showSheet();
+    sheet.setFrozenRows(1);
+    sheet.protect().setWarningOnly(true);
+  }
+
+  return sheet;
 }
 
 function _setRangeValues(sheet, row, column, data) {
-  if (data) {
+  if (data && data.length > 0 && data[0].length > 0) {
     sheet.getRange(row, column, data.length, data[0].length).setValues(data);
   }
 }
 
 function _copyFormula(formula, range) {
   formula.copyTo(range, SpreadsheetApp.CopyPasteType.PASTE_FORMULA, false);
+}
+
+// Modify the cell to update the formula and load data
+function _updateFormula(sheet, row, col) {
+  const range = sheet.getRange(row, col);
+  range.setValue(range.getValue() == '' ? ' ' : '');
 }
 
 function _insertFirstRow(sheet, data, isFast, lc) {
@@ -95,12 +122,12 @@ function _deleteOlderThanAYear(sheet) {
   } while (shouldDelete);
 }
 
-function _isMarketOpen() {
+function _isMarketOpen(firstDay = FD, lastDay = LD, firstHour = FH, lastHour = LH) {
   const x = new Date();
   const d = x.getDay();
   const h = x.getHours();
 
-  return d >= FD && d <= LD && h >= FH && h <= LH;
+  return d >= firstDay && d <= lastDay && h >= firstHour && h <= lastHour;
 }
 
 
@@ -121,13 +148,17 @@ function _toFixed(value, precision = 2) {
 function _round(value, precision, symbol) {
   const mult = Math.pow(10, precision);
   const sup = symbol == '%' ? 100 : 1;
-  symbol = typeof(symbol) === 'string' ? symbol : '';
+  symbol = typeof(symbol) == 'string' ? symbol : '';
 
   return _toFixed(Math.round(value * sup * mult) / mult, precision) + symbol;
 }
 
 function _isToday(array, i = 0, j = 0) {
   return array && array.length > 0 ? _toStringDate() == _toStringDate(array[i][j]) : false;
+}
+
+function _isCurrentHour(array, i = 0, j = 0) {
+  return array && array.length > 0 ? new Date().getHours() == array[i][j].getHours() : false;
 }
 
 function _isCurrentDay(array, i = 0, j = 0) {
@@ -138,14 +169,20 @@ function _isCurrentMonth(array, i = 0, j = 0) {
   return array && array.length > 0 ? new Date().getMonth() == array[i][j].getMonth() : false;
 }
 
+//  
+/**
+* Take a date and remove the hours part
+* @param {Date} date to transform or null for current date
+* @return {Date} date without hours
+*/
 function _toDate(date) {
-  date = typeof(date) == 'object' ? date : new Date();
+  date = date && typeof(date) == 'object' ? date : new Date();
   date.setHours(0, 0, 0, 0);
   return date;
 }
 
 function _toStringDate(date, locale = 'FR') {
-  if (date && typeof(date) === 'string') {
+  if (date && typeof(date) == 'string') {
     return date.split('/').length == 3
       ? locale == 'FR'
         ? date.replace(/(^|\/)0+/g, '$1').split('/')[0] + '/'
@@ -155,7 +192,7 @@ function _toStringDate(date, locale = 'FR') {
         + date.replace(/(^|\/)0+/g, '$1').split('/')[0] + '/'
         + date.split('/')[2]
       : null;
-  } else if (date && typeof(date) === 'object') {
+  } else if (date && typeof(date) == 'object') {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
@@ -213,11 +250,11 @@ function _indexOf(array, value, index, start) {
 }
 
 function _isLoading(value) {
-  return typeof(value) === 'string' && (value == LOADING || value == '');
+  return typeof(value) == 'string' && (value == LOADING || value == '');
 }
 
 function _isError(value) {
-  return typeof(value) === 'string' && value.substring(0, 1) === '#';
+  return typeof(value) == 'string' && value.substring(0, 1) == '#';
 }
 
 function _archiveMessage(thread, shouldDelete) {
@@ -235,17 +272,25 @@ function _sendMessage(object, message, isUrgent) {
   GmailApp.sendEmail(MAIL + (isUrgent ? ',' + URGMAIL : ''), object, message);
 }
 
-
-function IMPORTURL(url, str, isMulti) {
+/**
+ * Imports a URL content and parse it to return a specific value
+ * @param {string} url          The URL to import
+ * @param {string} xpath_query  The XPath query to run on the structured data.
+ * @param {bool} isMulti        Indicates whether the parsed content has multiple lines
+ * @customfunction
+ *
+ * @return The value parsed from the URL content
+ **/
+function IMPORTURL(url, xpath_query, isMulti) {
   //url = "https://www.investing.com/etfs/ishares-usd-treasury-bond-20yr-de?cid=956312";
-  //str = "//span[@id='last_last']";        //input
-  //str = '<span.*id="last_last".*>(.*)<';  //output
+  //xpath_query = "//span[@id='last_last']";        //input
+  //xpath_query = '<span.*id="last_last".*>(.*)<';  //output
   //url = "https://www.zonebourse.com/cours/etf/ISHARES-TREASURY-BOND-2-24002505/";
-  //str = "//td[@id='zbjsfv_dr']";          //input
-  //str = '<td.*id="zbjsfv_dr".*>\n*(.*)';  //output
+  //xpath_query = "//td[@id='zbjsfv_dr']";          //input
+  //xpath_query = '<td.*id="zbjsfv_dr".*>\n*(.*)';  //output
   //isMulti = true;
   let content = '';
-  const format = str
+  const format = xpath_query
     .replaceAll('\'','"')
     .replaceAll('//','<')
     .replaceAll('[@','.*')
@@ -264,6 +309,36 @@ function IMPORTURL(url, str, isMulti) {
   return content;
 }
 
+/**
+ * Converts a unix timestamp to date
+ * @param {number} timestamp The unix timestamp to convert
+ * @param {number} hourShift The hours shift from UTC.
+ * @customfunction
+ *
+ * @return The date corresponding to the unix timestamp with shifted hours from UTC
+ **/
+function TO_PURE_DATE(timestamp, hourShift = 0) {
+  return new Date((parseFloat(timestamp) + parseFloat(hourShift) * 3600) * 1000);
+}
+
+/**
+ * Converts a date to unix timestamp
+ * @param {date} date        The date to convert
+ * @param {number} hourShift The hours shift from UTC.
+ * @customfunction
+ *
+ * @return The unix timestamp corresponding to the date with shifted hours from UTC
+ **/
+function TO_TIMESTAMP(date, hourShift = 0) {
+  return Math.floor(new Date(date).getTime() / 1000 - parseFloat(hourShift) * 3600);
+}
+
+/**
+ * Gets the current sheet name
+ * @customfunction
+ *
+ * @return The current sheet name
+ **/
 function SHEETNAME() {
   return SpreadsheetApp.getActiveSheet().getName();
 }
