@@ -1,4 +1,4 @@
-/*global GLOBAL, google, $, getValue, loadPage, displayError, getTableTitle,
+/* global GLOBAL, google, $, getValue, loadPage, displayError, getTableTitle,
 displayElement, toStringDate, getTableCheckmark, getTableImage, getTableLoaderBar,
 indexOf, toValue, translate, setHtml, getLink, openTab, getPopupContent, openPopup,
 addPopupButtonEvent, closePopup, animateLoaderBar, updateAllValues, updateValues,
