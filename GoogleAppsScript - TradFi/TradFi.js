@@ -45,8 +45,9 @@ const SSLINK = 'https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5
 const DEGLINK = 'https://trader.degiro.nl/login/fr#/login';
 const APPLINK = 'https://bit.ly/FiMsMain';
 
-// VARIOUS
-const DUMMY = 'XXXXXX';
+// MISC
+const DUMMY = 'XXXXXX';           // A dummy field value
+const PRICE_UPDATE = 1;           // Number of minutes between price updates
 
 
 
@@ -78,27 +79,29 @@ function monthlyUpdate() {
 }
 
 function updatePrice() {
-  const cache = CacheService.getScriptCache();
-  const values = cache.getAll(['mr', 'updateArray']);
-  if ((_isMarketOpen()) && values['mr']) {
-    cache.removeAll(['mr', 'updateArray']);
-    const mr = Number(values['mr']);
-    const updateArray = values['updateArray'] ? values['updateArray'].split(',') : [];
+  if (_isSubHour(PRICE_UPDATE, 0)) {
+    const cache = CacheService.getScriptCache();
+    const values = cache.getAll(['mr', 'updateArray']);
+    if ((_isMarketOpen()) && values['mr']) {
+      cache.removeAll(['mr', 'updateArray']);
+      const mr = Number(values['mr']);
+      const updateArray = values['updateArray'] ? values['updateArray'].split(',') : [];
 
-    const sheet = _getSheet(INVESTMENT);
-    const formula = sheet.getRange(1, PRICE_COL);
-    if (updateArray.length == 0 || updateArray.length >= mr) {
-      _copyFormula(formula, sheet.getRange(FR, PRICE_COL, mr, 1));  // Update by copying the main formula into all cells
-    } else {
-      for (let i = 0; i < updateArray.length; ++i) {
-        _copyFormula(formula, sheet.getRange(Number(updateArray[i])+FR, PRICE_COL));  // Update by copying the main formula into individual cells
+      const sheet = _getSheet(INVESTMENT);
+      const formula = sheet.getRange(1, PRICE_COL);
+      if (updateArray.length == 0 || updateArray.length >= mr) {
+        _copyFormula(formula, sheet.getRange(FR, PRICE_COL, mr, 1));  // Update by copying the main formula into all cells
+      } else {
+        for (let i = 0; i < updateArray.length; ++i) {
+          _copyFormula(formula, sheet.getRange(Number(updateArray[i])+FR, PRICE_COL));  // Update by copying the main formula into individual cells
+        }
       }
     }
   }
 }
 
 function cachePrice() {
-  if (_isMarketOpen()) {
+  if (_isMarketOpen() && _isSubHour(PRICE_UPDATE, 1)) {
     const sheet = _getSheet(INVESTMENT);
     const lr = sheet.getMaxRows();
     const mr = lr-FR;
