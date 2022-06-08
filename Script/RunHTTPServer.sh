@@ -6,8 +6,6 @@ fileArray[1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw]="FiMs TradFi"
 fileArray[1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU]="FiMs Associate"
 fileArray[1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI]="FiMs DeFi"
 fileArray[1lH6uLLPKZyltpxP83qUMr6veIyIQjzGm-qxaIh2ihIU]="FiMs Pay"
-filevar="fileArray"
-declare -a 'sidKey=("${!'"$filevar"'[@]}")'
 
 # Set the main variables
 ext=".xlsx"
@@ -28,9 +26,8 @@ echo "Download all spreadsheets" $file "(Y/N/M) ?"
 read downall
 clear
 
-for sid in ${sidKey[@]}; do
-  f="${filevar}[$sid]"
-  file=${!f}
+for sid in "${!fileArray[@]}"; do
+  file=${fileArray[$sid]}
 
   retry="Y"
   url="$dir$file$ext"
@@ -62,7 +59,7 @@ for sid in ${sidKey[@]}; do
       clear
       if [ -f "$url" ]; then
         retry="N"
-        mv -f "$url" "./Data/"
+        mv -f "$url" "../Data/"
         break
       fi
     done
@@ -79,8 +76,9 @@ done
 # Asks for the User Id, then open the browser in parallel, while the http server is starting
 echo "User ID ('TradFi' for FiMs TradFi, can also be void) :"
 read user
-sh RunLocalHost.sh $user &
+sh OpenLocalHost.sh $user &
 
-# Start the http server
+# Start the http server in the root folder
 clear
+cd ..
 http-server     # Install NPM first, then http-server

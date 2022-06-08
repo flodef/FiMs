@@ -33,7 +33,7 @@ REM CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 REM SET do=%ERRORLEVEL%
 REM IF %do% EQU 1 MOVE %url% .\Data
 TIMEOUT /t 2 /nobreak>nul
-MOVE %url% .\Data
+MOVE %url% ..\Data
 CLS
 
 :bbb
@@ -65,7 +65,7 @@ REM CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 REM SET do=%ERRORLEVEL%
 REM IF %do% EQU 1 MOVE %url% .\Data
 TIMEOUT /t 2 /nobreak>nul
-MOVE %url% .\Data
+MOVE %url% ..\Data
 CLS
 
 
@@ -98,7 +98,7 @@ REM CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 REM SET do=%ERRORLEVEL%
 REM IF %do% EQU 1 MOVE %url% .\Data
 TIMEOUT /t 2 /nobreak>nul
-MOVE %url% .\Data
+MOVE %url% ..\Data
 CLS
 
 
@@ -132,7 +132,7 @@ REM CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 REM SET do=%ERRORLEVEL%
 REM IF %do% EQU 1 MOVE %url% .\Data
 TIMEOUT /t 2 /nobreak>nul
-MOVE %url% .\Data
+MOVE %url% ..\Data
 CLS
 
 
@@ -140,8 +140,9 @@ CLS
 
 REM Asks for the User Id, then open the browser in parallel, while the http server is starting
 SET /p user= User ID ('TradFi' for FiMs TradFi, can also be void) :
-START /B RunLocalHost.bat %user%
+START /B OpenLocalHost.bat %user%
 
-REM Start the http server (Install NPM first, then http-server)
+REM Start the http server in the root folder (Install NPM first, then http-server)
+CD ..
 START /B http-server
 EXIT

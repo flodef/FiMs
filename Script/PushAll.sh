@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for dir in *GoogleAppsScript*/; do
+for dir in ../*GoogleAppsScript*/; do
   cd "$dir"
   sh Push.sh
   cd ..
