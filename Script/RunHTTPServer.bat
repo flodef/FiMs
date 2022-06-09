@@ -143,6 +143,7 @@ SET /p user= User ID ('TradFi' for FiMs TradFi, can also be void) :
 START /B OpenLocalHost.bat %user%
 
 REM Start the http server in the root folder (Install NPM first, then http-server)
+CLS
 CD ..
 START /B http-server
 EXIT
