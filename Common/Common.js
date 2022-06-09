@@ -10,9 +10,9 @@ SHEETNAME, FM, LM */
 const SS = SpreadsheetApp.getActiveSpreadsheet();
 
 // VARIOUS
-const MAIL = 'fdefroco@gmail.com';
-const URGMAIL = 'flodef@pm.me';
-const LOADING = 'Loading...';
+const MAIL = "fdefroco@gmail.com";
+const URGMAIL = "flodef@pm.me";
+const LOADING = "Loading...";
 const FR = 2;     // First Row
 const FC = 1;     // First Column
 const FH = 9;     // First working Hour
@@ -59,7 +59,7 @@ function _copyFormula(formula, range) {
 // Modify the cell to update the formula and load data
 function _updateFormula(sheet, row, col) {
   const range = sheet.getRange(row, col);
-  range.setValue(range.getValue() == '' ? ' ' : '');
+  range.setValue(range.getValue() == "" ? " " : "");
 }
 
 function _insertFirstRow(sheet, data, isFast, lc) {
@@ -100,7 +100,7 @@ function _AreRowsDifferent(array) {
       isDiff = array[0][i] != array[1][i] ? true : isDiff;
     }
   } else {
-    throw('Array should have 2 rows but have ' + array.length + ' instead.');
+    throw("Array should have 2 rows but have " + array.length + " instead.");
   }
 
   return isDiff;
@@ -141,14 +141,14 @@ function _isSubHour(period = 1, offset = 0) {
 
 function _toFixed(value, precision = 2) {
   let str = value.toString();
-  str += (str.indexOf('.') != -1 ? '' : '.') + Array(precision+1).join('0');
-  return str.slice(0, str.indexOf('.') + precision + Math.min(precision, 1));
+  str += (str.indexOf(".") != -1 ? "" : ".") + Array(precision+1).join("0");
+  return str.slice(0, str.indexOf(".") + precision + Math.min(precision, 1));
 }
 
 function _round(value, precision, symbol) {
   const mult = Math.pow(10, precision);
-  const sup = symbol == '%' ? 100 : 1;
-  symbol = typeof(symbol) == 'string' ? symbol : '';
+  const sup = symbol == "%" ? 100 : 1;
+  symbol = typeof(symbol) == "string" ? symbol : "";
 
   return _toFixed(Math.round(value * sup * mult) / mult, precision) + symbol;
 }
@@ -176,48 +176,48 @@ function _isCurrentMonth(array, i = 0, j = 0) {
 * @return {Date} date without hours
 */
 function _toDate(date) {
-  date = date && typeof(date) == 'object' ? date : new Date();
+  date = date && typeof(date) == "object" ? date : new Date();
   date.setHours(0, 0, 0, 0);
   return date;
 }
 
-function _toStringDate(date, locale = 'FR') {
-  if (date && typeof(date) == 'string') {
-    return date.split('/').length == 3
-      ? locale == 'FR'
-        ? date.replace(/(^|\/)0+/g, '$1').split('/')[0] + '/'
-        + date.replace(/(^|\/)0+/g, '$1').split('/')[1] + '/'
-        + date.split('/')[2]
-        : date.replace(/(^|\/)0+/g, '$1').split('/')[1] + '/'
-        + date.replace(/(^|\/)0+/g, '$1').split('/')[0] + '/'
-        + date.split('/')[2]
+function _toStringDate(date, locale = "FR") {
+  if (date && typeof(date) == "string") {
+    return date.split("/").length == 3
+      ? locale == "FR"
+        ? date.replace(/(^|\/)0+/g, "$1").split("/")[0] + "/"
+        + date.replace(/(^|\/)0+/g, "$1").split("/")[1] + "/"
+        + date.split("/")[2]
+        : date.replace(/(^|\/)0+/g, "$1").split("/")[1] + "/"
+        + date.replace(/(^|\/)0+/g, "$1").split("/")[0] + "/"
+        + date.split("/")[2]
       : null;
-  } else if (date && typeof(date) == 'object') {
+  } else if (date && typeof(date) == "object") {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    return locale == 'FR'
-      ? day + '/' + month + '/' + year
-      : month + '/' + day + '/' + year;
+    return locale == "FR"
+      ? day + "/" + month + "/" + year
+      : month + "/" + day + "/" + year;
   } else {
     return _toStringDate(new Date(), locale);
   }
 }
 
-function _toStringTime(date, locale = 'FR') {
-  if (typeof(date) == 'string') {
+function _toStringTime(date, locale = "FR") {
+  if (typeof(date) == "string") {
     return _toStringDate(date, locale);
-  } else if (typeof(date) == 'object') {
-    const day = ('0'  + date.getDate()).slice(-2);
-    const month = ('0'  + (date.getMonth()+1)).slice(-2);
+  } else if (typeof(date) == "object") {
+    const day = ("0"  + date.getDate()).slice(-2);
+    const month = ("0"  + (date.getMonth()+1)).slice(-2);
     const year = date.getFullYear();
-    const hours = ('0'  + date.getHours()).slice(-2);
-    const min = ('0'  + date.getMinutes()).slice(-2);
-    const sec = ('0'  + date.getSeconds()).slice(-2);
+    const hours = ("0"  + date.getHours()).slice(-2);
+    const min = ("0"  + date.getMinutes()).slice(-2);
+    const sec = ("0"  + date.getSeconds()).slice(-2);
 
-    return locale == 'FR'
-      ? day + '/' + month + '/' + year + ' ' + hours + ':' + min + ':' + sec
-      : month + '/' + day + '/' + year + ' ' + hours + ':' + min + ':' + sec;
+    return locale == "FR"
+      ? day + "/" + month + "/" + year + " " + hours + ":" + min + ":" + sec
+      : month + "/" + day + "/" + year + " " + hours + ":" + min + ":" + sec;
   } else {
     return _toStringTime(new Date(), locale);
   }
@@ -225,12 +225,12 @@ function _toStringTime(date, locale = 'FR') {
 
 
 function _toPercent(value, precision = 0) {
-  return _round(value*100, precision, ' %');
+  return _round(value*100, precision, " %");
 }
 
-function _toCurrency(value, precision = 2, locale = 'FR') {
-  return (locale == 'FR' ? '' : '$')
-   + _round(value, precision, locale == 'FR' ? ' €' : '');
+function _toCurrency(value, precision = 2, locale = "FR") {
+  return (locale == "FR" ? "" : "$")
+   + _round(value, precision, locale == "FR" ? " €" : "");
 }
 
 function _indexOf(array, value, index, start) {
@@ -250,11 +250,11 @@ function _indexOf(array, value, index, start) {
 }
 
 function _isLoading(value) {
-  return typeof(value) == 'string' && (value == LOADING || value == '');
+  return typeof(value) == "string" && (value == LOADING || value == "");
 }
 
 function _isError(value) {
-  return typeof(value) == 'string' && value.substring(0, 1) == '#';
+  return typeof(value) == "string" && value.substring(0, 1) == "#";
 }
 
 function _archiveMessage(thread, shouldDelete) {
@@ -269,7 +269,7 @@ function _archiveMessage(thread, shouldDelete) {
 }
 
 function _sendMessage(object, message, isUrgent) {
-  GmailApp.sendEmail(MAIL + (isUrgent ? ',' + URGMAIL : ''), object, message);
+  GmailApp.sendEmail(MAIL + (isUrgent ? "," + URGMAIL : ""), object, message);
 }
 
 /**
@@ -289,21 +289,21 @@ function IMPORTURL(url, xpath_query, isMulti) {
   //xpath_query = "//td[@id='zbjsfv_dr']";          //input
   //xpath_query = '<td.*id="zbjsfv_dr".*>\n*(.*)';  //output
   //isMulti = true;
-  let content = '';
+  let content = "";
   const format = xpath_query
-    .replaceAll('\'','"')
-    .replaceAll('//','<')
-    .replaceAll('[@','.*')
-    .replaceAll(']',(isMulti ? '.*>\\n*(.*)' : '.*>(.*)<'));
+    .replaceAll("'","\"")
+    .replaceAll("//","<")
+    .replaceAll("[@",".*")
+    .replaceAll("]",(isMulti ? ".*>\\n*(.*)" : ".*>(.*)<"));
   const regex = new RegExp(format);
   const response = UrlFetchApp.fetch(url);
   if (response) {
     const html = response.getContentText();
     if (html) {
       const exec = regex.exec(html);
-      content = exec ? exec[1].trim() : '#ERROR: regex pattern not found.';
+      content = exec ? exec[1].trim() : "#ERROR: regex pattern not found.";
     } else {
-      content = '#ERROR: html content is empty.';
+      content = "#ERROR: html content is empty.";
     }
   }
   return content;
