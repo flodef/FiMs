@@ -43,7 +43,7 @@ To execute the script, go first to the containing folder :
 - On Windows : Double click on the batch script (.bat)
 
 ### 1. Local data & server
-If you want to execute the app in local, execute the http server by using the `RunHTTPServer` script in the FiMs folder (see chapter _How to Use_).
+If you want to execute the app in local, execute the http server by using the `RunHTTPServer` script in the Script folder (see chapter _How to Use_).
 When asked to downlad spreadsheet, type "N" for No. 
 When asked a User ID : 
 - If you wand to get the Associate page with no user logged, you can leave it blank.
@@ -52,6 +52,7 @@ Alternatively, you can access it by using the connexion button, in the upper rig
 A test associate is already in the spreadsheet file. Its ID is "Flodef".
 To access it, go to http://127.0.0.1:8080/?id=Flodef or type "Flodef" after clicking the connexion button.
 - If you want to access the TradFi page, you can go to http://127.0.0.1:8080/?id=TradFi
+- If you want to access the Pay page, enter the merchant ID number
 The id to access the TradFi page is "TradFi", but you can change it in the Google.js file, class Run, function doGet(e)
 A web browser should open at http://127.0.0.1:8080/ with the User ID you entered.
 
