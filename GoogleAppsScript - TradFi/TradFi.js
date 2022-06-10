@@ -2,7 +2,7 @@
 _isMarketOpen, _getSheet, _copyFormula, _isLoading, _isError, _indexOf, _toDate
 _archiveMessage, _sendMessage, _setRangeValues, _toStringDate, _round, _toFixed
 _insertFirstRow, _copyFirstRow, _isCurrentMonth, _deleteOlderThanAYear,
-_AreRowsDifferent, _toCurrency, _toPercent */
+_AreRowsDifferent, _toCurrency, _toPercent, _isSubHour */
 /* exported dailyUpdate, nightlyUpdate, monthlyUpdate, updatePrice, cachePrice,
 processMail, IMPORTURL */
 
@@ -28,26 +28,26 @@ const CURALL_ROW = 12;          // Should be the "Current allocation" row
 const REQALL_ROW = 14;          // Should be the "Requested allocation" row
 
 // SHEET NAMES
-const DASHBOARD = 'Dashboard';   // The "Dashboard" sheet name
-const INVESTMENT = 'Investment'; // The "Investment" sheet name
-const EXPENSES = 'Expenses';     // The "Expenses" sheet name
-const EXPHISTO = 'ExpensesHistoric'; // The "ExpensesHistoric" sheet name
-const HISTORIC = 'Historic';     // The "Historic" sheet name
-const ALLOCATION = 'Allocation'; // The "Allocation" sheet name
-const ALLOCHIST = 'AllocationHistoric'; // The "AllocationHistoric" sheet name
-const EVOLUTION = 'Evolution';   // The "Evolution" sheet name
-const BANKACC = 'BankAccount';   // The "BankAccount" sheet name
-const ALERT = 'Alert';           // The "Alert" sheet name
-const PRICE = 'Price';           // The "Price" sheet name
+const DASHBOARD = "Dashboard";   // The "Dashboard" sheet name
+const INVESTMENT = "Investment"; // The "Investment" sheet name
+const EXPENSES = "Expenses";     // The "Expenses" sheet name
+const EXPHISTO = "ExpensesHistoric"; // The "ExpensesHistoric" sheet name
+const HISTORIC = "Historic";     // The "Historic" sheet name
+const ALLOCATION = "Allocation"; // The "Allocation" sheet name
+const ALLOCHIST = "AllocationHistoric"; // The "AllocationHistoric" sheet name
+const EVOLUTION = "Evolution";   // The "Evolution" sheet name
+const BANKACC = "BankAccount";   // The "BankAccount" sheet name
+const ALERT = "Alert";           // The "Alert" sheet name
+const PRICE = "Price";           // The "Price" sheet name
 
 // WEB LINKS
-const SSLINK = 'https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw/edit#gid=';
-const DEGLINK = 'https://trader.degiro.nl/login/fr#/login';
-const APPLINK = 'https://bit.ly/FiMsMain';
+const SSLINK = "https://docs.google.com/spreadsheets/d/1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw/edit#gid=";
+const DEGLINK = "https://trader.degiro.nl/login/fr#/login";
+const APPLINK = "https://bit.ly/FiMsMain";
 
 // MISC
-const DUMMY = 'XXXXXX';           // A dummy field value
-const PRICE_UPDATE = 1;           // Number of minutes between price updates
+const DUMMY = "XXXXXX";           // A dummy field value
+const PRICE_UPDATE = 10;          // Number of minutes between price updates
 
 
 
@@ -81,11 +81,11 @@ function monthlyUpdate() {
 function updatePrice() {
   if (_isSubHour(PRICE_UPDATE, 0)) {
     const cache = CacheService.getScriptCache();
-    const values = cache.getAll(['mr', 'updateArray']);
-    if ((_isMarketOpen()) && values['mr']) {
-      cache.removeAll(['mr', 'updateArray']);
-      const mr = Number(values['mr']);
-      const updateArray = values['updateArray'] ? values['updateArray'].split(',') : [];
+    const values = cache.getAll(["mr", "updateArray"]);
+    if ((_isMarketOpen()) && values["mr"]) {
+      cache.removeAll(["mr", "updateArray"]);
+      const mr = Number(values["mr"]);
+      const updateArray = values["updateArray"] ? values["updateArray"].split(",") : [];
 
       const sheet = _getSheet(INVESTMENT);
       const formula = sheet.getRange(1, PRICE_COL);
@@ -105,7 +105,7 @@ function cachePrice() {
     const sheet = _getSheet(INVESTMENT);
     const lr = sheet.getMaxRows();
     const mr = lr-FR;
-    const isUpdateFreezed = sheet.getRange(lr, PRICE_COL+1).getValue() != '';
+    const isUpdateFreezed = sheet.getRange(lr, PRICE_COL+1).getValue() != "";
     const range = sheet.getRange(FR, PRICE_COL, mr, 1);
     const val = range.getValues();
     const cache = CacheService.getScriptCache();
@@ -130,7 +130,7 @@ function cachePrice() {
     }
 
     if ((isEmpty || updateArray.length > 0) && !isUpdateFreezed) {
-      cache.putAll({ 'mr' : mr.toString(), 'updateArray' : updateArray.join() });
+      cache.putAll({ "mr" : mr.toString(), "updateArray" : updateArray.join() });
     }
   }
 }
@@ -145,7 +145,7 @@ function processMail() {
     const alertThread = [];
     const unread = GmailApp.getInboxUnreadCount();
     if (unread > 0) {
-      const thread = GmailApp.search('is:unread label:inbox');  // Get first unread mails
+      const thread = GmailApp.search("is:unread label:inbox");  // Get first unread mails
       for (let i = 0 ; i < thread.length; i++) {
         if (thread[i].isUnread()) {
           const thr = thread[i];
@@ -153,9 +153,9 @@ function processMail() {
           if (sub) {
             const id = _indexOf(array, sub, 3);
             const fn = id != null ? function x(thr, id) { if (!alertThread[id]) { alertThread[id] = thr; } else { _archiveMessage(thr); } }
-              : sub == 'Rapport du solde de vos comptes' ? function x(thr) { _processAccountBalance(thr); }
-                : sub == 'Alerte sur opération recherchée' ? function x(thr) { _processAccountTransaction(thr); }
-                  : sub.substring(0, 21) == 'DEGIRO - Avis d’opéré' ? function x(thr) { _processStockTrade(thr); }
+              : sub == "Rapport du solde de vos comptes" ? function x(thr) { _processAccountBalance(thr); }
+                : sub == "Alerte sur opération recherchée" ? function x(thr) { _processAccountTransaction(thr); }
+                  : sub.substring(0, 21) == "DEGIRO - Avis d’opéré" ? function x(thr) { _processStockTrade(thr); }
                     : null;
 
             if (fn) {
@@ -179,7 +179,7 @@ function processMail() {
         if (time >= 60 || value != row[1]) {
           t = [value, x];
           shouldDelete = true;
-          _sendMessage(row[3], row[4].replace('$X', value).replace('$DEGLINK', DEGLINK).replace('$APPLINK', APPLINK), true);
+          _sendMessage(row[3], row[4].replace("$X", value).replace("$DEGLINK", DEGLINK).replace("$APPLINK", APPLINK), true);
         }
       } else {
         t = [null, null];
@@ -204,10 +204,10 @@ function _processAccountBalance(thread) {
   const messages = thread.getMessages();
   for (let j = 0 ; j < messages.length; j++) {
     const cnt = messages[j].getPlainBody();
-    const a = cnt.split('\n');
+    const a = cnt.split("\n");
     for (let k = 0; k < a.length; k++) {
-      const b = a[k].split(' ');
-      if (b[3] == '-' && b[b.length-1] == 'EUR') {
+      const b = a[k].split(" ");
+      if (b[3] == "-" && b[b.length-1] == "EUR") {
         const val = b[b.length-2];
         const name = b[4];
 
@@ -216,7 +216,7 @@ function _processAccountBalance(thread) {
         if (index != null) {
           sheet.getRange(index+1, lc).setValue(val);
         } else {
-          throw('Bank name not found in BankAccount sheet : ' + name);
+          throw("Bank name not found in BankAccount sheet : " + name);
         }
       }
     }
@@ -232,22 +232,22 @@ function _processAccountTransaction(thread) {
   const messages = thread.getMessages();
   for (let j = 0 ; j < messages.length; j++) {
     const cnt = messages[j].getPlainBody();
-    const a = cnt.split('\n');
+    const a = cnt.split("\n");
     for (let k = 0; k < a.length; k++) {
-      const b = a[k].split(' ');
+      const b = a[k].split(" ");
 
-      if (b[3] == '-' && b[b.length-1] == 'EUR') {
+      if (b[3] == "-" && b[b.length-1] == "EUR") {
         const value = b[b.length-2];
-        const date = _toStringDate(b[4], 'EN');
-        const label = b.slice(6, b.length-2).join(' ');
-        const slab = b.slice(6, b.length-4).join(' ');
+        const date = _toStringDate(b[4], "EN");
+        const label = b.slice(6, b.length-2).join(" ");
+        const slab = b.slice(6, b.length-4).join(" ");
 
         const index = _indexOf(array, parseFloat(value), 2);
 
         // Check for duplicate
         let color;
         if (index != null && array[index][1].toString().indexOf(slab) != -1) {
-          if (date != _toStringDate(array[index][0], 'EN')) {
+          if (date != _toStringDate(array[index][0], "EN")) {
             // Compare date with one week difference
             const d1 = new Date(date);
             const d2 = array[index][0];
@@ -255,19 +255,19 @@ function _processAccountTransaction(thread) {
 
             // Over one week, no problem otherwise signal it
             if (d1 > d2) {
-              color = 'white';
+              color = "white";
             } else {
-              color = 'red';
+              color = "red";
 
-              const msg = 'Date: ' + _toStringDate(date)
-              + '\nLabel: ' + label
-              + '\nValue: ' + _toCurrency(value)
-              + '\n' + SSLINK + '298395308';
-              _sendMessage('Expense duplicate', msg);
+              const msg = "Date: " + _toStringDate(date)
+              + "\nLabel: " + label
+              + "\nValue: " + _toCurrency(value)
+              + "\n" + SSLINK + "298395308";
+              _sendMessage("Expense duplicate", msg);
             }
           }
         } else {
-          color = 'white';
+          color = "white";
         }
 
         if (color) {
@@ -298,24 +298,24 @@ function _processStockTrade(thread) {
     const message = messages[j];
     const date = _toDate(message.getDate());
     const cnt = message.getPlainBody();
-    const a = cnt.split('\n');
+    const a = cnt.split("\n");
     const tc = Math.round((a.length-hea-foo)/pdl);  // Number of transaction to process
 
     let k = hea+1;    // Skip first rows as it is mail crap
     while(k < a.length) {
-      const b = a[k].split('*');
-      if (b[0].split(' ')[0] == 'Date') {
+      const b = a[k].split("*");
+      if (b[0].split(" ")[0] == "Date") {
         //TODO
         //isin = 179 / 400 / 621  " <strong>IE00B3XXRP09</strong> "
         //quantity = 239 / 460   " <strong>15</strong> "
         //Montant devise locale = 263 / 484  <strong>EUR 922,05</strong> "
         //amount = 275 / 496 " <strong>EUR 922,05</strong> "
         //cost = 323 / 544" <strong>EUR 0,00</strong> "  //Cout total
-        const isin = a[k+1].split('*')[1];                                                                    // Code ISIN *JE00B1VS3770*
-        const qty = a[k+6].split('*')[1];                                                                     // Quantité *190*
-        const cur = a[k+8].split('*')[1].substr(0, 3);                                                        // Montant devise locale *USD 8 434,10*
-        const amount = Number(a[k+9].split('*')[1].replace(new RegExp('[A-Z ]', 'g'),'').replace(',', '.'));  // Montant *EUR 8 434,10*
-        const cost = Number(a[k+11].split('*')[1].replace(new RegExp('[A-Z ]', 'g'),'').replace(',', '.'));   // Frais *EUR -3,69*
+        const isin = a[k+1].split("*")[1];                                                                    // Code ISIN *JE00B1VS3770*
+        const qty = a[k+6].split("*")[1];                                                                     // Quantité *190*
+        const cur = a[k+8].split("*")[1].substr(0, 3);                                                        // Montant devise locale *USD 8 434,10*
+        const amount = Number(a[k+9].split("*")[1].replace(new RegExp("[A-Z ]", "g"),"").replace(",", "."));  // Montant *EUR 8 434,10*
+        const cost = Number(a[k+11].split("*")[1].replace(new RegExp("[A-Z ]", "g"),"").replace(",", "."));   // Frais *EUR -3,69*
 
         const row = _indexOf(array, isin, ISIN_COL-1);
         if (row >= 0) {
@@ -326,16 +326,16 @@ function _processStockTrade(thread) {
             _insertHistoricRow(date, type, label, null, null, null, cost);
           }
 
-          const trans = amount < 0 ? 'BUY' : 'SELL';
+          const trans = amount < 0 ? "BUY" : "SELL";
           const quantity = amount < 0 ? qty : -qty;
           const price = _round(Math.abs(amount / quantity), 4);
           const value = amount;
-          const tag = cur == 'EUR' ? null : DUMMY;  // Add dummy if currency is not Euro, as the exchange rate fee is not known
+          const tag = cur == "EUR" ? null : DUMMY;  // Add dummy if currency is not Euro, as the exchange rate fee is not known
           _insertHistoricRow(date, type, label, trans, quantity, price, value, tag);
 
           ++ta;
         } else {
-          throw('ISIN not found in Investment sheet : ' + isin);
+          throw("ISIN not found in Investment sheet : " + isin);
         }
 
         k += pdl;                      // Skip all the processed data
@@ -345,7 +345,7 @@ function _processStockTrade(thread) {
     }
 
     if (ta != tc) {
-      throw('All stock transaction has not been processed : ' + ta + ' transaction(s) added insead of ' + tc);
+      throw("All stock transaction has not been processed : " + ta + " transaction(s) added insead of " + tc);
     }
   }
 
@@ -359,7 +359,7 @@ function _updateClosePrice() {
   const formula = sheet.getRange(lr, PRICE_COL);
   const range = sheet.getRange(FR, PRICE_COL, mr, 1);
 
-  sheet.getRange(lr, PRICE_COL+1).setValue('');   // Unfreeze update process in case it's still there
+  sheet.getRange(lr, PRICE_COL+1).setValue("");   // Unfreeze update process in case it's still there
 
   _copyFormula(formula, range);
 
@@ -383,7 +383,7 @@ function _sendEvolution() {
   // Get values
   let sheet = _getSheet(PRICE);
   let array = sheet.getSheetValues(FR, FC, 2, -1);
-  let msg = '';
+  let msg = "";
 
   // Check for difference
   if (_AreRowsDifferent(array)) {
@@ -394,17 +394,17 @@ function _sendEvolution() {
     for (let i = 5; i < array[0].length; ++i) {
       const label = array[0][i];
       const value = array[1][i];
-      const isRate = label.toLowerCase().includes('rate')
-        || label.toLowerCase().includes('ratio');
-      msg += label + ': '
-        + (isRate ? _toPercent(value) : _toCurrency(value)) + '\n';
+      const isRate = label.toLowerCase().includes("rate")
+        || label.toLowerCase().includes("ratio");
+      msg += label + ": "
+        + (isRate ? _toPercent(value) : _toCurrency(value)) + "\n";
     }
     msg += APPLINK;
 
-    _sendMessage('Daily Stock report', msg);
+    _sendMessage("Daily Stock report", msg);
   } else {
-    msg = 'If today is bank holiday, delete the message, otherwise check spreadsheet.';
-    _sendMessage('No update for Evolution/Price', msg);
+    msg = "If today is bank holiday, delete the message, otherwise check spreadsheet.";
+    _sendMessage("No update for Evolution/Price", msg);
   }
 }
 
@@ -440,10 +440,10 @@ function _updateDividend() {
       const div = _round(array[i][ESTDIV_COL-1], 2);
       if (div >= 0) {
         _insertHistoricRow(today, array[i][TYPE_COL-1], array[i][LABEL_COL-1],
-          'DIVIDEND', '', '', div, div > 0 ? DUMMY : '');
+          "DIVIDEND", "", "", div, div > 0 ? DUMMY : "");
       } else {
-        _sendMessage('Negative Dividend',
-          'There is a problem with a dividend. It should always be positive!');
+        _sendMessage("Negative Dividend",
+          "There is a problem with a dividend. It should always be positive!");
       }
     }
   }
@@ -512,7 +512,7 @@ function _updateAllocation() {
     // Insert the monthly approvisionnement into the historic
     if (monpay < 0) {
       date = _toDate();              // Get date without hours
-      _insertHistoricRow(date, null, null, 'APPROVISIONNEMENT', null, null,
+      _insertHistoricRow(date, null, null, "APPROVISIONNEMENT", null, null,
         _toFixed(monpay, 0), DUMMY);
     }
   }
@@ -541,13 +541,13 @@ function _insertHistoricRow(date, type, label, trans, quantity, price, value, ta
   const sheet = _getSheet(HISTORIC);
 
   date = date ? date : _toDate();
-  type = type ? type : '';
-  label = label ? label : '';
-  trans = trans ? trans : 'COST';
-  quantity = quantity ? quantity : '';
-  price = price ? price : '';
+  type = type ? type : "";
+  label = label ? label : "";
+  trans = trans ? trans : "COST";
+  quantity = quantity ? quantity : "";
+  price = price ? price : "";
   value = value ? value : 0;
-  tag = tag ? tag : label + '@' + trans + '@' + quantity + '@' + value; //Vanguard S&P 500 UCITS ETF@COST@@-3.69
+  tag = tag ? tag : label + "@" + trans + "@" + quantity + "@" + value; //Vanguard S&P 500 UCITS ETF@COST@@-3.69
 
   const data = [[date, type, label, trans, quantity, price, value, tag]];
   _insertFirstRow(sheet, data, true);
