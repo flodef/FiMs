@@ -6,8 +6,8 @@ h1, h2 {
 
 h1 {
   font-size: 33px;
-  line-height: 15px;
-  padding: 35px 0px 25px 20px;
+  line-height: 20px;
+  padding: 35px 20px 25px 20px;
 }
 
 h2 {
@@ -755,6 +755,7 @@ input[type="text"]:hover, input[type="text"]:focus {
   -webkit-background-size: 50px 50px;
   -moz-background-size: 50px 50px;
   background-size: 50px 50px;
+  animation: move 2s linear infinite;
   -webkit-animation: move 2s linear infinite;
   -moz-animation: move 2s linear infinite;
   -webkit-border-top-right-radius: 20px;
@@ -828,6 +829,7 @@ input[type="text"]:hover, input[type="text"]:focus {
 }
 
 .nostripes>span>span, .nostripes>span:after {
+  animation:none;
   -webkit-animation: none;
   -moz-animation: none;
   background-image: none;
