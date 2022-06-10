@@ -100,7 +100,7 @@ async function validatePayment() {
     showLoader(true);
     GLOBAL.retry = 0;
     GLOBAL.customerAddress = customerAddress[0];
-    setCustomerAddress(customerAddress, displayPaymentStatus);
+    setCustomerAddress(GLOBAL.customerAddress, displayPaymentStatus);
   } else {
     displayError(GLOBAL.messages.invalidAddress);
   }
