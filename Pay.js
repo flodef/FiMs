@@ -12,7 +12,7 @@ GLOBAL.merchantInfoFormula = "Check!A:C";
 GLOBAL.paymentInfoFormula = "Check!A:H";
 GLOBAL.customerAddressFormula = "Check!D";
 
-GLOBAL.solanaAddressPattern = /(^[1-9A-HJ-NP-Za-km-z]{32,44}$)/i;
+GLOBAL.solanaAddressPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/i;
 
 GLOBAL.messages = {
   CopyAddress:"Copiez votre adresse de porte-feuille crypto<br><br>puis cliquez ci-dessous :",
@@ -81,9 +81,9 @@ function displayContent(id, contents) {
 async function validatePayment() {
   const clipboard = await navigator.clipboard.readText();
   const customerAdress = clipboard.match(GLOBAL.solanaAddressPattern);
-  if (customerAdress) {
+  if (customerAdress && customerAdress.length == 1) {
     showLoader(true);
-    setValue("Check!D"+GLOBAL.user.ID, customerAdress, loadPaymentStatus);
+    setValue("Check!D"+GLOBAL.user.ID, [[customerAdress[0]]], loadPaymentStatus);
   } else {
     displayError(GLOBAL.messages.InvalidAddress);
   }
@@ -113,7 +113,7 @@ async function displayPaymentStatus(id, contents) {
     
     $("#process").html(html);
 
-    setValue("Check!D"+GLOBAL.user.ID);
+    setValue("Check!D"+GLOBAL.user.ID, [[null]]);
     showLoader(false);
   }  
 }
