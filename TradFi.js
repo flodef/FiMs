@@ -22,54 +22,54 @@ GLOBAL.expHistoFormula = "ExpensesHistoric!A:C";
 GLOBAL.allocationFormula = "Allocation!B14";
 GLOBAL.settingsFormula = "Settings!A:F";
 GLOBAL.displayData = {
-  "dashboard": {
+  dashboard: {
     id: "dashboard",
     formula: "Dashboard!A:B",
-    updateTable: updateDashboardTable
+    updateTable: updateDashboardTable,
   },
-  "investment": {
+  investment: {
     id: "investment",
     formula: "Investment!A:AW",
-    updateTable: updateInvestmentTable
+    updateTable: updateInvestmentTable,
   },
-  "historic": {
+  historic: {
     id: "historic",
     formula: restrainFormula("Historic!A:J", 0, 300),
-    updateTable: updateHistoricTable
+    updateTable: updateHistoricTable,
   },
-  "evolution": {
+  evolution: {
     id: "evolution",
     formula: restrainFormula("Evolution!A:L", 0, 300),
-    updateTable: updateStandardTable
+    updateTable: updateStandardTable,
   },
-  "price": {
+  price: {
     id: "price",
     formula: restrainFormula("Price!A:G", 0, 500),
-    updateTable: updateStandardTable
+    updateTable: updateStandardTable,
   },
-  "allocation": {
+  allocation: {
     id: "allocation",
     formula: restrainFormula("AllocationHistoric!A:Q", 0, 12),
-    updateTable: updateStandardTable
-  }
+    updateTable: updateStandardTable,
+  },
 };
 GLOBAL.menuButton = [
   // {id:"rebalance", fn:rebalanceStocks},
   {
     id: "refresh",
-    fn: updateAllValues
+    fn: updateAllValues,
   },
   {
     id: "remove",
-    fn: deleteTransaction
+    fn: deleteTransaction,
   },
   {
     id: "add",
-    fn: addTransaction
+    fn: addTransaction,
   },
   {
     id: "upload",
-    fn: uploadAccountFile
+    fn: uploadAccountFile,
   },
 ];
 
@@ -81,13 +81,14 @@ GLOBAL.requestedAllocation = "Requested allocation";
  * Run initializations on web app load.
  */
 $(() => {
-  initCommon();  
+  initCommon();
 
-  $(document).keyup(onKeyUp); // The event listener for the key press (action buttons)    
+  $(document).keyup(onKeyUp); // The event listener for the key press (action buttons)
 });
 
 function init() {
-  let tableHTML = "<table id=\"addTransactionForm\" class=\"topMenu hidden\"><tr>" +
+  let tableHTML =
+    "<table id=\"addTransactionForm\" class=\"topMenu hidden\"><tr>" +
     "<td>Name:     <select id=\"transactionName\" onchange=\"selectName(this)\"></select></td>" +
     "<td style=\"width:150px;\" id=\"transactionQuantityLabel\">Quantity: <input id=\"transactionQuantity\" class=\"auto\" oninput=\"autoAdaptWidth(this)\"" +
     " min=\"-20000\" max=\"20000\" type=\"text\" data-type=\"number\" value=\"0\"></td>" +
@@ -96,12 +97,12 @@ function init() {
     getMenuButton({
       id: "validateAdd",
       img: "validate",
-      fn: validateAddForm
+      fn: validateAddForm,
     }) +
     getMenuButton({
       id: "cancelAdd",
       img: "cancel",
-      fn: cancelForm
+      fn: cancelForm,
     }) +
     "</tr></table>" +
     "<table id=\"deleteTransactionForm\" class=\"topMenu hidden\"><tr>" +
@@ -109,12 +110,12 @@ function init() {
     getMenuButton({
       id: "validateDelete",
       img: "validate",
-      fn: validateDeleteForm
+      fn: validateDeleteForm,
     }) +
     getMenuButton({
       id: "cancelDelete",
       img: "cancel",
-      fn: cancelForm
+      fn: cancelForm,
     }) +
     "</tr></table>" +
     "<table id=\"uploadFileForm\" class=\"topMenu hidden\"><tr>" +
@@ -123,12 +124,12 @@ function init() {
     getMenuButton({
       id: "validateUpload",
       img: "validate",
-      fn: validateUploadForm
+      fn: validateUploadForm,
     }) +
     getMenuButton({
       id: "cancelDelete",
       img: "cancel",
-      fn: cancelForm
+      fn: cancelForm,
     }) +
     "</tr></table>";
 
@@ -137,22 +138,30 @@ function init() {
   displayElement("[id^=validate]", true, 0);
   displayElement("[id^=cancel]", true, 0);
 
-  getValue({
-    id: GLOBAL.settings,
-    formula: GLOBAL.settingsFormula
-  }, null, true, updateAllValues);
+  getValue(
+    {
+      id: GLOBAL.settings,
+      formula: GLOBAL.settingsFormula,
+    },
+    null,
+    true,
+    updateAllValues
+  );
 }
 
 function onKeyUp(e) {
-  if (!$("#addTransactionForm").is(":animated") &&
+  if (
+    !$("#addTransactionForm").is(":animated") &&
     !$("#deleteTransactionForm").is(":animated") &&
     !$("#uploadFileForm").is(":animated") &&
     !$("#actionButton").is(":animated") &&
-    !$("#loaderOverlay").is(":visible")) {
+    !$("#loaderOverlay").is(":visible")
+  ) {
     if ($("#alertOverlay").is(":visible")) {
       displayElement("#alertOverlay", false);
     } else if (!$("#actionButton").is(":visible")) {
-      if (e.keyCode === 13) { // Enter
+      if (e.keyCode === 13) {
+        // Enter
         if ($("#addTransactionForm").is(":visible")) {
           validateAddForm();
         } else if ($("#deleteTransactionForm").is(":visible")) {
@@ -160,20 +169,29 @@ function onKeyUp(e) {
         } else if ($("#uploadFileForm").is(":visible")) {
           validateUploadForm();
         }
-      } else if (e.keyCode === 27) { // Esc
+      } else if (e.keyCode === 27) {
+        // Esc
         cancelForm();
       }
     } else {
-      if (!$("input[type=\"number\"]").is(":focus") && !$("input[type=\"text\"]").is(":focus")) {
-        if (e.keyCode === 186) { // $
+      if (
+        !$("input[type=\"number\"]").is(":focus") &&
+        !$("input[type=\"text\"]").is(":focus")
+      ) {
+        if (e.keyCode === 186) {
+          // $
           rebalanceStocks();
-        } else if (e.keyCode === 107 || e.keyCode === 187) { // +
+        } else if (e.keyCode === 107 || e.keyCode === 187) {
+          // +
           addTransaction();
-        } else if (e.keyCode === 109 || e.keyCode === 189) { // -
+        } else if (e.keyCode === 109 || e.keyCode === 189) {
+          // -
           deleteTransaction();
-        } else if (e.keyCode === 85) { // U
+        } else if (e.keyCode === 85) {
+          // U
           uploadAccountFile();
-        } else if (e.keyCode === 82) { // R
+        } else if (e.keyCode === 82) {
+          // R
           updateAllValues();
         }
       }
@@ -188,15 +206,28 @@ function updateDashboardTable(id, contents) {
   var isFirstLoading = $("#" + id + "Button").is(":hidden");
 
   // Set the dashboard table
-  var allocation = contents[indexOf(contents, GLOBAL.requestedAllocation, 0)][1]; // Requested allocation
+  var allocation =
+    contents[indexOf(contents, GLOBAL.requestedAllocation, 0)][1]; // Requested allocation
   var ln = settings.length / 2; // Take the full sheet row count, don't count the miror with numbers (/2)
-  for (var i = 0; i < ln - 2; i++) { // Remove the two last row for scroll (-2)
-    tableHTML += getSubTableTitle(GLOBAL.settings, settings[i][0], "Settings!A" + (i + 1));
+  for (var i = 0; i < ln - 2; i++) {
+    // Remove the two last row for scroll (-2)
+    tableHTML += getSubTableTitle(
+      GLOBAL.settings,
+      settings[i][0],
+      "Settings!A" + (i + 1)
+    );
     tableHTML += "<tr>";
     for (var j = 1; j < settings[i].length; j++) {
-      tableHTML += i != 4 || j != 3 ?
-        getTableReadOnlyCell(contents, settings[i + ln][j]) :
-        getTableValidatableCell(id, contents, settings[i + ln][j], GLOBAL.allocationFormula, allocation);
+      tableHTML +=
+        i != 4 || j != 3
+          ? getTableReadOnlyCell(contents, settings[i + ln][j])
+          : getTableValidatableCell(
+            id,
+            contents,
+            settings[i + ln][j],
+            GLOBAL.allocationFormula,
+            allocation
+          );
     }
     tableHTML += "</tr>";
   }
@@ -204,12 +235,17 @@ function updateDashboardTable(id, contents) {
   processTable(id, tableHTML);
 
   // Set the scrolling panel
-  tableHTML = "<marquee direction=\"down\" scrollamount=\"1\" behavior=\"scroll\"><table>";
-  tableHTML += "<tr>" + getTableReadOnlyCell(contents, contents.length - 1) + "</tr>"; // Dirty way to display the "Time since last update"
+  tableHTML =
+    "<marquee direction=\"down\" scrollamount=\"1\" behavior=\"scroll\"><table>";
+  tableHTML +=
+    "<tr>" + getTableReadOnlyCell(contents, contents.length - 1) + "</tr>"; // Dirty way to display the "Time since last update"
   for (let i = 0; i < settings[ln - 2].length; ++i) {
     tableHTML += "<tr>";
     tableHTML += getTableReadOnlyContent(settings[ln - 2][i], false);
-    tableHTML += getTableReadOnlyContent(contents[settings[ln * 2 - 1][i] - 1][1], false);
+    tableHTML += getTableReadOnlyContent(
+      contents[settings[ln * 2 - 1][i] - 1][1],
+      false
+    );
     tableHTML += "</tr>";
   }
 
@@ -222,7 +258,10 @@ function updateDashboardTable(id, contents) {
 }
 
 function updateInvestmentTable(id, contents) {
-  displayElement("#rebalanceButton", shouldRebalance(contents[contents.length - 1][GLOBAL.rebalCol]));
+  displayElement(
+    "#rebalanceButton",
+    shouldRebalance(contents[contents.length - 1][GLOBAL.rebalCol])
+  );
 
   clearTransactionName();
 
@@ -230,45 +269,88 @@ function updateInvestmentTable(id, contents) {
 
   var row = contents.length;
   var col = contents[0].length;
-  var tableHTML = getTableTitle(id, false, GLOBAL.rebalanceButtonToolTip, col - 1);
+  var tableHTML = getTableTitle(
+    id,
+    false,
+    GLOBAL.rebalanceButtonToolTip,
+    col - 1
+  );
   for (var i = 0; i < row; ++i) {
-    var bgcolor = i == row - 1 ? null :
-      contents[i][GLOBAL.tendencyCol].includes("BUY") ? "lightgreen" :
-        contents[i][GLOBAL.tendencyCol].includes("SELL") ? "lightcoral" :
-          null;
+    var bgcolor =
+      i == row - 1
+        ? null
+        : contents[i][GLOBAL.tendencyCol].includes("BUY")
+          ? "lightgreen"
+          : contents[i][GLOBAL.tendencyCol].includes("SELL")
+            ? "lightcoral"
+            : null;
     var color = bgcolor ? "black" : null;
     tableHTML += i == 0 ? "<thead>" : "";
-    tableHTML += i == 0 ? "<tr>" : "<tr title=\"" + contents[i][7] + "\"" +
-      (bgcolor ? "style=\"background-color:" + bgcolor + ";color:" + color + ";font-weight:bold;\"" : "") + ">";
+    tableHTML +=
+      i == 0
+        ? "<tr>"
+        : "<tr title=\"" +
+          contents[i][7] +
+          "\"" +
+          (bgcolor
+            ? "style=\"background-color:" +
+              bgcolor +
+              ";color:" +
+              color +
+              ";font-weight:bold;\""
+            : "") +
+          ">";
     //for (var j = 0; j < contents[i].length; ++j)
-    for (var j of [0, 10, 12, 14, 15, 16, 17, 21, 30, 22, 28, 32, 34, 36, 44, 45, 46]) { // Select only the interesting columns (to check them, use the formula "=COLUMN()-1")
+    for (var j of [
+      0, 10, 12, 14, 15, 16, 17, 21, 30, 22, 28, 32, 34, 36, 44, 45, 46,
+    ]) {
+      // Select only the interesting columns (to check them, use the formula "=COLUMN()-1")
       // Type = 0, Shares = 10, Price = 12, Sell = 14, Estimation = 15, Rebalance = 16,
       // Provision = 17, Tendency = 21, Trans profit + Dist gap = 30,
       // Daily result + Rate = 22, Total + Rate = 28,
       // Avg price + Avg gap = 32, Avg lm price + Avg lm prog = 34,
       // Price rate = 36, Next div dur = 44, Est div = 45, Div / month = 46
-      var con = i == 0 || j != 12 ?
-        i == 0 || j <= 21 || j >= 36 ?  // Solo values (without percentage)
-          contents[i][j] :
-          (contents[i][j] ? toCurrency(contents[i][j], 3) : "") + " (" + contents[i][j + 1] + ")" :
-        contents[i][12] ?
-          toCurrency(contents[i][j], 4) : "";
-      var isDisabled = (j == 16 || j == 17 || j == GLOBAL.tendencyCol) &&
+      var con =
+        i == 0 || j != 12
+          ? i == 0 || j <= 21 || j >= 36 // Solo values (without percentage)
+            ? contents[i][j]
+            : (contents[i][j] ? toCurrency(contents[i][j], 3) : "") +
+              " (" +
+              contents[i][j + 1] +
+              ")"
+          : contents[i][12]
+            ? toCurrency(contents[i][j], 4)
+            : "";
+      var isDisabled =
+        (j == 16 || j == 17 || j == GLOBAL.tendencyCol) &&
         !shouldRebalance(contents[i][GLOBAL.tendencyCol]);
-      tableHTML += j != 12 || i == 0 || i == row - 1
-        ? getTableReadOnlyContent(con, i == 0, isDisabled, j == 30 ? getColor(contents[i][j]) : color)  // HACK: Don't display Trans profit
-        : getTableEditableContent(con, {
-          id: id,
-          range: "Investment!M" + (i + 1),
-          required: true,
-          precision: 3,
-          min: toValue(con) * 0.75,
-          max: toValue(con) * 1.25,
-          type: "euro"
-        });
+      tableHTML +=
+        j != 12 || i == 0 || i == row - 1
+          ? getTableReadOnlyContent(
+            con,
+            i == 0,
+            isDisabled,
+            j == 30 ? getColor(contents[i][j]) : color
+          ) // HACK: Don't display Trans profit
+          : getTableEditableContent(con, {
+            id: id,
+            range: "Investment!M" + (i + 1),
+            required: true,
+            precision: 3,
+            min: toValue(con) * 0.75,
+            max: toValue(con) * 1.25,
+            type: "euro",
+          });
     }
     tableHTML += "</tr>";
-    tableHTML += i == 0 ? "</thead><tbody>" : i == row - 2 ? "</tbody><tfoot>" : i == row - 1 ? "</tfoot>" : "";
+    tableHTML +=
+      i == 0
+        ? "</thead><tbody>"
+        : i == row - 2
+          ? "</tbody><tfoot>"
+          : i == row - 1
+            ? "</tfoot>"
+            : "";
 
     if (i != 0 && i != row - 1) {
       tags.push(contents[i][7]);
@@ -290,26 +372,39 @@ function updateHistoricTable(id, contents) {
 
   displayElement("#uploadButton", true);
   displayElement("#addButton", true);
-  displayElement("#removeButton", indexOf(contents, GLOBAL.dummy, GLOBAL.histoIdCol));
+  displayElement(
+    "#removeButton",
+    indexOf(contents, GLOBAL.dummy, GLOBAL.histoIdCol)
+  );
 
   var row = contents.length;
   var col = contents[0].length;
-  var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
+  var tableHTML = getTableTitle(
+    id,
+    false,
+    GLOBAL.showAllButtonToolTip,
+    col - 1
+  );
   for (var i = 0; i < row; ++i) {
     var isDummy = contents[i][GLOBAL.histoIdCol] == GLOBAL.dummy;
     tableHTML += i == 0 ? "<thead>" : "";
-    tableHTML += !isDummy ?
-      "<tr>" :
-      "<tr style=\"background-color: red;\">"; // Row becomes red if it is a dummy
+    tableHTML += !isDummy ? "<tr>" : "<tr style=\"background-color: red;\">"; // Row becomes red if it is a dummy
     for (var j = 0; j < col; ++j) {
-      var value = j < contents[i].length && contents[i][j] ?
-        j != 5 || i == 0 ?
-          contents[i][j] :
-          toCurrency(contents[i][j], 4) :
-        "";
-      tableHTML += j != GLOBAL.histoIdCol ? // Don't display the Historic ID
-        getTableReadOnlyContent(value, i == 0, false, isDummy ? "black" : null) :
-        "";
+      var value =
+        j < contents[i].length && contents[i][j]
+          ? j != 5 || i == 0
+            ? contents[i][j]
+            : toCurrency(contents[i][j], 4)
+          : "";
+      tableHTML +=
+        j != GLOBAL.histoIdCol // Don't display the Historic ID
+          ? getTableReadOnlyContent(
+            value,
+            i == 0,
+            false,
+            isDummy ? "black" : null
+          )
+          : "";
     }
     tableHTML += "</tr>";
     tableHTML += i == 0 ? "</thead><tbody>" : i == row - 2 ? "</tbody>" : "";
@@ -323,7 +418,12 @@ function updateHistoricTable(id, contents) {
 function updateStandardTable(id, contents) {
   const row = contents.length;
   const col = contents[0].length;
-  var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
+  var tableHTML = getTableTitle(
+    id,
+    false,
+    GLOBAL.showAllButtonToolTip,
+    col - 1
+  );
   for (var i = 0; i < row; ++i) {
     tableHTML += i == 0 ? "<thead>" : "";
     tableHTML += "<tr>";
@@ -417,7 +517,9 @@ function rebalanceStocks() {
 // }
 
 function addTransaction() {
-  overDisplay("#actionButton", "#addTransactionForm", () => $("#transactionName").focus());
+  overDisplay("#actionButton", "#addTransactionForm", () =>
+    $("#transactionName").focus()
+  );
 }
 
 function deleteTransaction() {
@@ -425,7 +527,9 @@ function deleteTransaction() {
 }
 
 function uploadAccountFile() {
-  overDisplay("#actionButton", "#uploadFileForm", () => $("#fileUpload").focus());
+  overDisplay("#actionButton", "#uploadFileForm", () =>
+    $("#fileUpload").focus()
+  );
 }
 
 function validateAddForm() {
@@ -439,28 +543,33 @@ function validateAddForm() {
   var qty = parseInt($("#transactionQuantity").val(), 10);
   var tQty = tName && !isNaN(qty) && qty != 0 ? qty : "";
 
-  var tOpe = !tType ? name :
-    tQty < 0 ? "SELL" :
-      tQty > 0 ? "BUY" :
-        "DIVIDEND";
+  var tOpe = !tType ? name : tQty < 0 ? "SELL" : tQty > 0 ? "BUY" : "DIVIDEND";
 
   var val = parseFloat($("#transactionValue").val());
   var tVal = !isNaN(val) && val != 0 ? val : "";
 
   var tUnit = tQty && tVal && tName ? -tVal / tQty : "";
 
-  var errorMsg = tQty && isNaN(tQty) ? "Quantity should be an Integer." :
-    tVal && isNaN(tVal) ? "Value should be a Number." :
-      tName && !tQty && (!tVal || tVal <= 0) ? "Coupon value should be positive." :
-        !tName && !tVal ? "Approvisionnement/Cost Value should be set." :
-          tQty && !tVal ? "The Value should be set if the Quantity is set." :
-            tUnit && tUnit < 0 ? "Quantity should have an opposite sign as Value." :
-              "";
+  var errorMsg =
+    tQty && isNaN(tQty)
+      ? "Quantity should be an Integer."
+      : tVal && isNaN(tVal)
+        ? "Value should be a Number."
+        : tName && !tQty && (!tVal || tVal <= 0)
+          ? "Coupon value should be positive."
+          : !tName && !tVal
+            ? "Approvisionnement/Cost Value should be set."
+            : tQty && !tVal
+              ? "The Value should be set if the Quantity is set."
+              : tUnit && tUnit < 0
+                ? "Quantity should have an opposite sign as Value."
+                : "";
 
   if (!errorMsg) {
-    insertHistoricRow([
-      [tDate, tType, tName, tOpe, tQty, tUnit, tVal, GLOBAL.dummy]
-    ], "Historic");
+    insertHistoricRow(
+      [[tDate, tType, tName, tOpe, tQty, tUnit, tVal, GLOBAL.dummy]],
+      "Historic"
+    );
   } else {
     displayError(errorMsg, true);
   }
@@ -471,7 +580,9 @@ function insertHistoricRow(data, sid) {
   var rowCnt = data.length;
 
   if (rowCnt > 0) {
-    $("#snackbar").text((rowCnt == 1 ? "Transaction" : rowCnt + " Transactions") + " added");
+    $("#snackbar").text(
+      (rowCnt == 1 ? "Transaction" : rowCnt + " Transactions") + " added"
+    );
 
     // showLoader(true);
 
@@ -491,15 +602,16 @@ function insertHistoricRow(data, sid) {
     if (id && gid && endCol) {
       google.script.run
         //.withSuccessHandler(contents => setValue(id + "!A2", data, sortTransactionValues))
-        .withSuccessHandler(() => setValue(sid + "!A2", data,
-          () => {
+        .withSuccessHandler(() =>
+          setValue(sid + "!A2", data, () => {
             executionSuccess();
             updateValues(id, true);
-          }))
+          })
+        )
         .withFailureHandler(displayError)
         .insertRows(gid, data, {
           startRow: index,
-          endCol: endCol
+          endCol: endCol,
         });
     } else {
       displayError("Unknow spreadsheet: " + sid);
@@ -517,11 +629,19 @@ function insertHistoricRow(data, sid) {
 // }
 
 function validateDeleteForm(index, rowCnt, func = () => {}) {
-  index = index ? index : indexOf(GLOBAL.data[GLOBAL.displayData.historic.id], GLOBAL.dummy, GLOBAL.histoIdCol);
+  index = index
+    ? index
+    : indexOf(
+      GLOBAL.data[GLOBAL.displayData.historic.id],
+      GLOBAL.dummy,
+      GLOBAL.histoIdCol
+    );
   rowCnt = rowCnt ? rowCnt : 1;
 
   if (index !== null && index * rowCnt > 0) {
-    $("#snackbar").text((rowCnt == 1 ? "Transaction" : rowCnt + " Transactions") + " deleted");
+    $("#snackbar").text(
+      (rowCnt == 1 ? "Transaction" : rowCnt + " Transactions") + " deleted"
+    );
 
     // showLoader(true);
 
@@ -545,12 +665,16 @@ function validateUploadForm() {
     showLoader(true);
 
     var reader = new FileReader();
-    reader.onload = function(event) {
+    reader.onload = function (event) {
       var csvData = event.target.result;
       try {
-        data = $.csv.toArrays(csvData.includes(";") ?
-          csvData.replace(new RegExp(",", "g"), ".").replace(new RegExp(";", "g"), ",") :
-          csvData);
+        data = $.csv.toArrays(
+          csvData.includes(";")
+            ? csvData
+              .replace(new RegExp(",", "g"), ".")
+              .replace(new RegExp(";", "g"), ",")
+            : csvData
+        );
 
         if (data && data.length > 1) {
           if (data[0][0] == "Date" && data[0][1] == "Heure") {
@@ -565,13 +689,24 @@ function validateUploadForm() {
 
                     const histoData = {
                       id: GLOBAL.displayData.historic.id,
-                      formula: restrainFormula(GLOBAL.displayData.historic.formula, -1, -1)
+                      formula: restrainFormula(
+                        GLOBAL.displayData.historic.formula,
+                        -1,
+                        -1
+                      ),
                     };
                     const resultData = {
                       id: GLOBAL.account,
-                      formula: GLOBAL.resultFormula
+                      formula: GLOBAL.resultFormula,
                     };
-                    getValue(histoData, null, true, () => getValue(resultData, compareResultData, true, executionSuccess));
+                    getValue(histoData, null, true, () =>
+                      getValue(
+                        resultData,
+                        compareResultData,
+                        true,
+                        executionSuccess
+                      )
+                    );
                   })
                   .withFailureHandler(displayError)
                   .clearSheetValues(af[0]);
@@ -581,9 +716,14 @@ function validateUploadForm() {
           } else if (data[0][0] == "dateOp" && data[0][1] == "dateVal") {
             const data = {
               id: GLOBAL.account,
-              formula: GLOBAL.expHistoFormula
+              formula: GLOBAL.expHistoFormula,
             };
-            getValue(data, (id, contents) => insertExpensesRow(data, contents), true, executionSuccess);
+            getValue(
+              data,
+              (id, contents) => insertExpensesRow(data, contents),
+              true,
+              executionSuccess
+            );
           } else if (data[0][0] == "CA ID" && data[0][1] == "Produit") {
             insertDividendRow(data);
             executionSuccess();
@@ -611,7 +751,8 @@ function compareResultData(id, contents) {
     var errCnt = 0;
     var historicData = GLOBAL.data[GLOBAL.displayData.historic.id];
     var data = [];
-    for (let i = contents.length - 1; i > 0; --i) { // Don't insert the header and reverse loop
+    for (let i = contents.length - 1; i > 0; --i) {
+      // Don't insert the header and reverse loop
       var row = contents[i];
       var isEmpty = toValue(row[GLOBAL.histoIdCol - 1]) == 0;
       var start = 0;
@@ -619,9 +760,17 @@ function compareResultData(id, contents) {
 
       if (!isEmpty) {
         do {
-          const index = indexOf(historicData, row[GLOBAL.histoIdCol], GLOBAL.histoIdCol, start);
+          const index = indexOf(
+            historicData,
+            row[GLOBAL.histoIdCol],
+            GLOBAL.histoIdCol,
+            start
+          );
           if (index == null) {
-            if (indexOf(row, "#", null, null, (a, b) => a.startsWith(b)) == null) { // Check for error in spreadsheet (starts with #)
+            if (
+              indexOf(row, "#", null, null, (a, b) => a.startsWith(b)) == null
+            ) {
+              // Check for error in spreadsheet (starts with #)
               data.push(row);
             } else {
               ++errCnt;
@@ -654,7 +803,7 @@ function compareResultData(id, contents) {
       index = indexOf(historicData, GLOBAL.dummy, GLOBAL.histoIdCol, index + 1);
     }
 
-    var f = count => {
+    var f = (count) => {
       if (count <= 0) {
         insertRows(data, "Historic", dupCnt, errCnt, contents.length - 1);
       }
@@ -664,15 +813,20 @@ function compareResultData(id, contents) {
     if (dai.length == 0) {
       f(dai.length);
     } else {
-      const fn = i => f(i);
-      for (let i = dai.length - 1; i >= 0; --i) { // Reverse loop
+      const fn = (i) => f(i);
+      for (let i = dai.length - 1; i >= 0; --i) {
+        // Reverse loop
         validateDeleteForm(dai[i][0], dai[i][1], fn(i));
       }
     }
   } else {
-    getValue({
-      formula: GLOBAL.resultFormula
-    }, compareResultData, true);
+    getValue(
+      {
+        formula: GLOBAL.resultFormula,
+      },
+      compareResultData,
+      true
+    );
   }
 }
 
@@ -682,15 +836,18 @@ function insertExpensesRow(contents, expenses) {
   var errCnt = 0;
   var data = [];
 
-  for (var i = 1; i < contents.length; i++) { // Don't insert the header
+  for (var i = 1; i < contents.length; i++) {
+    // Don't insert the header
     var row = contents[i];
     var date = row[0];
     var label = row[2];
     var val = toCurrency(row[6]);
 
-    if (indexOf(expenses, date, 0) === null ||
+    if (
+      indexOf(expenses, date, 0) === null ||
       indexOf(expenses, label, 1) === null ||
-      indexOf(expenses, val, 2) === null) {
+      indexOf(expenses, val, 2) === null
+    ) {
       data.push([date, label, val]);
     } else {
       ++dupCnt;
@@ -708,7 +865,8 @@ function insertDividendRow(contents) {
   var data = [];
   var isError;
 
-  for (var i = 1; i < contents.length; i++) { // Don't insert the header
+  for (var i = 1; i < contents.length; i++) {
+    // Don't insert the header
     var row = contents[i];
     var type;
     var label;
@@ -739,9 +897,22 @@ function insertDividendRow(contents) {
       var historicData = GLOBAL.data[GLOBAL.displayData.historic.id];
       const index = indexOf(historicData, value, 6);
 
-      if (!index || (index && (historicData[index][GLOBAL.histoIdCol] != GLOBAL.dummy ||
-          historicData[index][GLOBAL.histoIdCol] != id))) {
-        data.push([toStringDate(null, true), type, label, transaction, "", "", value, GLOBAL.dummy]);
+      if (
+        !index ||
+        (index &&
+          (historicData[index][GLOBAL.histoIdCol] != GLOBAL.dummy ||
+            historicData[index][GLOBAL.histoIdCol] != id))
+      ) {
+        data.push([
+          toStringDate(null, true),
+          type,
+          label,
+          transaction,
+          "",
+          "",
+          value,
+          GLOBAL.dummy,
+        ]);
       } else {
         ++dupCnt;
       }
@@ -760,15 +931,25 @@ function insertRows(data, id, dupCnt, errCnt, total) {
     insertHistoricRow(data, id);
 
     if (dupCnt > 0) {
-      const msg = errCnt == 0 ?
-        dupCnt + " duplicate(s) found, " + (total - dupCnt) + " row(s) added." :
-        dupCnt + " duplicate(s) found, " + (total - dupCnt - errCnt) + " row(s) added and " + errCnt + " row(s) in error.";
+      const msg =
+        errCnt == 0
+          ? dupCnt +
+            " duplicate(s) found, " +
+            (total - dupCnt) +
+            " row(s) added."
+          : dupCnt +
+            " duplicate(s) found, " +
+            (total - dupCnt - errCnt) +
+            " row(s) added and " +
+            errCnt +
+            " row(s) in error.";
       displayError(msg, errCnt == 0);
     }
   } else {
-    const msg = errCnt == 0 ?
-      "The imported file contains only duplicates (" + dupCnt + " found)." :
-      dupCnt + " duplicate(s) found and " + errCnt + " row(s) in error.";
+    const msg =
+      errCnt == 0
+        ? "The imported file contains only duplicates (" + dupCnt + " found)."
+        : dupCnt + " duplicate(s) found and " + errCnt + " row(s) in error.";
     displayError(msg, errCnt == 0);
   }
 }
@@ -783,7 +964,9 @@ function cancelForm() {
   } else if ($("#deleteTransactionForm").is(":visible")) {
     overDisplay("#deleteTransactionForm", "#actionButton");
   } else if ($("#uploadFileForm").is(":visible")) {
-    overDisplay("#uploadFileForm", "#actionButton", () => $("#fileUpload").val(""));
+    overDisplay("#uploadFileForm", "#actionButton", () =>
+      $("#fileUpload").val("")
+    );
   } else if ($("#popupOverlay").is(":visible")) {
     $(".rebalButton").prop("disabled", false);
   }
@@ -792,10 +975,12 @@ function cancelForm() {
 }
 
 function addTransactionName(type, label) {
-  $("#transactionName").append($("<option>", {
-    title: type,
-    text: label
-  }));
+  $("#transactionName").append(
+    $("<option>", {
+      title: type,
+      text: label,
+    })
+  );
 }
 
 function clearTransactionName() {

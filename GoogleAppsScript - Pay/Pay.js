@@ -3,35 +3,32 @@ _setRangeValues, FR, FC, GmailApp, _isMarketOpen, _copySheetFromModel,
 _updateFormula, _isError, _isToday */
 /* exported withdraw */
 
-
-
 // TRANSACTIONS COLS
-const DATE_COL = 1;             // Should be the "Date" column
-const AMOUNT_COL = 2;           // Should be the "Amount" column
-const MERCHANT_COL = 3;         // Should be the "Merchant" column
-const TRANS_COL_COUNT = 6;      // Should be the number of column
+const DATE_COL = 1; // Should be the "Date" column
+const AMOUNT_COL = 2; // Should be the "Amount" column
+const MERCHANT_COL = 3; // Should be the "Merchant" column
+const TRANS_COL_COUNT = 6; // Should be the number of column
 
 // MERCHANT COLS
-const INDEX_COL = 1;            // Should be the "Index" column
-const CRYPTOADD_COL = 2;        // Should be the "Crypto Address" column
-const COMPANY_COL = 3;          // Should be the "Company" column
-const FIATRATIO_COL = 4;        // Should be the "Fiat Ratio" column
-const NOTPAID_COL = 7;          // Should be the "Not Paid" column
-const LASTWD_COL = 9;           // Should be the "Last withdraw" column
-const NEXTWD_COL = 10;          // Should be the "Next withdraw" column
-const EMAIL_COL = 11;           // Should be the "EMail" column
+const INDEX_COL = 1; // Should be the "Index" column
+const CRYPTOADD_COL = 2; // Should be the "Crypto Address" column
+const COMPANY_COL = 3; // Should be the "Company" column
+const FIATRATIO_COL = 4; // Should be the "Fiat Ratio" column
+const NOTPAID_COL = 7; // Should be the "Not Paid" column
+const LASTWD_COL = 9; // Should be the "Last withdraw" column
+const NEXTWD_COL = 10; // Should be the "Next withdraw" column
+const EMAIL_COL = 11; // Should be the "EMail" column
 
 // SPECIFIC MERCHANT UPDATE CELL
-const DATA_COL = 7;             // Should be the column after transactions data
-const MERCHUPD_ROW = 7;         // Should be the empty row to update Json import
-const TRANSUPD_ROW = 8;         // Should be the row with a boolean to indicate whether to update transactions
+const DATA_COL = 7; // Should be the column after transactions data
+const MERCHUPD_ROW = 7; // Should be the empty row to update Json import
+const TRANSUPD_ROW = 8; // Should be the row with a boolean to indicate whether to update transactions
 
 // SHEET NAMES
-const MERCHANT = "Merchant";                  // The "Merchant" sheet name
-const TRANSACTIONS = "Transactions";          // The "Transactions" sheet name
-const PAIDTRANSACTIONS = "PaidTransactions";  // The "PaidTransactions" sheet name
-const MERCHMODEL = "1";                       // The model to create a new merchant 
-
+const MERCHANT = "Merchant"; // The "Merchant" sheet name
+const TRANSACTIONS = "Transactions"; // The "Transactions" sheet name
+const PAIDTRANSACTIONS = "PaidTransactions"; // The "PaidTransactions" sheet name
+const MERCHMODEL = "1"; // The model to create a new merchant
 
 function withdraw() {
   if (_isMarketOpen(0, 6, 7, 20)) {
@@ -49,9 +46,9 @@ function withdraw() {
     // Processing transactions for each merchant (by id)
     for (let i = 0; i < array.length; ++i) {
       // If the sheet does not exist, create a new merchant sheet from the model
-      const id = array[i][INDEX_COL-1];
+      const id = array[i][INDEX_COL - 1];
       const sheet = _copySheetFromModel(id, MERCHMODEL);
-      sheet.getRange(FR-1, DATA_COL).setValue(id);
+      sheet.getRange(FR - 1, DATA_COL).setValue(id);
       _updateFormula(sheet, MERCHUPD_ROW, DATA_COL);
 
       // Store the transactions to update
@@ -68,7 +65,10 @@ function withdraw() {
       }
 
       // If the current time matches the next withdraw time, process transactions
-      if (_isToday(array, i, NEXTWD_COL-1) && _isCurrentHour(array, i, NEXTWD_COL-1)) {
+      if (
+        _isToday(array, i, NEXTWD_COL - 1) &&
+        _isCurrentHour(array, i, NEXTWD_COL - 1)
+      ) {
         tsheet = _getSheet(TRANSACTIONS, tsheet);
         if (tsheet.getLastRow() >= FR) {
           const tarray = tsheet.getSheetValues(FR, FC, -1, -1);
@@ -76,9 +76,9 @@ function withdraw() {
           // Store the transaction to pay & to delete
           let hasProcessedTransaction;
           for (let j = 0; j < tarray.length; ++j) {
-            if (tarray[j][MERCHANT_COL-1] == id) {
+            if (tarray[j][MERCHANT_COL - 1] == id) {
               paidArray.push(tarray[j]);
-              deleteArray.push(j+FR);
+              deleteArray.push(j + FR);
               hasProcessedTransaction = true;
             }
           }
@@ -105,39 +105,56 @@ function withdraw() {
 
 function _generateEmail(paidArray, emailArray, recap, data) {
   // Create a merchant message with transactions recap
-  const email = data[EMAIL_COL-1];
-  const company = data[COMPANY_COL-1];
+  const email = data[EMAIL_COL - 1];
+  const company = data[COMPANY_COL - 1];
 
-  const toPayTotal = data[NOTPAID_COL-1];
-  const fiatRatio = data[FIATRATIO_COL-1];
-  const toPayFiat = _toCurrency(toPayTotal*fiatRatio);
+  const toPayTotal = data[NOTPAID_COL - 1];
+  const fiatRatio = data[FIATRATIO_COL - 1];
+  const toPayFiat = _toCurrency(toPayTotal * fiatRatio);
 
   const object = "FiMs Pay - Reçu de paiement de " + _toCurrency(toPayTotal);
-  let message = "FiMs Pay a effectué un virement d'un montant de " + toPayFiat
-  + " pour l'entreprise " + company + "\n\n";
-  recap += "Company : " + company + "\n"
-  + "Wire Transfer : " + toPayFiat + "\n\n";
+  let message =
+    "FiMs Pay a effectué un virement d'un montant de " +
+    toPayFiat +
+    " pour l'entreprise " +
+    company +
+    "\n\n";
+  recap +=
+    "Company : " + company + "\n" + "Wire Transfer : " + toPayFiat + "\n\n";
 
   // Add a message specific to crypto withdraw
   if (fiatRatio < 1) {
-    const cryptoRatio = 1-fiatRatio;
-    const toPayCrypto = _toCurrency(toPayTotal*cryptoRatio);
-    const cryptoAdd = data[CRYPTOADD_COL-1];
+    const cryptoRatio = 1 - fiatRatio;
+    const toPayCrypto = _toCurrency(toPayTotal * cryptoRatio);
+    const cryptoAdd = data[CRYPTOADD_COL - 1];
 
-    message += "Le somme de " + toPayCrypto + " a été versée sur le"
-    + " compte crypto à l'adresse " + cryptoAdd + "\n\n";
-    recap += "Crypto Transfer : " + toPayCrypto + "\n"
-    + "Address : " + cryptoAdd + "\n\n";
+    message +=
+      "Le somme de " +
+      toPayCrypto +
+      " a été versée sur le" +
+      " compte crypto à l'adresse " +
+      cryptoAdd +
+      "\n\n";
+    recap +=
+      "Crypto Transfer : " +
+      toPayCrypto +
+      "\n" +
+      "Address : " +
+      cryptoAdd +
+      "\n\n";
   }
 
   // Add all the transactions historic
   message += "Récapitulatif des transactions :\n";
   for (let j = 0; j < paidArray.length; ++j) {
-    message += _toStringTime(paidArray[j][DATE_COL-1]) + " --> "
-    + _toCurrency(paidArray[j][AMOUNT_COL-1]) + "\n";
+    message +=
+      _toStringTime(paidArray[j][DATE_COL - 1]) +
+      " --> " +
+      _toCurrency(paidArray[j][AMOUNT_COL - 1]) +
+      "\n";
   }
 
-  emailArray.push([email, object, message]);     // Store email data
+  emailArray.push([email, object, message]); // Store email data
 
   return recap;
 }
@@ -146,7 +163,8 @@ function _archiveProcessedTransaction(paidArray) {
   if (paidArray.length > 0) {
     // Move processed transaction in an archive sheet
     const sheet = _getSheet(PAIDTRANSACTIONS);
-    const numRows = paidArray.length - (sheet.getRange(FR, FC).getValue() != "" ? 0 : 1);
+    const numRows =
+      paidArray.length - (sheet.getRange(FR, FC).getValue() != "" ? 0 : 1);
     if (numRows > 0) {
       sheet.insertRowsBefore(FR, numRows);
     }
@@ -155,7 +173,7 @@ function _archiveProcessedTransaction(paidArray) {
 }
 
 function _deleteProcessedTransaction(deleteArray, sheet) {
-  for (let j = deleteArray.length-1; j >= 0; --j) {
+  for (let j = deleteArray.length - 1; j >= 0; --j) {
     sheet = _getSheet(TRANSACTIONS, sheet);
     if (deleteArray[j] != FR || sheet.getMaxRows() != FR) {
       sheet.deleteRow(deleteArray[j]);

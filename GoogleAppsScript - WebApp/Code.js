@@ -4,15 +4,16 @@ clearSheetValues, insertRows, deleteRows, sortColumn */
 
 // SET THIS TO TRUE IF A BUG HAPPENED IN PROD AND TIME TO DEBUG IS NEEDED
 const workInProgress = false;
-const favIcon = "https://raw.githubusercontent.com/flodef/FiMS/master/Img/Image/Favicon2.png";
+const favIcon =
+  "https://raw.githubusercontent.com/flodef/FiMS/master/Img/Image/Favicon2.png";
 
 // App specific
 const ownEmail = "fdefroco@gmail.com";
 const ssId = {
-  TradFi:"1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw", 
-  Associate:"1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU", 
-  DeFi:"1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI",
-  Pay:"1lH6uLLPKZyltpxP83qUMr6veIyIQjzGm-qxaIh2ihIU"
+  TradFi: "1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw",
+  Associate: "1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU",
+  DeFi: "1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI",
+  Pay: "1lH6uLLPKZyltpxP83qUMr6veIyIQjzGm-qxaIh2ihIU",
 };
 
 /**
@@ -34,8 +35,13 @@ function doGet(e) {
       // DeFi:"Defi"  // Not implemented yet
     };
     const userId = getUrlParams(e, "id");
-    console.log(userId)
-    const currentProject = userId == project.TradFi ? project.TradFi : userId && !isNaN(userId) ? project.Pay : project.Associate;
+    console.log(userId);
+    const currentProject =
+      userId == project.TradFi
+        ? project.TradFi
+        : userId && !isNaN(userId)
+          ? project.Pay
+          : project.Associate;
     const spreadsheetId = getSpreadsheetId(currentProject);
 
     fileName = "Index";
@@ -52,9 +58,7 @@ function doGet(e) {
   var template = HtmlService.createTemplateFromFile(fileName);
 
   // Build and return HTML in IFRAME sandbox mode.
-  return template.evaluate()
-    .setTitle(pageTitle)
-    .setFaviconUrl(favIcon);
+  return template.evaluate().setTitle(pageTitle).setFaviconUrl(favIcon);
 }
 
 /**
@@ -117,11 +121,16 @@ function getSheetValues(range, filter, column = 0) {
  */
 function setSheetValues(range, values) {
   const spreadsheetId = getProperty("spreadsheetId");
-  return Sheets.Spreadsheets.Values.update({
-    "range": range,
-    "majorDimension": "ROWS",
-    "values": values,
-  }, spreadsheetId, range, { valueInputOption: "USER_ENTERED" });
+  return Sheets.Spreadsheets.Values.update(
+    {
+      range: range,
+      majorDimension: "ROWS",
+      values: values,
+    },
+    spreadsheetId,
+    range,
+    { valueInputOption: "USER_ENTERED" }
+  );
 }
 
 /**
@@ -135,112 +144,128 @@ function clearSheetValues(range) {
  */
 function insertRows(sheetId, values, range) {
   const spreadsheetId = getProperty("spreadsheetId");
-  return Sheets.Spreadsheets.batchUpdate({
-    "requests": [{
-      "insertDimension": {
-        "range": {
-          "sheetId": sheetId,
-          "dimension": "ROWS",
-          "startIndex": range.startRow,
-          "endIndex": range.startRow+values.length
+  return Sheets.Spreadsheets.batchUpdate(
+    {
+      requests: [
+        {
+          insertDimension: {
+            range: {
+              sheetId: sheetId,
+              dimension: "ROWS",
+              startIndex: range.startRow,
+              endIndex: range.startRow + values.length,
+            },
+            inheritFromBefore: false,
+          },
         },
-        "inheritFromBefore": false,
-      }
-    }, {
-      "copyPaste": {
-        "source": {
-          "sheetId": sheetId,
-          "startRowIndex": range.startRow+values.length,
-          "endRowIndex": range.startRow+values.length+1,
-          "startColumnIndex": 0,
-          "endColumnIndex": range.endCol,
+        {
+          copyPaste: {
+            source: {
+              sheetId: sheetId,
+              startRowIndex: range.startRow + values.length,
+              endRowIndex: range.startRow + values.length + 1,
+              startColumnIndex: 0,
+              endColumnIndex: range.endCol,
+            },
+            destination: {
+              sheetId: sheetId,
+              startRowIndex: range.startRow,
+              endRowIndex: range.startRow + values.length,
+              startColumnIndex: 0,
+              endColumnIndex: range.endCol,
+            },
+            pasteType: "PASTE_NORMAL",
+            pasteOrientation: "NORMAL",
+          },
+          //    },{
+          //      "updateCells": {
+          //        "rows": [{
+          //            "values": [{
+          //                "userEnteredValue": {
+          //                  "stringValue": ""
+          //                }
+          //              }
+          //            ]
+          //        }],
+          //        "fields": "*",
+          //        "start": {
+          //          "sheetId": sheetId,
+          //          "rowIndex": range.startRow,
+          //          "columnIndex": 0
+          //        },
+          //        "range": {
+          //          "sheetId": sheetId,
+          //          "startRowIndex": range.startRow,
+          //          "endRowIndex": range.startRow+values.length,
+          ////          "startColumnIndex": 0,
+          ////          "endColumnIndex": 0
+          //        }
+          //      }
         },
-        "destination": {
-          "sheetId": sheetId,
-          "startRowIndex": range.startRow,
-          "endRowIndex":range.startRow+values.length,
-          "startColumnIndex": 0,
-          "endColumnIndex": range.endCol,
-        },
-        "pasteType": "PASTE_NORMAL",
-        "pasteOrientation": "NORMAL"
-      }
-      //    },{
-      //      "updateCells": {
-      //        "rows": [{
-      //            "values": [{
-      //                "userEnteredValue": {
-      //                  "stringValue": ""
-      //                }
-      //              }
-      //            ]
-      //        }],
-      //        "fields": "*",
-      //        "start": {
-      //          "sheetId": sheetId,
-      //          "rowIndex": range.startRow,
-      //          "columnIndex": 0
-      //        },
-      //        "range": {
-      //          "sheetId": sheetId,
-      //          "startRowIndex": range.startRow,
-      //          "endRowIndex": range.startRow+values.length,
-      ////          "startColumnIndex": 0,
-      ////          "endColumnIndex": 0
-      //        }
-      //      }
-    }],
-    //      "includeSpreadsheetInResponse": false,
-    //      "responseRanges": [string],
-    //      "responseIncludeGridData": false,
-  }, spreadsheetId);
+      ],
+      //      "includeSpreadsheetInResponse": false,
+      //      "responseRanges": [string],
+      //      "responseIncludeGridData": false,
+    },
+    spreadsheetId
+  );
 }
 
 /**
  */
 function deleteRows(sheetId, startIndex, endIndex) {
   const spreadsheetId = getProperty("spreadsheetId");
-  return Sheets.Spreadsheets.batchUpdate({
-    "requests": [{
-      "deleteDimension": {
-        "range": {
-          "sheetId": sheetId,
-          "dimension": "ROWS",
-          "startIndex": startIndex,
-          "endIndex": endIndex
-        }
-      }
-    }],
-    //      "includeSpreadsheetInResponse": false,
-    //      "responseRanges": [string],
-    //      "responseIncludeGridData": false,
-  }, spreadsheetId);
+  return Sheets.Spreadsheets.batchUpdate(
+    {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId: sheetId,
+              dimension: "ROWS",
+              startIndex: startIndex,
+              endIndex: endIndex,
+            },
+          },
+        },
+      ],
+      //      "includeSpreadsheetInResponse": false,
+      //      "responseRanges": [string],
+      //      "responseIncludeGridData": false,
+    },
+    spreadsheetId
+  );
 }
 
 /**
  */
 function sortColumn(sheetId, index, descending) {
   const spreadsheetId = getProperty("spreadsheetId");
-  return Sheets.Spreadsheets.batchUpdate({
-    "requests": [{
-      "sortRange": {
-        "range": {
-          "sheetId": sheetId,
-          "startRowIndex": 1,
-          //          "endRowIndex": 0,
-          //          "startColumnIndex": 0,
-          //          "endColumnIndex": 0
+  return Sheets.Spreadsheets.batchUpdate(
+    {
+      requests: [
+        {
+          sortRange: {
+            range: {
+              sheetId: sheetId,
+              startRowIndex: 1,
+              //          "endRowIndex": 0,
+              //          "startColumnIndex": 0,
+              //          "endColumnIndex": 0
+            },
+            sortSpecs: [
+              {
+                dimensionIndex: index,
+                sortOrder: descending ? "DESCENDING" : "ASCENDING",
+              },
+            ],
+          },
         },
-        "sortSpecs": [
-          {
-            "dimensionIndex": index,
-            "sortOrder": descending ? "DESCENDING" : "ASCENDING"
-          }
-        ]
-      }
-    }],
-    //      "includeSpreadsheetInResponse": false,
-    //      "responseRanges": [string],
-    //      "responseIncludeGridData": false,
-  }, spreadsheetId);
+      ],
+      //      "includeSpreadsheetInResponse": false,
+      //      "responseRanges": [string],
+      //      "responseIncludeGridData": false,
+    },
+    spreadsheetId
+  );
 }

@@ -9,7 +9,6 @@
 //              .withFailureHandler(displayError)
 //              .getSheetValues("Dashboard!A:B");
 
-
 const workInProgress = false;
 const favIcon = "Img/Image/Favicon.png";
 
@@ -24,7 +23,12 @@ function doGet(e) {
       // DeFi:"Defi"  // Not implemented yet
     };
     const userId = getUrlParams(e, "id");
-    const currentProject = userId == project.TradFi ? project.TradFi : userId && !isNaN(userId) ? project.Pay : project.Associate;
+    const currentProject =
+      userId == project.TradFi
+        ? project.TradFi
+        : userId && !isNaN(userId)
+          ? project.Pay
+          : project.Associate;
     const spreadsheetId = getSpreadsheetId(currentProject);
 
     fileName = "Index";
@@ -41,9 +45,7 @@ function doGet(e) {
   var template = HtmlService.createTemplateFromFile(fileName);
 
   // Build and return HTML in IFRAME sandbox mode.
-  return template.evaluate()
-    .setTitle(pageTitle)
-    .setFaviconUrl(favIcon);
+  return template.evaluate().setTitle(pageTitle).setFaviconUrl(favIcon);
 }
 
 function getUrlParams(e, param) {
@@ -122,8 +124,14 @@ class Run {
   }
   sendEmail(recipient, subject, message, options) {
     try {
-      alert("Mail sent to " + recipient + " !\n\nSubject = " + subject +
-        (message ? "\nMessage = " + message : "") + (options ? "\nOptions = " + options.htmlBody : ""));
+      alert(
+        "Mail sent to " +
+          recipient +
+          " !\n\nSubject = " +
+          subject +
+          (message ? "\nMessage = " + message : "") +
+          (options ? "\nOptions = " + options.htmlBody : "")
+      );
     } catch (error) {
       this.#fh(error);
     }
@@ -144,7 +152,8 @@ class Run {
           }
         }
       }
-    } catch (e) { // Don't send error in case that the sheet asked does not exist
+    } catch (e) {
+      // Don't send error in case that the sheet asked does not exist
       content = null;
     }
 
@@ -175,15 +184,17 @@ class Run {
             return response.arrayBuffer();
           }
           throw new Error("Network response was not ok.");
-        }).then((buffer) => {
+        })
+        .then((buffer) => {
           const data = new Uint8Array(buffer);
           this.#workbook = XLSX.read(data, {
-            type: "array"
+            type: "array",
           });
-        }).catch(this.#fh);
+        })
+        .catch(this.#fh);
     }
 
-    await new Promise(r => setTimeout(r, 2000)); // Simulate loading data on spreadsheet
+    await new Promise((r) => setTimeout(r, 2000)); // Simulate loading data on spreadsheet
 
     return this._getData(range);
   }
@@ -199,14 +210,14 @@ class Run {
       var sr = ar[0];
       var er = ar[1] || ar[0]; // Set the starting range as the ending range if none (eg : sheet!A1)
       var dr = XLSX.utils.decode_range(fullRange);
-      sr += !this._hasNumber(sr) ? (dr.s.r + 1) : "";
-      er += !this._hasNumber(er) ? (dr.e.r + 1) : "";
+      sr += !this._hasNumber(sr) ? dr.s.r + 1 : "";
+      er += !this._hasNumber(er) ? dr.e.r + 1 : "";
       range = sr + ":" + er;
       var array = XLSX.utils.sheet_to_json(sheet, {
         header: 1,
         raw: false,
         range: range,
-        defval: ""
+        defval: "",
       });
 
       return array;
@@ -237,7 +248,9 @@ class Template {
     return this;
   }
   setFaviconUrl(url) {
-    var link = document.querySelector("link[rel*='icon']") || document.createElement("link");
+    var link =
+      document.querySelector("link[rel*='icon']") ||
+      document.createElement("link");
     link.type = "image/png";
     link.rel = "icon";
     link.href = url;

@@ -15,34 +15,35 @@ GLOBAL.customerAddressFormula = "Check!D";
 GLOBAL.solanaAddressPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/i;
 
 GLOBAL.customerAddress = "";
-GLOBAL.attempt = 0;             // Number of attempt to load payment data
-GLOBAL.attemptTimeout = 5;      // Duration between each attempt
-GLOBAL.retry = 0;               // Number of retry with a data reset which force reloading data
-GLOBAL.retryTimeout = 30;       // Duration between each retry
-GLOBAL.retryLimit = 3;          // Number of retry after which the payment is cancelled
+GLOBAL.attempt = 0; // Number of attempt to load payment data
+GLOBAL.attemptTimeout = 5; // Duration between each attempt
+GLOBAL.retry = 0; // Number of retry with a data reset which force reloading data
+GLOBAL.retryTimeout = 30; // Duration between each retry
+GLOBAL.retryLimit = 3; // Number of retry after which the payment is cancelled
 
 GLOBAL.messages = {
-  copyAddress:"Copiez votre adresse de porte-feuille crypto<br><br>puis cliquez ci-dessous :",
-  verifyPayment:"Verifier le paiement",
-  invalidAddress:"Solana Address copied is invalid!",
-  invalidPayment:"Error: Your payment could not been verified.<br><br>Try to pay by another mean.<br><br>We will proceed to a refund shortly.",
+  copyAddress:
+    "Copiez votre adresse de porte-feuille crypto<br><br>puis cliquez ci-dessous :",
+  verifyPayment: "Verifier le paiement",
+  invalidAddress: "Solana Address copied is invalid!",
+  invalidPayment:
+    "Error: Your payment could not been verified.<br><br>Try to pay by another mean.<br><br>We will proceed to a refund shortly.",
 };
 
 GLOBAL.header = {
-  cryptoAddress:"Crypto Address",
-  company:"Company",
-  customer:"Customer",
-  status:"Status",
-  amount:"Amount",
-  time:"Time",
-  duration:"Duration",
+  cryptoAddress: "Crypto Address",
+  company: "Company",
+  customer: "Customer",
+  status: "Status",
+  amount: "Amount",
+  time: "Time",
+  duration: "Duration",
 };
 GLOBAL.status = {
-  error:"error",
-  warning:"warning",
-  success:"success",
+  error: "error",
+  warning: "warning",
+  success: "success",
 };
-
 
 $(() => {
   initCommon();
@@ -58,10 +59,13 @@ function init() {
 function setUserId(id) {
   GLOBAL.user.ID = id;
 
-  getValue({
-    formula: GLOBAL.merchantInfoFormula,
-    filter: 0
-  }, displayContent);
+  getValue(
+    {
+      formula: GLOBAL.merchantInfoFormula,
+      filter: 0,
+    },
+    displayContent
+  );
 }
 
 function displayContent(id, contents) {
@@ -71,15 +75,18 @@ function displayContent(id, contents) {
 
   const logo = getImage(GLOBAL.user.ID, "Pay/Merchant");
   const logoHTML = getDiv("logo", null, "center", logo);
-  
-  let processHTML = getMainTitle(GLOBAL.messages.copyAddress)
-    + `<button onclick="validatePayment()" style="
+
+  let processHTML =
+    getMainTitle(GLOBAL.messages.copyAddress) +
+    `<button onclick="validatePayment()" style="
         border-radius: 20px;
         height: 100px;
         width: 330px;
         font-size: 33px;
         line-height: 40px;
-      ">` + GLOBAL.messages.verifyPayment + "</button>";
+      ">` +
+    GLOBAL.messages.verifyPayment +
+    "</button>";
   processHTML = getDiv("process", null, "center", processHTML);
 
   $("#mainContent").html(logoHTML + processHTML);
@@ -105,25 +112,35 @@ function setCustomerAddress(customerAddress, success) {
 }
 
 function resetCustomerAddress() {
-  setCustomerAddress(null, 
-    () => setCustomerAddress(GLOBAL.customerAddress, displayPaymentStatus));
+  setCustomerAddress(null, () =>
+    setCustomerAddress(GLOBAL.customerAddress, displayPaymentStatus)
+  );
 }
 
 function loadPaymentStatus() {
-  getValue({
-    formula: GLOBAL.paymentInfoFormula,
-    filter: 0
-  }, displayPaymentStatus);
+  getValue(
+    {
+      formula: GLOBAL.paymentInfoFormula,
+      filter: 0,
+    },
+    displayPaymentStatus
+  );
 }
 
 async function displayPaymentStatus(id, contents) {
   let fullStatus = getDataValue(contents, GLOBAL.header.status);
-  if (!fullStatus || fullStatus.slice(-3) === "...") { // Processing... or Loading...
+  if (!fullStatus || fullStatus.slice(-3) === "...") {
+    // Processing... or Loading...
     fullStatus = null;
     if (GLOBAL.attempt < GLOBAL.retryTimeout / GLOBAL.attemptTimeout) {
       ++GLOBAL.attempt;
-      console.log("attempt " + GLOBAL.attempt + "/" + GLOBAL.retryTimeout / GLOBAL.attemptTimeout);
-      setTimeout(loadPaymentStatus, GLOBAL.attemptTimeout*1000);  // Loop through loading status  
+      console.log(
+        "attempt " +
+          GLOBAL.attempt +
+          "/" +
+          GLOBAL.retryTimeout / GLOBAL.attemptTimeout
+      );
+      setTimeout(loadPaymentStatus, GLOBAL.attemptTimeout * 1000); // Loop through loading status
     } else if (GLOBAL.retry < GLOBAL.retryLimit - 1) {
       ++GLOBAL.retry;
       console.log("retry " + GLOBAL.retry + "/" + GLOBAL.retryLimit);
@@ -132,30 +149,50 @@ async function displayPaymentStatus(id, contents) {
       fullStatus = GLOBAL.invalidPayment;
       sendRefundEmail();
     }
-  } 
-  
+  }
+
   if (fullStatus) {
     const status = fullStatus.split(":")[0].toLowerCase();
-    let html = getImage(status === GLOBAL.status.error ? "Cancel" : status === GLOBAL.status.warning ? "Bug" : "Validate", 
-      "Button", [{name:"style", value:"margin: 50px"}]);
+    let html = getImage(
+      status === GLOBAL.status.error
+        ? "Cancel"
+        : status === GLOBAL.status.warning
+          ? "Bug"
+          : "Validate",
+      "Button",
+      [{ name: "style", value: "margin: 50px" }]
+    );
     html += getMainTitle(fullStatus);
     if (status !== GLOBAL.status.error) {
-      html += getMainTitle(toCurrency(getDataValue(contents, GLOBAL.header.amount)));
+      html += getMainTitle(
+        toCurrency(getDataValue(contents, GLOBAL.header.amount))
+      );
       html += getMainTitle(getDataValue(contents, GLOBAL.header.time));
-      html += getMainTitle("(il y a " + getDataValue(contents, GLOBAL.header.duration).replace(":", "h ").replace(":", "m ") + "s)");
-    }    
-    
+      html += getMainTitle(
+        "(il y a " +
+          getDataValue(contents, GLOBAL.header.duration)
+            .replace(":", "h ")
+            .replace(":", "m ") +
+          "s)"
+      );
+    }
+
     $("#process").html(html);
 
     setCustomerAddress(null);
     showLoader(false);
-  }  
+  }
 }
 function sendRefundEmail() {
-  const subject = "REFUND for [" + GLOBAL.customerAddress + "] / Merchant ID " + GLOBAL.user.ID + " @ " + toStringDate();
+  const subject =
+    "REFUND for [" +
+    GLOBAL.customerAddress +
+    "] / Merchant ID " +
+    GLOBAL.user.ID +
+    " @ " +
+    toStringDate();
   google.script.run
     .withSuccessHandler()
     .withFailureHandler(displayError)
     .sendRecapEmail(subject);
 }
-

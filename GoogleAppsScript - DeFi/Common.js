@@ -13,15 +13,14 @@ const SS = SpreadsheetApp.getActiveSpreadsheet();
 const MAIL = "fdefroco@gmail.com";
 const URGMAIL = "flodef@pm.me";
 const LOADING = "Loading...";
-const FR = 2;     // First Row
-const FC = 1;     // First Column
-const FH = 9;     // First working Hour
-const LH = 17;    // Last working hour
-const FD = 1;     // First working day
-const LD = 5;     // Last working day
-const FM = 0;     // First month (january)
-const LM = 11;    // Last month (december)
-
+const FR = 2; // First Row
+const FC = 1; // First Column
+const FH = 9; // First working Hour
+const LH = 17; // Last working hour
+const FD = 1; // First working day
+const LD = 5; // Last working day
+const FM = 0; // First month (january)
+const LM = 11; // Last month (december)
 
 function _getSheet(sheetName, sheet) {
   return sheet ? sheet : SS.getSheetByName(sheetName);
@@ -67,16 +66,18 @@ function _insertFirstRow(sheet, data, isFast, lc) {
   lc = lc ? lc : sheet.getMaxColumns();
 
   if (lr >= FR) {
-    if (!isFast) {  // Insert a row at the end, then copy all the data with an offset
+    if (!isFast) {
+      // Insert a row at the end, then copy all the data with an offset
       sheet.insertRowAfter(lr);
-      sheet.getRange(FR, FC, lr-1, lc).copyTo(sheet.getRange(FR + 1, FC));
-    } else {        // Insert a row at the begin, then copy the second row to the first row
+      sheet.getRange(FR, FC, lr - 1, lc).copyTo(sheet.getRange(FR + 1, FC));
+    } else {
+      // Insert a row at the begin, then copy the second row to the first row
       sheet.insertRowBefore(FR);
-      sheet.getRange(FR+1, FC, 1, lc).copyTo(sheet.getRange(FR, FC));
+      sheet.getRange(FR + 1, FC, 1, lc).copyTo(sheet.getRange(FR, FC));
     }
   } else {
     sheet.insertRowAfter(lr);
-    sheet.getRange(lr+1, FC, 1, lc).clearFormat();
+    sheet.getRange(lr + 1, FC, 1, lc).clearFormat();
   }
 
   _setRangeValues(sheet, FR, FC, data);
@@ -85,7 +86,7 @@ function _insertFirstRow(sheet, data, isFast, lc) {
 function _copyFirstRow(sheet, array) {
   if (!_isToday(array)) {
     _insertFirstRow(sheet, null, true);
-    _setRangeValues(sheet, FR + 1, FC, [array[0]]);    // Copy only values into previous row (archive)
+    _setRangeValues(sheet, FR + 1, FC, [array[0]]); // Copy only values into previous row (archive)
   }
 }
 
@@ -94,13 +95,13 @@ function _AreRowsDifferent(array) {
 
   if (array.length == 2) {
     // Check for difference
-    const lc = array[0].length-1;
-    let i = 0;    // Skip first column which is the date
+    const lc = array[0].length - 1;
+    let i = 0; // Skip first column which is the date
     while (!isDiff && ++i <= lc) {
       isDiff = array[0][i] != array[1][i] ? true : isDiff;
     }
   } else {
-    throw("Array should have 2 rows but have " + array.length + " instead.");
+    throw "Array should have 2 rows but have " + array.length + " instead.";
   }
 
   return isDiff;
@@ -109,8 +110,8 @@ function _AreRowsDifferent(array) {
 function _deleteOlderThanAYear(sheet) {
   let lr = sheet.getMaxRows();
   const lyd = _toDate();
-  lyd.setFullYear(lyd.getFullYear()-1);
-  lyd.setMonth(lyd.getMonth()-1);
+  lyd.setFullYear(lyd.getFullYear() - 1);
+  lyd.setMonth(lyd.getMonth() - 1);
   let shouldDelete;
   do {
     const oldDate = sheet.getRange(lr, FC).getValue();
@@ -122,7 +123,12 @@ function _deleteOlderThanAYear(sheet) {
   } while (shouldDelete);
 }
 
-function _isMarketOpen(firstDay = FD, lastDay = LD, firstHour = FH, lastHour = LH) {
+function _isMarketOpen(
+  firstDay = FD,
+  lastDay = LD,
+  firstHour = FH,
+  lastHour = LH
+) {
   const x = new Date();
   const d = x.getDay();
   const h = x.getHours();
@@ -130,69 +136,79 @@ function _isMarketOpen(firstDay = FD, lastDay = LD, firstHour = FH, lastHour = L
   return d >= firstDay && d <= lastDay && h >= firstHour && h <= lastHour;
 }
 
-
-
 function _isSubHour(period = 1, offset = 0) {
   const x = new Date();
   const m = x.getMinutes();
 
-  return period == 1 || m%period == offset;
+  return period == 1 || m % period == offset;
 }
 
 function _toFixed(value, precision = 2) {
   let str = value.toString();
-  str += (str.indexOf(".") != -1 ? "" : ".") + Array(precision+1).join("0");
+  str += (str.indexOf(".") != -1 ? "" : ".") + Array(precision + 1).join("0");
   return str.slice(0, str.indexOf(".") + precision + Math.min(precision, 1));
 }
 
 function _round(value, precision, symbol) {
   const mult = Math.pow(10, precision);
   const sup = symbol == "%" ? 100 : 1;
-  symbol = typeof(symbol) == "string" ? symbol : "";
+  symbol = typeof symbol == "string" ? symbol : "";
 
   return _toFixed(Math.round(value * sup * mult) / mult, precision) + symbol;
 }
 
 function _isToday(array, i = 0, j = 0) {
-  return array && array.length > 0 ? _toStringDate() == _toStringDate(array[i][j]) : false;
+  return array && array.length > 0
+    ? _toStringDate() == _toStringDate(array[i][j])
+    : false;
 }
 
 function _isCurrentHour(array, i = 0, j = 0) {
-  return array && array.length > 0 ? new Date().getHours() == array[i][j].getHours() : false;
+  return array && array.length > 0
+    ? new Date().getHours() == array[i][j].getHours()
+    : false;
 }
 
 function _isCurrentDay(array, i = 0, j = 0) {
-  return array && array.length > 0 ? new Date().getDate() == array[i][j].getDate() : false;
+  return array && array.length > 0
+    ? new Date().getDate() == array[i][j].getDate()
+    : false;
 }
 
 function _isCurrentMonth(array, i = 0, j = 0) {
-  return array && array.length > 0 ? new Date().getMonth() == array[i][j].getMonth() : false;
+  return array && array.length > 0
+    ? new Date().getMonth() == array[i][j].getMonth()
+    : false;
 }
 
-//  
+//
 /**
-* Take a date and remove the hours part
-* @param {Date} date to transform or null for current date
-* @return {Date} date without hours
-*/
+ * Take a date and remove the hours part
+ * @param {Date} date to transform or null for current date
+ * @return {Date} date without hours
+ */
 function _toDate(date) {
-  date = date && typeof(date) == "object" ? date : new Date();
+  date = date && typeof date == "object" ? date : new Date();
   date.setHours(0, 0, 0, 0);
   return date;
 }
 
 function _toStringDate(date, locale = "FR") {
-  if (date && typeof(date) == "string") {
+  if (date && typeof date == "string") {
     return date.split("/").length == 3
       ? locale == "FR"
-        ? date.replace(/(^|\/)0+/g, "$1").split("/")[0] + "/"
-        + date.replace(/(^|\/)0+/g, "$1").split("/")[1] + "/"
-        + date.split("/")[2]
-        : date.replace(/(^|\/)0+/g, "$1").split("/")[1] + "/"
-        + date.replace(/(^|\/)0+/g, "$1").split("/")[0] + "/"
-        + date.split("/")[2]
+        ? date.replace(/(^|\/)0+/g, "$1").split("/")[0] +
+          "/" +
+          date.replace(/(^|\/)0+/g, "$1").split("/")[1] +
+          "/" +
+          date.split("/")[2]
+        : date.replace(/(^|\/)0+/g, "$1").split("/")[1] +
+          "/" +
+          date.replace(/(^|\/)0+/g, "$1").split("/")[0] +
+          "/" +
+          date.split("/")[2]
       : null;
-  } else if (date && typeof(date) == "object") {
+  } else if (date && typeof date == "object") {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
@@ -205,15 +221,15 @@ function _toStringDate(date, locale = "FR") {
 }
 
 function _toStringTime(date, locale = "FR") {
-  if (typeof(date) == "string") {
+  if (typeof date == "string") {
     return _toStringDate(date, locale);
-  } else if (typeof(date) == "object") {
-    const day = ("0"  + date.getDate()).slice(-2);
-    const month = ("0"  + (date.getMonth()+1)).slice(-2);
+  } else if (typeof date == "object") {
+    const day = ("0" + date.getDate()).slice(-2);
+    const month = ("0" + (date.getMonth() + 1)).slice(-2);
     const year = date.getFullYear();
-    const hours = ("0"  + date.getHours()).slice(-2);
-    const min = ("0"  + date.getMinutes()).slice(-2);
-    const sec = ("0"  + date.getSeconds()).slice(-2);
+    const hours = ("0" + date.getHours()).slice(-2);
+    const min = ("0" + date.getMinutes()).slice(-2);
+    const sec = ("0" + date.getSeconds()).slice(-2);
 
     return locale == "FR"
       ? day + "/" + month + "/" + year + " " + hours + ":" + min + ":" + sec
@@ -223,14 +239,15 @@ function _toStringTime(date, locale = "FR") {
   }
 }
 
-
 function _toPercent(value, precision = 0) {
-  return _round(value*100, precision, " %");
+  return _round(value * 100, precision, " %");
 }
 
 function _toCurrency(value, precision = 2, locale = "FR") {
-  return (locale == "FR" ? "" : "$")
-   + _round(value, precision, locale == "FR" ? " €" : "");
+  return (
+    (locale == "FR" ? "" : "$") +
+    _round(value, precision, locale == "FR" ? " €" : "")
+  );
 }
 
 function _indexOf(array, value, index, start) {
@@ -239,9 +256,13 @@ function _indexOf(array, value, index, start) {
 
   let i = null;
   if (Array.isArray(array)) {
-    while(x < array.length
-          && ((index == null && array[x] != value)
-      || (index != null && array[x][index] != value))) { ++x; }
+    while (
+      x < array.length &&
+      ((index == null && array[x] != value) ||
+        (index != null && array[x][index] != value))
+    ) {
+      ++x;
+    }
 
     i = x < array.length ? x : null;
   }
@@ -250,11 +271,11 @@ function _indexOf(array, value, index, start) {
 }
 
 function _isLoading(value) {
-  return typeof(value) == "string" && (value == LOADING || value == "");
+  return typeof value == "string" && (value == LOADING || value == "");
 }
 
 function _isError(value) {
-  return typeof(value) == "string" && value.substring(0, 1) == "#";
+  return typeof value == "string" && value.substring(0, 1) == "#";
 }
 
 function _archiveMessage(thread, shouldDelete) {
@@ -291,10 +312,10 @@ function IMPORTURL(url, xpath_query, isMulti) {
   //isMulti = true;
   let content = "";
   const format = xpath_query
-    .replaceAll("'","\"")
-    .replaceAll("//","<")
-    .replaceAll("[@",".*")
-    .replaceAll("]",(isMulti ? ".*>\\n*(.*)" : ".*>(.*)<"));
+    .replaceAll("'", "\"")
+    .replaceAll("//", "<")
+    .replaceAll("[@", ".*")
+    .replaceAll("]", isMulti ? ".*>\\n*(.*)" : ".*>(.*)<");
   const regex = new RegExp(format);
   const response = UrlFetchApp.fetch(url);
   if (response) {
@@ -318,7 +339,9 @@ function IMPORTURL(url, xpath_query, isMulti) {
  * @return The date corresponding to the unix timestamp with shifted hours from UTC
  **/
 function TO_PURE_DATE(timestamp, hourShift = 0) {
-  return new Date((parseFloat(timestamp) + parseFloat(hourShift) * 3600) * 1000);
+  return new Date(
+    (parseFloat(timestamp) + parseFloat(hourShift) * 3600) * 1000
+  );
 }
 
 /**
@@ -330,7 +353,9 @@ function TO_PURE_DATE(timestamp, hourShift = 0) {
  * @return The unix timestamp corresponding to the date with shifted hours from UTC
  **/
 function TO_TIMESTAMP(date, hourShift = 0) {
-  return Math.floor(new Date(date).getTime() / 1000 - parseFloat(hourShift) * 3600);
+  return Math.floor(
+    new Date(date).getTime() / 1000 - parseFloat(hourShift) * 3600
+  );
 }
 
 /**

@@ -1,8 +1,11 @@
 /*global google, $, XLSX*/
 
 const GLOBAL = {};
-GLOBAL.isLocal = document.URL.includes(":8080") || document.URL.includes("github.io"); // Whether the app is running in local mode
-GLOBAL.serverUrl = GLOBAL.isLocal ? "" : "https://raw.githubusercontent.com/flodef/FiMS/master/"; // Remove the server URL if in local mode
+GLOBAL.isLocal =
+  document.URL.includes(":8080") || document.URL.includes("github.io"); // Whether the app is running in local mode
+GLOBAL.serverUrl = GLOBAL.isLocal
+  ? ""
+  : "https://raw.githubusercontent.com/flodef/FiMS/master/"; // Remove the server URL if in local mode
 GLOBAL.scriptUrl = GLOBAL.isLocal ? "" : "https://flodef.github.io/FiMS/"; // Remove the server URL if in local mode
 
 // [src, isLocal]
@@ -22,12 +25,16 @@ initHTML();
 
 function initHTML() {
   const body =
-    getDiv("content", "contentOverlay", null,
+    getDiv(
+      "content",
+      "contentOverlay",
+      null,
       getDiv("mainHeading") +
-      getDiv("tabContainer") +
-      getDiv("loaderBar", "loaderBar") +
-      getDiv("mainContent") +
-      getDiv("footer")) +
+        getDiv("tabContainer") +
+        getDiv("loaderBar", "loaderBar") +
+        getDiv("mainContent") +
+        getDiv("footer")
+    ) +
     getDiv("scrollDiv", "contentOverlay", "center") +
     getDiv("menuDiv", "contentOverlay", "right") +
     getOverlayDiv("loader", "shadeOverlay") +
@@ -64,7 +71,7 @@ async function loadScript(i) {
     if (++i < length) {
       loadScript(i);
     } else {
-      const fn = pageTitle => addScript(pageTitle.replace("FiMs ", ""));
+      const fn = (pageTitle) => addScript(pageTitle.replace("FiMs ", ""));
       google.script.run
         .withSuccessHandler(fn)
         .withFailureHandler(alert)
@@ -104,7 +111,7 @@ async function waitForScript(scriptName) {
     }
   };
   while (!fn()) {
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 100));
   }
 }
 
@@ -114,21 +121,39 @@ function setLoaderBar(value = 1) {
     const item = $(loader);
     item.html(item.html() || "<span></span>");
     const span = item.children("span");
-    span.data("origWidth", value * item.width())
+    span
+      .data("origWidth", value * item.width())
       .width(span.width() || 0)
-      .animate({
-        width: span.data("origWidth")
-      }, 3000);
+      .animate(
+        {
+          width: span.data("origWidth"),
+        },
+        3000
+      );
   } catch (e) {
     loader.innerHTML = "<span style=\"width:" + value * 100 + "%\"></span>";
   }
 }
 
 function getDiv(id, cssClass, align, content = "") {
-  return "<div" + addAttr("id", id) + addAttr("align", align) +
-    addAttr("class", cssClass ? cssClass + (cssClass.toLowerCase().endsWith("overlay") &&
-      !cssClass.toLowerCase().includes("content") ? " hidden" : "") : "") +
-    ">" + content + "</div>";
+  return (
+    "<div" +
+    addAttr("id", id) +
+    addAttr("align", align) +
+    addAttr(
+      "class",
+      cssClass
+        ? cssClass +
+            (cssClass.toLowerCase().endsWith("overlay") &&
+            !cssClass.toLowerCase().includes("content")
+              ? " hidden"
+              : "")
+        : ""
+    ) +
+    ">" +
+    content +
+    "</div>"
+  );
 }
 
 function getOverlayDiv(id, cssClass = "overlay") {
@@ -136,5 +161,9 @@ function getOverlayDiv(id, cssClass = "overlay") {
 }
 
 function addAttr(name, value) {
-  return " " + name + (value || value == 0 ? "=\"" + value.toString().trim() + "\"" : "");
+  return (
+    " " +
+    name +
+    (value || value == 0 ? "=\"" + value.toString().trim() + "\"" : "")
+  );
 }

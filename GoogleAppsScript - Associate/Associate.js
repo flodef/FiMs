@@ -2,21 +2,18 @@
 _sendMessage, _toDate, _insertFirstRow, _round, _copySheetFromModel*/
 /* exported updateAssociate, sendCharity */
 
-
-
 // ASSOCIATE COLS
-const ID_COL = 2;                     // Should be the "ID" column
-const RECURRENT_COL = 3;              // Should be the "Recurrent" column
-const CHARITY_COL = 4;                // Should be the "Charity" column
-const DEPOSIT_COL = 11;               // Should be the "Deposit" column
-const TOTAL_COL = 15;                 // Should be the "Total" column
-const EMAIL_COL = 16;                 // Should be the "EMail" column
+const ID_COL = 2; // Should be the "ID" column
+const RECURRENT_COL = 3; // Should be the "Recurrent" column
+const CHARITY_COL = 4; // Should be the "Charity" column
+const DEPOSIT_COL = 11; // Should be the "Deposit" column
+const TOTAL_COL = 15; // Should be the "Total" column
+const EMAIL_COL = 16; // Should be the "EMail" column
 
 // SHEET NAMES
-const ASSOCIATE = "Associate";        // The "Associate" sheet name
-const ASSMODEL = "AssociateModel";    // The "AssociateModel" sheet name
+const ASSOCIATE = "Associate"; // The "Associate" sheet name
+const ASSMODEL = "AssociateModel"; // The "AssociateModel" sheet name
 const ASSHISTO = "AssociateHistoric"; // The "AssociateHistoric" sheet name
-
 
 // SHOULD RUN ONCE A MONTH
 function updateAssociate() {
@@ -26,12 +23,12 @@ function updateAssociate() {
 
   for (let i = 0; i < associateArray.length; ++i) {
     // Retrieve associate account data
-    const depo = associateArray[i][DEPOSIT_COL-1];
-    const total = associateArray[i][TOTAL_COL-1];
+    const depo = associateArray[i][DEPOSIT_COL - 1];
+    const total = associateArray[i][TOTAL_COL - 1];
 
     if (depo > 0) {
-      const name = associateArray[i][ID_COL-1];
-      const recu = associateArray[i][RECURRENT_COL-1];
+      const name = associateArray[i][ID_COL - 1];
+      const recu = associateArray[i][RECURRENT_COL - 1];
 
       // If the sheet does not exist, create a new associate sheet from the model
       const sheet = _copySheetFromModel(name, ASSMODEL);
@@ -48,13 +45,20 @@ function updateAssociate() {
         // Add recurrent withdrawal to associate historic
         if (recu < 0) {
           if (recu < -total) {
-            _sendMessage("STOP RECURRENT WITHDRAW FOR " + name + " !!",
-              name + " asked for " + -recu + " € but there is only " + total + " € left in the bank !");
+            _sendMessage(
+              "STOP RECURRENT WITHDRAW FOR " + name + " !!",
+              name +
+                " asked for " +
+                -recu +
+                " € but there is only " +
+                total +
+                " € left in the bank !"
+            );
           }
 
           const histoSheet = _getSheet(ASSHISTO);
-          const d = _toDate();      // Get date without hours to match range's date
-          d.setDate(d.getDate() + 5);  // Take around 5 days to make a bank transfer
+          const d = _toDate(); // Get date without hours to match range's date
+          d.setDate(d.getDate() + 5); // Take around 5 days to make a bank transfer
 
           const data = [[d, name, Math.max(recu, -total), 0]];
           _insertFirstRow(histoSheet, data);
@@ -78,27 +82,32 @@ function sendCharity() {
     let total = 0;
     for (let i = 0; i < array.length; ++i) {
       // Retrieve associate account data
-      const name = array[i][ID_COL-1];
-      const char = array[i][CHARITY_COL-1];
-      const mail = array[i][EMAIL_COL-1];
+      const name = array[i][ID_COL - 1];
+      const char = array[i][CHARITY_COL - 1];
+      const mail = array[i][EMAIL_COL - 1];
 
       // Send charity message if amount <= -1
       if (char <= -1) {
         const money = _round(-char, 2, " €");
-        const message = "Cher(e) " + name + ",\n\n"
-        + "Tout d'abord, mes meilleurs voeux pour cette nouvelle année qui commence, je l'espère, le plus magnifiquement pour toi.\n\n"
-        + "Comme chaque année, je tiens tout particulièrement à reverser 10% des gains récoltés par notre projet de financement participatif.\n"
-        + "Cette année, ce pourcentage représente la somme de " + money + " !\n\n"
-        + "Tu recevras donc très prochainement cet argent sur ton compte.\n"
-        + "Libre à toi de le verser ou non à l'association ou personne de ton choix.\n\n"
-        + "Enfin, toute ma reconnaissance pour ta confiance et ton investissement qui aide, à notre échelle, l'épanouissement de l'économie locale et solidaire.\n\n"
-        + "Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n"
-        + "Flo";
+        const message =
+          "Cher(e) " +
+          name +
+          ",\n\n" +
+          "Tout d'abord, mes meilleurs voeux pour cette nouvelle année qui commence, je l'espère, le plus magnifiquement pour toi.\n\n" +
+          "Comme chaque année, je tiens tout particulièrement à reverser 10% des gains récoltés par notre projet de financement participatif.\n" +
+          "Cette année, ce pourcentage représente la somme de " +
+          money +
+          " !\n\n" +
+          "Tu recevras donc très prochainement cet argent sur ton compte.\n" +
+          "Libre à toi de le verser ou non à l'association ou personne de ton choix.\n\n" +
+          "Enfin, toute ma reconnaissance pour ta confiance et ton investissement qui aide, à notre échelle, l'épanouissement de l'économie locale et solidaire.\n\n" +
+          "Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n" +
+          "Flo";
 
         GmailApp.sendEmail(mail, object, message);
 
         total += -char;
-        recap += " - " + name + " (" + mail + ") : don de "+ money + "\n";
+        recap += " - " + name + " (" + mail + ") : don de " + money + "\n";
       }
     }
 

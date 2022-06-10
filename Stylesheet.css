@@ -1,4 +1,5 @@
-h1, h2 {
+h1,
+h2 {
   font-weight: 400;
   color: #b1b1b1;
   margin: 0px;
@@ -176,7 +177,7 @@ marquee {
 /* Search bar */
 .mainSearch {
   border-radius: 25px;
-  background-image: url('Img/Image/searchicon.png');
+  background-image: url("Img/Image/searchicon.png");
   /* Add a search icon to input */
   background-position: 6px 4px;
   /* Position the search icon */
@@ -204,7 +205,8 @@ table.mainTable tr {
   border-bottom: 1px solid #ddd;
 }
 
-table.mainTable tr.header, table.mainTable tr:hover {
+table.mainTable tr.header,
+table.mainTable tr:hover {
   /* Add a grey background color to the table header and on hover */
   background-color: #f1f1f1;
 }
@@ -283,30 +285,30 @@ table.mainTable tr.header, table.mainTable tr:hover {
   -webkit-animation-name: animatebottom;
   -webkit-animation-duration: 1s;
   animation-name: animatebottom;
-  animation-duration: 1s
+  animation-duration: 1s;
 }
 
 @-webkit-keyframes animatebottom {
   from {
     bottom: -100px;
-    opacity: 0
+    opacity: 0;
   }
 
   to {
     bottom: 0px;
-    opacity: 1
+    opacity: 1;
   }
 }
 
 @keyframes animatebottom {
   from {
     bottom: -100px;
-    opacity: 0
+    opacity: 0;
   }
 
   to {
     bottom: 0;
-    opacity: 1
+    opacity: 1;
   }
 }
 
@@ -398,7 +400,7 @@ table.mainTable tr.header, table.mainTable tr:hover {
 }
 
 /* Toggle switch */
-input[type=checkbox][class=toggle] {
+input[type="checkbox"][class="toggle"] {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
@@ -406,7 +408,7 @@ input[type=checkbox][class=toggle] {
   cursor: pointer;
 }
 
-input[type=checkbox][class=toggle]:focus {
+input[type="checkbox"][class="toggle"]:focus {
   outline: 0;
 }
 
@@ -436,8 +438,8 @@ input[type=checkbox][class=toggle]:focus {
 }
 
 .toggle:checked {
-  border-color: #2196F3;
-  background: #2196F3;
+  border-color: #2196f3;
+  background: #2196f3;
 }
 
 .toggle:checked:after {
@@ -591,13 +593,15 @@ input[type="image"] {
   outline: transparent;
 }
 
-input[type="image"]:focus, input[type="image"]:hover {
+input[type="image"]:focus,
+input[type="image"]:hover {
   -webkit-filter: blur(1px);
   filter: blur(1px);
   cursor: pointer;
 }
 
-input[type="image"]:disabled, button:disabled {
+input[type="image"]:disabled,
+button:disabled {
   -webkit-filter: grayscale(100%);
   -moz-filter: grayscale(100%);
   -o-filter: grayscale(100%);
@@ -628,7 +632,8 @@ input[type="text"] {
   background-color: transparent;
 }
 
-input[type="text"]:hover, input[type="text"]:focus {
+input[type="text"]:hover,
+input[type="text"]:focus {
   min-width: 35px;
   animation: expand 0.5s;
   background-color: white;
@@ -691,7 +696,7 @@ input[type="text"]:hover, input[type="text"]:focus {
   box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
 }
 
-.loaderBar>span {
+.loaderBar > span {
   display: block;
   height: 100%;
   -webkit-border-top-right-radius: 20px;
@@ -707,50 +712,58 @@ input[type="text"]:hover, input[type="text"]:focus {
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
   background-color: rgb(43, 194, 83);
-  background-image: -webkit-gradient(linear,
-      left bottom,
-      left top,
-      color-stop(0, rgb(43, 194, 83)),
-      color-stop(1, rgb(84, 240, 84)));
-  background-image: -moz-linear-gradient(center bottom,
-      rgb(43, 194, 83) 37%,
-      rgb(84, 240, 84) 69%);
-  -webkit-box-shadow:
-    inset 0 2px 9px rgba(255, 255, 255, 0.3),
+  background-image: -webkit-gradient(
+    linear,
+    left bottom,
+    left top,
+    color-stop(0, rgb(43, 194, 83)),
+    color-stop(1, rgb(84, 240, 84))
+  );
+  background-image: -moz-linear-gradient(
+    center bottom,
+    rgb(43, 194, 83) 37%,
+    rgb(84, 240, 84) 69%
+  );
+  -webkit-box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3),
     inset 0 -2px 6px rgba(0, 0, 0, 0.4);
-  -moz-box-shadow:
-    inset 0 2px 9px rgba(255, 255, 255, 0.3),
+  -moz-box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3),
     inset 0 -2px 6px rgba(0, 0, 0, 0.4);
-  box-shadow:
-    inset 0 2px 9px rgba(255, 255, 255, 0.3),
+  box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3),
     inset 0 -2px 6px rgba(0, 0, 0, 0.4);
   position: relative;
   overflow: hidden;
 }
 
-.loaderBar>span:after, .animate>span>span {
+.loaderBar > span:after,
+.animate > span > span {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   bottom: 0;
   right: 0;
-  background-image:
-    -webkit-gradient(linear, 0 0, 100% 100%,
-      color-stop(.25, rgba(255, 255, 255, .2)),
-      color-stop(.25, transparent), color-stop(.5, transparent),
-      color-stop(.5, rgba(255, 255, 255, .2)),
-      color-stop(.75, rgba(255, 255, 255, .2)),
-      color-stop(.75, transparent), to(transparent));
-  background-image:
-    -moz-linear-gradient(-45deg,
-      rgba(255, 255, 255, .2) 25%,
-      transparent 25%,
-      transparent 50%,
-      rgba(255, 255, 255, .2) 50%,
-      rgba(255, 255, 255, .2) 75%,
-      transparent 75%,
-      transparent);
+  background-image: -webkit-gradient(
+    linear,
+    0 0,
+    100% 100%,
+    color-stop(0.25, rgba(255, 255, 255, 0.2)),
+    color-stop(0.25, transparent),
+    color-stop(0.5, transparent),
+    color-stop(0.5, rgba(255, 255, 255, 0.2)),
+    color-stop(0.75, rgba(255, 255, 255, 0.2)),
+    color-stop(0.75, transparent),
+    to(transparent)
+  );
+  background-image: -moz-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.2) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.2) 75%,
+    transparent 75%,
+    transparent
+  );
   z-index: 1;
   -webkit-background-size: 50px 50px;
   -moz-background-size: 50px 50px;
@@ -773,7 +786,7 @@ input[type="text"]:hover, input[type="text"]:focus {
   overflow: hidden;
 }
 
-.animate>span:after {
+.animate > span:after {
   display: none;
 }
 
@@ -807,29 +820,48 @@ input[type="text"]:hover, input[type="text"]:focus {
   }
 }
 
-.grey>span {
+.grey > span {
   background-color: #b1b1b1;
   background-image: -moz-linear-gradient(top, #b1b1b1, #afe60c);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #b1b1b1), color-stop(1, #afe60c));
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0, #b1b1b1),
+    color-stop(1, #afe60c)
+  );
   background-image: -webkit-linear-gradient(#b1b1b1, #afe60c);
 }
 
-.orange>span {
+.orange > span {
   background-color: #f1a165;
   background-image: -moz-linear-gradient(top, #f1a165, #f36d0a);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #f1a165), color-stop(1, #f36d0a));
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0, #f1a165),
+    color-stop(1, #f36d0a)
+  );
   background-image: -webkit-linear-gradient(#f1a165, #f36d0a);
 }
 
-.red>span {
+.red > span {
   background-color: #f0a3a3;
   background-image: -moz-linear-gradient(top, #f0a3a3, #f42323);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #f0a3a3), color-stop(1, #f42323));
+  background-image: -webkit-gradient(
+    linear,
+    left top,
+    left bottom,
+    color-stop(0, #f0a3a3),
+    color-stop(1, #f42323)
+  );
   background-image: -webkit-linear-gradient(#f0a3a3, #f42323);
 }
 
-.nostripes>span>span, .nostripes>span:after {
-  animation:none;
+.nostripes > span > span,
+.nostripes > span:after {
+  animation: none;
   -webkit-animation: none;
   -moz-animation: none;
   background-image: none;
@@ -852,7 +884,7 @@ input[type="text"]:hover, input[type="text"]:focus {
   transform-origin: left top;
   border-right: 3px solid #b1b1b1;
   border-top: 3px solid #b1b1b1;
-  content: '';
+  content: "";
   position: absolute;
   transform: scaleX(-1) rotate(135deg);
 }
