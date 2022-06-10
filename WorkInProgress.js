@@ -1,1 +1,1 @@
-window.location.href = 'workInProgress.html';
+window.location.href = "workInProgress.html";
