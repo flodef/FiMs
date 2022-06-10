@@ -1,5 +1,6 @@
-/* global _getSheet, _sendMessage, _toCurrency, _toStringTime, _isCurrentDay,
-_setRangeValues, FR, FC, GmailApp */
+/* global FR, FC, _getSheet, _sendMessage, _toCurrency, _toStringTime, _isMarketOpen,
+_setRangeValues, _copySheetFromModel, _updateFormula, _isError, _isToday,
+_isCurrentHour, GmailApp */
 /* exported withdraw */
 
 
@@ -28,9 +29,9 @@ const MERCHUPD_ROW = 7;         // Should be the empty row to update Json import
 const TRANSUPD_ROW = 8;         // Should be the row with a boolean to indicate whether to update transactions
 
 // SHEET NAMES
-const MERCHANT = 'Merchant';                  // The "Merchant" sheet name
-const TRANSACTIONS = 'Transactions';          // The "Transactions" sheet name
-const PAIDTRANSACTIONS = 'PaidTransactions';  // The "PaidTransactions" sheet name
+const MERCHANT = "Merchant";                  // The "Merchant" sheet name
+const TRANSACTIONS = "Transactions";          // The "Transactions" sheet name
+const PAIDTRANSACTIONS = "PaidTransactions";  // The "PaidTransactions" sheet name
 const MERCHMODEL = "1";                       // The model to create a new merchant 
 
 
@@ -44,7 +45,7 @@ function withdraw() {
     const deleteArray = [];
     const paidArray = [];
     const emailArray = [];
-    let recap = '';
+    let recap = "";
     let transUpd, tsheet;
 
     // Processing transactions for each merchant (by id)
@@ -98,7 +99,7 @@ function withdraw() {
     // Finalize
     tsheet = _getSheet(TRANSACTIONS, tsheet);
     _archiveProcessedTransaction(paidArray);
-    _deleteProcessedTransaction(deleteArray, tsheet)
+    _deleteProcessedTransaction(deleteArray, tsheet);
     _setRangeValues(tsheet, FR, FC, updateArray);
     _sendTransactionMail(recap, emailArray);
   }
@@ -114,13 +115,13 @@ function _generateEmail(paidArray, emailArray, recap, data) {
   const trate = data[TRATE_COL-1];
   const toPayTrad = _toCurrency(toPayTotal*trate);
 
-  const object = 'FiMs Pay - Reçu de paiement de ' + _toCurrency(toPayTotal);
-  let message = 'FiMs Pay a effectué un virement d\'un montant de ' + toPayTrad
-  + ' pour l\'entreprise ' + company
-  + ' sur le compte IBAN : ' + iban + '\n\n';
-  recap += 'Company : ' + company + '\n'
-  + 'Wire Transfer : ' + toPayTrad + '\n'
-  + 'IBAN : ' + iban + '\n\n';
+  const object = "FiMs Pay - Reçu de paiement de " + _toCurrency(toPayTotal);
+  let message = "FiMs Pay a effectué un virement d'un montant de " + toPayTrad
+  + " pour l'entreprise " + company
+  + " sur le compte IBAN : " + iban + "\n\n";
+  recap += "Company : " + company + "\n"
+  + "Wire Transfer : " + toPayTrad + "\n"
+  + "IBAN : " + iban + "\n\n";
 
   // Add a message specific to crypto withdraw
   if (trate < 1) {
@@ -128,17 +129,17 @@ function _generateEmail(paidArray, emailArray, recap, data) {
     const toPayCrypto = _toCurrency(toPayTotal*drate);
     const cryptoAdd = data[CRYPTOADD_COL-1];
 
-    message += 'Le somme de ' + toPayCrypto + ' a été versée sur le'
-    + ' compte crypto à l\'adresse ' + cryptoAdd + '\n\n';
-    recap += 'Crypto Transfer : ' + toPayCrypto + '\n'
-    + 'Address : ' + cryptoAdd + '\n\n';
+    message += "Le somme de " + toPayCrypto + " a été versée sur le"
+    + " compte crypto à l'adresse " + cryptoAdd + "\n\n";
+    recap += "Crypto Transfer : " + toPayCrypto + "\n"
+    + "Address : " + cryptoAdd + "\n\n";
   }
 
   // Add all the transactions historic
-  message += 'Récapitulatif des transactions :\n';
+  message += "Récapitulatif des transactions :\n";
   for (let j = 0; j < paidArray.length; ++j) {
-    message += _toStringTime(paidArray[j][DATE_COL-1]) + ' --> '
-    + _toCurrency(paidArray[j][AMOUNT_COL-1]) + '\n';
+    message += _toStringTime(paidArray[j][DATE_COL-1]) + " --> "
+    + _toCurrency(paidArray[j][AMOUNT_COL-1]) + "\n";
   }
 
   emailArray.push([email, object, message]);     // Store email data
@@ -150,7 +151,7 @@ function _archiveProcessedTransaction(paidArray) {
   if (paidArray.length > 0) {
     // Move processed transaction in an archive sheet
     const sheet = _getSheet(PAIDTRANSACTIONS);
-    const numRows = paidArray.length - (sheet.getRange(FR, FC).getValue() != '' ? 0 : 1);
+    const numRows = paidArray.length - (sheet.getRange(FR, FC).getValue() != "" ? 0 : 1);
     if (numRows > 0) {
       sheet.insertRowsBefore(FR, numRows);
     }
@@ -171,9 +172,9 @@ function _deleteProcessedTransaction(deleteArray, sheet) {
 
 function _sendTransactionMail(recap, emailArray) {
   // Send a recap with all the transactions total to process the paiements
-  if (recap != '') {
-    recap += '/!\\ Don\'t forget to withdraw crypto from FiMs Pay account /!\\';
-    _sendMessage('FiMs Pay', recap, true);
+  if (recap != "") {
+    recap += "/!\\ Don't forget to withdraw crypto from FiMs Pay account /!\\";
+    _sendMessage("FiMs Pay", recap, true);
 
     // Send the message to the merchant (copy to myself, just to check)
     for (let i = 0; i < emailArray.length; ++i) {

@@ -1,16 +1,16 @@
 /* global _getSheet, _deleteOlderThanAYear, _copyFirstRow, _AreRowsDifferent,
 _toDate, _isCurrentMonth, _isSubHour, _isLoading, _isError, _sendMessage,
-_toPercent, FR, FC, CacheService */
+_toPercent, FR, FC, CacheService, _updateFormula */
 /* exported nightlyUpdate, monthlyUpdate, updatePrice, cachePrice */
 
 
 
 // SHEET NAMES
-const DASHBOARD = 'Dashboard';    // The "Dashboard" sheet name
-const EVOLUTION = 'Evolution';    // The "Evolution" sheet name
-const PRICE = 'Price';            // The "Price" sheet name
-const HISTORIC = 'Historic';      // The "Historic" sheet name
-const PRICECACHE = 'PriceCache';  // The "Price" sheet name
+const DASHBOARD = "Dashboard";    // The "Dashboard" sheet name
+const EVOLUTION = "Evolution";    // The "Evolution" sheet name
+const PRICE = "Price";            // The "Price" sheet name
+const HISTORIC = "Historic";      // The "Historic" sheet name
+const PRICECACHE = "PriceCache";  // The "Price" sheet name
 
 // CACHEPRICE COLS
 const PRICE_COL = 2;              // Should be the "Price" column
@@ -38,7 +38,7 @@ function updatePrice() {
   if (_isSubHour(PRICE_UPDATE, 0)) {
     // Remove the offset to avoid caching if it failed until there
     const cache = CacheService.getScriptCache();
-    cache.remove('offset');
+    cache.remove("offset");
 
     // Modify the cell to update the formula and load data
     _updateFormula(_getSheet(PRICECACHE), FR, FORMULA_COL-1);
@@ -49,15 +49,15 @@ function updatePrice() {
     const lc = sheet.getMaxColumns();
     const l = sheet.getRange(lr-LENDING_ROW+1, lc).getValue();
     if (Math.abs(l) > LENDING_ALERT) {
-      _sendMessage('Lending ratio limit reached', 'The Lending ratio is at '
-      + _toPercent(l, 1) + '. Check it out !!', true);
+      _sendMessage("Lending ratio limit reached", "The Lending ratio is at "
+      + _toPercent(l, 1) + ". Check it out !!", true);
     }
   }
 }
 
 function cachePrice() {
   const cache = CacheService.getScriptCache();
-  const cv = cache.get('offset');
+  const cv = cache.get("offset");
   const offset = cv ? Number(cv) : 1;
   if (_isSubHour(PRICE_UPDATE, offset)) {
     const sheet = _getSheet(PRICECACHE);
@@ -80,7 +80,7 @@ function cachePrice() {
     // If not values have been cached, set the offset to cache Price again,
     // otherwise remove the manual cache, set in case of loading error
     if (cached != lr-1) {
-      cache.put('offset', (offset+1));
+      cache.put("offset", (offset+1));
       _updateFormula(sheet, FR, FORMULA_COL-1);
     } else {
       sheet.getRange(1, FORMULA_COL-1).clearContent();

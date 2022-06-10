@@ -1,5 +1,5 @@
-/* global GmailApp, FR, FC, SS, FM, _getSheet, _isCurrentMonth, _copyFirstRow,
-_sendMessage, _toDate, _insertFirstRow, _round*/
+/* global GmailApp, FR, FC, FM, _getSheet, _isCurrentMonth, _copyFirstRow,
+_sendMessage, _toDate, _insertFirstRow, _round, _copySheetFromModel*/
 /* exported updateAssociate, sendCharity */
 
 
@@ -13,9 +13,9 @@ const ASSTOTAL_COL = 15;        // Should be the "Total" column
 const ASSMAIL_COL = 16;         // Should be the "EMail" column
 
 // SHEET NAMES
-const ASSOCIATE = 'Associate';      // The "Associate" sheet name
-const ASSMODEL = 'AssociateModel';  // The "AssociateModel" sheet name
-const ASSHISTO = 'AssociateHistoric';  // The "AssociateHistoric" sheet name
+const ASSOCIATE = "Associate";      // The "Associate" sheet name
+const ASSMODEL = "AssociateModel";  // The "AssociateModel" sheet name
+const ASSHISTO = "AssociateHistoric";  // The "AssociateHistoric" sheet name
 
 
 
@@ -48,8 +48,8 @@ function updateAssociate() {
         // Add recurrent withdrawal to associate historic
         if (recu < 0) {
           if (recu < -total) {
-            _sendMessage('STOP RECURRENT WITHDRAW FOR ' + name + ' !!',
-              name + ' asked for ' + -recu + ' € but there is only ' + total + ' € left in the bank !');
+            _sendMessage("STOP RECURRENT WITHDRAW FOR " + name + " !!",
+              name + " asked for " + -recu + " € but there is only " + total + " € left in the bank !");
           }
 
           const histoSheet = _getSheet(ASSHISTO);
@@ -72,8 +72,8 @@ function sendCharity() {
     const sheet = _getSheet(ASSOCIATE);
     const array = sheet.getSheetValues(FR, FC, -1, -1);
 
-    const object = 'Don annuel à une oeuvre de charité';
-    let recap = 'Liste des dons :\n';
+    const object = "Don annuel à une oeuvre de charité";
+    let recap = "Liste des dons :\n";
     let total = 0;
     for (let i = 0; i < array.length; ++i) {
       // Retrieve associate account data
@@ -83,26 +83,26 @@ function sendCharity() {
 
       // Send charity message if amount <= -1
       if (char <= -1) {
-        const money = _round(-char, 2, ' €');
-        const message = 'Cher(e) ' + name + ',\n\n'
-        + 'Tout d\'abord, mes meilleurs voeux pour cette nouvelle année qui commence, je l\'espère, le plus magnifiquement pour toi.\n\n'
-        + 'Comme chaque année, je tiens tout particulièrement à reverser 10% des gains récoltés par notre projet de financement participatif.\n'
-        + 'Cette année, ce pourcentage représente la somme de ' + money + ' !\n\n'
-        + 'Tu recevras donc très prochainement cet argent sur ton compte.\n'
-        + 'Libre à toi de le verser ou non à l\'association ou personne de ton choix.\n\n'
-        + 'Enfin, toute ma reconnaissance pour ta confiance et ton investissement qui aide, à notre échelle, l\'épanouissement de l\'économie locale et solidaire.\n\n'
-        + 'Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n'
-        + 'Flo';
+        const money = _round(-char, 2, " €");
+        const message = "Cher(e) " + name + ",\n\n"
+        + "Tout d'abord, mes meilleurs voeux pour cette nouvelle année qui commence, je l'espère, le plus magnifiquement pour toi.\n\n"
+        + "Comme chaque année, je tiens tout particulièrement à reverser 10% des gains récoltés par notre projet de financement participatif.\n"
+        + "Cette année, ce pourcentage représente la somme de " + money + " !\n\n"
+        + "Tu recevras donc très prochainement cet argent sur ton compte.\n"
+        + "Libre à toi de le verser ou non à l'association ou personne de ton choix.\n\n"
+        + "Enfin, toute ma reconnaissance pour ta confiance et ton investissement qui aide, à notre échelle, l'épanouissement de l'économie locale et solidaire.\n\n"
+        + "Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n"
+        + "Flo";
 
         GmailApp.sendEmail(mail, object, message);
 
         total += -char;
-        recap += ' - ' + name + ' (' + mail + ') : don de '+ money + '\n';
+        recap += " - " + name + " (" + mail + ") : don de "+ money + "\n";
       }
     }
 
     // Recap message send to myself
-    recap += '\nTOTAL = ' + _round(total, 2, ' €');
+    recap += "\nTOTAL = " + _round(total, 2, " €");
     _sendMessage(object, recap);
   }
 }
