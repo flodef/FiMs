@@ -136,7 +136,7 @@ function _isSubHour(period = 1, offset = 0) {
   const x = new Date();
   const m = x.getMinutes();
 
-  return m%period == offset;
+  return period == 1 || m%period == offset;
 }
 
 function _toFixed(value, precision = 2) {

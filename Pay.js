@@ -12,7 +12,15 @@ GLOBAL.merchantInfoFormula = "Check!A:C";
 GLOBAL.paymentInfoFormula = "Check!A:H";
 GLOBAL.customerAddressFormula = "Check!D";
 
-GLOBAL.Header = {
+GLOBAL.solanaAddressPattern = /(^[1-9A-HJ-NP-Za-km-z]{32,44}$)/i;
+
+GLOBAL.messages = {
+  CopyAddress:"Copiez votre adresse de porte-feuille crypto<br><br>puis cliquez ci-dessous :",
+  VerifyPayment:"Verifier le paiement",
+  InvalidAddress:"Solana Address copied is invalid!"
+};
+
+GLOBAL.header = {
   CryptoAddress:"Crypto Address",
   Company:"Company",
   Customer:"Customer",
@@ -21,7 +29,7 @@ GLOBAL.Header = {
   Time:"Time",
   Duration:"Duration",
 };
-GLOBAL.Status = {
+GLOBAL.status = {
   Error:"Error",
   Warning:"Warning",
   Success:"Success"
@@ -49,22 +57,21 @@ function setUserId(id) {
 }
 
 function displayContent(id, contents) {
-  const company = getDataValue(contents, GLOBAL.Header.Company);
+  const company = getDataValue(contents, GLOBAL.header.Company);
   const merchantTitle = getMainTitle(company);
   document.body.innerHTML += getDiv("merchant", null, "right", merchantTitle);
 
   const logo = getImage(GLOBAL.user.ID, "Pay/Merchant");
   const logoHTML = getDiv("logo", null, "center", logo);
   
-  let processHTML = getMainTitle("Copiez votre adresse de porte-feuille crypto"
-    + "<br><br>puis cliquez ci-dessous :")
+  let processHTML = getMainTitle(GLOBAL.messages.CopyAddress)
     + `<button onclick="validatePayment()" style="
         border-radius: 20px;
         height: 100px;
         width: 330px;
         font-size: 33px;
         line-height: 40px;
-      ">Verifier le paiement</button>`;
+      ">` + GLOBAL.messages.VerifyPayment + "</button>";
   processHTML = getDiv("process", null, "center", processHTML);
 
   $("#mainContent").html(logoHTML + processHTML);
@@ -72,9 +79,14 @@ function displayContent(id, contents) {
 }
 
 async function validatePayment() {
-  const customerAdress = await navigator.clipboard.readText();
-  showLoader(true);
-  setValue("Check!D"+GLOBAL.user.ID, customerAdress, loadPaymentStatus);
+  const clipboard = await navigator.clipboard.readText();
+  const customerAdress = clipboard.match(GLOBAL.solanaAddressPattern);
+  if (customerAdress) {
+    showLoader(true);
+    setValue("Check!D"+GLOBAL.user.ID, customerAdress, loadPaymentStatus);
+  } else {
+    displayError(GLOBAL.messages.InvalidAddress);
+  }
 }
 
 function loadPaymentStatus() {
@@ -85,18 +97,18 @@ function loadPaymentStatus() {
 }
 
 async function displayPaymentStatus(id, contents) {
-  const fullStatus = getDataValue(contents, GLOBAL.Header.Status);
+  const fullStatus = getDataValue(contents, GLOBAL.header.Status);
   if (fullStatus.slice(-3) === "...") { // Processing... or Loading...
     setTimeout(loadPaymentStatus, 1000);  // Loop through loading status
   } else {
     const status = fullStatus.split(":")[0];
-    let html = getImage(status === GLOBAL.Status.Error ? "Cancel" : status === GLOBAL.Status.Warning ? "Bug" : "Validate", 
+    let html = getImage(status === GLOBAL.status.Error ? "Cancel" : status === GLOBAL.status.Warning ? "Bug" : "Validate", 
       "Button", [{name:"style", value:"margin: 50px"}]);
     html += getMainTitle(fullStatus);
-    if (status !== GLOBAL.Status.Error) {
-      html += getMainTitle(toCurrency(getDataValue(contents, GLOBAL.Header.Amount)));
-      html += getMainTitle(getDataValue(contents, GLOBAL.Header.Time));
-      html += getMainTitle("(il y a " + getDataValue(contents, GLOBAL.Header.Duration).replace(":", "h ").replace(":", "m ") + "s)");
+    if (status !== GLOBAL.status.Error) {
+      html += getMainTitle(toCurrency(getDataValue(contents, GLOBAL.header.Amount)));
+      html += getMainTitle(getDataValue(contents, GLOBAL.header.Time));
+      html += getMainTitle("(il y a " + getDataValue(contents, GLOBAL.header.Duration).replace(":", "h ").replace(":", "m ") + "s)");
     }    
     
     $("#process").html(html);

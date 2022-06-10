@@ -9,7 +9,8 @@ const favIcon = "https://raw.githubusercontent.com/flodef/FiMS/master/Img/Image/
 // App specific
 const ownEmail = "fdefroco@gmail.com";
 const ssId = {
-  TradFi:"1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw", Associate:"1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU", 
+  TradFi:"1JJ7zW4GD7MzMBTatntdnojX5bZYcqI1kxMWIvc0_LTw", 
+  Associate:"1pMnJel8OYtwk1Zu4YgTG3JwmTA-WLIMf6OnCQlSgprU", 
   DeFi:"1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI",
   Pay:"1lH6uLLPKZyltpxP83qUMr6veIyIQjzGm-qxaIh2ihIU"
 };
@@ -33,6 +34,7 @@ function doGet(e) {
       // DeFi:"Defi"  // Not implemented yet
     };
     const userId = getUrlParams(e, "id");
+    console.log(userId)
     const currentProject = userId == project.TradFi ? project.TradFi : userId && !isNaN(userId) ? project.Pay : project.Associate;
     const spreadsheetId = getSpreadsheetId(currentProject);
 
@@ -58,7 +60,7 @@ function doGet(e) {
 /**
  */
 function getUrlParams(e, param) {
-  return e && e.parameter ? e.parameter[param] : null;
+  return e && e.parameter && e.parameter[param] ? e.parameter[param] : "";
 }
 
 /**

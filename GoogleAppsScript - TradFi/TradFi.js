@@ -101,7 +101,7 @@ function updatePrice() {
 }
 
 function cachePrice() {
-  if (_isMarketOpen() && _isSubHour(PRICE_UPDATE, 1)) {
+  if (_isMarketOpen() && _isSubHour(PRICE_UPDATE, 0)) {
     const sheet = _getSheet(INVESTMENT);
     const lr = sheet.getMaxRows();
     const mr = lr-FR;
