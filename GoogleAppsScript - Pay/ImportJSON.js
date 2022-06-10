@@ -119,22 +119,22 @@ function ImportJSON(url, query, parseOptions) {
 function ImportJSONViaPost(url, payload, fetchOptions, query, parseOptions) {
   var postOptions = parseToObject_(fetchOptions);
 
-  if (postOptions['method'] == null) {
-    postOptions['method'] = 'POST';
+  if (postOptions["method"] == null) {
+    postOptions["method"] = "POST";
   }
 
-  if (postOptions['payload'] == null) {
-    postOptions['payload'] = payload;
+  if (postOptions["payload"] == null) {
+    postOptions["payload"] = payload;
   }
 
-  if (postOptions['contentType'] == null) {
-    postOptions['contentType'] = 'application/x-www-form-urlencoded';
+  if (postOptions["contentType"] == null) {
+    postOptions["contentType"] = "application/x-www-form-urlencoded";
   }
 
-  convertToBool_(postOptions, 'validateHttpsCertificates');
-  convertToBool_(postOptions, 'useIntranet');
-  convertToBool_(postOptions, 'followRedirects');
-  convertToBool_(postOptions, 'muteHttpExceptions');
+  convertToBool_(postOptions, "validateHttpsCertificates");
+  convertToBool_(postOptions, "useIntranet");
+  convertToBool_(postOptions, "followRedirects");
+  convertToBool_(postOptions, "muteHttpExceptions");
 
   return ImportJSONAdvanced(url, postOptions, query, parseOptions, includeXPath_, defaultTransform_);
 }
@@ -251,8 +251,8 @@ function ImportJSONAdvanced(url, fetchOptions, query, parseOptions, includeFunc,
  * @customfunction
  **/
 function ImportJSONBasicAuth(url, username, password, query, parseOptions) {
-  var encodedAuthInformation = Utilities.base64Encode(username + ':' + password);
-  var header = {headers: {Authorization: 'Basic ' + encodedAuthInformation}};
+  var encodedAuthInformation = Utilities.base64Encode(username + ":" + password);
+  var header = {headers: {Authorization: "Basic " + encodedAuthInformation}};
   return ImportJSONAdvanced(url, header, query, parseOptions, includeXPath_, defaultTransform_);
 }
 
@@ -328,12 +328,12 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
   var headers = new Array();
   var data    = new Array();
 
-  if (query && !Array.isArray(query) && query.toString().indexOf(',') != -1) {
-    query = query.toString().split(',');
+  if (query && !Array.isArray(query) && query.toString().indexOf(",") != -1) {
+    query = query.toString().split(",");
   }
 
   // Prepopulate the headers to lock in their order
-  if (hasOption_(options, 'allHeaders') && Array.isArray(query))
+  if (hasOption_(options, "allHeaders") && Array.isArray(query))
   {
     for (var i = 0; i < query.length; i++)
     {
@@ -342,14 +342,14 @@ function parseJSONObject_(object, query, options, includeFunc, transformFunc) {
   }
 
   if (options) {
-    options = options.toString().split(',');
+    options = options.toString().split(",");
   }
 
-  parseData_(headers, data, '', {rowIndex: 1}, object, query, options, includeFunc);
+  parseData_(headers, data, "", {rowIndex: 1}, object, query, options, includeFunc);
   parseHeaders_(headers, data);
   transformData_(data, options, transformFunc);
 
-  return hasOption_(options, 'noHeaders') ? (data.length > 1 ? data.slice(1) : new Array()) : data;
+  return hasOption_(options, "noHeaders") ? (data.length > 1 ? data.slice(1) : new Array()) : data;
 }
 
 /**
@@ -384,7 +384,7 @@ function parseData_(headers, data, path, state, value, query, options, includeFu
     }
   } else if (isObject_(value)) {
     for (let key in value) {
-      if (parseData_(headers, data, path + '/' + key, state, value[key], query, options, includeFunc)) {
+      if (parseData_(headers, data, path + "/" + key, state, value[key], query, options, includeFunc)) {
         dataInserted = true;
       }
     }
@@ -438,7 +438,7 @@ function transformData_(data, options, transformFunc) {
  * Returns true if the given test value is an object; false otherwise.
  */
 function isObject_(test) {
-  return Object.prototype.toString.call(test) === '[object Object]';
+  return Object.prototype.toString.call(test) === "[object Object]";
 }
 
 /**
@@ -498,27 +498,27 @@ function applyXPathRule_(rule, path) {
  */
 function defaultTransform_(data, row, column, options) {
   if (data[row][column] == null) {
-    if (row < 2 || hasOption_(options, 'noInherit')) {
-      data[row][column] = '';
+    if (row < 2 || hasOption_(options, "noInherit")) {
+      data[row][column] = "";
     } else {
       data[row][column] = data[row-1][column];
     }
   }
 
-  if (!hasOption_(options, 'rawHeaders') && row == 0) {
+  if (!hasOption_(options, "rawHeaders") && row == 0) {
     if (column == 0 && data[row].length > 1) {
       removeCommonPrefixes_(data, row);
     }
 
-    data[row][column] = toTitleCase_(data[row][column].toString().replace(/[/_]/g, ' '));
+    data[row][column] = toTitleCase_(data[row][column].toString().replace(/[/_]/g, " "));
   }
 
-  if (!hasOption_(options, 'noTruncate') && data[row][column]) {
+  if (!hasOption_(options, "noTruncate") && data[row][column]) {
     data[row][column] = data[row][column].toString().substr(0, 256);
   }
 
-  if (hasOption_(options, 'debugLocation')) {
-    data[row][column] = '[' + row + ',' + column + ']' + data[row][column];
+  if (hasOption_(options, "debugLocation")) {
+    data[row][column] = "[" + row + "," + column + "]" + data[row][column];
   }
 }
 
@@ -584,7 +584,7 @@ function hasOption_(options, option) {
  */
 function parseToObject_(text) {
   var map     = new Object();
-  var entries = (text != null && text.trim().length > 0) ? text.toString().split(',') : new Array();
+  var entries = (text != null && text.trim().length > 0) ? text.toString().split(",") : new Array();
 
   for (var i = 0; i < entries.length; i++) {
     addToMap_(map, entries[i]);
@@ -597,9 +597,9 @@ function parseToObject_(text) {
  * Parses the given entry and adds it to the given map, trimming any leading or trailing spaces from the key.
  */
 function addToMap_(map, entry) {
-  var equalsIndex = entry.indexOf('=');
+  var equalsIndex = entry.indexOf("=");
   var key         = (equalsIndex != -1) ? entry.substring(0, equalsIndex) : entry;
-  var value       = (key.length + 1 < entry.length) ? entry.substring(key.length + 1) : '';
+  var value       = (key.length + 1 < entry.length) ? entry.substring(key.length + 1) : "";
 
   map[key.trim()] = value;
 }
@@ -608,7 +608,7 @@ function addToMap_(map, entry) {
  * Returns the given value as a boolean.
  */
 function toBool_(value) {
-  return value == null ? false : (value.toString().toLowerCase() == 'true' ? true : false);
+  return value == null ? false : (value.toString().toLowerCase() == "true" ? true : false);
 }
 
 /**
@@ -627,7 +627,7 @@ function getDataFromNamedSheet_(sheetName) {
   var jsonRange = source.getRange(1,1,source.getLastRow());
   var jsonValues = jsonRange.getValues();
 
-  var jsonText = '';
+  var jsonText = "";
   for (var row in jsonValues) {
     for (var col in jsonValues[row]) {
       jsonText +=jsonValues[row][col];

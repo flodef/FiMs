@@ -1,6 +1,6 @@
-/* global FR, FC, _getSheet, _sendMessage, _toCurrency, _toStringTime, _isMarketOpen,
-_setRangeValues, _copySheetFromModel, _updateFormula, _isError, _isToday,
-_isCurrentHour, GmailApp */
+/* global _getSheet, _sendMessage, _toCurrency, _toStringTime, _isCurrentHour,
+_setRangeValues, FR, FC, GmailApp, _isMarketOpen, _copySheetFromModel, 
+_updateFormula, _isError, _isToday */
 /* exported withdraw */
 
 
@@ -12,16 +12,14 @@ const MERCHANT_COL = 3;         // Should be the "Merchant" column
 const TRANS_COL_COUNT = 6;      // Should be the number of column
 
 // MERCHANT COLS
-const ID_COL = 1;               // Should be the "ID" column
-const EMAIL_COL = 2;            // Should be the "EMail" column
+const INDEX_COL = 1;            // Should be the "Index" column
+const CRYPTOADD_COL = 2;        // Should be the "Crypto Address" column
 const COMPANY_COL = 3;          // Should be the "Company" column
-const IBAN_COL = 4;             // Should be the "IBAN" column
-const TRATE_COL = 5;            // Should be the "Rate" column
-const CRYPTOADD_COL = 6;        // Should be the "Crypto Address" column
-const DRATE_COL = 7;            // Should be the "Rate" column
-const NOTPAID_COL = 10;         // Should be the "Not Paid" column
-const LASTWD_COL = 12;          // Should be the "Last withdraw" column
-const NEXTWD_COL = 13;          // Should be the "Next withdraw" column
+const FIATRATIO_COL = 4;        // Should be the "Fiat Ratio" column
+const NOTPAID_COL = 7;          // Should be the "Not Paid" column
+const LASTWD_COL = 9;           // Should be the "Last withdraw" column
+const NEXTWD_COL = 10;          // Should be the "Next withdraw" column
+const EMAIL_COL = 11;           // Should be the "EMail" column
 
 // SPECIFIC MERCHANT UPDATE CELL
 const DATA_COL = 7;             // Should be the column after transactions data
@@ -51,7 +49,7 @@ function withdraw() {
     // Processing transactions for each merchant (by id)
     for (let i = 0; i < array.length; ++i) {
       // If the sheet does not exist, create a new merchant sheet from the model
-      const id = array[i][ID_COL-1];
+      const id = array[i][INDEX_COL-1];
       const sheet = _copySheetFromModel(id, MERCHMODEL);
       sheet.getRange(FR-1, DATA_COL).setValue(id);
       _updateFormula(sheet, MERCHUPD_ROW, DATA_COL);
@@ -109,24 +107,21 @@ function _generateEmail(paidArray, emailArray, recap, data) {
   // Create a merchant message with transactions recap
   const email = data[EMAIL_COL-1];
   const company = data[COMPANY_COL-1];
-  const iban = data[IBAN_COL-1];
 
   const toPayTotal = data[NOTPAID_COL-1];
-  const trate = data[TRATE_COL-1];
-  const toPayTrad = _toCurrency(toPayTotal*trate);
+  const fiatRatio = data[FIATRATIO_COL-1];
+  const toPayFiat = _toCurrency(toPayTotal*fiatRatio);
 
   const object = "FiMs Pay - Reçu de paiement de " + _toCurrency(toPayTotal);
-  let message = "FiMs Pay a effectué un virement d'un montant de " + toPayTrad
-  + " pour l'entreprise " + company
-  + " sur le compte IBAN : " + iban + "\n\n";
+  let message = "FiMs Pay a effectué un virement d'un montant de " + toPayFiat
+  + " pour l'entreprise " + company + "\n\n";
   recap += "Company : " + company + "\n"
-  + "Wire Transfer : " + toPayTrad + "\n"
-  + "IBAN : " + iban + "\n\n";
+  + "Wire Transfer : " + toPayFiat + "\n\n";
 
   // Add a message specific to crypto withdraw
-  if (trate < 1) {
-    const drate = data[DRATE_COL-1];
-    const toPayCrypto = _toCurrency(toPayTotal*drate);
+  if (fiatRatio < 1) {
+    const cryptoRatio = 1-fiatRatio;
+    const toPayCrypto = _toCurrency(toPayTotal*cryptoRatio);
     const cryptoAdd = data[CRYPTOADD_COL-1];
 
     message += "Le somme de " + toPayCrypto + " a été versée sur le"

@@ -47,7 +47,7 @@ const APPLINK = "https://bit.ly/FiMsMain";
 
 // MISC
 const DUMMY = "XXXXXX";           // A dummy field value
-const PRICE_UPDATE = 10;          // Number of minutes between price updates
+const PRICE_UPDATE = 1;           // Number of minutes between price updates
 
 
 

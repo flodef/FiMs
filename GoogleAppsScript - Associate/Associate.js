@@ -5,33 +5,33 @@ _sendMessage, _toDate, _insertFirstRow, _round, _copySheetFromModel*/
 
 
 // ASSOCIATE COLS
-const ASSNAME_COL = 2;          // Should be the "ID" column
-const ASSRECU_COL = 3;          // Should be the "Recurrent" column
-const ASSCHAR_COL = 4;          // Should be the "Charity" column
-const ASSDEPO_COL = 11;         // Should be the "Deposit" column
-const ASSTOTAL_COL = 15;        // Should be the "Total" column
-const ASSMAIL_COL = 16;         // Should be the "EMail" column
+const ID_COL = 2;                     // Should be the "ID" column
+const RECURRENT_COL = 3;              // Should be the "Recurrent" column
+const CHARITY_COL = 4;                // Should be the "Charity" column
+const DEPOSIT_COL = 11;               // Should be the "Deposit" column
+const TOTAL_COL = 15;                 // Should be the "Total" column
+const EMAIL_COL = 16;                 // Should be the "EMail" column
 
 // SHEET NAMES
-const ASSOCIATE = "Associate";      // The "Associate" sheet name
-const ASSMODEL = "AssociateModel";  // The "AssociateModel" sheet name
-const ASSHISTO = "AssociateHistoric";  // The "AssociateHistoric" sheet name
+const ASSOCIATE = "Associate";        // The "Associate" sheet name
+const ASSMODEL = "AssociateModel";    // The "AssociateModel" sheet name
+const ASSHISTO = "AssociateHistoric"; // The "AssociateHistoric" sheet name
 
 
-
+// SHOULD RUN ONCE A MONTH
 function updateAssociate() {
   // Retrieve associate main data
   const associateSheet = _getSheet(ASSOCIATE);
-  const associateArray = associateSheet.getSheetValues(FR, FC, -1, ASSTOTAL_COL);
+  const associateArray = associateSheet.getSheetValues(FR, FC, -1, -1);
 
   for (let i = 0; i < associateArray.length; ++i) {
     // Retrieve associate account data
-    const depo = associateArray[i][ASSDEPO_COL-1];
-    const total = associateArray[i][ASSTOTAL_COL-1];
+    const depo = associateArray[i][DEPOSIT_COL-1];
+    const total = associateArray[i][TOTAL_COL-1];
 
     if (depo > 0) {
-      const name = associateArray[i][ASSNAME_COL-1];
-      const recu = associateArray[i][ASSRECU_COL-1];
+      const name = associateArray[i][ID_COL-1];
+      const recu = associateArray[i][RECURRENT_COL-1];
 
       // If the sheet does not exist, create a new associate sheet from the model
       const sheet = _copySheetFromModel(name, ASSMODEL);
@@ -64,6 +64,7 @@ function updateAssociate() {
   }
 }
 
+// SHOULD RUN ONCE A MONTH
 function sendCharity() {
   const x = new Date();
   const m = x.getMonth();
@@ -77,9 +78,9 @@ function sendCharity() {
     let total = 0;
     for (let i = 0; i < array.length; ++i) {
       // Retrieve associate account data
-      const name = array[i][ASSNAME_COL-1];
-      const char = array[i][ASSCHAR_COL-1];
-      const mail = array[i][ASSMAIL_COL-1];
+      const name = array[i][ID_COL-1];
+      const char = array[i][CHARITY_COL-1];
+      const mail = array[i][EMAIL_COL-1];
 
       // Send charity message if amount <= -1
       if (char <= -1) {

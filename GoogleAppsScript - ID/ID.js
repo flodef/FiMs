@@ -10,7 +10,7 @@ const BIRTHDAY_COL = 7;         // Should be the "Birth date" column
 const NEWSLETTER_COL = 16;      // Should be the "Newsletter" column
 
 // SHEET NAMES
-const ID = "ID";                // The "ID" sheet name
+const ASSOCIATE = "Associate";  // The "Associate" sheet name
 
 // MISC
 const YES = "Oui";            
@@ -19,7 +19,7 @@ const YES = "Oui";
 // SHOULD RUN ONCE A MONTH
 function reminderNewsLetter() {
   // Retrieve associate main data
-  const sheet = _getSheet(ID);
+  const sheet = _getSheet(ASSOCIATE);
   const array = sheet.getSheetValues(FR, FC, -1, -1);
 
   // List all newsletter subscribers
@@ -39,7 +39,7 @@ function reminderNewsLetter() {
 // SHOULD RUN ONCE A DAY
 function reminderBirthday() {
   // Retrieve associate main data
-  const sheet = _getSheet(ID);
+  const sheet = _getSheet(ASSOCIATE);
   const array = sheet.getSheetValues(FR, FC, -1, -1);
 
   // Send a reminder for FiMs Associate whose birthday is today
