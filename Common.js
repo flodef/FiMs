@@ -91,26 +91,31 @@ function loadPage() {
   displayElement(".tabContent", false, 0); // Hide the tab content
 
   // Set the footer
-  $("#footer").html(
-    "<table style=\"table-layout:fixed;\"><tr>" +
-      "<td align=\"left\">" +
-      getLink(
-        "https://forms.gle/ffTrJzALtKtBuh9U8",
-        "Contact, BUG, Questions ?!*%$^#@"
-      ) +
-      "</td>" +
-      "<td align=\"center\" id=\"loading\"></td>" +
-      "<td align=\"right\">" +
-      translate("Icon made by") +
-      " " +
-      getLink("https://www.flaticon.com/authors/pixel-buddha", "Pixel Buddha") +
-      " " +
-      translate("from") +
-      " " +
-      getLink("https://www.flaticon.com") +
-      "</td>" +
-      "</tr></table>"
-  );
+  if (!GLOBAL.isForMobile) {
+    $("#footer").html(
+      "<table style=\"table-layout:fixed;\"><tr>" +
+        "<td align=\"left\">" +
+        getLink(
+          "https://forms.gle/ffTrJzALtKtBuh9U8",
+          "Contact, BUG, Questions ?!*%$^#@"
+        ) +
+        "</td>" +
+        "<td align=\"center\" id=\"loading\"></td>" +
+        "<td align=\"right\">" +
+        translate("Icon made by") +
+        " " +
+        getLink("https://www.flaticon.com/authors/pixel-buddha", "Pixel Buddha") +
+        " " +
+        translate("from") +
+        " " +
+        getLink("https://www.flaticon.com") +
+        "</td>" +
+        "</tr></table>"
+    );      
+  } else {
+    $("#alert").css("font-size", "55px");
+    displayElement("#snackbar", false);
+  }
 
   $(document).ready(() => $("#mainFocus").focus()); // Set the main focus (replace autofocus attribute)
 
@@ -428,7 +433,10 @@ function getSubTableTitle(id, title, range) {
 }
 
 function getMainTitle(title) {
-  return "<h1>" + translate(title) + "</h1>";
+  const isHuge = GLOBAL.isForMobile;
+  return (
+    (isHuge ? "<h0>" : "<h1>") + translate(title) + (isHuge ? "</h0><br>" : "</h1>")
+  );
 }
 
 function getTitle(id) {
@@ -1022,7 +1030,7 @@ function executionSuccess() {
   showSnackBar();
 }
 
-function displayError(msg, isWarning) {
+function displayError(message, isWarning) {
   showLoader(false);
   displayLoading(GLOBAL.currentLoadingId, false);
 
@@ -1032,8 +1040,10 @@ function displayError(msg, isWarning) {
       "<strong>" +
       (isWarning ? "WARNING" : "ALERT") +
       ":</strong> " +
-      msg
+      translate(message)
   );
+  $(".closebtn").css("font-size", $("#alert").css("font-size"));
+
   displayElement("#alertOverlay", true);
   displayElement("#refreshButton", true);
 }

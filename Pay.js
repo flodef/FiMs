@@ -1,12 +1,14 @@
 /* global GLOBAL, $, initCommon, google, getDiv, finishLoading, 
 getValue, setValue, displayError, getImage, getDataValue, showLoader, 
-getMainTitle, toCurrency, toStringDate */
+getMainTitle, toCurrency, toStringDate, translate */
 /* exported init, onKeyUp, validatePayment */
 
-GLOBAL.hasTranslation = false;
+GLOBAL.hasTranslation = true;
 GLOBAL.displayData = [];
 GLOBAL.menuButton = [];
 GLOBAL.user = [];
+
+GLOBAL.isForMobile = true;
 
 GLOBAL.merchantInfoFormula = "Check!A:C";
 GLOBAL.paymentInfoFormula = "Check!A:H";
@@ -22,12 +24,12 @@ GLOBAL.retryTimeout = 30; // Duration between each retry
 GLOBAL.retryLimit = 3; // Number of retry after which the payment is cancelled
 
 GLOBAL.messages = {
-  copyAddress:
-    "Copiez votre adresse de porte-feuille crypto<br><br>puis cliquez ci-dessous :",
-  verifyPayment: "Verifier le paiement",
-  invalidAddress: "Solana Address copied is invalid!",
+  copyAddress: "Copy your crypto wallet address<br>and click below:",
+  verifyPayment: "Verify Payment",
+  invalidAddress: "Invalid Solana Address!",
   invalidPayment:
-    "Error: Your payment could not been verified.<br><br>Try to pay by another mean.<br><br>We will proceed to a refund shortly.",
+    "Error: Your payment could not been verified. Try to pay by another mean. We will proceed to a refund shortly.",
+  duration: "($ ago)",
 };
 
 GLOBAL.header = {
@@ -73,19 +75,22 @@ function displayContent(id, contents) {
   const merchantTitle = getMainTitle(company);
   document.body.innerHTML += getDiv("merchant", null, "right", merchantTitle);
 
-  const logo = getImage(GLOBAL.user.ID, "Pay/Merchant");
+  const logo = getImage(GLOBAL.user.ID, "Pay/Merchant", [
+    { name: "style", value: "margin: 25px;" },
+  ]);
   const logoHTML = getDiv("logo", null, "center", logo);
 
   let processHTML =
     getMainTitle(GLOBAL.messages.copyAddress) +
     `<button onclick="validatePayment()" style="
-        border-radius: 20px;
+        border-radius: 30px;
         height: 100px;
-        width: 330px;
-        font-size: 33px;
+        width: 500px;
+        font-size: 50px;
         line-height: 40px;
+        margin: 50px;
       ">` +
-    GLOBAL.messages.verifyPayment +
+    translate(GLOBAL.messages.verifyPayment) +
     "</button>";
   processHTML = getDiv("process", null, "center", processHTML);
 
@@ -112,7 +117,7 @@ function setCustomerAddress(customerAddress, success) {
 }
 
 function resetCustomerAddress() {
-  setCustomerAddress(null, () =>
+  setCustomerAddress("", () =>
     setCustomerAddress(GLOBAL.customerAddress, displayPaymentStatus)
   );
 }
@@ -152,34 +157,40 @@ async function displayPaymentStatus(id, contents) {
   }
 
   if (fullStatus) {
-    const status = fullStatus.split(":")[0].toLowerCase();
-    let html = getImage(
-      status === GLOBAL.status.error
-        ? "Cancel"
-        : status === GLOBAL.status.warning
-          ? "Bug"
-          : "Validate",
-      "Button",
-      [{ name: "style", value: "margin: 50px" }]
-    );
+    const status = fullStatus.split(":")[0].toLowerCase().trim();
+    let html =
+      getImage(
+        status === GLOBAL.status.error
+          ? "Cancel"
+          : status === GLOBAL.status.warning
+            ? "Bug"
+            : "Validate",
+        "Button",
+        [{ name: "style", value: "margin: 50px" }]
+      ) + "<br>";
     html += getMainTitle(fullStatus);
     if (status !== GLOBAL.status.error) {
       html += getMainTitle(
         toCurrency(getDataValue(contents, GLOBAL.header.amount))
       );
-      html += getMainTitle(getDataValue(contents, GLOBAL.header.time));
-      html += getMainTitle(
-        "(il y a " +
-          getDataValue(contents, GLOBAL.header.duration)
-            .replace(":", "h ")
-            .replace(":", "m ") +
-          "s)"
-      );
+      if (status !== GLOBAL.status.success) {
+        const d = getDataValue(contents, GLOBAL.header.duration).split(":");
+        const duration =
+          (parseInt(d[0]) > 0 ? d[0] + "h " : "") +
+          (parseInt(d[1]) > 0 ? d[1] + "m " : "") +
+          d[2] +
+          "s";
+
+        html += getMainTitle(getDataValue(contents, GLOBAL.header.time));
+        html += getMainTitle(
+          translate(GLOBAL.messages.duration).replace("$", duration)
+        );
+      }
     }
 
     $("#process").html(html);
 
-    setCustomerAddress(null);
+    setCustomerAddress("");
     showLoader(false);
   }
 }

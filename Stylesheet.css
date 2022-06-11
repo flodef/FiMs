@@ -1,3 +1,11 @@
+h0 {
+  font-size: 55px;
+  line-height: 80px;
+  padding: 35px 20px 25px 20px;
+  font-weight: bold;
+  margin: 0px;
+}
+
 h1,
 h2 {
   font-weight: 400;
