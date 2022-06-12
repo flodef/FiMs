@@ -5,7 +5,7 @@ getTableEditableContent, getSubTableTitle, getTableCheckmark, getTableLoaderBar,
 getTableImage, toggleItem, getElementValidity, selectName, setValue, overDisplay,
 executionSuccess, getPopupContent, addPopupButtonEvent, shouldRebalance, initCommon,
 addDaysToDate, getNextMonthDate, getDaysBetweenDate, restrainFormula, finishLoading, 
-getDataValue */
+getDataValue, setTranslationLanguage */
 
 /**
  * Functions that are shared between apps.
@@ -17,6 +17,7 @@ GLOBAL.hasAlreadyUpdated = [];
 GLOBAL.handleEvent = true;
 GLOBAL.translation = "translation";
 GLOBAL.translationFormula = "Translation!A:D";
+GLOBAL.translationIndex = 0;
 
 /**
  * Run initializations on web app load.
@@ -45,10 +46,7 @@ function initCommon() {
 }
 
 function loadPage() {
-  $(document).on(
-    "visibilitychange",
-    () => (GLOBAL.doVisualUpdates = !document.hidden)
-  );
+  $(document).on("visibilitychange", () => (GLOBAL.doVisualUpdates = !document.hidden));
 
   GLOBAL.displayId = Object.keys(GLOBAL.displayData); // Set the id to display in a normal array
 
@@ -95,10 +93,7 @@ function loadPage() {
     $("#footer").html(
       "<table style=\"table-layout:fixed;\"><tr>" +
         "<td align=\"left\">" +
-        getLink(
-          "https://forms.gle/ffTrJzALtKtBuh9U8",
-          "Contact, BUG, Questions ?!*%$^#@"
-        ) +
+        getLink("https://forms.gle/ffTrJzALtKtBuh9U8", "Contact, BUG, Questions ?!*%$^#@") +
         "</td>" +
         "<td align=\"center\" id=\"loading\"></td>" +
         "<td align=\"right\">" +
@@ -111,10 +106,9 @@ function loadPage() {
         getLink("https://www.flaticon.com") +
         "</td>" +
         "</tr></table>"
-    );      
+    );
   } else {
     $("#alert").css("font-size", "55px");
-    displayElement("#snackbar", false);
   }
 
   $(document).ready(() => $("#mainFocus").focus()); // Set the main focus (replace autofocus attribute)
@@ -141,17 +135,12 @@ function animateLoaderBar(item, duration = 3000) {
 function openTab(id, isFirstLoading) {
   if (GLOBAL.currentDisplayedId != id) {
     GLOBAL.currentDisplayedId = id;
-    GLOBAL.displayId.forEach((id) =>
-      displayElement("#" + id + "Div", false, 0)
-    ); // Hide all tab content
+    GLOBAL.displayId.forEach((id) => displayElement("#" + id + "Div", false, 0)); // Hide all tab content
     $(".tabLinks").removeClass("active"); // Remove the class "active" from all tabLinks"
     displayElement("#" + id + "Div", true); // Show the current tab
     $("#" + id + "Button").addClass("active"); // Add an "active" class to the button that opened the tab
 
-    if (
-      !isFirstLoading &&
-      (!GLOBAL.displayData[id] || !GLOBAL.displayData[id].loadOnce)
-    ) {
+    if (!isFirstLoading && (!GLOBAL.displayData[id] || !GLOBAL.displayData[id].loadOnce)) {
       updateValues(id);
     }
   }
@@ -183,10 +172,7 @@ function closePopup(complete = () => {}) {
 function processTable(id, tableHTML, shouldFilter) {
   setTable(
     id,
-    tableHTML +
-      (shouldFilter && !tableHTML.includes("<tfoot>")
-        ? "<tfoot><tr id=\"" + id + "Footer\"></tr></tfoot>"
-        : "")
+    tableHTML + (shouldFilter && !tableHTML.includes("<tfoot>") ? "<tfoot><tr id=\"" + id + "Footer\"></tr></tfoot>" : "")
   );
   displayElement("#" + id + "Button", true); // Show button
   $(".auto").each((i, item) => autoAdaptWidth(item)); // Auto adapt all auto element
@@ -210,19 +196,10 @@ function getTableValidatableCell(id, contents, index, range, expected) {
 }
 
 function getTableReadOnlyCell(contents, index) {
-  return (
-    getTableReadOnlyContent(contents[index - 1][0], false) +
-    getTableReadOnlyContent(contents[index - 1][1], false)
-  );
+  return getTableReadOnlyContent(contents[index - 1][0], false) + getTableReadOnlyContent(contents[index - 1][1], false);
 }
 
-function getTableReadOnlyContent(
-  content = "",
-  isHeader,
-  isDisabled,
-  color,
-  tooltip
-) {
+function getTableReadOnlyContent(content = "", isHeader, isDisabled, color, tooltip) {
   const html = getTooltip(content, tooltip);
   if (!isHeader) {
     const matches = /\(([^)]+)\)/.exec(content);
@@ -243,26 +220,13 @@ function getTableEditableContent(content, data) {
   if (data) {
     data.inputId = data.inputId || getRandomId(); // Generates a random Id if it does not have any
     classText = data.class || "";
-    data.symbol =
-      data.type == "euro"
-        ? " €"
-        : data.type == "percent"
-          ? " %"
-          : data.type == "radio"
-            ? content
-            : "";
+    data.symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
     const isToggle = data.class && data.class.includes("toggle");
     label = data.label
       ? "<div id=\"" +
         data.inputId +
         "Div\" style=\"top:55px;left:-320px;position:relative;text-align:right;\">" +
-        getLabel(
-          data.inputId,
-          Array.isArray(data.label)
-            ? data.label[data.checked ? 0 : 1]
-            : data.label,
-          isToggle
-        ) +
+        getLabel(data.inputId, Array.isArray(data.label) ? data.label[data.checked ? 0 : 1] : data.label, isToggle) +
         "</div>"
       : "";
 
@@ -308,9 +272,7 @@ function getTableEditableContent(content, data) {
       : "<input" +
         addAttr("class", classText) +
         getAttributesFromData(data) +
-        (isEditableInput(data.type) && !data.readonly && !data.disabled
-          ? getEditCellHandler(content, data)
-          : handler) +
+        (isEditableInput(data.type) && !data.readonly && !data.disabled ? getEditCellHandler(content, data) : handler) +
         ">" +
         data.symbol +
         "</input>";
@@ -331,8 +293,7 @@ function getAttributesFromData(data) {
       type = data.type || type;
     } else {
       const max = parseInt(data.maxLength);
-      const maxLength =
-        !isNaN(max) && max > 0 ? max : data.type == "url" ? 256 : 30;
+      const maxLength = !isNaN(max) && max > 0 ? max : data.type == "url" ? 256 : 30;
       const min = parseInt(data.minLength);
       const minLength = !isNaN(min) && min > 0 ? min : null;
       attr = addAttr("minLength", minLength) + addAttr("maxLength", maxLength);
@@ -393,9 +354,7 @@ function getEditCellHandler(expected, data) {
     expected +
     "'; } autoAdaptWidth(this);" +
     (data && data.inputId && data.erase
-      ? " $('#" +
-        data.inputId +
-        "Erase').css('visibility', $(this).val() ? 'visible' : 'hidden')"
+      ? " $('#" + data.inputId + "Erase').css('visibility', $(this).val() ? 'visible' : 'hidden')"
       : "") +
     "\" oninput=\"autoAdaptWidth(this);\""
   );
@@ -434,9 +393,7 @@ function getSubTableTitle(id, title, range) {
 
 function getMainTitle(title) {
   const isHuge = GLOBAL.isForMobile;
-  return (
-    (isHuge ? "<h0>" : "<h1>") + translate(title) + (isHuge ? "</h0><br>" : "</h1>")
-  );
+  return (isHuge ? "<h0>" : "<h1>") + translate(title) + (isHuge ? "</h0><br>" : "</h1>");
 }
 
 function getTitle(id) {
@@ -534,8 +491,7 @@ function getTableImage(content) {
       getImage(content, "Image", [
         {
           name: "onclick",
-          value:
-            "displayElement(this, false, 0);displayElement(this, true, 3000)",
+          value: "displayElement(this, false, 0);displayElement(this, true, 3000)",
         },
       ]),
       translate(content)
@@ -585,22 +541,12 @@ function getLabel(id, content, isToggle) {
 }
 
 function getTooltip(html, tooltip) {
-  return tooltip
-    ? "<div class=\"tooltip\">" +
-        html +
-        "<span class=\"tooltiptext\">" +
-        tooltip +
-        "</span></div>"
-    : html;
+  return tooltip ? "<div class=\"tooltip\">" + html + "<span class=\"tooltiptext\">" + tooltip + "</span></div>" : html;
 }
 
 function getLink(content, title) {
   return content
-    ? "<a href=\"" +
-        (content.slice(0, 4) == "http" ? content : "#") +
-        "\" target=\"_blank\">" +
-        (title || content) +
-        "</a>"
+    ? "<a href=\"" + (content.slice(0, 4) == "http" ? content : "#") + "\" target=\"_blank\">" + (title || content) + "</a>"
     : "<a >&nbsp;</a>";
 }
 
@@ -609,17 +555,7 @@ function getImage(content, path, attr) {
   if (attr) {
     attr.forEach((a) => (attributes += addAttr(a.name, a.value)));
   }
-  return (
-    "<img src=\"" +
-    GLOBAL.serverUrl +
-    "Img/" +
-    path +
-    "/" +
-    content +
-    ".png\" " +
-    attributes +
-    ">"
-  );
+  return "<img src=\"" + GLOBAL.serverUrl + "Img/" + path + "/" + content + ".png\" " + attributes + ">";
 }
 
 // function getTitle(id, disabled) {
@@ -702,8 +638,7 @@ function autoAdaptWidth(e) {
     var size = e.style.fontSize ? e.style.fontSize : "13.33px";
     var step = parseFloat(size) / 1.8;
     var index = 4;
-    e.style.width =
-      Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
+    e.style.width = Math.ceil(Math.max(String(e.value).length, 1) * step + index) + "px";
   }
 }
 
@@ -712,17 +647,10 @@ function checkElement(e) {
 
   // Filter the entered value through a regular expression
   if (isNumberInput(type)) {
-    const min = !isNaN(parseFloat(e.min))
-      ? parseFloat(e.min)
-      : Number.MIN_SAFE_INTEGER;
-    const max = !isNaN(parseFloat(e.max))
-      ? parseFloat(e.max)
-      : Number.MAX_SAFE_INTEGER;
+    const min = !isNaN(parseFloat(e.min)) ? parseFloat(e.min) : Number.MIN_SAFE_INTEGER;
+    const max = !isNaN(parseFloat(e.max)) ? parseFloat(e.max) : Number.MAX_SAFE_INTEGER;
     const precision = parseInt(e.dataset.precision) || 0;
-    const maxLength =
-      Math.max(String(parseInt(min)).length, String(parseInt(max)).length) +
-      precision +
-      1; // Don't forget the decimal separator
+    const maxLength = Math.max(String(parseInt(min)).length, String(parseInt(max)).length) + precision + 1; // Don't forget the decimal separator
     const pattern =
       e.pattern ||
       "^" +
@@ -736,9 +664,7 @@ function checkElement(e) {
     var val = parseFloat(e.value);
     while (
       e.value &&
-      (!regexp.test(e.value) ||
-        (!isNaN(val) &&
-          (val > max || (min < 0 && val < min) || e.value.length > maxLength)))
+      (!regexp.test(e.value) || (!isNaN(val) && (val > max || (min < 0 && val < min) || e.value.length > maxLength)))
     ) {
       e.value = e.value.slice(0, -1);
       val = parseFloat(e.value);
@@ -776,9 +702,7 @@ function getElementValidity(e) {
   return e.value.length < minLength
     ? "Value should have at least " + minLength + " character(s) !"
     : e.min && e.value && parseFloat(e.value) < parseFloat(e.min)
-      ? "Value should be at least " +
-      roundDown(e.min, parseInt(e.dataset.precision) || 2) +
-      e.dataset.symbol
+      ? "Value should be at least " + roundDown(e.min, parseInt(e.dataset.precision) || 2) + e.dataset.symbol
       : null;
 }
 
@@ -812,12 +736,7 @@ function getValue(data, func, forceReload, success) {
       }
     };
 
-    if (
-      id &&
-      GLOBAL.data[id] &&
-      GLOBAL.displayData[id] &&
-      GLOBAL.displayData[id].loadOnce
-    ) {
+    if (id && GLOBAL.data[id] && GLOBAL.displayData[id] && GLOBAL.displayData[id].loadOnce) {
       displayLoading(id, true);
       fn(GLOBAL.data[id]);
     } else if (!id || forceReload || !GLOBAL.hasAlreadyUpdated[id]) {
@@ -825,11 +744,7 @@ function getValue(data, func, forceReload, success) {
       google.script.run
         .withSuccessHandler(fn)
         .withFailureHandler(displayError)
-        .getSheetValues(
-          data.formula,
-          data.filter != null ? GLOBAL.user.ID : null,
-          data.filter
-        );
+        .getSheetValues(data.formula, data.filter != null ? GLOBAL.user.ID : null, data.filter);
     }
   } else {
     ++GLOBAL.loadingQueueCount;
@@ -853,9 +768,7 @@ function setValue(range, value, success) {
 }
 
 function getDataValue(data, header) {
-  return data && data.length >= 2 && data[0] && data[0].length >= 1
-    ? data[1][indexOf(data[0], header)]
-    : null;
+  return data && data.length >= 2 && data[0] && data[0].length >= 1 ? data[1][indexOf(data[0], header)] : null;
 }
 
 function filterTable(id /*, shouldReload*/) {
@@ -940,23 +853,14 @@ function refreshTotal(id) {
     footerFunc = () => {
       var footer = "";
       for (var i = 1; i < a.length; i++) {
-        footer +=
-          "<td>" +
-          toCurrency(
-            a[i] / a[0],
-            2,
-            items[i].innerHTML.includes("%") ? "%" : "€"
-          ) +
-          "</td>";
+        footer += "<td>" + toCurrency(a[i] / a[0], 2, items[i].innerHTML.includes("%") ? "%" : "€") + "</td>";
       }
       return footer;
     };
   }
 
   var items;
-  var max = $("#" + id + "Filter").is(":checked")
-    ? GLOBAL.dataPreloadRowLimit
-    : $("#" + id + "Table tbody tr").length;
+  var max = $("#" + id + "Filter").is(":checked") ? GLOBAL.dataPreloadRowLimit : $("#" + id + "Table tbody tr").length;
   var elem =
     $("#" + id + "Table tbody tr:visible").length == 0
       ? $("#" + id + "Table tbody tr:lt(" + max + ")")
@@ -967,7 +871,7 @@ function refreshTotal(id) {
 }
 
 function showSnackBar(text) {
-  if (text) {
+  if (text && !GLOBAL.isForMobile) {
     $("#snackbar").text(translate(text));
   }
 
@@ -986,36 +890,24 @@ function showSnackBar(text) {
 function displayLoading(id, isDisplayed) {
   if (id) {
     GLOBAL.currentLoadingId = isDisplayed ? id : "";
-    $("#loading").text(
-      isDisplayed ? translate("Loading") + " " + translate(id) + " ..." : null
-    );
+    $("#loading").text(isDisplayed ? translate("Loading") + " " + translate(id) + " ..." : null);
     if (isDisplayed || GLOBAL.loadingQueueCount) {
       GLOBAL.hasAlreadyUpdated[id] = true;
-      setTimeout(
-        () => (GLOBAL.hasAlreadyUpdated[id] = false),
-        GLOBAL.timeBetweenReload * 1000
-      );
+      setTimeout(() => (GLOBAL.hasAlreadyUpdated[id] = false), GLOBAL.timeBetweenReload * 1000);
       displayElement("#refreshButton", false);
     } else {
-      setTimeout(
-        () => displayElement("#refreshButton", !GLOBAL.loadingQueueCount),
-        100
-      ); // Hack for local refresh because it loads everything in the same function
+      setTimeout(() => displayElement("#refreshButton", !GLOBAL.loadingQueueCount), 100); // Hack for local refresh because it loads everything in the same function
     }
   }
 }
 
-function displayElement(id, isDisplayed, duration = "slow", complete) {
-  var fn = isDisplayed
-    ? () => $(id).fadeIn(duration, complete)
-    : () => $(id).fadeOut(duration, complete);
+function displayElement(id, isDisplayed, duration = 1000, complete) {
+  var fn = isDisplayed ? () => $(id).fadeIn(duration, complete) : () => $(id).fadeOut(duration, complete);
   fn();
 }
 
 function overDisplay(idToHide, idToShow, complete) {
-  displayElement(idToHide, false, () =>
-    displayElement(idToShow, true, complete)
-  );
+  displayElement(idToHide, false, 0, () => displayElement(idToShow, true, 3000, complete));
 }
 
 function showLoader(isDisplayed) {
@@ -1036,7 +928,7 @@ function displayError(message, isWarning) {
 
   $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
   $("#alert").html(
-    "<span class=\"closebtn\" onclick=\"displayElement('#alertOverlay', false, () => $('#transactionName').focus());\">&times;</span>" +
+    "<span class=\"closebtn\" onclick=\"displayElement('#alertOverlay', false, 1000, () => $('#transactionName').focus());\">&times;</span>" +
       "<strong>" +
       (isWarning ? "WARNING" : "ALERT") +
       ":</strong> " +
@@ -1044,41 +936,35 @@ function displayError(message, isWarning) {
   );
   $(".closebtn").css("font-size", $("#alert").css("font-size"));
 
-  displayElement("#alertOverlay", true);
-  displayElement("#refreshButton", true);
+  displayElement("#alertOverlay", true, 1000);
+  displayElement("#refreshButton", true, 1000);
 }
 
 function translate(content) {
-  return getTranslateData(content).text;
+  return GLOBAL.translationIndex == 0 ? content : getTranslateData(content).text;
+}
+
+function setTranslationLanguage(language) {
+  GLOBAL.translationIndex = indexOf(GLOBAL.data[GLOBAL.translation][0], language) ?? GLOBAL.translationIndex;
 }
 
 function getTranslateData(content) {
-  var text = content;
-  var tooltip = null;
+  const ti = GLOBAL.translationIndex;
+  let text = content;
+  let tooltip = null;
 
   const d = GLOBAL.data[GLOBAL.translation];
   if (d && content) {
     const fna = (item) => {
-      return indexOf(
-        d,
-        item,
-        0,
-        1,
-        (a, b) => a.toLowerCase() == b.toLowerCase()
-      );
+      return indexOf(d, item, 0, 1, (a, b) => a.toLowerCase() == b.toLowerCase());
     };
     const fnb = (item) => {
-      text = text.replace(item, d[fna(item)][2]);
+      text = text.replace(item, d[fna(item)][ti]);
     };
     if (!isNaN(content.replace(/€|%|,/g, ""))) {
       // Numbers
       [",", "."].forEach(fnb);
-    } else if (
-      /\d/.test(content) &&
-      (content.includes("day") ||
-        content.includes("month") ||
-        content.includes("year"))
-    ) {
+    } else if (/\d/.test(content) && (content.includes("day") || content.includes("month") || content.includes("year"))) {
       // Duration
       ["day", "months", "year"].forEach(fnb);
     } else {
@@ -1088,8 +974,8 @@ function getTranslateData(content) {
 
       const i = fna(trans);
       if (i) {
-        text = d[i][2].replaceAll("*", num);
-        tooltip = d[i][3];
+        text = d[i][ti].replaceAll("*", num);
+        tooltip = d[i][ti + 1];
       }
     }
   }
@@ -1107,11 +993,7 @@ function getPopupContent(id, content, validate) {
     content +
     "<br><br>" +
     (!validate
-      ? "<button id=\"" +
-        id +
-        "Button\" onclick=\"handleEvent(true);" +
-        id +
-        "Validation(this.innerHTML)\"></button>"
+      ? "<button id=\"" + id + "Button\" onclick=\"handleEvent(true);" + id + "Validation(this.innerHTML)\"></button>"
       : "<button id=\"previousPopupButton\" onclick=\"handleEvent(true);" +
         id +
         "()\">" +
@@ -1129,29 +1011,17 @@ function getPopupContent(id, content, validate) {
 function addPopupButtonEvent(id, hasSingleButton) {
   if (hasSingleButton) {
     const fn = (event) => {
-      if (
-        !GLOBAL.handleEvent &&
-        event &&
-        event.target.id == id &&
-        event.which == 13 &&
-        !$("#" + id).data("error")
-      ) {
+      if (!GLOBAL.handleEvent && event && event.target.id == id && event.which == 13 && !$("#" + id).data("error")) {
         $("#" + id + "Button").click();
       }
-      $("#" + id + "Button").html(
-        $("#" + id).val() ? translate("OK") : translate("CANCEL")
-      );
+      $("#" + id + "Button").html($("#" + id).val() ? translate("OK") : translate("CANCEL"));
     };
     fn(); // Call the trigger function to display correct button text (OK or CANCEL)
     $("#" + id).keyup(); // Trigger the Keyup event to adjust the input (display the eraser) as if a value as been entered
     $("#" + id).keyup(fn); // Set the keyup trigger function
   } else {
     $("#" + id).keyup((event) => {
-      if (
-        !GLOBAL.handleEvent &&
-        event &&
-        (event.which == 13 || event.which == 27)
-      ) {
+      if (!GLOBAL.handleEvent && event && (event.which == 13 || event.which == 27)) {
         if (event.which == 13) {
           $("#validatePopupButton").click();
         } else if (event.which == 27) {
@@ -1179,12 +1049,7 @@ function shouldRebalance(value) {
 function toValue(content) {
   return content
     ? parseFloat(
-      String(content)
-        .replaceAll(",", "")
-        .replaceAll(" ", "")
-        .replaceAll("$", "")
-        .replaceAll("€", "")
-        .replaceAll("%", "")
+      String(content).replaceAll(",", "").replaceAll(" ", "").replaceAll("$", "").replaceAll("€", "").replaceAll("%", "")
     )
     : 0;
 }
@@ -1194,28 +1059,14 @@ function toCurrency(content, precision = 2, symbol = "€") {
   var ln = str.length;
   var neg = str.startsWith("-") ? -1 : 0;
   var i = str.indexOf(".") != -1 ? str.indexOf(".") : ln;
-  str =
-    i != ln ? str.slice(0, i + precision + 1).replace(/0+$/g, "") : str + ".";
+  str = i != ln ? str.slice(0, i + precision + 1).replace(/0+$/g, "") : str + ".";
   var j = str.length - str.indexOf(".") - 1;
-  str =
-    (j < 2 ? str + "0".repeat(2 - j) : str) +
-    (symbol == "%" ? "" : " ") +
-    symbol;
+  str = (j < 2 ? str + "0".repeat(2 - j) : str) + (symbol == "%" ? "" : " ") + symbol;
 
   return i + neg > 9
-    ? str.slice(0, i - 9) +
-        "," +
-        str.slice(i - 9, i - 6) +
-        "," +
-        str.slice(i - 6, i - 3) +
-        "," +
-        str.slice(i - 3)
+    ? str.slice(0, i - 9) + "," + str.slice(i - 9, i - 6) + "," + str.slice(i - 6, i - 3) + "," + str.slice(i - 3)
     : i + neg > 6
-      ? str.slice(0, i - 6) +
-      "," +
-      str.slice(i - 6, i - 3) +
-      "," +
-      str.slice(i - 3)
+      ? str.slice(0, i - 6) + "," + str.slice(i - 6, i - 3) + "," + str.slice(i - 3)
       : i + neg > 3
         ? str.slice(0, i - 3) + "," + str.slice(i - 3)
         : str;
@@ -1236,9 +1087,7 @@ function toStringDate(date, isMDY) {
     const year = date.getFullYear();
     day = day < 10 ? "0" + day : day;
     month = month < 10 ? "0" + month : month;
-    return isMDY
-      ? month + "/" + day + "/" + year
-      : day + "/" + month + "/" + year;
+    return isMDY ? month + "/" + day + "/" + year : day + "/" + month + "/" + year;
   } else {
     return toStringDate(new Date(), isMDY);
   }
@@ -1250,9 +1099,7 @@ function toJQueryDate(date, isMDY) {
     date = toStringDate(date, true);
   }
   const d = new Date(date);
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000)
-    .toISOString()
-    .split("T")[0];
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60 * 1000).toISOString().split("T")[0];
 }
 
 function addDaysToDate(daysToAdd = 0, date) {
@@ -1275,17 +1122,12 @@ function getDaysBetweenDate(startDate, endDate) {
 
 function indexOf(array, value, index, start, compare) {
   var x = Number.isInteger(start) ? start : 0;
-  const y =
-    (Number.isInteger(index) && index >= 0) || isString(index) ? index : null;
+  const y = (Number.isInteger(index) && index >= 0) || isString(index) ? index : null;
   const fn = compare ? compare : (a, b) => a == b;
 
   var i;
   if (Array.isArray(array)) {
-    while (
-      x < array.length &&
-      ((y == null && !fn(array[x], value)) ||
-        (y != null && !fn(array[x][y], value)))
-    ) {
+    while (x < array.length && ((y == null && !fn(array[x], value)) || (y != null && !fn(array[x][y], value)))) {
       ++x;
     }
 
@@ -1306,9 +1148,7 @@ function indexOf(array, value, index, start, compare) {
 function splice(original, text, offset = 0, removeCount = 0) {
   let calculatedOffset = offset < 0 ? original.length + offset : offset;
   return original
-    ? original.substring(0, calculatedOffset) +
-        text +
-        original.substring(calculatedOffset + removeCount)
+    ? original.substring(0, calculatedOffset) + text + original.substring(calculatedOffset + removeCount)
     : text;
 }
 
