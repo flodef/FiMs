@@ -47,7 +47,7 @@ GLOBAL.processStep = [
   },
   {
     index: 3,
-    label: "Copy your Solana wallet address<br>and click below:",
+    label: "Copy your Solana wallet address then verify payment:",
     button: "Verify Payment",
     action: validatePayment.name,
   },
