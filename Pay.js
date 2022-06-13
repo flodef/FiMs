@@ -126,15 +126,15 @@ function setLanguages() {
   setTranslationLanguage(step.button);
 
   const translation = GLOBAL.data[GLOBAL.translation];
-  const index = indexOf(translation, step.label, GLOBAL.translationIndex);
+  const index = indexOf(translation, step.label, GLOBAL.translationCurrentIndex);
 
   const label = [];
   translation[index].forEach((x) => label.push(x));
-  step.label = label.join("<br>");
+  step.label = label.filter((x) => x).join("<br>");
 
   const button = [];
   translation[0].forEach((x) => button.push(x));
-  step.button = button.join(",");
+  step.button = button.filter((x) => x).join(",");
 }
 
 function setWallet() {
@@ -208,7 +208,7 @@ function setCurrentStep(index) {
     $("#step").html(getStepContent(index - 1));
     displayElement("#step", false, 0);
     displayElement("#step", true, 2000);
-  
+
     displayElement("#number", true, 0);
     $(".stepNumber").fadeTo(1000, 0.25);
     $("#number" + index).fadeTo(1000, 1);
@@ -310,7 +310,7 @@ async function displayPaymentStatus(id, contents) {
     } else {
       html += getStepButton(1, "Retry", setProcess.name);
     }
-    
+
     setCustomerAddress("");
     showLoader(false);
 

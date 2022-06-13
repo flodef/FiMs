@@ -17,7 +17,9 @@ GLOBAL.hasAlreadyUpdated = [];
 GLOBAL.handleEvent = true;
 GLOBAL.translation = "translation";
 GLOBAL.translationFormula = "Translation!A:D";
-GLOBAL.translationIndex = 0;
+GLOBAL.translationCurrentIndex = 0;
+GLOBAL.translationNativeIndex = 0;
+GLOBAL.translationNativeLanguage = "English";
 
 /**
  * Run initializations on web app load.
@@ -47,6 +49,10 @@ function initCommon() {
 
 function loadPage() {
   $(document).on("visibilitychange", () => (GLOBAL.doVisualUpdates = !document.hidden));
+
+  // Set translation native index
+  setTranslationLanguage(GLOBAL.translationNativeLanguage);
+  GLOBAL.translationNativeIndex = GLOBAL.translationCurrentIndex;
 
   GLOBAL.displayId = Object.keys(GLOBAL.displayData); // Set the id to display in a normal array
 
@@ -107,8 +113,6 @@ function loadPage() {
         "</td>" +
         "</tr></table>"
     );
-  } else {
-    $("#alert").css("font-size", "55px");
   }
 
   $(document).ready(() => $("#mainFocus").focus()); // Set the main focus (replace autofocus attribute)
@@ -926,7 +930,8 @@ function displayError(message, isWarning) {
   showLoader(false);
   displayLoading(GLOBAL.currentLoadingId, false);
 
-  $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
+  $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336", "font-size", GLOBAL.isForMobile ? "55px" : "large");
+
   $("#alert").html(
     "<span class=\"closebtn\" onclick=\"displayElement('#alertOverlay', false, 1000, () => $('#transactionName').focus());\">&times;</span>" +
       "<strong>" +
@@ -941,22 +946,23 @@ function displayError(message, isWarning) {
 }
 
 function translate(content) {
-  return GLOBAL.translationIndex == 0 ? content : getTranslateData(content).text;
+  return GLOBAL.translationCurrentIndex == GLOBAL.translationNativeIndex ? content : getTranslateData(content).text;
 }
 
 function setTranslationLanguage(language) {
-  GLOBAL.translationIndex = indexOf(GLOBAL.data[GLOBAL.translation][0], language) ?? GLOBAL.translationIndex;
+  GLOBAL.translationCurrentIndex = indexOf(GLOBAL.data[GLOBAL.translation][0], language) ?? GLOBAL.translationCurrentIndex;
 }
 
 function getTranslateData(content) {
-  const ti = GLOBAL.translationIndex;
+  const ti = GLOBAL.translationCurrentIndex;
   let text = content;
   let tooltip = null;
 
   const d = GLOBAL.data[GLOBAL.translation];
   if (d && content) {
     const fna = (item) => {
-      return indexOf(d, item, 0, 1, (a, b) => a.toLowerCase() == b.toLowerCase());
+      const nativeIndex = GLOBAL.translationNativeIndex;
+      return indexOf(d, item, nativeIndex, nativeIndex + 1, (a, b) => a.toLowerCase() == b.toLowerCase());
     };
     const fnb = (item) => {
       text = text.replace(item, d[fna(item)][ti]);
