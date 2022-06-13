@@ -58,7 +58,8 @@ GLOBAL.processStep = [
 ];
 
 GLOBAL.wallet = [];
-GLOBAL.wallet["Exodus"] = "https://play.google.com/store/apps/details?id=exodusmovement.exodus";
+// GLOBAL.wallet["Exodus"] = "https://play.google.com/store/apps/details?id=exodusmovement.exodus";
+GLOBAL.wallet["Exodus"] = "market://details?id=exodusmovement.exodus";
 GLOBAL.wallet["Solflare"] = "https://solflare.com/portfolio";
 GLOBAL.wallet[GLOBAL.messages.help] = "";
 
