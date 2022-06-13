@@ -64,11 +64,11 @@ function loadPage() {
 
   // Set the app buttons
   let tableHTML =
-    '<table id="actionButton" class="topMenu">' +
-    '<div id="focus" style="height:0px;">' +
-    '<input id="mainFocus" type="image" src="' +
+    "<table id=\"actionButton\" class=\"topMenu\">" +
+    "<div id=\"focus\" style=\"height:0px;\">" +
+    "<input id=\"mainFocus\" type=\"image\" src=\"" +
     GLOBAL.serverUrl +
-    'Img/Image/0BYg1.png" style="height:0px;" tabindex="1">' +
+    "Img/Image/0BYg1.png\" style=\"height:0px;\" tabindex=\"1\">" +
     "</div><tr>";
   GLOBAL.menuButton.forEach((item) => {
     tableHTML += getMenuButton(item);
@@ -97,12 +97,12 @@ function loadPage() {
   // Set the footer
   if (!GLOBAL.isForMobile) {
     $("#footer").html(
-      '<table style="table-layout:fixed;"><tr>' +
-        '<td align="left">' +
+      "<table style=\"table-layout:fixed;\"><tr>" +
+        "<td align=\"left\">" +
         getLink("https://forms.gle/ffTrJzALtKtBuh9U8", "Contact, BUG, Questions ?!*%$^#@") +
         "</td>" +
-        '<td align="center" id="loading"></td>' +
-        '<td align="right">' +
+        "<td align=\"center\" id=\"loading\"></td>" +
+        "<td align=\"right\">" +
         translate("Icon made by") +
         " " +
         getLink("https://www.flaticon.com/authors/pixel-buddha", "Pixel Buddha") +
@@ -176,7 +176,7 @@ function closePopup(complete = () => {}) {
 function processTable(id, tableHTML, shouldFilter) {
   setTable(
     id,
-    tableHTML + (shouldFilter && !tableHTML.includes("<tfoot>") ? '<tfoot><tr id="' + id + 'Footer"></tr></tfoot>' : "")
+    tableHTML + (shouldFilter && !tableHTML.includes("<tfoot>") ? "<tfoot><tr id=\"" + id + "Footer\"></tr></tfoot>" : "")
   );
   displayElement("#" + id + "Button", true); // Show button
   $(".auto").each((i, item) => autoAdaptWidth(item)); // Auto adapt all auto element
@@ -210,9 +210,9 @@ function getTableReadOnlyContent(content = "", isHeader, isDisabled, color, tool
     const value = matches ? matches[matches.length - 1] : content;
     const isCur = /(€|%|\$)/.test(value);
     color = getColor(value, isDisabled, isCur, color);
-    return '<td align="center" style="color:' + color + '">' + html + "</td>";
+    return "<td align=\"center\" style=\"color:" + color + "\">" + html + "</td>";
   } else {
-    return '<th align="center">' + html + "</th>";
+    return "<th align=\"center\">" + html + "</th>";
   }
 }
 
@@ -227,9 +227,9 @@ function getTableEditableContent(content, data) {
     data.symbol = data.type == "euro" ? " €" : data.type == "percent" ? " %" : data.type == "radio" ? content : "";
     const isToggle = data.class && data.class.includes("toggle");
     label = data.label
-      ? '<div id="' +
+      ? "<div id=\"" +
         data.inputId +
-        'Div" style="top:55px;left:-320px;position:relative;text-align:right;">' +
+        "Div\" style=\"top:55px;left:-320px;position:relative;text-align:right;\">" +
         getLabel(data.inputId, Array.isArray(data.label) ? data.label[data.checked ? 0 : 1] : data.label, isToggle) +
         "</div>"
       : "";
@@ -257,9 +257,9 @@ function getTableEditableContent(content, data) {
     classText += isEditableInput(data.type) ? " auto" : "";
 
     post = data.erase
-      ? '<span id="' +
+      ? "<span id=\"" +
         data.inputId +
-        'Erase" style="float:none;color:black;visibility:hidden" class="closebtn"' +
+        "Erase\" style=\"float:none;color:black;visibility:hidden\" class=\"closebtn\"" +
         " onclick=\"$('#" +
         data.inputId +
         "').val('');$('#" +
@@ -282,7 +282,7 @@ function getTableEditableContent(content, data) {
         "</input>";
   const tooltip = getTooltip(label + input, data.tooltip);
 
-  return '<td align="center">' + tooltip + post + "</td>";
+  return "<td align=\"center\">" + tooltip + post + "</td>";
 }
 
 function getAttributesFromData(data) {
@@ -326,15 +326,15 @@ function getAttributesFromData(data) {
 
 function getTableValidatableContent(id, content, range, expected) {
   return (
-    '<td class="validateContent" align="center" style="font-style:italic;background-color:' +
+    "<td class=\"validateContent\" align=\"center\" style=\"font-style:italic;background-color:" +
     (!expected || content == expected ? "transparent" : "pink") +
-    '">' +
-    '<div style="position:relative"><span>' +
+    "\">" +
+    "<div style=\"position:relative\"><span>" +
     content +
     "</span>" +
-    '<div style="position:absolute;left:35%;top:50%;" class="checkmark" value="' +
+    "<div style=\"position:absolute;left:35%;top:50%;\" class=\"checkmark\" value=\"" +
     toValue(content) +
-    '"' +
+    "\"" +
     "onclick=\"if(!$(this).hasClass('draw')) { " +
     getUpdateContent(
       {
@@ -343,7 +343,7 @@ function getTableValidatableContent(id, content, range, expected) {
       },
       GLOBAL.dummy
     ) +
-    ' }">' +
+    " }\">" +
     "</div></div></td>"
   );
 }
@@ -352,15 +352,15 @@ function getEditCellHandler(expected, data) {
   return (
     " onfocusout=\"const error = getElementValidity(this); $(this).data('error', error); if (error) { $(this).focus(); showSnackBar(error); } else { " +
     (data && data.id && data.range ? getUpdateContent(data, expected) : "") +
-    ' }"' +
-    ' onkeyup="if (!GLOBAL.handleEvent && event.which == 13) { $(this).blur() } else if (!GLOBAL.handleEvent && event.which == 27)' +
+    " }\"" +
+    " onkeyup=\"if (!GLOBAL.handleEvent && event.which == 13) { $(this).blur() } else if (!GLOBAL.handleEvent && event.which == 27)" +
     " { this.value = '" +
     expected +
     "'; } autoAdaptWidth(this);" +
     (data && data.inputId && data.erase
       ? " $('#" + data.inputId + "Erase').css('visibility', $(this).val() ? 'visible' : 'hidden')"
       : "") +
-    '" oninput="autoAdaptWidth(this);"'
+    "\" oninput=\"autoAdaptWidth(this);\""
   );
 }
 
@@ -383,15 +383,15 @@ function getUpdateContent(data, expected) {
 
 function getSubTableTitle(id, title, range) {
   return (
-    '<tr><td colspan="10"><input value="' +
+    "<tr><td colspan=\"10\"><input value=\"" +
     title +
-    '" class="tableTitle auto" minLength="3"' +
-    ' maxLength="30" style="font-size:16px;"' +
+    "\" class=\"tableTitle auto\" minLength=\"3\"" +
+    " maxLength=\"30\" style=\"font-size:16px;\"" +
     getEditCellHandler(title, {
       id: id,
       range: range,
     }) +
-    '"></input></td></tr>'
+    "\"></input></td></tr>"
   );
 }
 
@@ -403,9 +403,9 @@ function getMainTitle(title) {
 function getTitle(id) {
   const title = translate(id);
   return (
-    '<button id="' +
+    "<button id=\"" +
     id +
-    'Button" class="tabLinks" onclick="openTab(\'' +
+    "Button\" class=\"tabLinks\" onclick=\"openTab('" +
     id +
     "')\">" +
     toFirstUpperCase(title) +
@@ -415,45 +415,45 @@ function getTitle(id) {
 
 function getTableTitle(id, disabled, tooltip, colspan) {
   return (
-    '<table id="' +
+    "<table id=\"" +
     id +
-    'Content" class="tabContent"><tr style="background-color:white"><td><table style="border:0px;padding:0px;width:auto">' +
-    '<tr style="background-color:white;"><td></td>' +
+    "Content\" class=\"tabContent\"><tr style=\"background-color:white\"><td><table style=\"border:0px;padding:0px;width:auto\">" +
+    "<tr style=\"background-color:white;\"><td></td>" +
     (id
-      ? '<td id="' +
+      ? "<td id=\"" +
         id +
-        'Switch" class="mainSwitch ' +
+        "Switch\" class=\"mainSwitch " +
         ($("#" + id + "Switch").is(":visible") ? "" : "hidden") +
-        '">' +
+        "\">" +
         getTooltip(
-          '<label class="switch" style="border:30px;margin:7px 0px 0px 0px;">' +
-            '<input id="' +
+          "<label class=\"switch\" style=\"border:30px;margin:7px 0px 0px 0px;\">" +
+            "<input id=\"" +
             id +
-            'Filter" type="checkbox" ' +
+            "Filter\" type=\"checkbox\" " +
             ($("#" + id + "Filter").is(":checked") ? "checked" : "") +
             " onclick=\"filterTable('" +
             id +
             "', true)\">" +
-            '<div class="slider round"></div></label>',
+            "<div class=\"slider round\"></div></label>",
           tooltip
         ) +
         "</td></tr></table>" +
-        '<td colspan="' +
+        "<td colspan=\"" +
         colspan +
-        '" align="right">' +
-        '<input id="' +
+        "\" align=\"right\">" +
+        "<input id=\"" +
         id +
-        'Search" type="text" placeholder="Search" class="mainSearch ' +
+        "Search\" type=\"text\" placeholder=\"Search\" class=\"mainSearch " +
         ($("#" + id + "Search").is(":visible") ? "" : "hidden") +
-        '" ' +
+        "\" " +
         "onkeyup=\"filterTable('" +
         id +
         "');\" onchange=\"filterTable('" +
         id +
         "');\"" +
-        'value="' +
+        "value=\"" +
         ($("#" + id + "Search").val() || "") +
-        '">'
+        "\">"
       : "") +
     "</tr></table>" +
     getMainTableHead(id)
@@ -461,14 +461,14 @@ function getTableTitle(id, disabled, tooltip, colspan) {
 }
 
 function getMainTableHead(id) {
-  return '<table id="' + id + 'Table" class="mainTable">';
+  return "<table id=\"" + id + "Table\" class=\"mainTable\">";
 }
 
 function getTableCheckmark(content) {
   return (
-    '<td align="center" style="height:27px;">' +
+    "<td align=\"center\" style=\"height:27px;\">" +
     getTooltip(
-      '<div style="position:absolute;left:35%;top:50%;display:block;margin:-4px -12px;" class="checkmark"></div>',
+      "<div style=\"position:absolute;left:35%;top:50%;display:block;margin:-4px -12px;\" class=\"checkmark\"></div>",
       translate(content)
     ) +
     "</td>"
@@ -477,11 +477,11 @@ function getTableCheckmark(content) {
 
 function getTableLoaderBar(content) {
   return (
-    '<td align="center" style="width:100px;">' +
+    "<td align=\"center\" style=\"width:100px;\">" +
     getTooltip(
-      '<div class="loaderBar drawlb"' +
-        ' onclick="animateLoaderBar(this, 1000)" style="cursor:pointer;padding:0px;margin:0px">' +
-        '<span width="80px" style="width:80px;height:12px;top:3px;margin:5px 0px;"></span></div>',
+      "<div class=\"loaderBar drawlb\"" +
+        " onclick=\"animateLoaderBar(this, 1000)\" style=\"cursor:pointer;padding:0px;margin:0px\">" +
+        "<span width=\"80px\" style=\"width:80px;height:12px;top:3px;margin:5px 0px;\"></span></div>",
       translate(content)
     ) +
     "</td>"
@@ -490,7 +490,7 @@ function getTableLoaderBar(content) {
 
 function getTableImage(content) {
   return (
-    '<td align="center">' +
+    "<td align=\"center\">" +
     getTooltip(
       getImage(content, "Image", [
         {
@@ -510,18 +510,18 @@ function getMenuButton(item) {
   const fn = item.fn ? item.fn.name : id;
 
   return (
-    '<td style="padding: 0px;">' +
+    "<td style=\"padding: 0px;\">" +
     getTooltip(
-      '<input id="' +
+      "<input id=\"" +
         id +
-        'Button" class="actionButton"' +
-        ' src="' +
+        "Button\" class=\"actionButton\"" +
+        " src=\"" +
         GLOBAL.serverUrl +
         "Img/Button/" +
         img +
-        '.png" type="image" tabindex="2" onclick="' +
+        ".png\" type=\"image\" tabindex=\"2\" onclick=\"" +
         fn +
-        '()">',
+        "()\">",
       translate(img)
     ) +
     "</td>"
@@ -531,12 +531,12 @@ function getMenuButton(item) {
 function getLabel(id, content, isToggle) {
   const d = getTranslateData(content);
   return getTooltip(
-    '<label id="' +
+    "<label id=\"" +
       id +
-      'Label" for="' +
+      "Label\" for=\"" +
       id +
-      '" ' +
-      (isToggle ? 'style="top:-20px;position:relative;"' : "") +
+      "\" " +
+      (isToggle ? "style=\"top:-20px;position:relative;\"" : "") +
       ">" +
       d.text +
       "</label>",
@@ -545,12 +545,12 @@ function getLabel(id, content, isToggle) {
 }
 
 function getTooltip(html, tooltip) {
-  return tooltip ? '<div class="tooltip">' + html + '<span class="tooltiptext">' + tooltip + "</span></div>" : html;
+  return tooltip ? "<div class=\"tooltip\">" + html + "<span class=\"tooltiptext\">" + tooltip + "</span></div>" : html;
 }
 
 function getLink(content, title) {
   return content
-    ? '<a href="' + (content.slice(0, 4) == "http" ? content : "#") + '" target="_blank">' + (title || content) + "</a>"
+    ? "<a href=\"" + (content.slice(0, 4) == "http" ? content : "#") + "\" target=\"_blank\">" + (title || content) + "</a>"
     : "<a >&nbsp;</a>";
 }
 
@@ -559,7 +559,7 @@ function getImage(content, path, attr) {
   if (attr) {
     attr.forEach((a) => (attributes += addAttr(a.name, a.value)));
   }
-  return '<img src="' + GLOBAL.serverUrl + "Img/" + path + "/" + content + '.png" ' + attributes + ">";
+  return "<img src=\"" + GLOBAL.serverUrl + "Img/" + path + "/" + content + ".png\" " + attributes + ">";
 }
 
 // function getTitle(id, disabled) {
@@ -598,12 +598,12 @@ function getColor(value, isDisabled = false, isCur = true, forcedColor) {
   return forcedColor
     ? forcedColor
     : isDisabled || (!isNaN(number) && number == 0)
-    ? "wheat"
-    : isCur
-    ? number > 0
-      ? "green"
-      : "red"
-    : "black";
+      ? "wheat"
+      : isCur
+        ? number > 0
+          ? "green"
+          : "red"
+        : "black";
 }
 
 function setTable(id, tableHTML) {
@@ -682,10 +682,10 @@ function checkElement(e) {
         ? "^([A-Z]{2}[ -]?[0-9]{2})(?=(?:[ -]?[A-Z0-9]){9,30}$)((?:[ -]?[A-Z0-9]{3,5}){2,7})([ -]?[A-Z0-9]{1,3})?$"
         : // type == "url" ? "^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$" :
         type == "url"
-        ? "."
-        : type == "name"
-        ? "^[A-zÀ-ú -]{0," + maxLength + "}$"
-        : "^[A-zÀ-ú0-9, ()]{0," + maxLength + "}$");
+          ? "."
+          : type == "name"
+            ? "^[A-zÀ-ú -]{0," + maxLength + "}$"
+            : "^[A-zÀ-ú0-9, ()]{0," + maxLength + "}$");
     const regexp = new RegExp(pattern);
     while (e.value && (!regexp.test(e.value) || e.value.length > maxLength)) {
       e.value = e.value.slice(0, -1);
@@ -700,14 +700,14 @@ function getElementValidity(e) {
       ? 1
       : 0
     : isEditableInput(type) && !e.readonly && !e.disabled
-    ? e.minLength || (e.required ? 3 : 0)
-    : 0;
+      ? e.minLength || (e.required ? 3 : 0)
+      : 0;
 
   return e.value.length < minLength
     ? "Value should have at least " + minLength + " character(s) !"
     : e.min && e.value && parseFloat(e.value) < parseFloat(e.min)
-    ? "Value should be at least " + roundDown(e.min, parseInt(e.dataset.precision) || 2) + e.dataset.symbol
-    : null;
+      ? "Value should be at least " + roundDown(e.min, parseInt(e.dataset.precision) || 2) + e.dataset.symbol
+      : null;
 }
 
 function selectName(e, index) {
@@ -808,22 +808,22 @@ function refreshTotal(id) {
           j == 0
             ? 1
             : j == 1
-            ? items[5].innerHTML
-              ? 1
-              : 0
-            : j == 2
-            ? items[7].innerHTML
-              ? 1
-              : 0
-            : j == 3
-            ? items[8].innerHTML
-              ? 1
-              : 0
-            : toValue(items[j].innerHTML);
+              ? items[5].innerHTML
+                ? 1
+                : 0
+              : j == 2
+                ? items[7].innerHTML
+                  ? 1
+                  : 0
+                : j == 3
+                  ? items[8].innerHTML
+                    ? 1
+                    : 0
+                  : toValue(items[j].innerHTML);
       }
     };
     footerFunc = () =>
-      '<td colspan="3" align="center">' +
+      "<td colspan=\"3\" align=\"center\">" +
       a[0] +
       " rows</td>" +
       "<td>" +
@@ -832,19 +832,19 @@ function refreshTotal(id) {
       "<td>" +
       toCurrency(a[5] / a[1]) +
       "</td>" +
-      '<td title="' +
+      "<td title=\"" +
       toCurrency(a[6] / a[0]) +
-      '">' +
+      "\">" +
       toCurrency(a[6]) +
       "</td>" +
-      '<td title="' +
+      "<td title=\"" +
       toCurrency(a[7] / a[2]) +
-      '">' +
+      "\">" +
       toCurrency(a[7]) +
       "</td>" +
-      '<td title="' +
+      "<td title=\"" +
       toCurrency(a[8] / a[3]) +
-      '">' +
+      "\">" +
       toCurrency(a[8]) +
       "</td>";
   } else {
@@ -997,19 +997,19 @@ function getTranslateData(content) {
 function getPopupContent(id, content, validate) {
   handleEvent(true);
   return (
-    '<div align="center" style="margin:15px 0px 0px 0px;">' +
+    "<div align=\"center\" style=\"margin:15px 0px 0px 0px;\">" +
     content +
     "<br><br>" +
     (!validate
-      ? '<button id="' + id + 'Button" onclick="handleEvent(true);' + id + 'Validation(this.innerHTML)"></button>'
-      : '<button id="previousPopupButton" onclick="handleEvent(true);' +
+      ? "<button id=\"" + id + "Button\" onclick=\"handleEvent(true);" + id + "Validation(this.innerHTML)\"></button>"
+      : "<button id=\"previousPopupButton\" onclick=\"handleEvent(true);" +
         id +
-        '()">' +
+        "()\">" +
         translate("PREVIOUS") +
         "</button>" +
-        '<button id="validatePopupButton" onclick="handleEvent(true);' +
+        "<button id=\"validatePopupButton\" onclick=\"handleEvent(true);" +
         validate +
-        '()">' +
+        "()\">" +
         translate("VALIDATE") +
         "</button>") +
     "</div>"
@@ -1057,8 +1057,8 @@ function shouldRebalance(value) {
 function toValue(content) {
   return content
     ? parseFloat(
-        String(content).replaceAll(",", "").replaceAll(" ", "").replaceAll("$", "").replaceAll("€", "").replaceAll("%", "")
-      )
+      String(content).replaceAll(",", "").replaceAll(" ", "").replaceAll("$", "").replaceAll("€", "").replaceAll("%", "")
+    )
     : 0;
 }
 
@@ -1074,10 +1074,10 @@ function toCurrency(content, precision = 2, symbol = "€") {
   return i + neg > 9
     ? str.slice(0, i - 9) + "," + str.slice(i - 9, i - 6) + "," + str.slice(i - 6, i - 3) + "," + str.slice(i - 3)
     : i + neg > 6
-    ? str.slice(0, i - 6) + "," + str.slice(i - 6, i - 3) + "," + str.slice(i - 3)
-    : i + neg > 3
-    ? str.slice(0, i - 3) + "," + str.slice(i - 3)
-    : str;
+      ? str.slice(0, i - 6) + "," + str.slice(i - 6, i - 3) + "," + str.slice(i - 3)
+      : i + neg > 3
+        ? str.slice(0, i - 3) + "," + str.slice(i - 3)
+        : str;
 }
 
 function toStringDate(date, isMDY) {
@@ -1179,12 +1179,12 @@ function setHtml(id, html) {
 function escapeHtml(html) {
   return html
     ? html
-        // .replace(/</g, '&lt;')
-        // .replace(/>/g, '&gt;')
-        // .replace(/"/g, '&quot;')
-        // .replace(/&/g, '&amp;')
-        .replace(/'/g, "&#039;")
-        .replace(/€/g, "&euro;")
+    // .replace(/</g, '&lt;')
+    // .replace(/>/g, '&gt;')
+    // .replace(/"/g, '&quot;')
+    // .replace(/&/g, '&amp;')
+      .replace(/'/g, "&#039;")
+      .replace(/€/g, "&euro;")
     : "";
 }
 
