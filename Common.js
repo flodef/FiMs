@@ -521,7 +521,9 @@ function getMenuButton(item) {
         img +
         ".png\" type=\"image\" tabindex=\"2\" onclick=\"" +
         fn +
-        "()\">",
+        "('" +
+        id +
+        "')\">",
       translate(img)
     ) +
     "</td>"

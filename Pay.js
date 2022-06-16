@@ -6,8 +6,12 @@ setTranslationLanguage, indexOf */
 
 GLOBAL.hasTranslation = true;
 GLOBAL.displayData = [];
-GLOBAL.menuButton = [];
 GLOBAL.user = [];
+GLOBAL.menuButton = [
+  { id: "Français", fn: setTranslationLanguage },
+  { id: "English", fn: setTranslationLanguage },
+  { id: "Deutsch", fn: setTranslationLanguage },
+];
 
 GLOBAL.isForMobile = true;
 
@@ -103,6 +107,8 @@ function displayContent(id, contents) {
   GLOBAL.merchantAddress = getDataValue(contents, GLOBAL.header.cryptoAddress);
   const company = getDataValue(contents, GLOBAL.header.company);
   const merchantTitle = getMainTitle(company);
+  $("#mainHeading").html(merchantTitle);
+
   setLanguages();
   setWallet();
 
@@ -112,14 +118,11 @@ function displayContent(id, contents) {
   $("#mainContent").html(logoHTML + processHTML);
   setProcess();
 
-  $("body").html(getDiv("merchant", "contentOverlay", "right", merchantTitle) + $("body").html());
-  displayElement("#mainContent, #merchant", false, 0);
-
   setCurrentStep(GLOBAL.processStep[0].index);
 
   finishLoading();
 
-  displayElement("#mainContent, #merchant, #mainHeading", true, 3000);
+  displayElement("#mainContent, #merchant, #mainHeading, .actionButton", true, 3000);
 }
 
 function setLanguages() {
