@@ -123,12 +123,7 @@ function _deleteOlderThanAYear(sheet) {
   } while (shouldDelete);
 }
 
-function _isMarketOpen(
-  firstDay = FD,
-  lastDay = LD,
-  firstHour = FH,
-  lastHour = LH
-) {
+function _isMarketOpen(firstDay = FD, lastDay = LD, firstHour = FH, lastHour = LH) {
   const x = new Date();
   const d = x.getDay();
   const h = x.getHours();
@@ -158,27 +153,19 @@ function _round(value, precision, symbol) {
 }
 
 function _isToday(array, i = 0, j = 0) {
-  return array && array.length > 0
-    ? _toStringDate() == _toStringDate(array[i][j])
-    : false;
+  return array && array.length > 0 ? _toStringDate() == _toStringDate(array[i][j]) : false;
 }
 
 function _isCurrentHour(array, i = 0, j = 0) {
-  return array && array.length > 0
-    ? new Date().getHours() == array[i][j].getHours()
-    : false;
+  return array && array.length > 0 ? new Date().getHours() == array[i][j].getHours() : false;
 }
 
 function _isCurrentDay(array, i = 0, j = 0) {
-  return array && array.length > 0
-    ? new Date().getDate() == array[i][j].getDate()
-    : false;
+  return array && array.length > 0 ? new Date().getDate() == array[i][j].getDate() : false;
 }
 
 function _isCurrentMonth(array, i = 0, j = 0) {
-  return array && array.length > 0
-    ? new Date().getMonth() == array[i][j].getMonth()
-    : false;
+  return array && array.length > 0 ? new Date().getMonth() == array[i][j].getMonth() : false;
 }
 
 //
@@ -212,9 +199,7 @@ function _toStringDate(date, locale = "FR") {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    return locale == "FR"
-      ? day + "/" + month + "/" + year
-      : month + "/" + day + "/" + year;
+    return locale == "FR" ? day + "/" + month + "/" + year : month + "/" + day + "/" + year;
   } else {
     return _toStringDate(new Date(), locale);
   }
@@ -244,10 +229,7 @@ function _toPercent(value, precision = 0) {
 }
 
 function _toCurrency(value, precision = 2, locale = "FR") {
-  return (
-    (locale == "FR" ? "" : "$") +
-    _round(value, precision, locale == "FR" ? " €" : "")
-  );
+  return (locale == "FR" ? "" : "$") + _round(value, precision, locale == "FR" ? " €" : "");
 }
 
 function _indexOf(array, value, index, start) {
@@ -256,11 +238,7 @@ function _indexOf(array, value, index, start) {
 
   let i = null;
   if (Array.isArray(array)) {
-    while (
-      x < array.length &&
-      ((index == null && array[x] != value) ||
-        (index != null && array[x][index] != value))
-    ) {
+    while (x < array.length && ((index == null && array[x] != value) || (index != null && array[x][index] != value))) {
       ++x;
     }
 
@@ -339,9 +317,7 @@ function IMPORTURL(url, xpath_query, isMulti) {
  * @return The date corresponding to the unix timestamp with shifted hours from UTC
  **/
 function TO_PURE_DATE(timestamp, hourShift = 0) {
-  return new Date(
-    (parseFloat(timestamp) + parseFloat(hourShift) * 3600) * 1000
-  );
+  return new Date((parseFloat(timestamp) + parseFloat(hourShift) * 3600) * 1000);
 }
 
 /**
@@ -353,9 +329,7 @@ function TO_PURE_DATE(timestamp, hourShift = 0) {
  * @return The unix timestamp corresponding to the date with shifted hours from UTC
  **/
 function TO_TIMESTAMP(date, hourShift = 0) {
-  return Math.floor(
-    new Date(date).getTime() / 1000 - parseFloat(hourShift) * 3600
-  );
+  return Math.floor(new Date(date).getTime() / 1000 - parseFloat(hourShift) * 3600);
 }
 
 /**

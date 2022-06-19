@@ -31,7 +31,7 @@ const PAIDTRANSACTIONS = "PaidTransactions"; // The "PaidTransactions" sheet nam
 const MERCHMODEL = "1"; // The model to create a new merchant
 
 function withdraw() {
-  if (_isMarketOpen(0, 6, 7, 20)) {
+  if (_isMarketOpen(0, 6, 7, 21)) {
     // Value init
     const msheet = _getSheet(MERCHANT);
     const array = msheet.getSheetValues(FR, FC, -1, -1);
@@ -49,7 +49,6 @@ function withdraw() {
       const id = array[i][INDEX_COL - 1];
       const sheet = _copySheetFromModel(id, MERCHMODEL);
       sheet.getRange(FR - 1, DATA_COL).setValue(id);
-      _updateFormula(sheet, MERCHUPD_ROW, DATA_COL);
 
       // Store the transactions to update
       transUpd |= sheet.getRange(TRANSUPD_ROW, DATA_COL).getValue();
@@ -64,11 +63,11 @@ function withdraw() {
         }
       }
 
+      // Update the transaction search formula
+      _updateFormula(sheet, MERCHUPD_ROW, DATA_COL);
+
       // If the current time matches the next withdraw time, process transactions
-      if (
-        _isToday(array, i, NEXTWD_COL - 1) &&
-        _isCurrentHour(array, i, NEXTWD_COL - 1)
-      ) {
+      if (_isToday(array, i, NEXTWD_COL - 1) && _isCurrentHour(array, i, NEXTWD_COL - 1)) {
         tsheet = _getSheet(TRANSACTIONS, tsheet);
         if (tsheet.getLastRow() >= FR) {
           const tarray = tsheet.getSheetValues(FR, FC, -1, -1);
@@ -113,14 +112,8 @@ function _generateEmail(paidArray, emailArray, recap, data) {
   const toPayFiat = _toCurrency(toPayTotal * fiatRatio);
 
   const object = "FiMs Pay - Reçu de paiement de " + _toCurrency(toPayTotal);
-  let message =
-    "FiMs Pay a effectué un virement d'un montant de " +
-    toPayFiat +
-    " pour l'entreprise " +
-    company +
-    "\n\n";
-  recap +=
-    "Company : " + company + "\n" + "Wire Transfer : " + toPayFiat + "\n\n";
+  let message = "FiMs Pay a effectué un virement d'un montant de " + toPayFiat + " pour l'entreprise " + company + "\n\n";
+  recap += "Company : " + company + "\n" + "Wire Transfer : " + toPayFiat + "\n\n";
 
   // Add a message specific to crypto withdraw
   if (fiatRatio < 1) {
@@ -128,30 +121,14 @@ function _generateEmail(paidArray, emailArray, recap, data) {
     const toPayCrypto = _toCurrency(toPayTotal * cryptoRatio);
     const cryptoAdd = data[CRYPTOADD_COL - 1];
 
-    message +=
-      "Le somme de " +
-      toPayCrypto +
-      " a été versée sur le" +
-      " compte crypto à l'adresse " +
-      cryptoAdd +
-      "\n\n";
-    recap +=
-      "Crypto Transfer : " +
-      toPayCrypto +
-      "\n" +
-      "Address : " +
-      cryptoAdd +
-      "\n\n";
+    message += "Le somme de " + toPayCrypto + " a été versée sur le" + " compte crypto à l'adresse " + cryptoAdd + "\n\n";
+    recap += "Crypto Transfer : " + toPayCrypto + "\n" + "Address : " + cryptoAdd + "\n\n";
   }
 
   // Add all the transactions historic
   message += "Récapitulatif des transactions :\n";
   for (let j = 0; j < paidArray.length; ++j) {
-    message +=
-      _toStringTime(paidArray[j][DATE_COL - 1]) +
-      " --> " +
-      _toCurrency(paidArray[j][AMOUNT_COL - 1]) +
-      "\n";
+    message += _toStringTime(paidArray[j][DATE_COL - 1]) + " --> " + _toCurrency(paidArray[j][AMOUNT_COL - 1]) + "\n";
   }
 
   emailArray.push([email, object, message]); // Store email data
@@ -163,8 +140,7 @@ function _archiveProcessedTransaction(paidArray) {
   if (paidArray.length > 0) {
     // Move processed transaction in an archive sheet
     const sheet = _getSheet(PAIDTRANSACTIONS);
-    const numRows =
-      paidArray.length - (sheet.getRange(FR, FC).getValue() != "" ? 0 : 1);
+    const numRows = paidArray.length - (sheet.getRange(FR, FC).getValue() != "" ? 0 : 1);
     if (numRows > 0) {
       sheet.insertRowsBefore(FR, numRows);
     }
