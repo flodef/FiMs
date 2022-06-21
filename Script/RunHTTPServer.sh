@@ -43,7 +43,7 @@ for sid in "${!fileArray[@]}"; do
   fi
 
   clear
-  until [ $retry = "N" ]; do
+  until [ $retry != "Y" ]; do
     rm -f "$url"
 
     xdg-open $goo

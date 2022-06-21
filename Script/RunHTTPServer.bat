@@ -16,7 +16,7 @@ START /WAIT "" %goo%
 
 CLS
 SET /p retry= Download spreadsheet %%file (Y/N) ?
-IF %retry%==N GOTO bbb
+IF %retry%!=Y GOTO bbb
 
 CLS
 for /l %%n in (55,-1,0) do (
@@ -27,7 +27,7 @@ for /l %%n in (55,-1,0) do (
   IF EXIST %url% GOTO zzz
 )
 SET /p retry= File not found. Check your Internet connexion. Retry (Y/N) ?
-IF %retry%==Y GOTO aaa
+IF %retry%!=N GOTO aaa
 :zzz
 REM CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 REM SET do=%ERRORLEVEL%
@@ -48,7 +48,7 @@ START /WAIT "" %goo%
 
 CLS
 SET /p retry= Download spreadsheet %%file (Y/N) ?
-IF %retry%==N GOTO ccc
+IF %retry%!=Y GOTO ccc
 
 CLS
 for /l %%n in (55,-1,0) do (
@@ -59,7 +59,7 @@ for /l %%n in (55,-1,0) do (
   IF EXIST %url% GOTO yyy
 )
 SET /p retry= File not found. Check your Internet connexion. Retry (Y/N) ?
-IF %retry%==Y GOTO bbb
+IF %retry%!=N GOTO bbb
 :yyy
 REM CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 REM SET do=%ERRORLEVEL%
@@ -81,7 +81,7 @@ START /WAIT "" %goo%
 
 CLS
 SET /p retry= Download spreadsheet %%file (Y/N) ?
-IF %retry%==Y GOTO ddd
+IF %retry%!=Y GOTO ddd
 
 CLS
 for /l %%n in (55,-1,0) do (
@@ -92,7 +92,7 @@ for /l %%n in (55,-1,0) do (
   IF EXIST %url% GOTO xxx
 )
 SET /p retry= File not found. Check your Internet connexion. Retry (Y/N) ?
-IF %retry%==Y GOTO ccc
+IF %retry%!=N GOTO ccc
 :xxx
 REM CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 REM SET do=%ERRORLEVEL%
@@ -115,7 +115,7 @@ START /WAIT "" %goo%
 
 CLS
 SET /p retry= Download spreadsheet %%file (Y/N) ?
-IF %retry%==Y GOTO end
+IF %retry%!=Y GOTO end
 
 CLS
 for /l %%n in (55,-1,0) do (
@@ -126,7 +126,7 @@ for /l %%n in (55,-1,0) do (
   IF EXIST %url% GOTO www
 )
 SET /p retry= File not found. Check your Internet connexion. Retry (Y/N) ?
-IF %retry%==Y GOTO ddd
+IF %retry%!=N GOTO ddd
 :www
 REM CHOICE /C YN /N /T 10 /D Y /M "Overwrite previous spreadsheet file (Y/N) ?"
 REM SET do=%ERRORLEVEL%
