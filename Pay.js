@@ -22,7 +22,7 @@ GLOBAL.solanaAddressPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/i;
 GLOBAL.customerAddress = "";
 GLOBAL.merchantAddress = "";
 GLOBAL.attempt = 0; // Number of attempt to load payment data
-GLOBAL.attemptTimeout = 1; // Duration between each attempt
+GLOBAL.attemptTimeout = 3; // Duration between each attempt
 GLOBAL.retry = 0; // Number of retry with a data reset which force reloading data
 GLOBAL.retryTimeout = 30; // Duration between each retry
 GLOBAL.retryLimit = 3; // Number of retry after which the payment is cancelled
@@ -204,7 +204,7 @@ async function verifyPayment(option) {
       displayElement("#process", false, 0);
       GLOBAL.retry = 0;
       GLOBAL.customerAddress = customerAddress[0];
-      setCustomerAddress(GLOBAL.customerAddress, checkPaymentStatus);
+      setCustomerAddress(GLOBAL.customerAddress, loadPaymentStatus);
     } else {
       setProcess(GLOBAL.step.openWallet);
     }
@@ -250,6 +250,7 @@ async function checkPaymentStatus(id, contents) {
       console.log("retry " + GLOBAL.retry + "/" + GLOBAL.retryLimit);
       resetCustomerAddress();
     } else {
+      console.log("retry " + GLOBAL.retryLimit + "/" + GLOBAL.retryLimit);
       fullStatus = GLOBAL.messages.invalidPayment;
       sendRefundEmail();
     }
