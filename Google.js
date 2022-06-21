@@ -9,6 +9,9 @@
 //              .withFailureHandler(displayError)
 //              .getSheetValues("Dashboard!A:B");
 
+const reloadWorkbookEverytime = true; // Indicates whether to reload workbook everytime data is requested
+const loadingDataSimulation = 0; // Simulation to fake loading data
+
 const workInProgress = false;
 const favIcon = "Img/Image/Favicon.png";
 
@@ -24,11 +27,7 @@ function doGet(e) {
     };
     const userId = getUrlParams(e, "id");
     const currentProject =
-      userId == project.TradFi
-        ? project.TradFi
-        : userId && !isNaN(userId)
-          ? project.Pay
-          : project.Associate;
+      userId == project.TradFi ? project.TradFi : userId && !isNaN(userId) ? project.Pay : project.Associate;
     const spreadsheetId = getSpreadsheetId(currentProject);
 
     fileName = "Index";
@@ -177,13 +176,14 @@ class Run {
   }
 
   async _getSheetValues(range) {
-    if (!this.#workbook) {
-      await fetch(property["spreadsheetId"])
+    if (!this.#workbook || reloadWorkbookEverytime) {
+      const spreadsheetId = property["spreadsheetId"];
+      await fetch(spreadsheetId)
         .then((response) => {
           if (response.ok) {
             return response.arrayBuffer();
           }
-          throw new Error("Network response was not ok.");
+          throw new Error("Invalid spreadsheet: " + spreadsheetId);
         })
         .then((buffer) => {
           const data = new Uint8Array(buffer);
@@ -194,7 +194,7 @@ class Run {
         .catch(this.#fh);
     }
 
-    await new Promise((r) => setTimeout(r, 2000)); // Simulate loading data on spreadsheet
+    await new Promise((r) => setTimeout(r, loadingDataSimulation)); // Simulate loading data on spreadsheet
 
     return this._getData(range);
   }
@@ -248,9 +248,7 @@ class Template {
     return this;
   }
   setFaviconUrl(url) {
-    var link =
-      document.querySelector("link[rel*='icon']") ||
-      document.createElement("link");
+    var link = document.querySelector("link[rel*='icon']") || document.createElement("link");
     link.type = "image/png";
     link.rel = "icon";
     link.href = url;

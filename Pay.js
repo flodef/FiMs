@@ -1,18 +1,16 @@
 /* global GLOBAL, $, initCommon, google, getDiv, finishLoading, 
 getValue, setValue, displayError, getImage, getDataValue, showLoader, 
 getMainTitle, toCurrency, toStringDate, translate, displayElement, 
-setTranslationLanguage, indexOf */
-/* exported init, onKeyUp, validatePayment, getButtonAction */
+setTranslationLanguage, indexOf, getCurrentLanguage */
+/* exported init, onKeyUp, validatePayment, getButtonAction, translationLoaded */
 
 GLOBAL.hasTranslation = true;
 GLOBAL.displayData = [];
 GLOBAL.user = [];
-GLOBAL.menuButton = [
-  { id: "Français", fn: setTranslationLanguage },
-  { id: "English", fn: setTranslationLanguage },
-  { id: "Deutsch", fn: setTranslationLanguage },
-];
+GLOBAL.menuButton = [];
 
+GLOBAL.language = "Français";
+GLOBAL.mainSection = "Main";
 GLOBAL.isForMobile = true;
 
 GLOBAL.merchantInfoFormula = "Check!A:C";
@@ -21,51 +19,37 @@ GLOBAL.customerAddressFormula = "Check!D";
 
 GLOBAL.solanaAddressPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/i;
 
-GLOBAL.currentStep = 0;
 GLOBAL.customerAddress = "";
 GLOBAL.merchantAddress = "";
 GLOBAL.attempt = 0; // Number of attempt to load payment data
-GLOBAL.attemptTimeout = 5; // Duration between each attempt
+GLOBAL.attemptTimeout = 1; // Duration between each attempt
 GLOBAL.retry = 0; // Number of retry with a data reset which force reloading data
 GLOBAL.retryTimeout = 30; // Duration between each retry
 GLOBAL.retryLimit = 3; // Number of retry after which the payment is cancelled
 
+GLOBAL.step = {
+  executePayment: "Execute payment",
+  openWallet: "Open",
+  verifyPayment: "Verify payment",
+  retry: "Retry",
+  result: "Result",
+};
+GLOBAL.currentStep = GLOBAL.step.executePayment;
+
 GLOBAL.messages = {
-  invalidAddress: "Invalid Solana Address!",
-  invalidPayment:
-    "Error: Your payment could not been verified. Try to pay by another mean. We will proceed to a refund shortly.",
   help: "Help",
   duration: "($ ago)",
+  invalidPayment:
+    "Error: Your payment could not been verified. Try to pay by another mean. We will proceed to a refund shortly.",
 };
 
 GLOBAL.helpURL = "https://fims.fi?id=Help";
 
-GLOBAL.processStep = [
-  {
-    index: 1,
-    label: "Choose your language:",
-    button: "English",
-    action: setTranslationLanguage.name,
-  },
-  {
-    index: 2,
-    label: "Open your Solana wallet and send the payment to the merchant:",
-    button: "Wallet",
-    action: openWallet.name,
-  },
-  {
-    index: 3,
-    label: "Copy your Solana wallet address from your wallet then verify payment:",
-    button: "Verify Payment," + GLOBAL.messages.help,
-    action: verifyPayment.name,
-  },
-];
-
 GLOBAL.wallet = [];
-// GLOBAL.wallet["Exodus"] = "https://play.google.com/store/apps/details?id=exodusmovement.exodus";
-GLOBAL.wallet["Exodus"] = "market://details?id=exodusmovement.exodus";
 GLOBAL.wallet["Solflare"] = "https://solflare.com/portfolio";
-GLOBAL.wallet[GLOBAL.messages.help] = "";
+GLOBAL.wallet["Exodus"] = "market://details?id=exodusmovement.exodus";
+// GLOBAL.wallet["Exodus"] = "https://play.google.com/store/apps/details?id=exodusmovement.exodus";
+// GLOBAL.wallet[GLOBAL.messages.help] = "";
 
 GLOBAL.header = {
   cryptoAddress: "Crypto Address",
@@ -81,10 +65,18 @@ GLOBAL.status = {
   warning: "warning",
   success: "success",
 };
+GLOBAL.statusContent = "";
 
 $(() => {
   initCommon();
 });
+
+function translationLoaded() {
+  const translation = GLOBAL.data[GLOBAL.translation];
+  const button = [];
+  translation[0].forEach((x) => button.push({ id: x, fn: selectLanguage }));
+  GLOBAL.menuButton = button.filter((x) => x.id);
+}
 
 function init() {
   google.script.run.withSuccessHandler(setUserId).withFailureHandler(displayError).getProperty("userId");
@@ -106,86 +98,73 @@ function setUserId(id) {
 function displayContent(id, contents) {
   GLOBAL.merchantAddress = getDataValue(contents, GLOBAL.header.cryptoAddress);
   const company = getDataValue(contents, GLOBAL.header.company);
-  const merchantTitle = getMainTitle(company);
+  const merchantTitle = getMainTitle(company, 60);
   $("#mainHeading").html(merchantTitle);
-
-  setLanguages();
-  setWallet();
 
   const logo = getImage(GLOBAL.user.ID, "Pay/Merchant", [{ name: "style", value: "margin: 25px;" }]);
   const logoHTML = getDiv("logo", null, "center", logo);
   const processHTML = getDiv("process", null, "center");
   $("#mainContent").html(logoHTML + processHTML);
-  setProcess();
-
-  setCurrentStep(GLOBAL.processStep[0].index);
 
   finishLoading();
 
-  displayElement("#mainContent, #merchant, #mainHeading, .actionButton", true, 3000);
+  selectLanguage(GLOBAL.language);
+  displayElement("#mainContent, #merchant, #mainHeading, #process", true, 3000);
 }
 
-function setLanguages() {
-  const step = GLOBAL.processStep[0];
-  setTranslationLanguage(step.button);
+function selectLanguage(language) {
+  if (language != getCurrentLanguage()) {
+    displayElement(".actionButton", true, 0, () => displayElement("#" + language + "Button", false, 0));
+    setTranslationLanguage(language);
+    setProcess(GLOBAL.currentStep);
+  }
+}
 
+function setProcess(step) {
   const translation = GLOBAL.data[GLOBAL.translation];
-  const index = indexOf(translation, step.label, GLOBAL.translationCurrentIndex);
+  const index = GLOBAL.translationCurrentIndex;
+  const main = indexOf(translation, GLOBAL.mainSection, 0) + 1;
 
-  const label = [];
-  translation[index].forEach((x) => label.push(x));
-  step.label = label.filter((x) => x).join("<br>");
+  let content = "";
+  step = step == translate(GLOBAL.step.retry) ? GLOBAL.step.executePayment : step;
+  if (step == GLOBAL.step.executePayment || step == GLOBAL.step.openWallet) {
+    if (step == GLOBAL.step.executePayment) {
+      content += getDiv(null, null, "left", getMainTitle(translation[main][index]));
+    }
+    const wallet = getWallet();
+    content +=
+      getMainTitle(translation[main + 1][index]) +
+      getStepButton(translate(GLOBAL.step.openWallet) + " " + wallet[0], openWallet.name);
+  } else if (step == GLOBAL.step.verifyPayment) {
+    content += getStepButton(translate(GLOBAL.step.verifyPayment), verifyPayment.name);
+  } else if (step == GLOBAL.step.result) {
+    content += getPaymentStatus();
+  } else {
+    throw "Unknown step: " + step;
+  }
 
-  const button = [];
-  translation[0].forEach((x) => button.push(x));
-  step.button = button.filter((x) => x).join(",");
+  GLOBAL.currentStep = step;
+
+  const id = "#process";
+  displayElement(id, false, 0);
+  $(id).html(content);
+  $(id).css("margin", "0px 0px 0px 30px");
+  displayElement(id, true);
 }
 
-function setWallet() {
-  const step = GLOBAL.processStep[1];
+function getWallet() {
   const wallet = [];
   for (let x in GLOBAL.wallet) {
     wallet.push(x);
   }
-  step.button = wallet.join(",");
+  return wallet;
 }
 
-function setProcess() {
-  let numberTML = "";
-  GLOBAL.processStep.forEach((step) => {
-    const stepNumber = "number" + step.index;
-    numberTML += getImage(stepNumber, "Button", [
-      { name: "id", value: stepNumber },
-      { name: "class", value: "stepNumber" },
-      { name: "style", value: "margin: 25px; width: 150px; height: 150px; opacity: 0.25; cursor:pointer" },
-      { name: "onclick", value: "setCurrentStep(" + step.index + ")" },
-    ]);
-  });
-  numberTML = getDiv("number", null, null, numberTML);
-  const stepHTML = getDiv("step");
-
-  $("#process").html(numberTML + "<br>" + stepHTML + "<br>");
-  displayElement("#number, #step", false, 0);
-}
-
-function getStepContent(index) {
-  let stepHTML = "";
-  const step = GLOBAL.processStep[index];
-  if (step) {
-    stepHTML += getMainTitle(step.label);
-    step.button.split(",").forEach((button) => (stepHTML += getStepButton(step.index, button, step.action)));
-  }
-
-  return stepHTML;
-}
-
-function getStepButton(index, label, action) {
-  return (
-    "<button onclick=\"getButtonAction(" +
+function getStepButton(label, action) {
+  const buttonHTML =
+    "<button onclick=\"" +
     action +
-    ",this.innerHTML," +
-    index +
-    `)" style="
+    `(this.innerHTML)" style="
     border-radius: 30px;
     height: 100px;
     width: 500px;
@@ -195,28 +174,9 @@ function getStepButton(index, label, action) {
     font-weight: bold;
     ">` +
     translate(label) +
-    "</button>"
-  );
-}
+    "</button>";
 
-async function getButtonAction(action, value, index) {
-  const isOk = await action.call(this, value);
-  if (isOk || isOk === undefined) {
-    setCurrentStep(index + 1);
-  }
-}
-
-function setCurrentStep(index) {
-  if (index !== GLOBAL.currentStep) {
-    GLOBAL.currentStep = index;
-    $("#step").html(getStepContent(index - 1));
-    displayElement("#step", false, 0);
-    displayElement("#step", true, 2000);
-
-    displayElement("#number", true, 0);
-    $(".stepNumber").fadeTo(1000, 0.25);
-    $("#number" + index).fadeTo(1000, 1);
-  }
+  return getDiv("processButton", null, "center", buttonHTML);
 }
 
 function openHelp(section) {
@@ -226,13 +186,12 @@ function openHelp(section) {
 
 function openWallet(wallet) {
   navigator.clipboard.writeText(GLOBAL.merchantAddress);
-  const url = GLOBAL.wallet[wallet];
+  const url = GLOBAL.wallet[wallet.split(" ")[1]];
   if (url) {
     window.open(url, "_blank");
-    return true;
+    setProcess(GLOBAL.step.verifyPayment);
   } else {
     openHelp(arguments.callee.name);
-    return false;
   }
 }
 
@@ -245,15 +204,12 @@ async function verifyPayment(option) {
       displayElement("#process", false, 0);
       GLOBAL.retry = 0;
       GLOBAL.customerAddress = customerAddress[0];
-      setCustomerAddress(GLOBAL.customerAddress, displayPaymentStatus);
-      return true;
+      setCustomerAddress(GLOBAL.customerAddress, checkPaymentStatus);
     } else {
-      displayError(GLOBAL.messages.invalidAddress);
-      return false;
+      setProcess(GLOBAL.step.openWallet);
     }
   } else {
     openHelp(arguments.callee.name);
-    return false;
   }
 }
 
@@ -263,7 +219,7 @@ function setCustomerAddress(customerAddress, success) {
 }
 
 function resetCustomerAddress() {
-  setCustomerAddress("", () => setCustomerAddress(GLOBAL.customerAddress, displayPaymentStatus));
+  setCustomerAddress("", () => setCustomerAddress(GLOBAL.customerAddress, checkPaymentStatus));
 }
 
 function loadPaymentStatus() {
@@ -272,14 +228,18 @@ function loadPaymentStatus() {
       formula: GLOBAL.paymentInfoFormula,
       filter: 0,
     },
-    displayPaymentStatus
+    checkPaymentStatus
   );
 }
 
-async function displayPaymentStatus(id, contents) {
-  let fullStatus = getDataValue(contents, GLOBAL.header.status);
-  if (!fullStatus || fullStatus.slice(-3) === "...") {
-    // Processing... or Loading...
+async function checkPaymentStatus(id, contents) {
+  let fullStatus = getFullStatus(contents);
+  if (
+    !fullStatus ||
+    fullStatus.slice(-3) === "..." ||
+    (getStatus(fullStatus) === GLOBAL.status.warning && GLOBAL.retry === 0)
+  ) {
+    // No status or Processing... / Loading... or Old transaction warning before one retry (maybe the transaction is soon to be validated)
     fullStatus = null;
     if (GLOBAL.attempt < GLOBAL.retryTimeout / GLOBAL.attemptTimeout) {
       ++GLOBAL.attempt;
@@ -296,31 +256,46 @@ async function displayPaymentStatus(id, contents) {
   }
 
   if (fullStatus) {
-    const status = fullStatus.split(":")[0].toLowerCase().trim();
-    let html =
+    GLOBAL.statusContent = contents;
+
+    setProcess(GLOBAL.step.result);
+  }
+}
+
+function getPaymentStatus() {
+  const content = GLOBAL.statusContent;
+  const fullStatus = getFullStatus(content);
+  let html = "";
+  if (fullStatus) {
+    const status = getStatus(fullStatus);
+    html +=
       getImage(status === GLOBAL.status.error ? "Cancel" : status === GLOBAL.status.warning ? "Bug" : "Validate", "Button", [
         { name: "style", value: "margin: 50px" },
       ]) + "<br>";
-    html += getMainTitle(fullStatus);
-    if (status !== GLOBAL.status.error) {
-      html += getMainTitle(toCurrency(getDataValue(contents, GLOBAL.header.amount)));
-      if (status !== GLOBAL.status.success) {
-        const d = getDataValue(contents, GLOBAL.header.duration).split(":");
-        const duration = (parseInt(d[0]) > 0 ? d[0] + "h " : "") + (parseInt(d[1]) > 0 ? d[1] + "m " : "") + d[2] + "s";
+    html += status !== GLOBAL.status.success ? getMainTitle(fullStatus, 90) : "";
+    html += status !== GLOBAL.status.error ? getMainTitle(toCurrency(getDataValue(content, GLOBAL.header.amount)), 90) : "";
+    if (status === GLOBAL.status.warning) {
+      const d = getDataValue(content, GLOBAL.header.duration).split(":");
+      const duration = (parseInt(d[0]) > 0 ? d[0] + "h " : "") + (parseInt(d[1]) > 0 ? d[1] + "m " : "") + d[2] + "s";
 
-        html += getMainTitle(getDataValue(contents, GLOBAL.header.time));
-        html += getMainTitle(translate(GLOBAL.messages.duration).replace("$", duration));
-      }
-    } else {
-      html += getStepButton(1, "Retry", setProcess.name);
+      html += getMainTitle(getDataValue(content, GLOBAL.header.time));
+      html += getMainTitle(translate(GLOBAL.messages.duration).replace("$", duration));
     }
+    html += status !== GLOBAL.status.success ? getStepButton(GLOBAL.step.retry, setProcess.name) : "";
 
     setCustomerAddress("");
     showLoader(false);
-
-    $("#process").html(html);
-    displayElement("#process", true);
   }
+
+  return html;
+}
+
+function getStatus(fullStatus) {
+  return fullStatus ? fullStatus.split(":")[0].toLowerCase().trim() : null;
+}
+
+function getFullStatus(contents) {
+  return getDataValue(contents, GLOBAL.header.status);
 }
 
 function sendRefundEmail() {

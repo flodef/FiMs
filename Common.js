@@ -1,11 +1,11 @@
-/* global GLOBAL, $, jQuery, google, getDiv, init, addAttr, cancelForm */
-/* exported openTab, openPopup, closePopup, loadPage, animateLoaderBar,
+/* global GLOBAL, $, jQuery, google, getDiv, init, addAttr, cancelForm, translationLoaded */
+/* exported openTab, openPopup, closePopup, loadPage, animateLoaderBar, 
 updateAllValues, processTable, getTableValidatableCell, getTableReadOnlyCell,
 getTableEditableContent, getSubTableTitle, getTableCheckmark, getTableLoaderBar,
 getTableImage, toggleItem, getElementValidity, selectName, setValue, overDisplay,
 executionSuccess, getPopupContent, addPopupButtonEvent, shouldRebalance, initCommon,
 addDaysToDate, getNextMonthDate, getDaysBetweenDate, restrainFormula, finishLoading, 
-getDataValue, setTranslationLanguage */
+getDataValue, setTranslationLanguage, getCurrentLanguage */
 
 /**
  * Functions that are shared between apps.
@@ -40,7 +40,10 @@ function initCommon() {
       },
       null,
       true,
-      loadPage
+      () => {
+        translationLoaded();
+        loadPage();
+      }
     );
   } else {
     loadPage();
@@ -395,9 +398,11 @@ function getSubTableTitle(id, title, range) {
   );
 }
 
-function getMainTitle(title) {
+function getMainTitle(title, fontSize = 50) {
   const isHuge = GLOBAL.isForMobile;
-  return (isHuge ? "<h0>" : "<h1>") + translate(title) + (isHuge ? "</h0><br>" : "</h1>");
+  return (
+    (isHuge ? "<h0 style=\"font-size:" + fontSize + "px\">" : "<h1>") + translate(title) + (isHuge ? "</h0><br>" : "</h1>")
+  );
 }
 
 function getTitle(id) {
@@ -932,8 +937,6 @@ function displayError(message, isWarning) {
   showLoader(false);
   displayLoading(GLOBAL.currentLoadingId, false);
 
-  $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336", "font-size", GLOBAL.isForMobile ? "55px" : "large");
-
   $("#alert").html(
     "<span class=\"closebtn\" onclick=\"displayElement('#alertOverlay', false, 1000, () => $('#transactionName').focus());\">&times;</span>" +
       "<strong>" +
@@ -941,6 +944,8 @@ function displayError(message, isWarning) {
       ":</strong> " +
       translate(message)
   );
+  $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
+  $("#alert").css("font-size", GLOBAL.isForMobile ? "55px" : "large");
   $(".closebtn").css("font-size", $("#alert").css("font-size"));
 
   displayElement("#alertOverlay", true, 1000);
@@ -957,6 +962,10 @@ function setTranslationLanguage(language) {
     : GLOBAL.translationNativeIndex;
 }
 
+function getCurrentLanguage() {
+  return GLOBAL.data[GLOBAL.translation][0][GLOBAL.translationCurrentIndex];
+}
+
 function getTranslateData(content) {
   const ti = GLOBAL.translationCurrentIndex;
   let text = content;
@@ -964,10 +973,7 @@ function getTranslateData(content) {
 
   const d = GLOBAL.data[GLOBAL.translation];
   if (d && content) {
-    const fna = (item) => {
-      const nativeIndex = GLOBAL.translationNativeIndex;
-      return indexOf(d, item, nativeIndex, nativeIndex + 1, (a, b) => a.toLowerCase() == b.toLowerCase());
-    };
+    const fna = (item) => indexOf(d, item, GLOBAL.translationNativeIndex, 0, (a, b) => a.toLowerCase() == b.toLowerCase());
     const fnb = (item) => {
       text = text.replace(item, d[fna(item)][ti]);
     };
