@@ -250,7 +250,7 @@ async function checkPaymentStatus(id, contents) {
       console.log("retry " + GLOBAL.retry + "/" + GLOBAL.retryLimit);
       resetCustomerAddress();
     } else {
-      fullStatus = GLOBAL.invalidPayment;
+      fullStatus = GLOBAL.messages.invalidPayment;
       sendRefundEmail();
     }
   }
