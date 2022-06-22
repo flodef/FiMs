@@ -41,7 +41,7 @@ function initCommon() {
       null,
       true,
       () => {
-        translationLoaded();
+        initTranslation();
         loadPage();
       }
     );
@@ -50,12 +50,14 @@ function initCommon() {
   }
 }
 
+function initTranslation() {
+  GLOBAL.translationNativeIndex = indexOf(GLOBAL.data[GLOBAL.translation][0], GLOBAL.translationNativeLanguage);
+  setTranslationLanguage(GLOBAL.hasTranslation && GLOBAL.language ? GLOBAL.language : GLOBAL.translationNativeLanguage);
+  translationLoaded();
+}
+
 function loadPage() {
   $(document).on("visibilitychange", () => (GLOBAL.doVisualUpdates = !document.hidden));
-
-  // Set translation native index
-  setTranslationLanguage(GLOBAL.translationNativeLanguage);
-  GLOBAL.translationNativeIndex = GLOBAL.translationCurrentIndex;
 
   GLOBAL.displayId = Object.keys(GLOBAL.displayData); // Set the id to display in a normal array
 

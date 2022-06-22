@@ -5,11 +5,11 @@ setTranslationLanguage, indexOf, getCurrentLanguage */
 /* exported init, onKeyUp, validatePayment, getButtonAction, translationLoaded */
 
 GLOBAL.hasTranslation = true;
+GLOBAL.language = "Français";
 GLOBAL.displayData = [];
 GLOBAL.user = [];
 GLOBAL.menuButton = [];
 
-GLOBAL.language = "Français";
 GLOBAL.mainSection = "Main";
 GLOBAL.isForMobile = true;
 

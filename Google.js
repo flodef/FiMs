@@ -9,7 +9,6 @@
 //              .withFailureHandler(displayError)
 //              .getSheetValues("Dashboard!A:B");
 
-const reloadWorkbookEverytime = true; // Indicates whether to reload workbook everytime data is requested
 const loadingDataSimulation = 0; // Simulation to fake loading data
 
 const workInProgress = false;
@@ -41,27 +40,26 @@ function doGet(e) {
     pageTitle = fileName;
   }
 
-  var template = HtmlService.createTemplateFromFile(fileName);
+  const template = HtmlService.createTemplateFromFile(fileName);
 
   // Build and return HTML in IFRAME sandbox mode.
   return template.evaluate().setTitle(pageTitle).setFaviconUrl(favIcon);
 }
 
+// WARNING : THESE PRIVATE FUNCTIONS ARE NOT MEANT TO BE CALLED DIRECTLY
 function getUrlParams(e, param) {
   return e.get(param);
 }
-
 function getSpreadsheetId(currentProject) {
   return "Data/FiMs " + currentProject + ".xlsx";
 }
-
 function setProperty(key, value) {
   property[key] = value;
 }
-
 function getProperty(key) {
   return property[key];
 }
+// WARNING : THESE PRIVATE FUNCTIONS ARE NOT MEANT TO BE CALLED DIRECTLY
 
 class google {
   static get script() {
@@ -70,23 +68,22 @@ class google {
 }
 
 class Script {
-  static #singleton;
   static get run() {
-    if (!Script.#singleton) {
-      Script.#singleton = new Run();
-    }
-    return Script.#singleton;
+    return new Run();
   }
 }
 
 let property = [];
 
 class Run {
-  #workbook;
+  static #loaded = false;
   #sh = () => {};
   #fh = () => {};
   constructor() {
-    doGet(new URLSearchParams(location.search));
+    if (!Run.#loaded) {
+      Run.#loaded = true;
+      doGet(new URLSearchParams(location.search));
+    }
   }
   withSuccessHandler(func) {
     this.#sh = func ?? (() => {});
@@ -100,26 +97,26 @@ class Run {
     let p;
     try {
       p = getProperty(key);
+      this.#sh(p);
     } catch (error) {
       this.#fh(error);
     }
-    this.#sh(p);
   }
   setProperty(key, value) {
     try {
       setProperty(key, value);
+      this.#sh();
     } catch (error) {
       this.#fh(error);
     }
-    this.#sh();
   }
   sendRecapEmail(subject) {
     try {
       alert("Mail sent to myself !\n\nSubject = " + subject);
+      this.#sh();
     } catch (error) {
       this.#fh(error);
     }
-    this.#sh();
   }
   sendEmail(recipient, subject, message, options) {
     try {
@@ -131,32 +128,48 @@ class Run {
           (message ? "\nMessage = " + message : "") +
           (options ? "\nOptions = " + options.htmlBody : "")
       );
+      this.#sh();
     } catch (error) {
       this.#fh(error);
     }
-    this.#sh();
   }
   async getSheetValues(range, filter, column = 0) {
-    var content;
     try {
-      content = await this._getSheetValues(range);
-      if (filter) {
-        var temp = content;
-
-        content = [];
-        content.push(temp[0]);
-        for (var i = 1; i < temp.length; ++i) {
-          if (temp[i][column] == filter) {
-            content.push(temp[i]);
-          }
-        }
+      if (loadingDataSimulation > 0) {
+        await new Promise((r) => setTimeout(r, loadingDataSimulation)); // Simulate loading data on spreadsheet
       }
+
+      const spreadsheetId = property["spreadsheetId"];
+      await fetch(spreadsheetId)
+        .then((response) => {
+          if (response.ok) {
+            return response.arrayBuffer();
+          }
+          throw new Error("Invalid spreadsheet: " + spreadsheetId);
+        })
+        .then((buffer) => {
+          const data = new Uint8Array(buffer);
+          return XLSX.read(data, {
+            type: "array",
+          });
+        })
+        .then((data) => {
+          let content = this._getData(data, range);
+          if (filter) {
+            const temp = content;
+            content = [temp[0]];
+            for (let i = 1; i < temp.length; ++i) {
+              if (temp[i][column] == filter) {
+                content.push(temp[i]);
+              }
+            }
+          }
+          this.#sh(content);
+        })
+        .catch(this.#fh);
     } catch (e) {
       // Don't send error in case that the sheet asked does not exist
-      content = null;
     }
-
-    this.#sh(content);
   }
 
   async setSheetValues(/*range, values*/) {
@@ -175,45 +188,21 @@ class Run {
     this.#sh();
   }
 
-  async _getSheetValues(range) {
-    if (!this.#workbook || reloadWorkbookEverytime) {
-      const spreadsheetId = property["spreadsheetId"];
-      await fetch(spreadsheetId)
-        .then((response) => {
-          if (response.ok) {
-            return response.arrayBuffer();
-          }
-          throw new Error("Invalid spreadsheet: " + spreadsheetId);
-        })
-        .then((buffer) => {
-          const data = new Uint8Array(buffer);
-          this.#workbook = XLSX.read(data, {
-            type: "array",
-          });
-        })
-        .catch(this.#fh);
-    }
-
-    await new Promise((r) => setTimeout(r, loadingDataSimulation)); // Simulate loading data on spreadsheet
-
-    return this._getData(range);
-  }
-
-  _getData(range) {
-    var a = range.split("!");
-    var sheetName = a[0];
-    var sheet = this.#workbook.Sheets[sheetName];
+  _getData(data, range) {
+    const a = range.split("!");
+    const sheetName = a[0];
+    const sheet = data.Sheets[sheetName];
     if (sheet) {
-      var fullRange = sheet["!ref"];
-      var r = a.length >= 2 ? a[1] : fullRange;
-      var ar = r.split(":");
-      var sr = ar[0];
-      var er = ar[1] || ar[0]; // Set the starting range as the ending range if none (eg : sheet!A1)
-      var dr = XLSX.utils.decode_range(fullRange);
+      const fullRange = sheet["!ref"];
+      const r = a.length >= 2 ? a[1] : fullRange;
+      const ar = r.split(":");
+      let sr = ar[0];
+      let er = ar[1] || ar[0]; // Set the starting range as the ending range if none (eg : sheet!A1)
+      const dr = XLSX.utils.decode_range(fullRange);
       sr += !this._hasNumber(sr) ? dr.s.r + 1 : "";
       er += !this._hasNumber(er) ? dr.e.r + 1 : "";
       range = sr + ":" + er;
-      var array = XLSX.utils.sheet_to_json(sheet, {
+      const array = XLSX.utils.sheet_to_json(sheet, {
         header: 1,
         raw: false,
         range: range,
@@ -239,7 +228,7 @@ class HtmlService {
 class Template {
   evaluate() {
     // SET HERE ALL THE STUFF RELATIVE TO GOOGLE APP SCRIPT INIT
-    // var url = document.URL.split('/');
+    // const url = document.URL.split('/');
     // window.history.pushState('', '', url[url.length-1].split('?')[0]);   // Reset passed value to simulate google server behavior
     return this;
   }
@@ -248,7 +237,7 @@ class Template {
     return this;
   }
   setFaviconUrl(url) {
-    var link = document.querySelector("link[rel*='icon']") || document.createElement("link");
+    const link = document.querySelector("link[rel*='icon']") || document.createElement("link");
     link.type = "image/png";
     link.rel = "icon";
     link.href = url;

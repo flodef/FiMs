@@ -10,6 +10,8 @@ processTable, getTooltip, restrainFormula, initCommon */
 withdrawAmountValidation, confirmationValidation, printHtml, translationLoaded */
 
 GLOBAL.hasTranslation = true;
+GLOBAL.language = "Français";
+
 GLOBAL.depositAmount = "depositAmount";
 GLOBAL.withdrawAmount = "withdrawAmount";
 GLOBAL.withdrawPeriod = "withdrawPeriod";
@@ -45,7 +47,7 @@ GLOBAL.displayData = {
   },
   personal: {
     id: "personal",
-    formula: "Associate!A:Q",
+    formula: "Associate!A:P",
     updateTable: updatePersonalTable,
     loadOnce: true,
     filter: 1,
