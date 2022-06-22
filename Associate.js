@@ -7,7 +7,7 @@ getDaysBetweenDate, getNextMonthDate, showSnackBar, addDaysToDate, roundDown,
 setEvents, setValue, isEditableInput, getTableEditableContent, finishLoading,
 processTable, getTooltip, restrainFormula, initCommon */
 /* exported init, onKeyUp, connect, userIdValidation, depositAmountValidation, 
-withdrawAmountValidation, confirmationValidation, printHtml */
+withdrawAmountValidation, confirmationValidation, printHtml, translationLoaded */
 
 GLOBAL.hasTranslation = true;
 GLOBAL.depositAmount = "depositAmount";
@@ -182,9 +182,7 @@ GLOBAL.personalData = [
   required: true
 }, // Newsletter*/
 ];
-GLOBAL.globalData = [
-  36, 37, 33, 1, 58, 56, 21, 31, 32, 35, 39, 40, 52, 59, 60, 63, 64, 65, 71,
-];
+GLOBAL.globalData = [36, 37, 33, 1, 58, 56, 21, 31, 32, 35, 39, 40, 52, 59, 60, 63, 64, 65, 71];
 
 GLOBAL.user = [];
 
@@ -195,11 +193,10 @@ $(() => {
 });
 
 function init() {
-  google.script.run
-    .withSuccessHandler(setUserId)
-    .withFailureHandler(displayError)
-    .getProperty("userId");
+  google.script.run.withSuccessHandler(setUserId).withFailureHandler(displayError).getProperty("userId");
 }
+
+function translationLoaded() {}
 
 function updateAccountTable(id, contents) {
   const hasContent = contents;
@@ -240,8 +237,7 @@ function updateHistoricTable(id, contents) {
           j == col - 1
             ? i == 0
               ? getTranslatedContent(GLOBAL.Status, true) // Add a status column
-              : contents[i][0] &&
-                new Date(toStringDate(contents[i][0], true)) <= new Date()
+              : contents[i][0] && new Date(toStringDate(contents[i][0], true)) <= new Date()
                 ? parseFloat(contents[i][j]) <= 0
                   ? getTableCheckmark(GLOBAL.completedStatus) // Completed
                   : getTableImage(GLOBAL.DonationStatus) // Donation
@@ -274,10 +270,7 @@ function updatePersonalTable(id, contents) {
     GLOBAL.personalData.forEach((item) => {
       const i = item.index;
       item.range = baseFormula + convertNumberToColumn(i) + contents[1][0];
-      item.value =
-        item.readonly || item.disabled
-          ? translate(contents[1][i])
-          : contents[1][i];
+      item.value = item.readonly || item.disabled ? translate(contents[1][i]) : contents[1][i];
       item.min = recurrentCol ? -GLOBAL.maxRecurrent : null;
 
       GLOBAL.user[contents[0][i].replaceAll(" ", "")] = contents[1][i];
@@ -314,8 +307,7 @@ function updatePersonalTable(id, contents) {
     }
 
     // Set the scrolling panel
-    tableHTML =
-      "<marquee direction=\"down\" scrollamount=\"1\" behavior=\"scroll\"><table>";
+    tableHTML = "<marquee direction=\"down\" scrollamount=\"1\" behavior=\"scroll\"><table>";
     for (var i = totalCol; i >= depositCol; --i) {
       tableHTML += "<tr>";
       tableHTML += getTranslatedContent(contents[0][i]);
@@ -362,12 +354,7 @@ function updateGlobalTable(id, contents) {
 function updateFaqTable(id, contents) {
   var row = contents.length;
   var col = contents[0].length;
-  var tableHTML = getTableTitle(
-    id,
-    false,
-    GLOBAL.showAllButtonToolTip,
-    col - 1
-  );
+  var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
   tableHTML += "<div style=\"padding: 5px 25px;\">";
   for (var i = 1; i < row; ++i) {
     // Skip the header
@@ -375,11 +362,8 @@ function updateFaqTable(id, contents) {
       var con = contents[i][j];
       var isQuestion = j == 0;
       var str = "";
-      con
-        .split(" ")
-        .forEach((a) => (str += (a.includes("http") ? getLink(a) : a) + " "));
-      tableHTML +=
-        (isQuestion ? "<b>" : "") + str + (isQuestion ? "</b>" : "") + "<br>";
+      con.split(" ").forEach((a) => (str += (a.includes("http") ? getLink(a) : a) + " "));
+      tableHTML += (isQuestion ? "<b>" : "") + str + (isQuestion ? "</b>" : "") + "<br>";
     }
     tableHTML += "<br><br>";
   }
@@ -393,10 +377,7 @@ function updateFaqTable(id, contents) {
 }
 
 function openTabAfterConnect(id) {
-  if (
-    !GLOBAL.currentDisplayedId ||
-    GLOBAL.currentDisplayedId == GLOBAL.displayData.FAQ.id
-  ) {
+  if (!GLOBAL.currentDisplayedId || GLOBAL.currentDisplayedId == GLOBAL.displayData.FAQ.id) {
     finishLoading(id);
   }
 }
@@ -421,10 +402,7 @@ function connect() {
 
 function userIdValidation(result) {
   const id = "userId";
-  if (
-    (result == translate("OK") && !$("#" + id).data("error")) ||
-    result == translate("CANCEL")
-  ) {
+  if ((result == translate("OK") && !$("#" + id).data("error")) || result == translate("CANCEL")) {
     setUserId($("#" + id).val());
     closePopup();
   }
@@ -506,16 +484,10 @@ function depositAmountValidation(result) {
       getTableReadOnlyContent("Boursorama Banque") +
       "</tr><tr>" +
       getTranslatedContent("Bank Address", true) +
-      getTableReadOnlyContent(
-        "18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex"
-      ) +
+      getTableReadOnlyContent("18, quai du Point du Jour 92659 Boulogne-Billancourt Cedex") +
       "</tr></table>";
 
-    const innerHTML = getPopupContent(
-      deposit.name,
-      content,
-      updateDeposit.name
-    );
+    const innerHTML = getPopupContent(deposit.name, content, updateDeposit.name);
 
     openPopup(innerHTML);
     addPopupButtonEvent(GLOBAL.validatePopupButton, false);
@@ -544,9 +516,7 @@ function updateDeposit() {
   const hasContent = contents && contents.length > 1;
 
   const a = getTranslateData(title + " " + GLOBAL.confirmation);
-  const b = getTranslateData(
-    !hasContent ? GLOBAL.newDeposit : GLOBAL.nextDeposit
-  );
+  const b = getTranslateData(!hasContent ? GLOBAL.newDeposit : GLOBAL.nextDeposit);
   const content = {
     ope: title,
     title: a.text,
@@ -623,22 +593,14 @@ function withdraw() {
   // Events
   const fnc = () =>
     $("#" + GLOBAL.withdrawCost).val(() =>
-      translate(
-        toCurrency(
-          ((getDaysBetweenDate(new Date(), getNextMonthDate()) * 4) /
-            100 /
-            365) *
-            $("#" + id).val() || 0
-        )
-      )
+      translate(toCurrency(((getDaysBetweenDate(new Date(), getNextMonthDate()) * 4) / 100 / 365) * $("#" + id).val() || 0))
     );
   $("#" + GLOBAL.withdrawAmount).keyup(fnc);
   fnc();
   const fnb = () =>
     displayElement(
       "#" + GLOBAL.withdrawCost + "All",
-      !$("#" + GLOBAL.withdrawDate).is(":checked") &&
-        $("#" + GLOBAL.withdrawPeriod).is(":checked"),
+      !$("#" + GLOBAL.withdrawDate).is(":checked") && $("#" + GLOBAL.withdrawPeriod).is(":checked"),
       0
     );
   $("#" + GLOBAL.withdrawDate).change(fnb);
@@ -648,8 +610,7 @@ function withdraw() {
     [GLOBAL.withdrawDate, GLOBAL.withdrawRecurrent].forEach((item) =>
       displayElement(
         "#" + item + "All",
-        (item == GLOBAL.withdrawRecurrent && !isChecked) ||
-          (item != GLOBAL.withdrawRecurrent && isChecked),
+        (item == GLOBAL.withdrawRecurrent && !isChecked) || (item != GLOBAL.withdrawRecurrent && isChecked),
         0
       )
     );
@@ -663,39 +624,20 @@ function withdrawAmountValidation(result) {
   const id = GLOBAL.withdrawAmount;
   if (result == translate("OK") && !$("#" + id).data("error")) {
     const value = toCurrency($("#" + id).val());
-    const period =
-      GLOBAL.withdrawPeriodOption[
-        $("#" + GLOBAL.withdrawPeriod).is(":checked") ? 0 : 1
-      ];
+    const period = GLOBAL.withdrawPeriodOption[$("#" + GLOBAL.withdrawPeriod).is(":checked") ? 0 : 1];
     const isRecurrent = period == GLOBAL.withdrawPeriodOption[1];
-    if (
-      isRecurrent &&
-      -parseFloat(toValue(value)) == parseFloat(toValue(GLOBAL.user.Recurrent))
-    ) {
+    if (isRecurrent && -parseFloat(toValue(value)) == parseFloat(toValue(GLOBAL.user.Recurrent))) {
+      showSnackBar("The asked recurrent withdraw amount is the same as the current one !");
+    } else if (isRecurrent && parseFloat(toValue(value)) > GLOBAL.maxRecurrent) {
       showSnackBar(
-        "The asked recurrent withdraw amount is the same as the current one !"
-      );
-    } else if (
-      isRecurrent &&
-      parseFloat(toValue(value)) > GLOBAL.maxRecurrent
-    ) {
-      showSnackBar(
-        "The asked recurrent withdraw amount can't be more than " +
-          translate(toCurrency(GLOBAL.maxRecurrent)) +
-          " !"
+        "The asked recurrent withdraw amount can't be more than " + translate(toCurrency(GLOBAL.maxRecurrent)) + " !"
       );
     } else {
-      const isNextMonth =
-        $("#" + GLOBAL.withdrawDate).is(":checked") ||
-        !$("#" + GLOBAL.withdrawPeriod).is(":checked");
+      const isNextMonth = $("#" + GLOBAL.withdrawDate).is(":checked") || !$("#" + GLOBAL.withdrawPeriod).is(":checked");
       const date = toStringDate(
-        !isNextMonth
-          ? new Date(Math.min(addDaysToDate(5), getNextMonthDate(0)))
-          : getNextMonthDate(5)
+        !isNextMonth ? new Date(Math.min(addDaysToDate(5), getNextMonthDate(0))) : getNextMonthDate(5)
       );
-      const cost = !isNextMonth
-        ? $("#" + GLOBAL.withdrawCost).val()
-        : toCurrency(0);
+      const cost = !isNextMonth ? $("#" + GLOBAL.withdrawCost).val() : toCurrency(0);
 
       const content =
         "<table><tr>" +
@@ -721,11 +663,7 @@ function withdrawAmountValidation(result) {
         getTableReadOnlyContent(GLOBAL.user.Bank) +
         "</tr></table>";
 
-      const innerHTML = getPopupContent(
-        withdraw.name,
-        content,
-        updateWithdraw.name
-      );
+      const innerHTML = getPopupContent(withdraw.name, content, updateWithdraw.name);
 
       openPopup(innerHTML);
       addPopupButtonEvent(GLOBAL.validatePopupButton, false);
@@ -781,20 +719,9 @@ function updateWithdraw() {
     updatePersonalTable(id, GLOBAL.data[id]);
   }
 
-  const subject =
-    period +
-    " " +
-    title +
-    ": " +
-    value +
-    " for " +
-    GLOBAL.user.ID +
-    " for the " +
-    date;
+  const subject = period + " " + title + ": " + value + " for " + GLOBAL.user.ID + " for the " + date;
   google.script.run
-    .withSuccessHandler(() =>
-      isUnique ? insertHistoricRow(data) : changeRecurrent(value)
-    )
+    .withSuccessHandler(() => (isUnique ? insertHistoricRow(data) : changeRecurrent(value)))
     .withFailureHandler(displayError)
     .sendRecapEmail(subject);
 }
@@ -811,14 +738,9 @@ function confirmation(content) {
     content.inst
       .replace(
         "<" + GLOBAL.completedStatus.split(" ")[0] + ">",
-        "<div style=\"position:relative;left:80px;top:13px;height:13px;\">" +
-          getTableCheckmark() +
-          "</div><br>"
+        "<div style=\"position:relative;left:80px;top:13px;height:13px;\">" + getTableCheckmark() + "</div><br>"
       )
-      .replace(
-        "<" + GLOBAL.pendingStatus.split(" ")[0] + ">",
-        getTableLoaderBar()
-      );
+      .replace("<" + GLOBAL.pendingStatus.split(" ")[0] + ">", getTableLoaderBar());
   const innerHTML = getPopupContent(id, text);
   openPopup(innerHTML);
   setEvents();
@@ -846,12 +768,9 @@ function confirmation(content) {
     .replace(/(<\/tr>)/gi, "\n")
     .replace(/(<\/th>)/gi, " : ")
     .replace(/(<([^>]+)>)/gi, "");
-  google.script.run
-    .withSuccessHandler()
-    .withFailureHandler(displayError)
-    .sendEmail(GLOBAL.user.Email, subject, message, {
-      htmlBody: html,
-    });
+  google.script.run.withSuccessHandler().withFailureHandler(displayError).sendEmail(GLOBAL.user.Email, subject, message, {
+    htmlBody: html,
+  });
 }
 
 function confirmationValidation() {
@@ -860,14 +779,7 @@ function confirmationValidation() {
 
 function insertHistoricRow(data) {
   if (data && data.movement) {
-    data = [
-      [
-        data.date ?? "",
-        GLOBAL.user.ID,
-        toCurrency(data.movement),
-        data.cost ?? toCurrency(0),
-      ],
-    ];
+    data = [[data.date ?? "", GLOBAL.user.ID, toCurrency(data.movement), data.cost ?? toCurrency(0)]];
 
     // Display added data in the historic tab
     const id = GLOBAL.displayData.historic.id;
@@ -881,12 +793,7 @@ function insertHistoricRow(data) {
     // Add data to the database
     data[0][0] = data[0][0] ? toStringDate(data[0][0], true) : ""; // Reverse date as the format is incorrect
     google.script.run
-      .withSuccessHandler(() =>
-        setValue(
-          GLOBAL.displayData.historic.formula.split("!")[0] + "!A2",
-          data
-        )
-      )
+      .withSuccessHandler(() => setValue(GLOBAL.displayData.historic.formula.split("!")[0] + "!A2", data))
       .withFailureHandler(displayError)
       .insertRows(GLOBAL.personalGID, data, {
         startRow: 1,
@@ -907,9 +814,7 @@ function changeRecurrent(value) {
 
   // Add data to the database
   const baseFormula = GLOBAL.displayData[id].formula.split("!")[0] + "!";
-  setValue(baseFormula + convertNumberToColumn(i) + d[1][0], [
-    [toValue(value)],
-  ]);
+  setValue(baseFormula + convertNumberToColumn(i) + d[1][0], [[toValue(value)]]);
 }
 
 function getTranslatedContent(content, isHeader, data) {
@@ -924,10 +829,7 @@ function getTranslatedContent(content, isHeader, data) {
   }
 
   return isReadOnly
-    ? getTableReadOnlyContent(content, isHeader).replace(
-      content,
-      isHeader ? getTooltip(d.text, d.tooltip) : d.text
-    )
+    ? getTableReadOnlyContent(content, isHeader).replace(content, isHeader ? getTooltip(d.text, d.tooltip) : d.text)
     : "<td><h2 style=\"cursor:default;line-height:45px;\">" +
         getTooltip(d.text, d.tooltip) +
         "</h2></td>" +
@@ -1010,15 +912,7 @@ function CreateAckDebt() {
       getImgTag("euros", 15) +
       getImgTag(")", 15) +
       " à titre de prêt sous la forme du :</p><ul>";
-    deposit.forEach(
-      (item) =>
-        (doc +=
-          "<li>Virement bancaire SEPA de " +
-          item[1] +
-          " euros, reçu le " +
-          item[0] +
-          "</li>")
-    );
+    deposit.forEach((item) => (doc += "<li>Virement bancaire SEPA de " + item[1] + " euros, reçu le " + item[0] + "</li>"));
     doc +=
       "</ul><p>Le remboursement de ce prêt interviendra de la façon suivante :</p>" +
       "<ul><li>il sera remboursé immédiatement (moyennant le temps de virement de compte à compte " +
@@ -1129,10 +1023,7 @@ function getImgFromText(text) {
   text = text.replaceAll("-", " - ");
   const array = text.split(" ");
   array.forEach(
-    (item, i) =>
-      (html +=
-        getImgTag(item, height) +
-        (item != "-" && array[i + 1] != "-" ? getImgTag("", height) : ""))
+    (item, i) => (html += getImgTag(item, height) + (item != "-" && array[i + 1] != "-" ? getImgTag("", height) : ""))
   );
 
   return html;
@@ -1161,64 +1052,30 @@ function numberToText(number) {
     "dix-huit ",
     "dix-neuf ",
   ];
-  const tens = [
-    "",
-    "",
-    "vingt",
-    "trente",
-    "quarante",
-    "cinquante",
-    "soixante",
-    "",
-    "quatre-vingt",
-    "",
-  ];
+  const tens = ["", "", "vingt", "trente", "quarante", "cinquante", "soixante", "", "quatre-vingt", ""];
   const hundred = "cent";
   const thousand = "mille ";
   const text = number.toString();
   if (text.length <= 6) {
-    const n = ("000000" + text)
-      .substr(-6)
-      .match(/^(\d{1})(\d{2})(\d{1})(\d{2})$/);
+    const n = ("000000" + text).substr(-6).match(/^(\d{1})(\d{2})(\d{1})(\d{2})$/);
     if (n) {
       const junc = (i) => {
         const a = i[0];
         const b = tens[a] ? i[1] : Number(i[1]) + 10;
-        return a == 8 && b == 0
-          ? "s"
-          : a < 8 && (b == 1 || b == 11)
-            ? " et "
-            : b >= 1
-              ? "-"
-              : "";
+        return a == 8 && b == 0 ? "s" : a < 8 && (b == 1 || b == 11) ? " et " : b >= 1 ? "-" : "";
       };
       let str = "";
+      str += n[1] != 0 ? (n[1] > 1 ? ones[Number(n[1])] : "") + hundred + (n[1] > 1 ? "s " : " ") : "";
       str +=
-        n[1] != 0
-          ? (n[1] > 1 ? ones[Number(n[1])] : "") +
-            hundred +
-            (n[1] > 1 ? "s " : " ")
-          : "";
-      str +=
-        (n[2] != 0
-          ? n[2] > 1
-            ? ones[Number(n[2])] || tens[n[2][0]] + " " + ones[n[2][1]]
-            : ""
-          : "") + (n[1] + n[2] != 0 ? thousand : "");
-      str +=
-        n[3] != 0
-          ? (n[3] > 1 ? ones[Number(n[3])] : "") +
-            hundred +
-            (n[3] > 1 ? "s " : " ")
-          : "";
+        (n[2] != 0 ? (n[2] > 1 ? ones[Number(n[2])] || tens[n[2][0]] + " " + ones[n[2][1]] : "") : "") +
+        (n[1] + n[2] != 0 ? thousand : "");
+      str += n[3] != 0 ? (n[3] > 1 ? ones[Number(n[3])] : "") + hundred + (n[3] > 1 ? "s " : " ") : "";
       str +=
         n[4] != 0
           ? ones[Number(n[4])] ||
             (tens[n[4][0]]
               ? tens[n[4][0]] + junc(n[4]) + ones[n[4][1]]
-              : tens[Number(n[4][0]) - 1] +
-                junc(n[4]) +
-                ones[Number(n[4][1]) + 10])
+              : tens[Number(n[4][0]) - 1] + junc(n[4]) + ones[Number(n[4][1]) + 10])
           : "";
       return str.trim();
     }
@@ -1237,11 +1094,7 @@ function printHtml(id, title) {
     "</head><body style=\"margin:0% 20%;\">" +
     $(id).html() +
     "</body></html>";
-  const printWindow = window.open(
-    "",
-    "",
-    "width=" + screen.width + ",height=" + screen.height
-  );
+  const printWindow = window.open("", "", "width=" + screen.width + ",height=" + screen.height);
   printWindow.document.write(html);
   printWindow.document.close();
   printWindow.print();
