@@ -1,7 +1,7 @@
 /* global GLOBAL, $, initCommon, google, getDiv, finishLoading, 
 getValue, setValue, displayError, getImage, getDataValue, showLoader, 
 getMainTitle, toCurrency, toStringDate, translate, displayElement, 
-setTranslationLanguage, indexOf, getCurrentLanguage */
+setTranslationLanguage, indexOf, getCurrentLanguage, sendRecapEmail */
 /* exported init, onKeyUp, validatePayment, getButtonAction, translationLoaded */
 
 GLOBAL.hasTranslation = true;
@@ -10,7 +10,6 @@ GLOBAL.displayData = [];
 GLOBAL.user = [];
 GLOBAL.menuButton = [];
 
-GLOBAL.mainSection = "Main";
 GLOBAL.isForMobile = true;
 
 GLOBAL.merchantInfoFormula = "Check!A:C";
@@ -21,17 +20,20 @@ GLOBAL.solanaAddressPattern = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/i;
 
 GLOBAL.customerAddress = "";
 GLOBAL.merchantAddress = "";
-GLOBAL.attempt = 0; // Number of attempt to load payment data
 GLOBAL.attemptTimeout = 3; // Duration between each attempt
 GLOBAL.retry = 0; // Number of retry with a data reset which force reloading data
 GLOBAL.retryTimeout = 30; // Duration between each retry
 GLOBAL.retryLimit = 3; // Number of retry after which the payment is cancelled
+
+GLOBAL.timeoutTimer;
+GLOBAL.timeout = false;
 
 GLOBAL.step = {
   executePayment: "Execute payment",
   openWallet: "Open",
   verifyPayment: "Verify payment",
   retry: "Retry",
+  abort: "Abort",
   result: "Result",
 };
 GLOBAL.currentStep = GLOBAL.step.executePayment;
@@ -39,8 +41,7 @@ GLOBAL.currentStep = GLOBAL.step.executePayment;
 GLOBAL.messages = {
   help: "Help",
   duration: "($ ago)",
-  invalidPayment:
-    "Error: Your payment could not been verified. Try to pay by another mean. We will proceed to a refund shortly.",
+  noPayment: "Error: No transaction",
 };
 
 GLOBAL.helpURL = "https://fims.fi?id=Help";
@@ -132,11 +133,11 @@ function displayLanguageButton() {
 function setProcess(step) {
   const translation = GLOBAL.data[GLOBAL.translation];
   const index = GLOBAL.translationCurrentIndex;
-  const main = indexOf(translation, GLOBAL.mainSection, 0) + 1;
 
   let content = "";
   step = step == translate(GLOBAL.step.retry) ? GLOBAL.step.executePayment : step;
   if (step == GLOBAL.step.executePayment || step == GLOBAL.step.openWallet) {
+    const main = indexOf(translation, GLOBAL.step.openWallet, 0) + 1;
     if (step == GLOBAL.step.executePayment) {
       content += getDiv(null, null, "left", getMainTitle(translation[main][index]));
     }
@@ -148,6 +149,12 @@ function setProcess(step) {
     content += getStepButton(translate(GLOBAL.step.verifyPayment), verifyPayment.name);
   } else if (step == GLOBAL.step.result) {
     content += getPaymentStatus();
+  } else if (step == translate(GLOBAL.step.abort)) {
+    const subject = "REFUND for [" + GLOBAL.customerAddress + "] / Merchant ID " + GLOBAL.user.ID + " @ " + toStringDate();
+    sendRecapEmail(subject);
+
+    const invalidPayment = indexOf(translation, GLOBAL.step.abort, 0) + 1;
+    content += getMainTitle(translation[invalidPayment][index]) + getStepButton(GLOBAL.step.retry, setProcess.name);
   } else {
     throw "Unknown step: " + step;
   }
@@ -213,7 +220,7 @@ async function verifyPayment(option) {
       displayElement("#process", false, 0);
       GLOBAL.retry = 0;
       GLOBAL.customerAddress = customerAddress[0];
-      setCustomerAddress(GLOBAL.customerAddress, loadPaymentStatus);
+      setCustomerAddress(GLOBAL.customerAddress, checkPaymentStatus);
     } else {
       setProcess(GLOBAL.step.openWallet);
     }
@@ -223,7 +230,6 @@ async function verifyPayment(option) {
 }
 
 function setCustomerAddress(customerAddress, success) {
-  GLOBAL.attempt = 0;
   setValue("Check!D" + GLOBAL.user.ID, [[customerAddress]], success);
 }
 
@@ -242,30 +248,27 @@ function loadPaymentStatus() {
 }
 
 async function checkPaymentStatus(id, contents) {
-  let fullStatus = getFullStatus(contents);
-  if (
-    !fullStatus ||
-    fullStatus.slice(-3) === "..." ||
-    (getStatus(fullStatus) === GLOBAL.status.warning && GLOBAL.retry === 0)
-  ) {
-    // No status or Processing... / Loading... or Old transaction warning before one retry (maybe the transaction is soon to be validated)
-    fullStatus = null;
-    if (GLOBAL.attempt < GLOBAL.retryTimeout / GLOBAL.attemptTimeout) {
-      ++GLOBAL.attempt;
-      console.log("attempt " + GLOBAL.attempt + "/" + GLOBAL.retryTimeout / GLOBAL.attemptTimeout);
-      setTimeout(loadPaymentStatus, GLOBAL.attemptTimeout * 1000); // Loop through loading status
-    } else if (GLOBAL.retry < GLOBAL.retryLimit - 1) {
-      ++GLOBAL.retry;
-      console.log("retry " + GLOBAL.retry + "/" + GLOBAL.retryLimit);
-      resetCustomerAddress();
-    } else {
-      console.log("retry " + GLOBAL.retryLimit + "/" + GLOBAL.retryLimit);
-      fullStatus = GLOBAL.messages.invalidPayment;
-      sendRefundEmail();
+  let fullStatus = GLOBAL.timeout ? GLOBAL.messages.noPayment : getFullStatus(contents);
+  if (!fullStatus) {
+    // Value not checked yet (first call)
+    setTimeout(loadPaymentStatus, 1000); // First Check the payment status
+    if (!GLOBAL.timeoutTimer) {
+      GLOBAL.timeout = false;
+      GLOBAL.timeoutTimer = setTimeout(() => (GLOBAL.timeout = true), GLOBAL.retryTimeout * 1000);
     }
-  }
-
-  if (fullStatus) {
+  } else if (fullStatus.slice(-3) === "...") {
+    // No status or Processing... / Loading...
+    setTimeout(loadPaymentStatus, GLOBAL.attemptTimeout * 1000); // Loop through loading status
+  } else if (getStatus(fullStatus) === GLOBAL.status.warning && GLOBAL.retry < GLOBAL.retryLimit) {
+    // Old transaction warning so retry (maybe the transaction is soon to be validated)
+    ++GLOBAL.retry;
+    console.log("retry " + GLOBAL.retry + "/" + GLOBAL.retryLimit);
+    setTimeout(resetCustomerAddress, GLOBAL.retryTimeout / 6 * 1000); // Loop three times through loading status
+  } else {
+    clearTimeout(GLOBAL.timeoutTimer);
+    GLOBAL.timeoutTimer = null;
+    GLOBAL.timeout = false;
+    GLOBAL.retry = 0;
     GLOBAL.statusContent = contents;
 
     setProcess(GLOBAL.step.result);
@@ -275,6 +278,9 @@ async function checkPaymentStatus(id, contents) {
 function getPaymentStatus() {
   const content = GLOBAL.statusContent;
   const fullStatus = getFullStatus(content);
+
+  showLoader(false);
+
   let html = "";
   if (fullStatus) {
     const status = getStatus(fullStatus);
@@ -291,10 +297,14 @@ function getPaymentStatus() {
       html += getMainTitle(getDataValue(content, GLOBAL.header.time));
       html += getMainTitle(translate(GLOBAL.messages.duration).replace("$", duration));
     }
-    html += status !== GLOBAL.status.success ? getStepButton(GLOBAL.step.retry, setProcess.name) : "";
+    html +=
+      status !== GLOBAL.status.success
+        ? getStepButton(GLOBAL.step.retry, verifyPayment.name) + getStepButton(GLOBAL.step.abort, setProcess.name)
+        : "";
 
     setCustomerAddress("");
-    showLoader(false);
+  } else {
+    throw new Error("Invalid / Empty payment status");
   }
 
   return html;
@@ -306,9 +316,4 @@ function getStatus(fullStatus) {
 
 function getFullStatus(contents) {
   return getDataValue(contents, GLOBAL.header.status);
-}
-
-function sendRefundEmail() {
-  const subject = "REFUND for [" + GLOBAL.customerAddress + "] / Merchant ID " + GLOBAL.user.ID + " @ " + toStringDate();
-  google.script.run.withSuccessHandler().withFailureHandler(displayError).sendRecapEmail(subject);
 }

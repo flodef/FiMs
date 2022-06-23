@@ -5,7 +5,7 @@ addPopupButtonEvent, closePopup, animateLoaderBar, updateAllValues, updateValues
 toCurrency, getTableReadOnlyContent, toFirstUpperCase, getTranslateData, getDiv,
 getDaysBetweenDate, getNextMonthDate, showSnackBar, addDaysToDate, roundDown,
 setEvents, setValue, isEditableInput, getTableEditableContent, finishLoading,
-processTable, getTooltip, restrainFormula, initCommon */
+processTable, getTooltip, restrainFormula, initCommon, sendRecapEmail */
 /* exported init, onKeyUp, connect, userIdValidation, depositAmountValidation, 
 withdrawAmountValidation, confirmationValidation, printHtml, translationLoaded */
 
@@ -531,10 +531,7 @@ function updateDeposit() {
 
   // Send email reminder to myself
   const subject = title + ": " + value + " for " + GLOBAL.user.ID;
-  google.script.run
-    .withSuccessHandler(() => insertHistoricRow(data))
-    .withFailureHandler(displayError)
-    .sendRecapEmail(subject);
+  sendRecapEmail(subject, () => insertHistoricRow(data));
 }
 
 function withdraw() {
@@ -722,10 +719,7 @@ function updateWithdraw() {
   }
 
   const subject = period + " " + title + ": " + value + " for " + GLOBAL.user.ID + " for the " + date;
-  google.script.run
-    .withSuccessHandler(() => (isUnique ? insertHistoricRow(data) : changeRecurrent(value)))
-    .withFailureHandler(displayError)
-    .sendRecapEmail(subject);
+  sendRecapEmail(subject, () => (isUnique ? insertHistoricRow(data) : changeRecurrent(value)));
 }
 
 function confirmation(content) {

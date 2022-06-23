@@ -5,7 +5,7 @@ getTableEditableContent, getSubTableTitle, getTableCheckmark, getTableLoaderBar,
 getTableImage, toggleItem, getElementValidity, selectName, setValue, overDisplay,
 executionSuccess, getPopupContent, addPopupButtonEvent, shouldRebalance, initCommon,
 addDaysToDate, getNextMonthDate, getDaysBetweenDate, restrainFormula, finishLoading, 
-getDataValue, setTranslationLanguage, getCurrentLanguage */
+getDataValue, setTranslationLanguage, getCurrentLanguage, sendRecapEmail */
 
 /**
  * Functions that are shared between apps.
@@ -554,7 +554,9 @@ function getLabel(id, content, isToggle) {
 }
 
 function getTooltip(html, tooltip) {
-  return tooltip ? "<div class=\"tooltip\">" + html + "<span class=\"tooltiptext\">" + tooltip + "</span></div>" : html;
+  return tooltip && !GLOBAL.isForMobile
+    ? "<div class=\"tooltip\">" + html + "<span class=\"tooltiptext\">" + tooltip + "</span></div>"
+    : html;
 }
 
 function getLink(content, title) {
@@ -778,6 +780,17 @@ function setValue(range, value, success) {
     })
     .withFailureHandler(displayError)
     .setSheetValues(range, value);
+}
+
+function sendRecapEmail(subject, success) {
+  google.script.run
+    .withSuccessHandler(() => {
+      if (success) {
+        success();
+      }
+    })
+    .withFailureHandler(displayError)
+    .sendRecapEmail(subject);
 }
 
 function getDataValue(data, header) {
