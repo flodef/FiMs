@@ -108,16 +108,25 @@ function displayContent(id, contents) {
 
   finishLoading();
 
-  selectLanguage(GLOBAL.language);
-  displayElement("#mainContent, #merchant, #mainHeading, #process", true, 3000);
+  setProcess(GLOBAL.currentStep);
+
+  displayElement("#mainContent, #merchant, #mainHeading, #process", true, 2500);
+  displayLanguageButton();
 }
 
 function selectLanguage(language) {
   if (language != getCurrentLanguage()) {
-    displayElement(".actionButton", true, 0, () => displayElement("#" + language + "Button", false, 0));
     setTranslationLanguage(language);
     setProcess(GLOBAL.currentStep);
+    displayLanguageButton();
   }
+}
+
+function displayLanguageButton() {
+  $(".actionButton").each((index, element) => {
+    const isCurrentLanguage = index == GLOBAL.translationCurrentIndex;
+    displayElement(element, !isCurrentLanguage, isCurrentLanguage ? 0 : 1000);
+  });
 }
 
 function setProcess(step) {
