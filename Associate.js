@@ -194,8 +194,42 @@ $(() => {
   initCommon();
 });
 
-function init() {
-  google.script.run.withSuccessHandler(setUserId).withFailureHandler(displayError).getProperty("userId");
+function init(id) {
+  if (id != GLOBAL.user.ID) {
+    const faqId = GLOBAL.displayData.FAQ.id;
+    GLOBAL.user = [];
+    GLOBAL.user.ID = id;
+
+    GLOBAL.currentDisplayedId = null; // Unselect the current displayed tab
+    GLOBAL.displayId.forEach((displayId) => {
+      if (displayId != faqId) {
+        setHtml("#" + displayId + "Div", ""); // Clear all tab content except faq
+        GLOBAL.data[displayId] = null; // Delete data in order to reload it
+      }
+      displayElement("#" + displayId + "Button", false, 0); // Hide all tab
+    });
+    setHtml("#scrollDiv", ""); // Clear the scrollDiv
+    displayElement("#" + faqId + "Div", false, 0); // Hide Faq content
+    if ($("#loaderBar").is(":hidden")) {
+      displayElement("#loaderBar", true, 0); // Display the loader bar
+      animateLoaderBar(); // Animate the loader bar
+    }
+
+    if (id) {
+      displayElement("#tabContainer", false, 0); // Hide the tab container
+      GLOBAL.displayData.account.formula = restrainFormula(
+        id + "!" + GLOBAL.displayData.account.formula.split("!")[1],
+        0,
+        12
+      ); // Create user account formula
+      updateAllValues();
+    } else {
+      // No user
+      displayElement("#depositButton", false, 0); // Hide the deposit button
+      displayElement("#withdrawButton", false, 0); // Hide the withdraw button
+      updateValues(faqId); // Load only the faq
+    }
+  }
 }
 
 function translationLoaded() {}
@@ -405,46 +439,8 @@ function connect() {
 function userIdValidation(result) {
   const id = "userId";
   if ((result == translate("OK") && !$("#" + id).data("error")) || result == translate("CANCEL")) {
-    setUserId($("#" + id).val());
+    init($("#" + id).val());
     closePopup();
-  }
-}
-
-function setUserId(id) {
-  if (id != GLOBAL.user.ID) {
-    const faqId = GLOBAL.displayData.FAQ.id;
-    GLOBAL.user = [];
-    GLOBAL.user.ID = id;
-
-    GLOBAL.currentDisplayedId = null; // Unselect the current displayed tab
-    GLOBAL.displayId.forEach((displayId) => {
-      if (displayId != faqId) {
-        setHtml("#" + displayId + "Div", ""); // Clear all tab content except faq
-        GLOBAL.data[displayId] = null; // Delete data in order to reload it
-      }
-      displayElement("#" + displayId + "Button", false, 0); // Hide all tab
-    });
-    setHtml("#scrollDiv", ""); // Clear the scrollDiv
-    displayElement("#" + faqId + "Div", false, 0); // Hide Faq content
-    if ($("#loaderBar").is(":hidden")) {
-      displayElement("#loaderBar", true, 0); // Display the loader bar
-      animateLoaderBar(); // Animate the loader bar
-    }
-
-    if (id) {
-      displayElement("#tabContainer", false, 0); // Hide the tab container
-      GLOBAL.displayData.account.formula = restrainFormula(
-        id + "!" + GLOBAL.displayData.account.formula.split("!")[1],
-        0,
-        12
-      ); // Create user account formula
-      updateAllValues();
-    } else {
-      // No user
-      displayElement("#depositButton", false, 0); // Hide the deposit button
-      displayElement("#withdrawButton", false, 0); // Hide the withdraw button
-      updateValues(faqId); // Load only the faq
-    }
   }
 }
 

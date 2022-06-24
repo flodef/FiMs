@@ -122,7 +122,8 @@ function loadPage() {
 
   $(document).ready(() => $("#mainFocus").focus()); // Set the main focus (replace autofocus attribute)
 
-  init(); // Call init() proper to specialized script
+  // Call init() proper to specialized script
+  google.script.run.withSuccessHandler(init).withFailureHandler(displayError).getProperty("userId");
 }
 
 function animateLoaderBar(item, duration = 3000) {
@@ -949,9 +950,14 @@ function executionSuccess() {
 }
 
 function displayError(message, isWarning) {
+  displayErrorFallback(message, isWarning);
+}
+
+function displayErrorFallback(message, isWarning) {
   showLoader(false);
   displayLoading(GLOBAL.currentLoadingId, false);
 
+  const fontSize = GLOBAL.isForMobile ? 55 : 25;
   $("#alert").html(
     "<span class=\"closebtn\" onclick=\"displayElement('#alertOverlay', false, 1000, () => $('#transactionName').focus());\">&times;</span>" +
       "<strong>" +
@@ -960,8 +966,9 @@ function displayError(message, isWarning) {
       translate(message)
   );
   $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
-  $("#alert").css("font-size", GLOBAL.isForMobile ? "55px" : "large");
-  $(".closebtn").css("font-size", $("#alert").css("font-size"));
+  $("#alert").css("font-size", fontSize + "px");
+  $(".closebtn").css("font-size", 2*fontSize + "px");
+  $(".closebtn").css("line-height", fontSize + "px");
 
   displayElement("#alertOverlay", true, 1000);
   displayElement("#refreshButton", true, 1000);
