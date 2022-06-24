@@ -1,8 +1,10 @@
-/* global GLOBAL, $, initCommon, google, getDiv, finishLoading, 
-getValue, setValue, displayError, getImage, getDataValue, showLoader, 
+/* global GLOBAL, $, initCommon, getDiv, finishLoading, 
+getValue, setValue, getImage, getDataValue, showLoader, 
 getMainTitle, toCurrency, toStringDate, translate, displayElement, 
-setTranslationLanguage, indexOf, getCurrentLanguage, sendRecapEmail */
-/* exported init, onKeyUp, validatePayment, getButtonAction, translationLoaded */
+setTranslationLanguage, indexOf, getCurrentLanguage, sendRecapEmail, 
+displayErrorFallback */
+/* exported init, onKeyUp, validatePayment, getButtonAction, translationLoaded, 
+displayError */
 
 GLOBAL.hasTranslation = true;
 GLOBAL.language = "Français";
@@ -36,12 +38,15 @@ GLOBAL.step = {
   abort: "Abort",
   result: "Result",
 };
-GLOBAL.currentStep = GLOBAL.step.executePayment;
+GLOBAL.currentStep = null;
 
 GLOBAL.messages = {
   help: "Help",
   duration: "($ ago)",
   noPayment: "Error: No transaction",
+  unknownError: "Unknown error",
+  unknownStep: "Unknown step: ",
+  invalidPayment: "Invalid / Empty payment status",
 };
 
 GLOBAL.helpURL = "https://fims.fi?id=Help";
@@ -79,12 +84,7 @@ function translationLoaded() {
   GLOBAL.menuButton = button.filter((x) => x.id);
 }
 
-function init() {
-  google.script.run.withSuccessHandler(setUserId).withFailureHandler(displayError).getProperty("userId");
-  displayElement("#mainContent, #mainHeading", false, 0);
-}
-
-function setUserId(id) {
+function init(id) {
   GLOBAL.user.ID = id;
 
   getValue(
@@ -97,6 +97,8 @@ function setUserId(id) {
 }
 
 function displayContent(id, contents) {
+  displayElement("#mainContent, #mainHeading", false, 0);
+
   GLOBAL.merchantAddress = getDataValue(contents, GLOBAL.header.cryptoAddress);
   const company = getDataValue(contents, GLOBAL.header.company);
   const merchantTitle = getMainTitle(company, 60);
@@ -107,12 +109,12 @@ function displayContent(id, contents) {
   const processHTML = getDiv("process", null, "center");
   $("#mainContent").html(logoHTML + processHTML);
 
-  finishLoading();
-
-  setProcess(GLOBAL.currentStep);
+  setProcess(GLOBAL.step.executePayment);
 
   displayElement("#mainContent, #merchant, #mainHeading, #process", true, 2500);
   displayLanguageButton();
+
+  finishLoading();
 }
 
 function selectLanguage(language) {
@@ -156,7 +158,7 @@ function setProcess(step) {
     const invalidPayment = indexOf(translation, GLOBAL.step.abort, 0) + 1;
     content += getMainTitle(translation[invalidPayment][index]) + getStepButton(GLOBAL.step.retry, setProcess.name);
   } else {
-    throw "Unknown step: " + step;
+    throw new Error(GLOBAL.messages.unknownStep);
   }
 
   GLOBAL.currentStep = step;
@@ -263,7 +265,7 @@ async function checkPaymentStatus(id, contents) {
     // Old transaction warning so retry (maybe the transaction is soon to be validated)
     ++GLOBAL.retry;
     console.log("retry " + GLOBAL.retry + "/" + GLOBAL.retryLimit);
-    setTimeout(resetCustomerAddress, GLOBAL.retryTimeout / 6 * 1000); // Loop three times through loading status
+    setTimeout(resetCustomerAddress, (GLOBAL.retryTimeout / 6) * 1000); // Loop three times through loading status
   } else {
     clearTimeout(GLOBAL.timeoutTimer);
     GLOBAL.timeoutTimer = null;
@@ -277,7 +279,7 @@ async function checkPaymentStatus(id, contents) {
 
 function getPaymentStatus() {
   const content = GLOBAL.statusContent;
-  const fullStatus = getFullStatus(content);
+  const fullStatus = Array.isArray(content) ? getFullStatus(content) : content;
 
   showLoader(false);
 
@@ -304,16 +306,25 @@ function getPaymentStatus() {
 
     setCustomerAddress("");
   } else {
-    throw new Error("Invalid / Empty payment status");
+    throw new Error(GLOBAL.messages.invalidPayment);
   }
 
   return html;
 }
 
 function getStatus(fullStatus) {
-  return fullStatus ? fullStatus.split(":")[0].toLowerCase().trim() : null;
+  return fullStatus ? fullStatus.split(":")[0].toLowerCase().trim() : "";
 }
 
 function getFullStatus(contents) {
   return getDataValue(contents, GLOBAL.header.status);
+}
+
+function displayError(error) {
+  if (GLOBAL.currentStep) {
+    GLOBAL.statusContent = GLOBAL.status.error + ": " + (error.message ? error.message : GLOBAL.messages.unknownError);
+    setProcess(GLOBAL.step.result);
+  } else {
+    displayErrorFallback();
+  }
 }
