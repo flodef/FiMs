@@ -253,7 +253,7 @@ async function checkPaymentStatus(id, contents) {
   let fullStatus = GLOBAL.timeout ? GLOBAL.messages.noPayment : getFullStatus(contents);
   if (!fullStatus) {
     // Value not checked yet (first call)
-    setTimeout(loadPaymentStatus, 1000); // First Check the payment status
+    setTimeout(loadPaymentStatus, GLOBAL.attemptTimeout * 1000); // First Check the payment status
     if (!GLOBAL.timeoutTimer) {
       GLOBAL.timeout = false;
       GLOBAL.timeoutTimer = setTimeout(() => (GLOBAL.timeout = true), GLOBAL.retryTimeout * 1000);
@@ -261,7 +261,7 @@ async function checkPaymentStatus(id, contents) {
   } else if (fullStatus.slice(-3) === "...") {
     // No status or Processing... / Loading...
     setTimeout(loadPaymentStatus, GLOBAL.attemptTimeout * 1000); // Loop through loading status
-  } else if (getStatus(fullStatus) === GLOBAL.status.warning && GLOBAL.retry < GLOBAL.retryLimit) {
+  } else if (getStatus(fullStatus) !== GLOBAL.status.success && GLOBAL.retry < GLOBAL.retryLimit) {
     // Old transaction warning so retry (maybe the transaction is soon to be validated)
     ++GLOBAL.retry;
     console.log("retry " + GLOBAL.retry + "/" + GLOBAL.retryLimit);
