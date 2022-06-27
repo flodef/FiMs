@@ -40,7 +40,7 @@ function withdraw() {
     const deleteArray = [];
     const paidArray = [];
     const emailArray = [];
-    let recap = "";
+    let recapArray = [];
     let transUpd, tsheet;
 
     // Processing transactions for each merchant (by id)
@@ -73,9 +73,11 @@ function withdraw() {
           const tarray = tsheet.getSheetValues(FR, FC, -1, -1);
 
           // Store the transaction to pay & to delete
+          let transactionArray = [];
           let hasProcessedTransaction;
           for (let j = 0; j < tarray.length; ++j) {
             if (tarray[j][MERCHANT_COL - 1] == id) {
+              transactionArray.push(tarray[j]);
               paidArray.push(tarray[j]);
               deleteArray.push(j + FR);
               hasProcessedTransaction = true;
@@ -84,7 +86,7 @@ function withdraw() {
 
           // Generate a message to merchant and recap to process payment
           if (hasProcessedTransaction) {
-            recap += _generateEmail(paidArray, emailArray, recap, array[i]);
+            recapArray.push(_generateEmail(transactionArray, emailArray, array[i]));
           }
 
           // Set last withdraw value to today
@@ -98,11 +100,11 @@ function withdraw() {
     _archiveProcessedTransaction(paidArray);
     _deleteProcessedTransaction(deleteArray, tsheet);
     _setRangeValues(tsheet, FR, FC, updateArray);
-    _sendTransactionMail(recap, emailArray);
+    _sendTransactionMail(recapArray, emailArray);
   }
 }
 
-function _generateEmail(paidArray, emailArray, recap, data) {
+function _generateEmail(paidArray, emailArray, data) {
   // Create a merchant message with transactions recap
   const email = data[EMAIL_COL - 1];
   const company = data[COMPANY_COL - 1];
@@ -113,7 +115,7 @@ function _generateEmail(paidArray, emailArray, recap, data) {
 
   const object = "FiMs Pay - Reçu de paiement de " + _toCurrency(toPayTotal);
   let message = "FiMs Pay a effectué un virement d'un montant de " + toPayFiat + " pour l'entreprise " + company + "\n\n";
-  recap += "Company : " + company + "\n" + "Wire Transfer : " + toPayFiat + "\n\n";
+  let recap = "Company : " + company + "\n" + "Wire Transfer : " + toPayFiat + "<3\n\n";
 
   // Add a message specific to crypto withdraw
   if (fiatRatio < 1) {
@@ -122,7 +124,7 @@ function _generateEmail(paidArray, emailArray, recap, data) {
     const cryptoAdd = data[CRYPTOADD_COL - 1];
 
     message += "Le somme de " + toPayCrypto + " a été versée sur le" + " compte crypto à l'adresse " + cryptoAdd + "\n\n";
-    recap += "Crypto Transfer : " + toPayCrypto + "\n" + "Address : " + cryptoAdd + "\n\n";
+    recap += "Crypto Transfer : " + toPayCrypto + "\n" + "Address : " + cryptoAdd + ":-D\n\n";
   }
 
   // Add all the transactions historic
@@ -159,19 +161,22 @@ function _deleteProcessedTransaction(deleteArray, sheet) {
   }
 }
 
-function _sendTransactionMail(recap, emailArray) {
+function _sendTransactionMail(recapArray, emailArray) {
   // Send a recap with all the transactions total to process the paiements
-  if (recap != "") {
-    recap += "/!\\ Don't forget to withdraw crypto from FiMs Pay account /!\\";
-    _sendMessage("FiMs Pay", recap, true);
+  let recap = "";
+  for (let i = 0; i < recapArray.length; ++i) {
+    recap += recapArray[i];
+  }
+  if (recap) {
+    _sendMessage("FiMs Pay", "/!\\ Don't forget to withdraw crypto from FiMs Pay account /!\\\n\n" + recap, true);
+  }
 
-    // Send the message to the merchant (copy to myself, just to check)
-    for (let i = 0; i < emailArray.length; ++i) {
-      const email = emailArray[i][0];
-      const object = emailArray[i][1];
-      const message = emailArray[i][2];
-      _sendMessage(object, message);
-      GmailApp.sendEmail(email, object, message);
-    }
+  // Send the message to the merchant (copy to myself, just to check)
+  for (let i = 0; i < emailArray.length; ++i) {
+    const email = emailArray[i][0];
+    const object = emailArray[i][1];
+    const message = emailArray[i][2];
+    _sendMessage(object, message);
+    GmailApp.sendEmail(email, object, message);
   }
 }
