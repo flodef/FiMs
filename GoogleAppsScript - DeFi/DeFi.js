@@ -110,11 +110,13 @@ function _updateHistoric() {
   // Search if entries have already been added
   const sheet = _getSheet(HISTORIC);
   const array = sheet.getSheetValues(FR, FC, 2, -1);
-  if (!_isCurrentMonth(array)) {
-    _copyFirstRow(sheet, array);
+  
+  // Do a copy only if it is the first day of the month and the copy has not already been done
+  if (array[0][0].getDate() == 1 && _toStringDate(array[0][0]) != _toStringDate(array[1][0])) {
+    _insertFirstRow(sheet, null, true);
+    _setRangeValues(sheet, FR + 1, FC, [array[0]]); // Copy only values into previous row (archive)
 
     const date = _toDate(); // Get date without hours
-    date.setMonth(date.getMonth() - 1, 1); // Set the date at the first of previous month
     sheet.getRange(FR + 1, FC).setValue(date); // Update the previous month date
   }
 }
