@@ -2,7 +2,7 @@
 getValue, setValue, getImage, getDataValue, showLoader, 
 getMainTitle, toCurrency, toStringDate, translate, displayElement, 
 setTranslationLanguage, indexOf, getCurrentLanguage, sendRecapEmail, 
-displayErrorFallback */
+displayErrorFallback, overDisplay */
 /* exported init, onKeyUp, validatePayment, getButtonAction, translationLoaded, 
 displayError */
 
