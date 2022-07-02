@@ -145,9 +145,9 @@ function animateLoaderBar(item, duration = 3000) {
 function openTab(id, isFirstLoading) {
   if (GLOBAL.currentDisplayedId != id) {
     GLOBAL.currentDisplayedId = id;
-    GLOBAL.displayId.forEach((id) => displayElement("#" + id + "Div", false, 0)); // Hide all tab content
+    GLOBAL.displayId.forEach((id) => displayElement(id + "Div", false, 0)); // Hide all tab content
     $(".tabLinks").removeClass("active"); // Remove the class "active" from all tabLinks"
-    displayElement("#" + id + "Div", true); // Show the current tab
+    displayElement(id + "Div", true); // Show the current tab
     $("#" + id + "Button").addClass("active"); // Add an "active" class to the button that opened the tab
 
     if (!isFirstLoading && (!GLOBAL.displayData[id] || !GLOBAL.displayData[id].loadOnce)) {
@@ -168,11 +168,11 @@ function updateValues(id, forceReload, success) {
 function openPopup(innerHTML) {
   setHtml("#popup", innerHTML);
   $(".contentOverlay").addClass("blur-filter");
-  displayElement("#popupOverlay", true);
+  displayElement("popupOverlay", true);
 }
 
 function closePopup(complete = () => {}) {
-  displayElement("#popupOverlay", false, null, () => {
+  displayElement("popupOverlay", false, null, () => {
     $(".contentOverlay").removeClass("blur-filter");
     $("#mainFocus").focus();
     complete();
@@ -184,7 +184,7 @@ function processTable(id, tableHTML, shouldFilter) {
     id,
     tableHTML + (shouldFilter && !tableHTML.includes("<tfoot>") ? "<tfoot><tr id=\"" + id + "Footer\"></tr></tfoot>" : "")
   );
-  displayElement("#" + id + "Button", true); // Show button
+  displayElement(id + "Button", true); // Show button
   $(".auto").each((i, item) => autoAdaptWidth(item)); // Auto adapt all auto element
 
   if (shouldFilter) {
@@ -193,8 +193,8 @@ function processTable(id, tableHTML, shouldFilter) {
 }
 
 function finishLoading(id, isFirstLoading) {
-  displayElement("#loaderBar", false, 0); // Hide the loader bar
-  displayElement("#tabContainer", true); // Display the tab container
+  displayElement("loaderBar", false, 0); // Hide the loader bar
+  displayElement("tabContainer", true); // Display the tab container
   openTab(id, isFirstLoading); // Activate first tab as open by default
 }
 
@@ -319,10 +319,10 @@ function getAttributesFromData(data) {
       addAttr("data-symbol", data.symbol) +
       addAttr("data-type", data.type || "text") +
       addAttr("data-precision", data.precision) +
-      (data.readonly ? addAttr("readonly") : "") +
-      (data.disabled ? addAttr("disabled") : "") +
-      (data.required ? addAttr("required") : "") +
-      addAttr("checked", data.checked);
+      addAttr("checked", data.checked) +
+      addAttr("readonly", data.readonly, true) +
+      addAttr("disabled", data.disabled, true) +
+      addAttr("required", data.required, true);
   }
 
   attr += addAttr("type", type); // Type is universal
@@ -729,7 +729,7 @@ function selectName(e, index) {
     index = e.selectedIndex;
   }
 
-  displayElement("#transactionQuantityLabel", e.options[index].title);
+  displayElement("transactionQuantityLabel", e.options[index].title);
 }
 
 function getValue(data, func, forceReload, success) {
@@ -921,16 +921,26 @@ function displayLoading(id, isDisplayed) {
     if (isDisplayed || GLOBAL.loadingQueueCount) {
       GLOBAL.hasAlreadyUpdated[id] = true;
       setTimeout(() => (GLOBAL.hasAlreadyUpdated[id] = false), GLOBAL.timeBetweenReload * 1000);
-      displayElement("#refreshButton", false);
+      displayElement("refreshButton", false);
     } else {
-      setTimeout(() => displayElement("#refreshButton", !GLOBAL.loadingQueueCount), 100); // Hack for local refresh because it loads everything in the same function
+      setTimeout(() => displayElement("refreshButton", !GLOBAL.loadingQueueCount), 100); // Hack for local refresh because it loads everything in the same function
     }
   }
 }
 
 function displayElement(id, isDisplayed, duration = 1000, complete) {
-  var fn = isDisplayed ? () => $(id).fadeIn(duration, complete) : () => $(id).fadeOut(duration, complete);
-  fn();
+  const a = id => {
+    id = !id.includes("#") && !id.includes(".") ? "#" + id : id;
+    return id.replaceAll(" ", "");
+  };
+  const b = id => {
+    let x = [];
+    id.split(",").forEach(i => x.push(a(i)));
+    return x.join(",");
+  };
+  id = id.includes(",") ? b(id) : a(id);
+  const c = isDisplayed ? () => $(id).fadeIn(duration, complete) : () => $(id).fadeOut(duration, complete);
+  c();
 }
 
 function overDisplay(idToHide, idToShow, complete) {
@@ -938,7 +948,7 @@ function overDisplay(idToHide, idToShow, complete) {
 }
 
 function showLoader(isDisplayed) {
-  displayElement("#loaderOverlay", isDisplayed);
+  displayElement("loaderOverlay", isDisplayed);
   $(".contentOverlay").fadeTo(1000, isDisplayed ? 0.3 : 1);
 }
 
@@ -967,11 +977,11 @@ function displayErrorFallback(message, isWarning) {
   );
   $("#alert").css("background-color", isWarning ? "#ff9800" : "#f44336");
   $("#alert").css("font-size", fontSize + "px");
-  $(".closebtn").css("font-size", 2*fontSize + "px");
+  $(".closebtn").css("font-size", 2 * fontSize + "px");
   $(".closebtn").css("line-height", fontSize + "px");
 
-  displayElement("#alertOverlay", true, 1000);
-  displayElement("#refreshButton", true, 1000);
+  displayElement("alertOverlay", true, 1000);
+  displayElement("refreshButton", true, 1000);
 }
 
 function translate(content) {

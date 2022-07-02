@@ -41,6 +41,7 @@ GLOBAL.step = {
 GLOBAL.currentStep = null;
 
 GLOBAL.messages = {
+  howto: "How to",
   help: "Help",
   duration: "($ ago)",
   noPayment: "Error: No transaction",
@@ -97,7 +98,7 @@ function init(id) {
 }
 
 function displayContent(id, contents) {
-  displayElement("#mainContent, #mainHeading", false, 0);
+  displayElement("mainContent, mainHeading", false, 0);
 
   GLOBAL.merchantAddress = getDataValue(contents, GLOBAL.header.cryptoAddress);
   const company = getDataValue(contents, GLOBAL.header.company);
@@ -111,7 +112,7 @@ function displayContent(id, contents) {
 
   setProcess(GLOBAL.step.executePayment);
 
-  displayElement("#mainContent, #merchant, #mainHeading, #process", true, 2500);
+  displayElement("mainContent, merchant, mainHeading, process", true, 2500);
   displayLanguageButton();
 
   finishLoading();
@@ -128,7 +129,7 @@ function selectLanguage(language) {
 function displayLanguageButton() {
   $(".actionButton").each((index, element) => {
     const isCurrentLanguage = index == GLOBAL.translationCurrentIndex;
-    displayElement(element, !isCurrentLanguage, isCurrentLanguage ? 0 : 1000);
+    displayElement(element.id, !isCurrentLanguage, isCurrentLanguage ? 0 : 1000);
   });
 }
 
@@ -137,18 +138,23 @@ function setProcess(step) {
   const index = GLOBAL.translationCurrentIndex;
 
   let content = "";
+  const main = indexOf(translation, GLOBAL.messages.howto, 0) + 1;
   step = step == translate(GLOBAL.step.retry) ? GLOBAL.step.executePayment : step;
-  if (step == GLOBAL.step.executePayment || step == GLOBAL.step.openWallet) {
-    const main = indexOf(translation, GLOBAL.step.openWallet, 0) + 1;
-    if (step == GLOBAL.step.executePayment) {
-      content += getDiv(null, null, "left", getMainTitle(translation[main][index]));
-    }
-    const wallet = getWallet();
-    content +=
-      getMainTitle(translation[main + 1][index]) +
-      getStepButton(translate(GLOBAL.step.openWallet) + " " + wallet[0], openWallet.name);
+  if (step == GLOBAL.step.executePayment) {
+    content += getStepButton(GLOBAL.messages.howto, displayHowTo.name);
+    content += getDiv(
+      GLOBAL.messages.howto,
+      "hidden",
+      "left",
+      getMainTitle(translation[main][index]) + getMainTitle(translation[main + 1][index])
+    );
+    content += getStepButton(translate(GLOBAL.step.openWallet) + " " + getWallet()[0], openWallet.name);
+    content += getStepButton(GLOBAL.step.verifyPayment, verifyPayment.name);
+  } else if (step == GLOBAL.step.openWallet) {
+    content += getMainTitle(translation[main + 1][index]);
+    content += getStepButton(translate(GLOBAL.step.openWallet) + " " + getWallet()[0], openWallet.name);
   } else if (step == GLOBAL.step.verifyPayment) {
-    content += getStepButton(translate(GLOBAL.step.verifyPayment), verifyPayment.name);
+    content += getStepButton(GLOBAL.step.verifyPayment, verifyPayment.name);
   } else if (step == GLOBAL.step.result) {
     content += getPaymentStatus();
   } else if (step == translate(GLOBAL.step.abort)) {
@@ -180,7 +186,9 @@ function getWallet() {
 
 function getStepButton(label, action) {
   const buttonHTML =
-    "<button onclick=\"" +
+    "<button id=\"" +
+    action +
+    "\" onclick=\"" +
     action +
     `(this.innerHTML)" style="
     border-radius: 30px;
@@ -202,6 +210,13 @@ function openHelp(section) {
   window.open(helpURL, "_blank");
 }
 
+function displayHowTo() {
+  overDisplay(
+    arguments.callee.name + "," + verifyPayment.name + "," + openWallet.name,
+    GLOBAL.messages.howto + "," + openWallet.name
+  );
+}
+
 function openWallet(wallet) {
   navigator.clipboard.writeText(GLOBAL.merchantAddress);
   const url = GLOBAL.wallet[wallet.split(" ")[1]];
@@ -219,7 +234,7 @@ async function verifyPayment(option) {
     const customerAddress = clipboard.match(GLOBAL.solanaAddressPattern);
     if (customerAddress && customerAddress.length == 1 && customerAddress != GLOBAL.merchantAddress) {
       showLoader(true);
-      displayElement("#process", false, 0);
+      displayElement("process", false, 0);
       GLOBAL.retry = 0;
       GLOBAL.customerAddress = customerAddress[0];
       setCustomerAddress(GLOBAL.customerAddress, checkPaymentStatus);

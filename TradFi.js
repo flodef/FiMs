@@ -158,7 +158,7 @@ function onKeyUp(e) {
     !$("#loaderOverlay").is(":visible")
   ) {
     if ($("#alertOverlay").is(":visible")) {
-      displayElement("#alertOverlay", false);
+      displayElement("alertOverlay", false);
     } else if (!$("#actionButton").is(":visible")) {
       if (e.keyCode === 13) {
         // Enter
@@ -239,7 +239,7 @@ function updateDashboardTable(id, contents) {
 }
 
 function updateInvestmentTable(id, contents) {
-  displayElement("#rebalanceButton", shouldRebalance(contents[contents.length - 1][GLOBAL.rebalCol]));
+  displayElement("rebalanceButton", shouldRebalance(contents[contents.length - 1][GLOBAL.rebalCol]));
 
   clearTransactionName();
 
@@ -318,9 +318,9 @@ function updateInvestmentTable(id, contents) {
 function updateHistoricTable(id, contents) {
   $(".validateButton").prop("disabled", true);
 
-  displayElement("#uploadButton", true);
-  displayElement("#addButton", true);
-  displayElement("#removeButton", indexOf(contents, GLOBAL.dummy, GLOBAL.histoIdCol));
+  displayElement("uploadButton", true);
+  displayElement("addButton", true);
+  displayElement("removeButton", indexOf(contents, GLOBAL.dummy, GLOBAL.histoIdCol));
 
   var row = contents.length;
   var col = contents[0].length;

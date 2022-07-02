@@ -206,17 +206,17 @@ function init(id) {
         setHtml("#" + displayId + "Div", ""); // Clear all tab content except faq
         GLOBAL.data[displayId] = null; // Delete data in order to reload it
       }
-      displayElement("#" + displayId + "Button", false, 0); // Hide all tab
+      displayElement(displayId + "Button", false, 0); // Hide all tab
     });
     setHtml("#scrollDiv", ""); // Clear the scrollDiv
-    displayElement("#" + faqId + "Div", false, 0); // Hide Faq content
+    displayElement(faqId + "Div", false, 0); // Hide Faq content
     if ($("#loaderBar").is(":hidden")) {
-      displayElement("#loaderBar", true, 0); // Display the loader bar
+      displayElement("loaderBar", true, 0); // Display the loader bar
       animateLoaderBar(); // Animate the loader bar
     }
 
     if (id) {
-      displayElement("#tabContainer", false, 0); // Hide the tab container
+      displayElement("tabContainer", false, 0); // Hide the tab container
       GLOBAL.displayData.account.formula = restrainFormula(
         id + "!" + GLOBAL.displayData.account.formula.split("!")[1],
         0,
@@ -225,8 +225,8 @@ function init(id) {
       updateAllValues();
     } else {
       // No user
-      displayElement("#depositButton", false, 0); // Hide the deposit button
-      displayElement("#withdrawButton", false, 0); // Hide the withdraw button
+      displayElement("depositButton", false, 0); // Hide the deposit button
+      displayElement("withdrawButton", false, 0); // Hide the withdraw button
       updateValues(faqId); // Load only the faq
     }
   }
@@ -254,7 +254,7 @@ function updateAccountTable(id, contents) {
     openTabAfterConnect(id);
   }
 
-  displayElement("#" + id + "Button", hasContent, 0); // Hide this tab if empty
+  displayElement(id + "Button", hasContent, 0); // Hide this tab if empty
 }
 
 function updateHistoricTable(id, contents) {
@@ -288,7 +288,7 @@ function updateHistoricTable(id, contents) {
     openTabAfterConnect(id);
   }
 
-  displayElement("#" + id + "Button", hasContent, 0); // Hide this tab if empty
+  displayElement(id + "Button", hasContent, 0); // Hide this tab if empty
 }
 
 function updatePersonalTable(id, contents) {
@@ -358,9 +358,9 @@ function updatePersonalTable(id, contents) {
     GLOBAL.maxRecurrent = 0;
   }
 
-  displayElement("#" + id + "Button", hasContent, 0); // Hide this tab if empty
-  displayElement("#depositButton", hasContent); // Show the deposit button
-  displayElement("#withdrawButton", GLOBAL.totalValue > 0); // Show the withdraw button
+  displayElement(id + "Button", hasContent, 0); // Hide this tab if empty
+  displayElement("depositButton", hasContent); // Show the deposit button
+  displayElement("withdrawButton", GLOBAL.totalValue > 0); // Show the withdraw button
 }
 
 function updateGlobalTable(id, contents) {
@@ -384,7 +384,7 @@ function updateGlobalTable(id, contents) {
     openTabAfterConnect(id);
   }
 
-  displayElement("#" + id + "Button", hasContent, 0); // Hide this tab if empty
+  displayElement(id + "Button", hasContent, 0); // Hide this tab if empty
 }
 
 function updateFaqTable(id, contents) {
@@ -408,8 +408,8 @@ function updateFaqTable(id, contents) {
   processTable(id, tableHTML);
   openTabAfterConnect(id);
 
-  displayElement("#" + id + "Button", true, 0); // Display tab when loaded
-  displayElement("#connectButton", true); // Show the connect button
+  displayElement(id + "Button", true, 0); // Display tab when loaded
+  displayElement("connectButton", true); // Show the connect button
 }
 
 function openTabAfterConnect(id) {

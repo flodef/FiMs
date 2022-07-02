@@ -1,11 +1,8 @@
 /*global google, $, XLSX*/
 
 const GLOBAL = {};
-GLOBAL.isLocal =
-  document.URL.includes(":8080") || document.URL.includes("github.io"); // Whether the app is running in local mode
-GLOBAL.serverUrl = GLOBAL.isLocal
-  ? ""
-  : "https://raw.githubusercontent.com/flodef/FiMS/master/"; // Remove the server URL if in local mode
+GLOBAL.isLocal = document.URL.includes(":8080") || document.URL.includes("github.io"); // Whether the app is running in local mode
+GLOBAL.serverUrl = GLOBAL.isLocal ? "" : "https://raw.githubusercontent.com/flodef/FiMS/master/"; // Remove the server URL if in local mode
 GLOBAL.scriptUrl = GLOBAL.isLocal ? "" : "https://flodef.github.io/FiMS/"; // Remove the server URL if in local mode
 
 // [src, isLocal]
@@ -72,10 +69,7 @@ async function loadScript(i) {
       loadScript(i);
     } else {
       const fn = (pageTitle) => addScript(pageTitle.replace("FiMs ", ""));
-      google.script.run
-        .withSuccessHandler(fn)
-        .withFailureHandler(alert)
-        .getProperty("pageTitle");
+      google.script.run.withSuccessHandler(fn).withFailureHandler(alert).getProperty("pageTitle");
     }
   }
 }
@@ -138,16 +132,13 @@ function setLoaderBar(value = 1) {
 function getDiv(id, cssClass, align, content = "") {
   return (
     "<div" +
-    addAttr("id", id) +
+    addAttr("id", id ? id.replaceAll(" ", "") : null) +
     addAttr("align", align) +
     addAttr(
       "class",
       cssClass
         ? cssClass +
-            (cssClass.toLowerCase().endsWith("overlay") &&
-            !cssClass.toLowerCase().includes("content")
-              ? " hidden"
-              : "")
+            (cssClass.toLowerCase().endsWith("overlay") && !cssClass.toLowerCase().includes("content") ? " hidden" : "")
         : ""
     ) +
     ">" +
@@ -160,10 +151,6 @@ function getOverlayDiv(id, cssClass = "overlay") {
   return getDiv(id + "Overlay", cssClass, null, getDiv(id));
 }
 
-function addAttr(name, value) {
-  return (
-    " " +
-    name +
-    (value || value == 0 ? "=\"" + value.toString().trim() + "\"" : "")
-  );
+function addAttr(name, value, isSingle) {
+  return value || value == 0 ? " " + name + (!isSingle ? "=\"" + value.toString().trim() + "\"" : "") : "";
 }
