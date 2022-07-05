@@ -195,7 +195,7 @@ $(() => {
 });
 
 function init(id) {
-  if (id != GLOBAL.user.ID) {
+  if (id != GLOBAL.user.ID || GLOBAL.user.ID === undefined) {
     const faqId = GLOBAL.displayData.FAQ.id;
     GLOBAL.user = [];
     GLOBAL.user.ID = id;
