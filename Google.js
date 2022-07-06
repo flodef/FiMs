@@ -18,23 +18,18 @@ function doGet(e) {
   let fileName, pageTitle;
 
   if (!workInProgress) {
-    const project = {
-      TradFi: "TradFi",
-      Pay: "Pay",
-      Associate: "Associate",
-      // DeFi:"Defi"  // Not implemented yet
-    };
+    const app = getUrlParams(e, "app");
     const userId = getUrlParams(e, "id");
-    const currentProject =
-      userId == project.TradFi ? project.TradFi : userId && !isNaN(userId) ? project.Pay : project.Associate;
+    const project = ["Associate", "TradFi", "Pay", "Defi"];
+    const currentProject = project.includes(app) ? app : project[0];
     const spreadsheetId = getSpreadsheetId(currentProject);
-
-    fileName = "Index";
-    pageTitle = "FiMs " + currentProject;
 
     setProperty("userId", userId);
     setProperty("pageTitle", pageTitle);
     setProperty("spreadsheetId", spreadsheetId);
+
+    fileName = "Index";
+    pageTitle = "FiMs " + currentProject;
   } else {
     fileName = "WorkInProgress";
     pageTitle = fileName;

@@ -74,9 +74,11 @@ for sid in "${!fileArray[@]}"; do
 done
 
 # Asks for the User Id, then open the browser in parallel, while the http server is starting
-echo "User ID ('TradFi' for FiMs TradFi, can also be void) :"
-read user
-sh OpenLocalHost.sh $user &
+echo "App ('TradFi', 'DeFi', 'Associate' or 'Pay'. If void, 'Associate' is selected) :"
+read app
+echo "User ID (Associate ID for FiMs Associate, Merchant ID for FiMs Pay, Token ID for FiMs DeFi) :"
+read id
+sh OpenLocalHost.sh "$app" "$id" &
 
 # Start the http server in the root folder
 clear

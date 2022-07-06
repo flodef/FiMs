@@ -139,8 +139,10 @@ CLS
 :end
 
 REM Asks for the User Id, then open the browser in parallel, while the http server is starting
-SET /p user= User ID ('TradFi' for FiMs TradFi, can also be void) :
-START /B OpenLocalHost.bat %user%
+SET /p app= App ('TradFi', 'DeFi', 'Associate' or 'Pay'. If void, 'Associate' is selected) :
+SET /p id= User ID (Associate ID for FiMs Associate, Merchant ID for FiMs Pay, Token ID for FiMs DeFi) :
+
+START /B OpenLocalHost.bat "%app%" "%id%"
 
 REM Start the http server in the root folder (Install NPM first, then http-server)
 CLS

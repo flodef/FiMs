@@ -929,13 +929,13 @@ function displayLoading(id, isDisplayed) {
 }
 
 function displayElement(id, isDisplayed, duration = 1000, complete) {
-  const a = id => {
-    id = !id.includes("#") && !id.includes(".") ? "#" + id : id;
+  const a = (id) => {
+    id = id[0] != "#" && id[0] != "." && id[0] != "[" ? "#" + id : id;
     return id.replaceAll(" ", "");
   };
-  const b = id => {
+  const b = (id) => {
     let x = [];
-    id.split(",").forEach(i => x.push(a(i)));
+    id.split(",").forEach((i) => x.push(a(i)));
     return x.join(",");
   };
   id = id.includes(",") ? b(id) : a(id);

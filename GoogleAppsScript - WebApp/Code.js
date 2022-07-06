@@ -4,8 +4,7 @@ clearSheetValues, insertRows, deleteRows, sortColumn */
 
 // SET THIS TO TRUE IF A BUG HAPPENED IN PROD AND TIME TO DEBUG IS NEEDED
 const workInProgress = false;
-const favIcon =
-  "https://raw.githubusercontent.com/flodef/FiMS/master/Img/Image/Favicon2.png";
+const favIcon = "https://raw.githubusercontent.com/flodef/FiMS/master/Img/Image/Favicon2.png";
 
 // App specific
 const ownEmail = "fdefroco@gmail.com";
@@ -28,20 +27,10 @@ function doGet(e) {
   let fileName, pageTitle;
 
   if (!workInProgress) {
-    const project = {
-      TradFi: "TradFi",
-      Pay: "Pay",
-      Associate: "Associate",
-      // DeFi:"Defi"  // Not implemented yet
-    };
+    const app = getUrlParams(e, "app");
     const userId = getUrlParams(e, "id");
-    console.log(userId);
-    const currentProject =
-      userId == project.TradFi
-        ? project.TradFi
-        : userId && !isNaN(userId)
-          ? project.Pay
-          : project.Associate;
+    const project = ["Associate", "TradFi", "Pay", "Defi"];
+    const currentProject = project.includes(app) ? app : project[0];
     const spreadsheetId = getSpreadsheetId(currentProject);
 
     fileName = "Index";
@@ -55,7 +44,7 @@ function doGet(e) {
     pageTitle = fileName;
   }
 
-  var template = HtmlService.createTemplateFromFile(fileName);
+  const template = HtmlService.createTemplateFromFile(fileName);
 
   // Build and return HTML in IFRAME sandbox mode.
   return template.evaluate().setTitle(pageTitle).setFaviconUrl(favIcon);
