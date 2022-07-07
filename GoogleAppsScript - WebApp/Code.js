@@ -29,7 +29,7 @@ function doGet(e) {
   if (!workInProgress) {
     const app = getUrlParams(e, "app");
     const userId = getUrlParams(e, "id");
-    const project = ["Associate", "TradFi", "Pay", "Defi"];
+    const project = ["Associate", "TradFi", "Pay", "DeFi"];
     const currentProject = project.includes(app) ? app : project[0];
     const spreadsheetId = getSpreadsheetId(currentProject);
 
