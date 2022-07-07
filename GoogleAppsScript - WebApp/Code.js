@@ -53,7 +53,7 @@ function doGet(e) {
 /**
  */
 function getUrlParams(e, param) {
-  return e && e.parameter && e.parameter[param] ? e.parameter[param] : "";
+  return e && e.parameter && e.parameter[param] ? e.parameter[param].replace("/", "") : "";
 }
 
 /**

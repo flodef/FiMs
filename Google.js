@@ -24,12 +24,12 @@ function doGet(e) {
     const currentProject = project.includes(app) ? app : project[0];
     const spreadsheetId = getSpreadsheetId(currentProject);
 
+    fileName = "Index";
+    pageTitle = "FiMs " + currentProject;
+
     setProperty("userId", userId);
     setProperty("pageTitle", pageTitle);
     setProperty("spreadsheetId", spreadsheetId);
-
-    fileName = "Index";
-    pageTitle = "FiMs " + currentProject;
   } else {
     fileName = "WorkInProgress";
     pageTitle = fileName;
@@ -43,7 +43,7 @@ function doGet(e) {
 
 // WARNING : THESE PRIVATE FUNCTIONS ARE NOT MEANT TO BE CALLED DIRECTLY
 function getUrlParams(e, param) {
-  return e.get(param);
+  return e.get(param).replace("/", "");
 }
 function getSpreadsheetId(currentProject) {
   return "Data/FiMs " + currentProject + ".xlsx";
