@@ -43,7 +43,7 @@ function doGet(e) {
 
 // WARNING : THESE PRIVATE FUNCTIONS ARE NOT MEANT TO BE CALLED DIRECTLY
 function getUrlParams(e, param) {
-  return e.get(param).replace("/", "");
+  return e.get(param) ? e.get(param).replace("/", "") : "";
 }
 function getSpreadsheetId(currentProject) {
   return "Data/FiMs " + currentProject + ".xlsx";

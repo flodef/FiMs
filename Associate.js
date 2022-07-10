@@ -217,11 +217,15 @@ function init(id) {
 
     if (id) {
       displayElement("tabContainer", false, 0); // Hide the tab container
-      GLOBAL.displayData.account.formula = restrainFormula(
-        id + "!" + GLOBAL.displayData.account.formula.split("!")[1],
-        0,
-        12
-      ); // Create user account formula
+      try {
+        GLOBAL.displayData.account.formula = restrainFormula(
+          id + "!" + GLOBAL.displayData.account.formula.split("!")[1],
+          0,
+          12
+        ); // Create user account formula
+      } catch {
+        GLOBAL.displayData.account.formula = null; // Reset formula if it is incorrect
+      }
       updateAllValues();
     } else {
       // No user

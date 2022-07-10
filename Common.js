@@ -1200,13 +1200,22 @@ function splice(original, text, offset = 0, removeCount = 0) {
     : text;
 }
 
-function restrainFormula(formula, low, high) {
+function restrainFormula(formula, low = -1, high = -1) {
   formula = formula.replace(/\d+/g, "");
-  if (low != -1 && high != -1) {
-    var a = formula.split(":");
-    a[0] += low > 1 ? low : 1;
-    a[1] += high > 1 ? high + 1 : GLOBAL.dataPreloadRowLimit + 1;
-    formula = a[0] + ":" + a[1];
+  const f = formula.split("!");
+  if (low != -1 || high != -1) {
+    if (f.length == 2 && f[0] && f[1]) {
+      const a = f[1].split(":");
+      if (a.length == 2 && a[0] && a[1]) {
+        a[0] += low > 1 ? low : 1;
+        a[1] += high > 1 ? high + 1 : GLOBAL.dataPreloadRowLimit + 1;
+        formula = f[0] + "!" + a[0] + ":" + a[1];
+      } else {
+        throw new Error("Formula malformation : " + formula);
+      }
+    } else {
+      throw new Error("Incorrect spreadsheet name : " + formula);
+    }
   }
 
   return formula;
