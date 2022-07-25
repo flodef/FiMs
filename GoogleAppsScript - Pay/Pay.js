@@ -151,14 +151,17 @@ function _archiveProcessedTransaction(paidArray) {
 }
 
 function _deleteProcessedTransaction(deleteArray, sheet) {
-  for (let j = deleteArray.length - 1; j >= 0; --j) {
-    sheet = _getSheet(TRANSACTIONS, sheet);
-    if (deleteArray[j] != FR || sheet.getMaxRows() != FR) {
-      sheet.deleteRow(deleteArray[j]);
-    } else {
-      sheet.getRange(FR, FC, 1, TRANS_COL_COUNT).clearContent();
-    }
-  }
+  deleteArray
+    .sort()
+    .reverse()
+    .forEach((item) => {
+      sheet = _getSheet(TRANSACTIONS, sheet);
+      if (item != FR || sheet.getMaxRows() != FR) {
+        sheet.deleteRow(item);
+      } else {
+        sheet.getRange(FR, FC, 1, TRANS_COL_COUNT).clearContent();
+      }
+    });
 }
 
 function _sendTransactionMail(recapArray, emailArray) {
