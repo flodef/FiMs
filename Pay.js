@@ -105,7 +105,7 @@ function displayContent(id, contents) {
   const merchantTitle = getMainTitle(company, 60);
   $("#mainHeading").html(merchantTitle);
 
-  const logo = getImage(GLOBAL.user.ID, "Pay/Merchant", [{ name: "style", value: "margin: 25px;" }]);
+  const logo = getImage(GLOBAL.user.ID, "Merchant", [{ name: "style", value: "margin: 25px;" }]);
   const logoHTML = getDiv("logo", null, "center", logo);
   const processHTML = getDiv("process", null, "center");
   $("#mainContent").html(logoHTML + processHTML);
