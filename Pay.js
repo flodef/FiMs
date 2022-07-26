@@ -27,7 +27,7 @@ GLOBAL.retry = 0; // Number of retry with a data reset which force reloading dat
 GLOBAL.retryTimeout = 30; // Duration between each retry
 GLOBAL.retryLimit = 3; // Number of retry after which the payment is cancelled
 
-GLOBAL.timeoutTimer;
+GLOBAL.timeoutTimer = null;
 GLOBAL.timeout = false;
 
 GLOBAL.step = {
@@ -312,7 +312,7 @@ function getPaymentStatus() {
       const duration = (parseInt(d[0]) > 0 ? d[0] + "h " : "") + (parseInt(d[1]) > 0 ? d[1] + "m " : "") + d[2] + "s";
 
       html += getMainTitle(getDataValue(content, GLOBAL.header.time));
-      html += getMainTitle(translate(GLOBAL.messages.duration).replace("$", duration));
+      html += getMainTitle(translate(GLOBAL.messages.duration).replaceAll("$", duration));
     }
     html +=
       status !== GLOBAL.status.success

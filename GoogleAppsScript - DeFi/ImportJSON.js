@@ -427,8 +427,10 @@ function parseHeaders_(headers, data) {
  * Applies the transform function for each element in the data array, going through each column of each row.
  */
 function transformData_(data, options, transformFunc) {
-  for (var i = 0; i < data.length; i++) {
-    for (var j = 0; j < data[0].length; j++) {
+  const x = data.length;
+  const y = data[0].length;
+  for (var i = 0; i < x; i++) {
+    for (var j = 0; j < y; j++) {
       transformFunc(data, i, j, options);
     }
   }
@@ -457,17 +459,17 @@ function isObjectArray_(test) {
 /**
  * Returns true if the given query applies to the given path.
  */
-function includeXPath_(query, path, options) {
+function includeXPath_(query, path) {
   if (!query) {
     return true;
   } else if (Array.isArray(query)) {
     for (var i = 0; i < query.length; i++) {
-      if (applyXPathRule_(query[i], path, options)) {
+      if (applyXPathRule_(query[i], path)) {
         return true;
       }
     }
   } else {
-    return applyXPathRule_(query, path, options);
+    return applyXPathRule_(query, path);
   }
 
   return false;

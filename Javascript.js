@@ -1,7 +1,7 @@
 /*global google, $, XLSX*/
 
 const GLOBAL = {};
-GLOBAL.isLocal = document.URL.includes(":8080") || document.URL.includes("github.io"); // Whether the app is running in local mode
+GLOBAL.isLocal = document.URL.includes(":8080") || document.URL.includes("github"); // Whether the app is running in local mode
 GLOBAL.serverUrl = GLOBAL.isLocal ? "" : "https://raw.githubusercontent.com/flodef/FiMS/master/"; // Remove the server URL if in local mode
 GLOBAL.scriptUrl = GLOBAL.isLocal ? "" : "https://flodef.github.io/FiMS/"; // Remove the server URL if in local mode
 
