@@ -6,18 +6,30 @@
       href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300&family=PT+Sans&display=swap"
       rel="stylesheet"
     />
+    <style>
+      thead {
+        color: rgba(34, 110, 147, 1);
+        font-family: "PT Sans", sans-serif;
+        font-size: 19pt;
+        font-weight: bold;
+        line-height: 1.4;
+      }
+      tbody,
+      p {
+        color: rgba(33, 33, 33, 1);
+        font-family: Merriweather, serif;
+        font-size: 11pt;
+        font-weight: 400;
+        line-height: 1.6667;
+      }
+      p {
+        font-size: 9pt;
+      }
+    </style>
   </head>
   <body>
     <table style="border-collapse: collapse; width: 100%">
-      <thead
-        style="
-          color: rgba(34, 110, 147, 1);
-          font-family: 'PT Sans', sans-serif;
-          font-size: 19pt;
-          font-weight: bold;
-          line-height: 1.4;
-        "
-      >
+      <thead>
         <tr>
           <td style="text-align: center">&nbsp;</td>
           <td style="text-align: center">Monnaie de Banque Centrale<a href="#footnote-1">[1]</a></td>
@@ -25,15 +37,7 @@
           <td style="text-align: center">Monnaie digitale Décentralisée<a href="#footnote-3">[3]</a></td>
         </tr>
       </thead>
-      <tbody
-        style="
-          color: rgba(33, 33, 33, 1);
-          font-family: Merriweather, serif;
-          font-size: 11pt;
-          font-weight: 400;
-          line-height: 1.6667;
-        "
-      >
+      <tbody>
         <tr style="background: rgba(34, 110, 147, 0.3)">
           <td style="text-align: center">A qui appartient l'argent ?<a href="#footnote-4">[4]</a></td>
           <td style="text-align: center">Banque Centrale, Banque</td>
@@ -112,116 +116,102 @@
           <td style="text-align: center">Centralisé, Concurrence</td>
           <td style="text-align: center">Décentralisé, Concurrence parfaite</td>
         </tr>
-        <tr style="background: rgba(255, 255, 255, 1); font-size: 9pt">
+        <tr style="background: rgba(255, 255, 255, 1)">
           <td id="footnote-1" colspan="4">
             <br />
-            [1] La Banque Centrale est l'organe politique de contrôle monétaire avec un⋅e président⋅e désigné⋅e
-            <strong>sans aucune élection</strong>. La Banque Centrale contrôle les autres banques et par rebond le
-            gouvernement qui obtient des financements auprès des banques, notamment lors des campagnes électorales. C'est
-            donc l'État de fait ! <br />La Banque Centrale à prévu de lancer sa monnaie digitale au plus tard en 2025.
-            L'actuelle présidente de la Banque Centrale a été jugée coupable dans une affaire financière d'ampleur.<br />
-            Sources:
-            <a target="_blank" href="https://fr.wikipedia.org/wiki/Banque_centrale_européenne">Banque_centrale_européenne</a
-            >,
-            <a target="_blank" href="https://fr.wikipedia.org/wiki/Financement_des_campagnes_présidentielles_en_France"
-              >Financement_des_campagnes_présidentielles_en_France</a
-            >,
-            <a target="_blank" href="https://fr.wikipedia.org/wiki/Liste_d'affaires_politico-financières_françaises"
-              >Liste_d'affaires_politico-financières_françaises</a
-            >,
-            <a target="_blank" href="https://fr.wikipedia.org/wiki/Affaire_Tapie_-_Crédit_lyonnais"
-              >Affaire_Tapie_-_Crédit_lyonnais</a
-            >
-          </td>
-        </tr>
-        <tr style="font-size: 9pt">
-          <td id="footnote-2" colspan="4">
-            [2] La monnaie est décentralisée mais vos comptes sont détenus par une banque ou un établissement financier.
-            C'est ce dernier qui possède donc tous les droits sur vos comptes.
-            <strong>"Not your keys, not your coins"</strong> est un célèbre adage dans le monde de la monnaie digitale, qui
-            signifie "Si vous ne possédez pas les clés de votre compte, ce n'est pas votre argent". Cela vaut également pour
-            les banques traditionnelles.
-          </td>
-        </tr>
-        <tr style="font-size: 9pt">
-          <td id="footnote-3" colspan="4">
-            [3] La monnaie est décentralisée et
-            <strong>vous possédez les clés de votre compte</strong>, c'est à dire que vous détenez votre propre porte monnaie
-            digitale sur un appareil vous appartenant (téléphone portable, ordinateur, clé usb).
-          </td>
-        </tr>
-        <tr style="font-size: 9pt">
-          <td id="footnote-4" colspan="4">
-            [4] Pour savoir si la monnaie vous appartient vraiment, demandez vous s'il est légal ou même possible de
-            <strong>donner votre monnaie à qui bon vous semble</strong> (par exemple, à un ami Russe ou à une collègue
-            Malienne). Si la réponse est "non" ou "pas sans l'autorisation de ma banque", c'est que cette monnaie vous est
-            prêtée par un établissement financier ou une banque à qui elle appartient.
-          </td>
-        </tr>
-        <tr style="font-size: 9pt">
-          <td id="footnote-5" colspan="4">
-            [5] A noter que pour la quasi totalité, votre carte bancaire est émise par une de ces trois grandes entreprises
-            Américaine : Visa, MasterCard ou American Express. Elles ont donc, ainsi que le gouvernement Américain, un
-            <strong>accès total à chacune de vos transactions</strong>.
-          </td>
-        </tr>
-        <tr style="font-size: 9pt">
-          <td id="footnote-6" colspan="4">
-            [6] La création de monnaie scripturale (billets, pièces), son déplacement et son comptage est un très énergivore
-            et donc polluant. La monnaie numérique est beaucoup plus écologique, cependant la gestion centralisée des
-            serveurs est une proie de choix pour les voleurs. Dans les deux cas, cela implique des infrastructures très
-            conséquentes en termes de sécurité (camions blindés, distributeurs blindés, coffres forts, établissements
-            bancaires, personnel) générant un
-            <strong>énorme gaspillage de ressources</strong>.
-          </td>
-        </tr>
-        <tr style="font-size: 9pt">
-          <td id="footnote-7" colspan="4">
-            [7] Les frais de transaction sont le plus souvent cachés pour le consommateur. En effet, ce sont les commerçants
-            qui les paient ! Quant aux frais de gestion, ils se retrouvent dans tous les services que vous facturent votre
-            banque, faites vos comptes. A titre de comparaison,
-            <strong>Solana c'est 0,000015 € et 0,5Wh d'énergie la transaction. Et 0 € de frais de gestion</strong>.
-          </td>
-        </tr>
-        <tr style="font-size: 9pt">
-          <td id="footnote-8" colspan="4">
-            [8] Toutes les décisions concernant la monnaie sont prises par
-            <strong>une élite choisie de manière aristocratique</strong>. Ayant le pouvoir, c'est eux qui décident pour vous.
-            Je vous laisse deviner dans quel intérêt... Avec la monnaie digitale décentralisée, vous avez votre mot à dire et
-            pouvez voter démocratiquement. Voir
-            <a
-              target="_blank"
-              href="https://lentrepreneur.co/finance/crypto/solend-pouvoirs-durgence-vote-sur-la-gouvernance-donner-un-sens-a-tout-cela-26062022"
-              >Vote sur Solend</a
-            >.<br />
-            Mieux, le fonctionnement de la monnaie est transparent (inflation, monnaie en circulation, nombre de validateurs)
-            et son code informatique Open source (vérifiable et modifiable par tout le monde), comme Wikipédia. Voir
-            <a target="_blank" href="https://solanabeach.io/">Statistiques sur Solana Beach</a>,
-            <a target="_blank" href="https://github.com/solana-labs">Code informatique de Solana sur Github</a> et
-            <a target="_blank" href="https://solana.com/solana-whitepaper.pdf">Fonctionnement de Solana</a>.
-          </td>
-        </tr>
-        <tr style="font-size: 9pt">
-          <td id="footnote-9" colspan="4">
-            [9] Toutes les personnes qui ont été confrontées à des injustices bancaires vous le diront :
-            <strong>la banque a toujours raison !</strong>. La monnaie décentralisée permet justement un retour à une
-            répartition horizontale des pouvoirs.
-          </td>
-        </tr>
-        <tr style="font-size: 9pt">
-          <td id="footnote-10" colspan="4">
-            [10] Dans tous les pays bancarisés, c'est-à-dire la quasi-totalité du monde, il y a un petit groupe de banques
-            qui s'entendent entre elles et fixent les règles du marché. Si c'est la Banque Centrale, c'est un monopole. En
-            France, c'est une oligopole à 4 banques qui font partie des 30 plus grandes banques mondiales : le Crédit
-            Agricole (12e), BNP Paribas (13e), la BPCE (Banque Populaire, Caisse d’Épargne) (20e) et Société Générale (29e).
-            D'ici à dire qu'ils ont grand intérêt à décrédibiliser la monnaie numérique décentralisée ...<br />
-            Dans la monnaie numérique centralisée, il y a un ensemble d'acteurs mondiaux à fort pouvoir de marché qui accède
-            au statut d'Établissement financier capable de gérer de l'argent pour un client (licence bancaire,
-            capitalisation, législation).<br />
-            <strong
-              >Dans la monnaie numérique décentralisée, tout le monde peut devenir validateur. Pour Solana, il suffit de
-              consigner 1 SOL !!</strong
-            >
+            <p>
+              [1] La Banque Centrale est l'organe politique de contrôle monétaire avec un⋅e président⋅e désigné⋅e
+              <strong>sans aucune élection</strong>. La Banque Centrale contrôle les autres banques et par rebond le
+              gouvernement qui obtient des financements auprès des banques, notamment lors des campagnes électorales. C'est
+              donc l'État de fait ! <br />La Banque Centrale à prévu de lancer sa monnaie digitale au plus tard en 2025.
+              L'actuelle présidente de la Banque Centrale a été jugée coupable dans une affaire financière d'ampleur.<br />
+              Sources:
+              <a target="_blank" href="https://fr.wikipedia.org/wiki/Banque_centrale_européenne"
+                >Banque_centrale_européenne</a
+              >,
+              <a target="_blank" href="https://fr.wikipedia.org/wiki/Financement_des_campagnes_présidentielles_en_France"
+                >Financement_des_campagnes_présidentielles_en_France</a
+              >,
+              <a target="_blank" href="https://fr.wikipedia.org/wiki/Liste_d'affaires_politico-financières_françaises"
+                >Liste_d'affaires_politico-financières_françaises</a
+              >,
+              <a target="_blank" href="https://fr.wikipedia.org/wiki/Affaire_Tapie_-_Crédit_lyonnais"
+                >Affaire_Tapie_-_Crédit_lyonnais</a
+              >
+            </p>
+            <p id="footnote-2" colspan="4">
+              [2] La monnaie est décentralisée mais vos comptes sont détenus par une banque ou un établissement financier.
+              C'est ce dernier qui possède donc tous les droits sur vos comptes.
+              <strong>"Not your keys, not your coins"</strong> est un célèbre adage dans le monde de la monnaie digitale, qui
+              signifie "Si vous ne possédez pas les clés de votre compte, ce n'est pas votre argent". Cela vaut également
+              pour les banques traditionnelles.
+            </p>
+            <p id="footnote-3" colspan="4">
+              [3] La monnaie est décentralisée et
+              <strong>vous possédez les clés de votre compte</strong>, c'est à dire que vous détenez votre propre porte
+              monnaie digitale sur un appareil vous appartenant (téléphone portable, ordinateur, clé usb).
+            </p>
+            <p id="footnote-4" colspan="4">
+              [4] Pour savoir si la monnaie vous appartient vraiment, demandez vous s'il est légal ou même possible de
+              <strong>donner votre monnaie à qui bon vous semble</strong> (par exemple, à un ami Russe ou à une collègue
+              Malienne). Si la réponse est "non" ou "pas sans l'autorisation de ma banque", c'est que cette monnaie vous est
+              prêtée par un établissement financier ou une banque à qui elle appartient.
+            </p>
+            <p id="footnote-5" colspan="4">
+              [5] A noter que pour la quasi totalité, votre carte bancaire est émise par une de ces trois grandes entreprises
+              Américaine : Visa, MasterCard ou American Express. Elles ont donc, ainsi que le gouvernement Américain, un
+              <strong>accès total à chacune de vos transactions</strong>.
+            </p>
+            <p id="footnote-6" colspan="4">
+              [6] La création de monnaie scripturale (billets, pièces), son déplacement et son comptage est un très
+              énergivore et donc polluant. La monnaie numérique est beaucoup plus écologique, cependant la gestion
+              centralisée des serveurs est une proie de choix pour les voleurs. Dans les deux cas, cela implique des
+              infrastructures très conséquentes en termes de sécurité (camions blindés, distributeurs blindés, coffres forts,
+              établissements bancaires, personnel) générant un
+              <strong>énorme gaspillage de ressources</strong>.
+            </p>
+            <p id="footnote-7" colspan="4">
+              [7] Les frais de transaction sont le plus souvent cachés pour le consommateur. En effet, ce sont les
+              commerçants qui les paient ! Quant aux frais de gestion, ils se retrouvent dans tous les services que vous
+              facturent votre banque, faites vos comptes. A titre de comparaison,
+              <strong>Solana c'est 0,000015 € et 0,5Wh d'énergie la transaction. Et 0 € de frais de gestion</strong>.
+            </p>
+            <p id="footnote-8" colspan="4">
+              [8] Toutes les décisions concernant la monnaie sont prises par
+              <strong>une élite choisie de manière aristocratique</strong>. Ayant le pouvoir, c'est eux qui décident pour
+              vous. Je vous laisse deviner dans quel intérêt... Avec la monnaie digitale décentralisée, vous avez votre mot à
+              dire et pouvez voter démocratiquement. Voir
+              <a
+                target="_blank"
+                href="https://lentrepreneur.co/finance/crypto/solend-pouvoirs-durgence-vote-sur-la-gouvernance-donner-un-sens-a-tout-cela-26062022"
+                >Vote sur Solend</a
+              >.<br />
+              Mieux, le fonctionnement de la monnaie est transparent (inflation, monnaie en circulation, nombre de
+              validateurs) et son code informatique Open source (vérifiable et modifiable par tout le monde), comme
+              Wikipédia. Voir
+              <a target="_blank" href="https://solanabeach.io/">Statistiques sur Solana Beach</a>,
+              <a target="_blank" href="https://github.com/solana-labs">Code informatique de Solana sur Github</a> et
+              <a target="_blank" href="https://solana.com/solana-whitepaper.pdf">Fonctionnement de Solana</a>.
+            </p>
+            <p id="footnote-9" colspan="4">
+              [9] Toutes les personnes qui ont été confrontées à des injustices bancaires vous le diront :
+              <strong>la banque a toujours raison !</strong>. La monnaie décentralisée permet justement un retour à une
+              répartition horizontale des pouvoirs.
+            </p>
+            <p id="footnote-10" colspan="4">
+              [10] Dans tous les pays bancarisés, c'est-à-dire la quasi-totalité du monde, il y a un petit groupe de banques
+              qui s'entendent entre elles et fixent les règles du marché. Si c'est la Banque Centrale, c'est un monopole. En
+              France, c'est une oligopole à 4 banques qui font partie des 30 plus grandes banques mondiales : le Crédit
+              Agricole (12e), BNP Paribas (13e), la BPCE (Banque Populaire, Caisse d’Épargne) (20e) et Société Générale
+              (29e). D'ici à dire qu'ils ont grand intérêt à décrédibiliser la monnaie numérique décentralisée ...<br />
+              Dans la monnaie numérique centralisée, il y a un ensemble d'acteurs mondiaux à fort pouvoir de marché qui
+              accède au statut d'Établissement financier capable de gérer de l'argent pour un client (licence bancaire,
+              capitalisation, législation).<br />
+              <strong
+                >Dans la monnaie numérique décentralisée, tout le monde peut devenir validateur. Pour Solana, il suffit de
+                consigner 1 SOL !!</strong
+              >
+            </p>
           </td>
         </tr>
       </tbody>
