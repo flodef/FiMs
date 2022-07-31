@@ -11,13 +11,12 @@ const TRANS_COL_COUNT = 6; // Should be the number of column
 
 // MERCHANT COLS
 const INDEX_COL = 1; // Should be the "Index" column
-const CRYPTOADD_COL = 2; // Should be the "Crypto Address" column
 const COMPANY_COL = 3; // Should be the "Company" column
-const FIATRATIO_COL = 4; // Should be the "Fiat Ratio" column
-const NOTPAID_COL = 7; // Should be the "Not Paid" column
-const LASTWD_COL = 9; // Should be the "Last withdraw" column
-const NEXTWD_COL = 10; // Should be the "Next withdraw" column
-const EMAIL_COL = 11; // Should be the "EMail" column
+const FIATWD_COL = 5; // Should be the "Fiat Withdraw" column
+const NOTPAID_COL = 8; // Should be the "Not Paid" column
+const LASTWD_COL = 10; // Should be the "Last withdraw" column
+const NEXTWD_COL = 11; // Should be the "Next withdraw" column
+const EMAIL_COL = 12; // Should be the "EMail" column
 
 // SPECIFIC MERCHANT UPDATE CELL
 const DATA_COL = 7; // Should be the column after transactions data
@@ -109,31 +108,23 @@ function _generateEmail(paidArray, emailArray, data) {
   const email = data[EMAIL_COL - 1];
   const company = data[COMPANY_COL - 1];
 
-  const toPayTotal = data[NOTPAID_COL - 1];
-  const fiatRatio = data[FIATRATIO_COL - 1];
-  const toPayFiat = _toCurrency(toPayTotal * fiatRatio);
+  const toPayTotal = _toCurrency(data[NOTPAID_COL - 1]);
+  const fiatWd = data[FIATWD_COL - 1];
 
-  const object = "FiMs Pay - Reçu de paiement de " + _toCurrency(toPayTotal);
-  let message = "FiMs Pay a effectué un virement d'un montant de " + toPayFiat + " pour l'entreprise " + company + "\n\n";
-  let recap = "Company : " + company + "\n" + "Wire Transfer : " + toPayFiat + "<3\n\n";
+  let recap = "";
+  if (fiatWd) {
+    const object = "FiMs Pay - Reçu de paiement de " + toPayTotal;
+    let message = "FiMs Pay a effectué un virement d'un montant de " + toPayTotal + " pour l'entreprise " + company + "\n\n";
+    recap = "Company : " + company + "\n" + "Wire Transfer : " + toPayTotal + "<3\n\n";
 
-  // Add a message specific to crypto withdraw
-  if (fiatRatio < 1) {
-    const cryptoRatio = 1 - fiatRatio;
-    const toPayCrypto = _toCurrency(toPayTotal * cryptoRatio);
-    const cryptoAdd = data[CRYPTOADD_COL - 1];
+    // Add all the transactions historic
+    message += "Récapitulatif des transactions :\n";
+    for (let j = 0; j < paidArray.length; ++j) {
+      message += _toStringTime(paidArray[j][DATE_COL - 1]) + " --> " + _toCurrency(paidArray[j][AMOUNT_COL - 1]) + "\n";
+    }
 
-    message += "Le somme de " + toPayCrypto + " a été versée sur le" + " compte crypto à l'adresse " + cryptoAdd + "\n\n";
-    recap += "Crypto Transfer : " + toPayCrypto + "\n" + "Address : " + cryptoAdd + ":-D\n\n";
+    emailArray.push([email, object, message]); // Store email data
   }
-
-  // Add all the transactions historic
-  message += "Récapitulatif des transactions :\n";
-  for (let j = 0; j < paidArray.length; ++j) {
-    message += _toStringTime(paidArray[j][DATE_COL - 1]) + " --> " + _toCurrency(paidArray[j][AMOUNT_COL - 1]) + "\n";
-  }
-
-  emailArray.push([email, object, message]); // Store email data
 
   return recap;
 }
