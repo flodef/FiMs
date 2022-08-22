@@ -1,6 +1,6 @@
 /* global _getSheet, _sendMessage, _toCurrency, _toStringTime, _isCurrentHour,
-_setRangeValues, FR, FC, GmailApp, _isMarketOpen, _copySheetFromModel, 
-_updateFormula, _isError, _isToday */
+_setRangeValues, FR, FC, _isMarketOpen, _copySheetFromModel, _updateFormula, 
+_isError, _isToday */
 /* exported withdraw */
 
 // TRANSACTIONS COLS
@@ -167,10 +167,10 @@ function _sendTransactionMail(recapArray, emailArray) {
 
   // Send the message to the merchant (copy to myself, just to check)
   for (let i = 0; i < emailArray.length; ++i) {
-    const email = emailArray[i][0];
+    // const email = emailArray[i][0];
     const object = emailArray[i][1];
     const message = emailArray[i][2];
     _sendMessage(object, message);
-    GmailApp.sendEmail(email, object, message);
+    // GmailApp.sendEmail(email, object, message);
   }
 }
