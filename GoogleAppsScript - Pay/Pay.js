@@ -1,7 +1,11 @@
 /* global _getSheet, _sendMessage, _toCurrency, _toStringTime, _isCurrentHour,
 _setRangeValues, FR, FC, _isMarketOpen, _copySheetFromModel, _updateFormula, 
-_isError, _isToday */
+_isError, _isToday, GmailApp */
 /* exported withdraw */
+
+// OPTIONS
+const SEND_MAIL_TO_MERCHANT = false;
+const WITHDRAW_NOW = false;
 
 // TRANSACTIONS COLS
 const DATE_COL = 1; // Should be the "Date" column
@@ -30,7 +34,7 @@ const PAIDTRANSACTIONS = "PaidTransactions"; // The "PaidTransactions" sheet nam
 const MERCHMODEL = "1"; // The model to create a new merchant
 
 function withdraw() {
-  if (_isMarketOpen(0, 6, 7, 21)) {
+  if (WITHDRAW_NOW || _isMarketOpen(0, 6, 7, 21)) {
     // Value init
     const msheet = _getSheet(MERCHANT);
     const array = msheet.getSheetValues(FR, FC, -1, -1);
@@ -66,7 +70,7 @@ function withdraw() {
       _updateFormula(sheet, MERCHUPD_ROW, DATA_COL);
 
       // If the current time matches the next withdraw time, process transactions
-      if (_isToday(array, i, NEXTWD_COL - 1) && _isCurrentHour(array, i, NEXTWD_COL - 1)) {
+      if (WITHDRAW_NOW || (_isToday(array, i, NEXTWD_COL - 1) && _isCurrentHour(array, i, NEXTWD_COL - 1))) {
         tsheet = _getSheet(TRANSACTIONS, tsheet);
         if (tsheet.getLastRow() >= FR) {
           const tarray = tsheet.getSheetValues(FR, FC, -1, -1);
@@ -167,10 +171,12 @@ function _sendTransactionMail(recapArray, emailArray) {
 
   // Send the message to the merchant (copy to myself, just to check)
   for (let i = 0; i < emailArray.length; ++i) {
-    // const email = emailArray[i][0];
+    const email = emailArray[i][0];
     const object = emailArray[i][1];
     const message = emailArray[i][2];
     _sendMessage(object, message);
-    // GmailApp.sendEmail(email, object, message);
+    if (SEND_MAIL_TO_MERCHANT) {
+      GmailApp.sendEmail(email, object, message);
+    }
   }
 }
