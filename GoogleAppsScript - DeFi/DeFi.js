@@ -1,10 +1,9 @@
 /* global _getSheet, _deleteOlderThanAYear, _copyFirstRow, _AreRowsDifferent,
-_toDate, _isCurrentMonth, _isSubHour, _isLoading, _isError, _sendMessage,
-_toPercent, FR, FC, CacheService, _updateFormula */
+_toDate, _isSubHour, _isLoading, _isError, FR, FC, CacheService, _updateFormula, 
+_toStringDate, _insertFirstRow, _setRangeValues */
 /* exported nightlyUpdate, monthlyUpdate, updatePrice, cachePrice */
 
 // SHEET NAMES
-const DASHBOARD = "Dashboard"; // The "Dashboard" sheet name
 const EVOLUTION = "Evolution"; // The "Evolution" sheet name
 const PRICE = "Price"; // The "Price" sheet name
 const HISTORIC = "Historic"; // The "Historic" sheet name
@@ -15,11 +14,9 @@ const PRICE_COL = 2; // Should be the "Price" column
 const FORMULA_COL = 5; // Should be the "Formula" column
 
 // DASHBOARD ROWS
-const LENDING_ROW = 4; // Should be the "Apricot borrow" row ! FROM THE BOTTOM !
 
 // MISC
 const PRICE_UPDATE = 10; // Number of minutes between price updates
-const LENDING_ALERT = 0.95; // Percentage above when an alert should be send
 
 function nightlyUpdate() {
   _updateEvolution();
@@ -37,19 +34,6 @@ function updatePrice() {
 
     // Modify the cell to update the formula and load data
     _updateFormula(_getSheet(PRICECACHE), FR, FORMULA_COL - 1);
-
-    // Send an alert if the lending ratio reached a certain amount
-    const sheet = _getSheet(DASHBOARD);
-    const lr = sheet.getMaxRows();
-    const lc = sheet.getMaxColumns();
-    const l = sheet.getRange(lr - LENDING_ROW + 1, lc).getValue();
-    if (Math.abs(l) > LENDING_ALERT) {
-      _sendMessage(
-        "Lending ratio limit reached",
-        "The Lending ratio is at " + _toPercent(l, 1) + ". Check it out !!",
-        true
-      );
-    }
   }
 }
 
@@ -110,7 +94,7 @@ function _updateHistoric() {
   // Search if entries have already been added
   const sheet = _getSheet(HISTORIC);
   const array = sheet.getSheetValues(FR, FC, 2, -1);
-  
+
   // Do a copy only if it is the first day of the month and the copy has not already been done
   if (array[0][0].getDate() == 1 && _toStringDate(array[0][0]) != _toStringDate(array[1][0])) {
     _insertFirstRow(sheet, null, true);
