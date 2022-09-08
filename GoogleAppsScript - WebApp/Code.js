@@ -4,7 +4,7 @@ clearSheetValues, insertRows, deleteRows, sortColumn */
 
 // SET THIS TO TRUE IF A BUG HAPPENED IN PROD AND TIME TO DEBUG IS NEEDED
 const workInProgress = false;
-const favIcon = "https://raw.githubusercontent.com/flodef/FiMS/master/Img/Image/Favicon2.png";
+const favIcon = "https://raw.githubusercontent.com/flodef/FiMs/master/Img/Image/Favicon2.png";
 
 // App specific
 const ownEmail = "fdefroco@gmail.com";

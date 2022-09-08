@@ -2,8 +2,8 @@
 
 const GLOBAL = {};
 GLOBAL.isLocal = document.URL.includes(":8080") || document.URL.includes("github"); // Whether the app is running in local mode
-GLOBAL.serverUrl = GLOBAL.isLocal ? "" : "https://raw.githubusercontent.com/flodef/FiMS/master/"; // Remove the server URL if in local mode
-GLOBAL.scriptUrl = GLOBAL.isLocal ? "" : "https://flodef.github.io/FiMS/"; // Remove the server URL if in local mode
+GLOBAL.serverUrl = GLOBAL.isLocal ? "" : "https://raw.githubusercontent.com/flodef/FiMs/master/"; // Remove the server URL if in local mode
+GLOBAL.scriptUrl = GLOBAL.isLocal ? "" : "https://flodef.github.io/FiMs/"; // Remove the server URL if in local mode
 
 // [src, isLocal]
 const javascriptScriptSouce = [
@@ -125,7 +125,7 @@ function setLoaderBar(value = 1) {
         3000
       );
   } catch (e) {
-    loader.innerHTML = "<span style=\"width:" + value * 100 + "%\"></span>";
+    loader.innerHTML = '<span style="width:' + value * 100 + '%"></span>';
   }
 }
 
@@ -152,5 +152,5 @@ function getOverlayDiv(id, cssClass = "overlay") {
 }
 
 function addAttr(name, value, isSingle) {
-  return value || value == 0 ? " " + name + (!isSingle ? "=\"" + value.toString().trim() + "\"" : "") : "";
+  return value || value == 0 ? " " + name + (!isSingle ? '="' + value.toString().trim() + '"' : "") : "";
 }
