@@ -125,7 +125,7 @@ function setLoaderBar(value = 1) {
         3000
       );
   } catch (e) {
-    loader.innerHTML = '<span style="width:' + value * 100 + '%"></span>';
+    loader.innerHTML = "<span style='width:" + value * 100 + "%'></span>";
   }
 }
 
@@ -152,5 +152,5 @@ function getOverlayDiv(id, cssClass = "overlay") {
 }
 
 function addAttr(name, value, isSingle) {
-  return value || value == 0 ? " " + name + (!isSingle ? '="' + value.toString().trim() + '"' : "") : "";
+  return value || value == 0 ? " " + name + (!isSingle ? "='" + value.toString().trim() + "'" : "") : "";
 }
