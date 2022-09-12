@@ -68,21 +68,33 @@ function withdraw() {
 
       // Update the transaction search formula
       _updateFormula(sheet, MERCHUPD_ROW, DATA_COL);
+    }
 
+    // Update transaction values
+    if (updateArray.length != 0) {
+      tsheet = _getSheet(TRANSACTIONS, tsheet);
+      _setRangeValues(tsheet, FR, FC, updateArray);
+    }
+
+    // Processing transactions for each merchant (by id)
+    for (let i = 0; i < array.length; ++i) {
       // If the current time matches the next withdraw time, process transactions
       if (WITHDRAW_NOW || (_isToday(array, i, NEXTWD_COL - 1) && _isCurrentHour(array, i, NEXTWD_COL - 1))) {
         tsheet = _getSheet(TRANSACTIONS, tsheet);
         if (tsheet.getLastRow() >= FR) {
+          const id = array[i][INDEX_COL - 1];
           const tarray = tsheet.getSheetValues(FR, FC, -1, -1);
 
           // Store the transaction to pay & to delete
           let transactionArray = [];
           let hasProcessedTransaction;
+          array[i][NOTPAID_COL - 1] = 0;
           for (let j = 0; j < tarray.length; ++j) {
             if (tarray[j][MERCHANT_COL - 1] == id) {
               transactionArray.push(tarray[j]);
               paidArray.push(tarray[j]);
               deleteArray.push(j + FR);
+              array[i][NOTPAID_COL - 1] += tarray[j][AMOUNT_COL - 1];
               hasProcessedTransaction = true;
             }
           }
@@ -99,10 +111,8 @@ function withdraw() {
     }
 
     // Finalize
-    tsheet = _getSheet(TRANSACTIONS, tsheet);
     _archiveProcessedTransaction(paidArray);
     _deleteProcessedTransaction(deleteArray, tsheet);
-    _setRangeValues(tsheet, FR, FC, updateArray);
     _sendTransactionMail(recapArray, emailArray);
   }
 }
@@ -116,19 +126,19 @@ function _generateEmail(paidArray, emailArray, data) {
   const fiatWd = data[FIATWD_COL - 1];
 
   let recap = "";
-  if (fiatWd) {
-    const object = "FiMs Pay - Reçu de paiement de " + toPayTotal;
-    let message = "FiMs Pay a effectué un virement d'un montant de " + toPayTotal + " pour l'entreprise " + company + "\n\n";
-    recap = "Company : " + company + "\n" + "Wire Transfer : " + toPayTotal + "<3\n\n";
+  const object = "FiMs Pay - Reçu de paiement de " + toPayTotal;
+  let message = fiatWd
+    ? "FiMs Pay a effectué un virement d'un montant de " + toPayTotal + " pour l'entreprise " + company + "\n\n"
+    : "";
+  recap = fiatWd ? "Company : " + company + "\n" + "Wire Transfer : " + toPayTotal + "<3\n\n" : "";
 
-    // Add all the transactions historic
-    message += "Récapitulatif des transactions :\n";
-    for (let j = 0; j < paidArray.length; ++j) {
-      message += _toStringTime(paidArray[j][DATE_COL - 1]) + " --> " + _toCurrency(paidArray[j][AMOUNT_COL - 1]) + "\n";
-    }
-
-    emailArray.push([email, object, message]); // Store email data
+  // Add all the transactions historic
+  message += "Récapitulatif des transactions :\n";
+  for (let j = 0; j < paidArray.length; ++j) {
+    message += _toStringTime(paidArray[j][DATE_COL - 1]) + " --> " + _toCurrency(paidArray[j][AMOUNT_COL - 1]) + "\n";
   }
+
+  emailArray.push([email, object, message]); // Store email data
 
   return recap;
 }
@@ -147,8 +157,7 @@ function _archiveProcessedTransaction(paidArray) {
 
 function _deleteProcessedTransaction(deleteArray, sheet) {
   deleteArray
-    .sort()
-    .reverse()
+    .sort((a, b) => b - a)
     .forEach((item) => {
       sheet = _getSheet(TRANSACTIONS, sheet);
       if (item != FR || sheet.getMaxRows() != FR) {
