@@ -13,8 +13,6 @@ const PRICECACHE = "PriceCache"; // The "Price" sheet name
 const PRICE_COL = 2; // Should be the "Price" column
 const FORMULA_COL = 5; // Should be the "Formula" column
 
-// DASHBOARD ROWS
-
 // MISC
 const PRICE_UPDATE = 10; // Number of minutes between price updates
 
@@ -52,7 +50,7 @@ function cachePrice() {
 
     for (let i = 0; i < lr - 1; ++i) {
       const v = val[i][0];
-      if (v && !_isLoading(v) && !_isError(v)) {
+      if (v.toString() && !_isLoading(v) && !_isError(v)) {
         sheet.getRange(i + FR, PRICE_COL).setValue(v); // Cache the value
         sheet.getRange(i + FR, PRICE_COL + 1).setValue(x); // Set the last updated date
         ++cached;
