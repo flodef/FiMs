@@ -4,7 +4,7 @@ _isError, _isToday, GmailApp */
 /* exported withdraw */
 
 // OPTIONS
-const SEND_MAIL_TO_MERCHANT = false;
+const SEND_MAIL_TO_MERCHANT = true;
 const WITHDRAW_NOW = false;
 
 // TRANSACTIONS COLS
