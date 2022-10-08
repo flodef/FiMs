@@ -175,8 +175,7 @@ function _sendTransactionMail(recapArray, emailArray) {
     recap += recapArray[i];
   }
   if (recap) {
-    //github.com/Friktion-Labs/frontend.git
-    https: _sendMessage(
+    _sendMessage(
       "FiMs Pay",
       "/!\\ Don't forget to withdraw crypto from FiMs Pay account /!\\\n\n" +
         (SEND_MAIL_TO_MERCHANT ? "Mail sent to Merchant" : "/!\\ Don't forget to send mail to Merchant /!\\") +
