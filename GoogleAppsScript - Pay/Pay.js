@@ -129,7 +129,7 @@ function _generateEmail(paidArray, emailArray, data) {
   const object = "FiMs Pay - Reçu de paiement de " + toPayTotal;
   let message = fiatWd
     ? "FiMs Pay a effectué un virement d'un montant de " + toPayTotal + " pour l'entreprise " + company + "\n\n"
-    : "";
+    : company + " a reçu " + toPayTotal + " en crypto !\n\n";
   recap = fiatWd ? "Company : " + company + "\n" + "Wire Transfer : " + toPayTotal + "<3\n\n" : "";
 
   // Add all the transactions historic
