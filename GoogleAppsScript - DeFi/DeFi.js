@@ -7,11 +7,14 @@ _toStringDate, _insertFirstRow, _setRangeValues */
 const EVOLUTION = "Evolution"; // The "Evolution" sheet name
 const PRICE = "Price"; // The "Price" sheet name
 const HISTORIC = "Historic"; // The "Historic" sheet name
-const PRICECACHE = "PriceCache"; // The "Price" sheet name
+const PRICECACHE = "PriceCache"; // The "PriceCache" sheet name
+const SWAP = "Swap"; // The "Swap" sheet name
 
 // CACHEPRICE COLS
 const PRICE_COL = 2; // Should be the "Price" column
-const FORMULA_COL = 5; // Should be the "Formula" column
+
+// SWAP COLS
+const AVAILABLE_COL = 6; // Should be the "Available" column
 
 // MISC
 const PRICE_UPDATE = 10; // Number of minutes between price updates
@@ -31,7 +34,9 @@ function updatePrice() {
     cache.remove("offset");
 
     // Modify the cell to update the formula and load data
-    _updateFormula(_getSheet(PRICECACHE), FR, FORMULA_COL - 1);
+    const sheet = _getSheet(PRICECACHE);
+    const lc = sheet.getMaxColumns();
+    _updateFormula(sheet, FR, lc - 1);
   }
 }
 
@@ -40,32 +45,41 @@ function cachePrice() {
   const cv = cache.get("offset");
   const offset = cv ? Number(cv) : 1;
   if (_isSubHour(PRICE_UPDATE, offset)) {
+    doCache(_getSheet(SWAP), AVAILABLE_COL);
+
     const sheet = _getSheet(PRICECACHE);
     const lr = sheet.getMaxRows();
     const lc = sheet.getMaxColumns();
-    const range = sheet.getRange(FR, lc, lr, 1);
-    const val = range.getValues();
-    const x = new Date();
-    let cached = 0;
+    const cached = doCache(sheet, PRICE_COL, true);
 
-    for (let i = 0; i < lr - 1; ++i) {
-      const v = val[i][0];
-      if (v.toString() && !_isLoading(v) && !_isError(v)) {
-        sheet.getRange(i + FR, PRICE_COL).setValue(v); // Cache the value
-        sheet.getRange(i + FR, PRICE_COL + 1).setValue(x); // Set the last updated date
-        ++cached;
-      }
-    }
-
-    // If not values have been cached, set the offset to cache Price again,
-    // otherwise remove the manual cache, set in case of loading error
+    // If all values has not been cached, set the offset to cache Price again,
     if (cached != lr - 1) {
       cache.put("offset", offset + 1);
-      _updateFormula(sheet, FR, FORMULA_COL - 1);
-    } else {
-      sheet.getRange(1, FORMULA_COL - 1).clearContent();
+      _updateFormula(sheet, FR, lc - 1);
     }
   }
+}
+
+function doCache(sheet, column, hasDate) {
+  const lr = sheet.getMaxRows();
+  const lc = sheet.getMaxColumns();
+  const range = sheet.getRange(FR, lc, lr, 1);
+  const val = range.getValues();
+  const x = hasDate ? new Date() : null;
+  let cached = 0;
+
+  for (let i = 0; i < lr - 1; ++i) {
+    const v = val[i][0];
+    if (v.toString() && !_isLoading(v) && !_isError(v)) {
+      sheet.getRange(i + FR, column).setValue(v); // Cache the value
+      if (x) {
+        sheet.getRange(i + FR, column + 1).setValue(x); // Set the last updated date
+      }
+      ++cached;
+    }
+  }
+
+  return cached;
 }
 
 function _updateEvolution() {
