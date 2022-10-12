@@ -14,7 +14,7 @@ const SWAP = "Swap"; // The "Swap" sheet name
 const PRICE_COL = 2; // Should be the "Price" column
 
 // SWAP COLS
-const AVAILABLE_COL = 6; // Should be the "Available" column
+const AVAILABLE_COL = 7; // Should be the "Available" column
 
 // MISC
 const PRICE_UPDATE = 10; // Number of minutes between price updates
