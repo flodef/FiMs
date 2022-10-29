@@ -52,12 +52,12 @@ GLOBAL.displayData = {
     loadOnce: true,
     filter: 1,
   },
-  global: {
-    id: "global",
-    formula: "Dashboard!A:B",
-    updateTable: updateGlobalTable,
-    loadOnce: true,
-  },
+  // global: {
+  //   id: "global",
+  //   formula: "Dashboard!A:B",
+  //   updateTable: updateGlobalTable,
+  //   loadOnce: true,
+  // },
   FAQ: {
     id: "FAQ",
     formula: "FAQ!A:B",
@@ -76,17 +76,17 @@ GLOBAL.personalData = [
     required: true,
   }, // ID
   {
-    index: 15,
+    index: 14,
     readonly: true,
     type: "email",
     required: true,
   }, // Email
-  {
-    index: 2,
-    type: "euro",
-    max: 0,
-    required: true,
-  }, // Recurrent
+  // {
+  //   index: 2,
+  //   type: "euro",
+  //   max: 0,
+  //   required: true,
+  // }, // Recurrent
   {
     index: 6,
     disabled: true,
@@ -286,7 +286,7 @@ function updateHistoricTable(id, contents) {
       }
       tableHTML += "</tr>";
       tableHTML += i == 0 ? "</thead><tbody>" : i == row - 1 ? "</tbody>" : "";
-    }
+    } 
 
     processTable(id, tableHTML);
     openTabAfterConnect(id);
@@ -323,7 +323,7 @@ function updatePersonalTable(id, contents) {
     // Add an Acknowledgment Of Debt row at the end
     const ackDebt = GLOBAL.ackDebt;
     const ackDebtId = ackDebt.replaceAll(" ", "") + "Link";
-    const hasHistoric = GLOBAL.data.historic.length > 1;
+    const hasHistoric = false & (GLOBAL.data.historic.length > 1);
     if (hasHistoric) {
       tableHTML += "<tr>";
       tableHTML += getTranslatedContent(ackDebt, false, {
@@ -367,29 +367,29 @@ function updatePersonalTable(id, contents) {
   displayElement("withdrawButton", GLOBAL.totalValue > 0); // Show the withdraw button
 }
 
-function updateGlobalTable(id, contents) {
-  const hasContent = contents && contents.length > 1;
-  if (hasContent) {
-    var tableHTML = getTableTitle(id);
+// function updateGlobalTable(id, contents) {
+//   const hasContent = contents && contents.length > 1;
+//   if (hasContent) {
+//     var tableHTML = getTableTitle(id);
 
-    GLOBAL.globalData.forEach((i) => {
-      --i; // Hack to handle the difference between spreadsheet column and array index
-      const item = {
-        value: translate(contents[i][1]),
-        readonly: true,
-      };
+//     GLOBAL.globalData.forEach((i) => {
+//       --i; // Hack to handle the difference between spreadsheet column and array index
+//       const item = {
+//         value: translate(contents[i][1]),
+//         readonly: true,
+//       };
 
-      tableHTML += "<tr>";
-      tableHTML += getTranslatedContent(contents[i][0], false, item);
-      tableHTML += "</tr>";
-    });
+//       tableHTML += "<tr>";
+//       tableHTML += getTranslatedContent(contents[i][0], false, item);
+//       tableHTML += "</tr>";
+//     });
 
-    processTable(id, tableHTML);
-    openTabAfterConnect(id);
-  }
+//     processTable(id, tableHTML);
+//     openTabAfterConnect(id);
+//   }
 
-  displayElement(id + "Button", hasContent, 0); // Hide this tab if empty
-}
+//   displayElement(id + "Button", hasContent, 0); // Hide this tab if empty
+// }
 
 function updateFaqTable(id, contents) {
   var row = contents.length;
