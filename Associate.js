@@ -392,21 +392,22 @@ function updatePersonalTable(id, contents) {
 // }
 
 function updateFaqTable(id, contents) {
-  var row = contents.length;
+  // var row = contents.length;
   var col = contents[0].length;
   var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
-  tableHTML += "<div style=\"padding: 5px 25px;\">";
-  for (var i = 1; i < row; ++i) {
-    // Skip the header
-    for (var j = 0; j < col; ++j) {
-      var con = contents[i][j];
-      var isQuestion = j == 0;
-      var str = "";
-      con.split(" ").forEach((a) => (str += (a.includes("http") ? getLink(a) : a) + " "));
-      tableHTML += (isQuestion ? "<b>" : "") + str + (isQuestion ? "</b>" : "") + "<br>";
-    }
-    tableHTML += "<br><br>";
-  }
+  tableHTML += "<div style=\"padding: 5px 25px;text-align: center;\">";
+  // for (var i = 1; i < row; ++i) {
+  //   // Skip the header
+  //   for (var j = 0; j < col; ++j) {
+  //     var con = contents[i][j];
+  //     var isQuestion = j == 0;
+  //     var str = "";
+  //     con.split(" ").forEach((a) => (str += (a.includes("http") ? getLink(a) : a) + " "));
+  //     tableHTML += (isQuestion ? "<b>" : "") + str + (isQuestion ? "</b>" : "") + "<br>";
+  //   }
+  //   tableHTML += "<br><br>";
+  // }
+  tableHTML += getLink("http://fims.fi", "<b>Nouveau site : FiMs.fi</b>");
   tableHTML += "</div>";
 
   processTable(id, tableHTML);
