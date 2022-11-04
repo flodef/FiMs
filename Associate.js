@@ -255,10 +255,10 @@ function updateAccountTable(id, contents) {
       for (let i = 1; i < col; ++i) {
         if (parseInt(contents[1][i]) != 0) {
           const content = contents[0][i];
-          const value = translate(contents[1][i]);
+          const value = contents[1][i];
           const x = indexOf(token, content, 0);
-          const price = x ? translate(token[x][1]) : null;
-          const text = value + (x ? " x " + price + " = " + translate(toCurrency(parseFloat(value.replaceAll(" ","")) * parseFloat(price.replaceAll(" ","")))) : "");
+          const price = x ? token[x][1] : null;
+          const text = translate(value) + (x ? " x " + translate(price) + " = " + translate(toCurrency(toValue(value) * toValue(price))) : "");
           tableHTML += "<tr>";
           tableHTML += getTranslatedContent(content, false, {value:text, readonly:true});
           tableHTML += "</tr>";
