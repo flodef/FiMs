@@ -253,9 +253,9 @@ function updateAccountTable(id, contents) {
   
       const col = contents[0].length;
       for (let i = 1; i < col; ++i) {
-        if (parseInt(contents[1][i]) != 0) {
-          const content = contents[0][i];
-          const value = contents[1][i];
+        const content = contents[0][i];
+        const value = contents[1][i];
+        if (value && parseInt(value) != 0) {
           const x = indexOf(token, content, 0);
           const price = x ? token[x][1] : null;
           const text = translate(value) + (x ? " x " + translate(price) + " = " + translate(toCurrency(toValue(value) * toValue(price))) : "");
