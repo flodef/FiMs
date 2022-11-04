@@ -8,12 +8,12 @@ const EVOLUTION = "Evolution"; // The "Evolution" sheet name
 const PRICE = "Price"; // The "Price" sheet name
 const HISTORIC = "Historic"; // The "Historic" sheet name
 const PRICECACHE = "PriceCache"; // The "PriceCache" sheet name
-const SWAP = "Swap"; // The "Swap" sheet name
+const TOKEN = "Token"; // The "Token" sheet name
 
 // CACHEPRICE COLS
 const PRICE_COL = 2; // Should be the "Price" column
 
-// SWAP COLS
+// TOKEN COLS
 const AVAILABLE_COL = 7; // Should be the "Available" column
 
 // MISC
@@ -45,12 +45,12 @@ function cachePrice() {
   const cv = cache.get("offset");
   const offset = cv ? Number(cv) : 1;
   if (_isSubHour(PRICE_UPDATE, offset)) {
-    doCache(_getSheet(SWAP), AVAILABLE_COL);
+    _doCache(_getSheet(TOKEN), AVAILABLE_COL);
 
     const sheet = _getSheet(PRICECACHE);
     const lr = sheet.getMaxRows();
     const lc = sheet.getMaxColumns();
-    const cached = doCache(sheet, PRICE_COL, true);
+    const cached = _doCache(sheet, PRICE_COL, true);
 
     // If all values has not been cached, set the offset to cache Price again,
     if (cached != lr - 1) {
@@ -60,7 +60,7 @@ function cachePrice() {
   }
 }
 
-function doCache(sheet, column, hasDate) {
+function _doCache(sheet, column, hasDate) {
   const lr = sheet.getMaxRows();
   const lc = sheet.getMaxColumns();
   const range = sheet.getRange(FR, lc, lr, 1);
