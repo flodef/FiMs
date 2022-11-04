@@ -5,7 +5,7 @@ addPopupButtonEvent, closePopup, animateLoaderBar, updateAllValues, updateValues
 toCurrency, getTableReadOnlyContent, toFirstUpperCase, getTranslateData, getDiv,
 getDaysBetweenDate, getNextMonthDate, showSnackBar, addDaysToDate, roundDown,
 setEvents, setValue, isEditableInput, getTableEditableContent, finishLoading,
-processTable, getTooltip, restrainFormula, initCommon, sendRecapEmail */
+processTable, getTooltip, restrainFormula, initCommon, sendRecapEmail, getValue */
 /* exported init, onKeyUp, connect, userIdValidation, depositAmountValidation, 
 withdrawAmountValidation, confirmationValidation, printHtml, translationLoaded */
 
@@ -34,24 +34,31 @@ GLOBAL.withdrawDateOption = ["Start of next month", "Immediat"];
 GLOBAL.displayData = {
   account: {
     id: "account",
-    formula: "!A:N",
+    formula: "DeFi!A:L",
     updateTable: updateAccountTable,
     loadOnce: true,
+    filter: 1,
   },
   historic: {
     id: "historic",
-    formula: "AssociateHistoric!A:D",
+    formula: "!A:N",
     updateTable: updateHistoricTable,
     loadOnce: true,
-    filter: 1,
   },
-  personal: {
-    id: "personal",
-    formula: "Associate!A:P",
-    updateTable: updatePersonalTable,
+  transactions: {
+    id: "transactions",
+    formula: "Transactions!A:D",
+    updateTable: updateTransactionsTable,
     loadOnce: true,
     filter: 1,
   },
+  // personal: {
+  //   id: "personal",
+  //   formula: "Associate!A:O",
+  //   updateTable: updatePersonalTable,
+  //   loadOnce: true,
+  //   filter: 1,
+  // },
   // global: {
   //   id: "global",
   //   formula: "Dashboard!A:B",
@@ -218,13 +225,13 @@ function init(id) {
     if (id) {
       displayElement("tabContainer", false, 0); // Hide the tab container
       try {
-        GLOBAL.displayData.account.formula = restrainFormula(
-          id + "!" + GLOBAL.displayData.account.formula.split("!")[1],
+        GLOBAL.displayData.historic.formula = restrainFormula(
+          id + "!" + GLOBAL.displayData.historic.formula.split("!")[1],
           0,
           12
         ); // Create user account formula
       } catch {
-        GLOBAL.displayData.account.formula = null; // Reset formula if it is incorrect
+        GLOBAL.displayData.historic.formula = null; // Reset formula if it is incorrect
       }
       updateAllValues();
     } else {
@@ -239,15 +246,44 @@ function init(id) {
 function translationLoaded() {}
 
 function updateAccountTable(id, contents) {
+  const hasContent = contents && contents.length > 1;
+  if (hasContent) {
+    const func = (a, token) => {
+      let tableHTML = getTableTitle(id);
+  
+      const col = contents[0].length;
+      for (let i = 1; i < col; ++i) {
+        if (parseInt(contents[1][i]) != 0) {
+          const content = contents[0][i];
+          const value = translate(contents[1][i]);
+          const x = indexOf(token, content, 0);
+          const price = x ? translate(token[x][1]) : null;
+          const text = value + (x ? " x " + price + " = " + translate(toCurrency(parseFloat(value.replaceAll(" ","")) * parseFloat(price.replaceAll(" ","")))) : "");
+          tableHTML += "<tr>";
+          tableHTML += getTranslatedContent(content, false, {value:text, readonly:true});
+          tableHTML += "</tr>";
+        }
+      }
+  
+      processTable(id, tableHTML);
+    };
+
+    openTabAfterConnect(id);
+
+    getValue({id:"token", formula:"Token!B:C"}, func);
+  }
+}
+
+function updateHistoricTable(id, contents) {
   const hasContent = contents;
   if (hasContent) {
-    var row = contents.length;
-    var col = contents[0].length;
-    var tableHTML = getTableTitle(id);
-    for (var i = 0; i < row; ++i) {
+    const row = contents.length;
+    const col = contents[0].length;
+    let tableHTML = getTableTitle(id);
+    for (let i = 0; i < row; ++i) {
       tableHTML += i == 0 ? "<thead>" : "";
       tableHTML += "<tr>";
-      for (var j = 0; j < col; ++j) {
+      for (let j = 0; j < col; ++j) {
         tableHTML += getTranslatedContent(contents[i][j], i == 0);
       }
       tableHTML += "</tr>";
@@ -261,17 +297,17 @@ function updateAccountTable(id, contents) {
   displayElement(id + "Button", hasContent, 0); // Hide this tab if empty
 }
 
-function updateHistoricTable(id, contents) {
+function updateTransactionsTable(id, contents) {
   const hasContent = contents && contents.length > 1;
   if (hasContent) {
-    var row = contents.length;
-    var col = contents[0].length;
-    var tableHTML = getTableTitle(id);
+    const row = contents.length;
+    const col = contents[0].length;
+    let tableHTML = getTableTitle(id);
 
-    for (var i = 0; i < row; ++i) {
+    for (let i = 0; i < row; ++i) {
       tableHTML += i == 0 ? "<thead>" : "";
       tableHTML += "<tr>";
-      for (var j = 0; j < col; ++j) {
+      for (let j = 0; j < col; ++j) {
         tableHTML += j != 1 ? getTranslatedContent(contents[i][j], i == 0) : ""; // Don't add the ID column
         tableHTML +=
           j == col - 1
@@ -299,7 +335,7 @@ function updatePersonalTable(id, contents) {
   const hasContent = contents && contents.length > 1;
   if (hasContent) {
     const baseFormula = GLOBAL.displayData[id].formula.split("!")[0] + "!";
-    var tableHTML = getTableTitle(id);
+    let tableHTML = getTableTitle(id);
     const totalCol = indexOf(contents[0], "Total");
     const depositCol = indexOf(contents[0], "Deposit");
     const recurrentCol = indexOf(contents[0], "Recurrent");
@@ -348,7 +384,7 @@ function updatePersonalTable(id, contents) {
 
     // Set the scrolling panel
     tableHTML = "<marquee direction=\"down\" scrollamount=\"1\" behavior=\"scroll\"><table>";
-    for (var i = totalCol; i >= depositCol; --i) {
+    for (let i = totalCol; i >= depositCol; --i) {
       tableHTML += "<tr>";
       tableHTML += getTranslatedContent(contents[0][i]);
       tableHTML += getTranslatedContent(contents[1][i]);
@@ -370,7 +406,7 @@ function updatePersonalTable(id, contents) {
 // function updateGlobalTable(id, contents) {
 //   const hasContent = contents && contents.length > 1;
 //   if (hasContent) {
-//     var tableHTML = getTableTitle(id);
+//     const tableHTML = getTableTitle(id);
 
 //     GLOBAL.globalData.forEach((i) => {
 //       --i; // Hack to handle the difference between spreadsheet column and array index
@@ -392,16 +428,16 @@ function updatePersonalTable(id, contents) {
 // }
 
 function updateFaqTable(id, contents) {
-  // var row = contents.length;
-  var col = contents[0].length;
-  var tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
+  // const row = contents.length;
+  const col = contents[0].length;
+  let tableHTML = getTableTitle(id, false, GLOBAL.showAllButtonToolTip, col - 1);
   tableHTML += "<div style=\"padding: 5px 25px;text-align: center;\">";
-  // for (var i = 1; i < row; ++i) {
+  // for (const i = 1; i < row; ++i) {
   //   // Skip the header
-  //   for (var j = 0; j < col; ++j) {
-  //     var con = contents[i][j];
-  //     var isQuestion = j == 0;
-  //     var str = "";
+  //   for (const j = 0; j < col; ++j) {
+  //     const con = contents[i][j];
+  //     const isQuestion = j == 0;
+  //     const str = "";
   //     con.split(" ").forEach((a) => (str += (a.includes("http") ? getLink(a) : a) + " "));
   //     tableHTML += (isQuestion ? "<b>" : "") + str + (isQuestion ? "</b>" : "") + "<br>";
   //   }
@@ -713,7 +749,7 @@ function updateWithdraw() {
   if (isUnique) {
     // Display modified value in the personal tab
     const id = GLOBAL.displayData.personal.id;
-    var d = GLOBAL.data[id];
+    const d = GLOBAL.data[id];
     const i = indexOf(d[0], "Total");
     d[1][i] = toCurrency(roundDown(toValue(d[1][i]) + toValue(value), 2));
     updatePersonalTable(id, GLOBAL.data[id]);
@@ -760,7 +796,7 @@ function confirmation(content) {
     getTranslateData(content.ope + " mail").tooltip +
     " :</p>" +
     details;
-  var message = html
+  const message = html
     .replace(/(<\/p>)/gi, "\n\n")
     .replace(/(<\/tr>)/gi, "\n")
     .replace(/(<\/th>)/gi, " : ")
@@ -781,7 +817,7 @@ function insertHistoricRow(data) {
     // Display added data in the historic tab
     const id = GLOBAL.displayData.historic.id;
     openTab(id);
-    var d = [];
+    const d = [];
     data[0].forEach((item) => d.push(item)); // Make a copy of data to not be modified by other operation on data
     GLOBAL.data[id].splice(1, 0, d);
     updateHistoricTable(id, GLOBAL.data[id]);
@@ -804,7 +840,7 @@ function insertHistoricRow(data) {
 function changeRecurrent(value) {
   // Display modified value in the personal tab
   const id = GLOBAL.displayData.personal.id;
-  var d = GLOBAL.data[id];
+  const d = GLOBAL.data[id];
   const i = indexOf(d[0], "Recurrent");
   d[1][i] = toCurrency(value);
   updatePersonalTable(id, GLOBAL.data[id]);
@@ -836,7 +872,7 @@ function getTranslatedContent(content, isHeader, data) {
 }
 
 function CreateAckDebt() {
-  var total = 0;
+  let total = 0;
   const deposit = [];
   GLOBAL.data.historic.forEach((item) => {
     const date = item[0];
@@ -1005,9 +1041,9 @@ function getImgTag(name, height) {
 }
 
 function getImgFromNumber(number) {
-  var html = "";
+  let html = "";
   const text = number.toString();
-  for (var i = 0; i < text.length; ++i) {
+  for (let i = 0; i < text.length; ++i) {
     html += getImgTag(text[i].replace("/", "slash"), 15);
   }
 
@@ -1015,7 +1051,7 @@ function getImgFromNumber(number) {
 }
 
 function getImgFromText(text) {
-  var html = "";
+  let html = "";
   const height = 20;
   text = text.replaceAll("-", " - ");
   const array = text.split(" ");
@@ -1104,8 +1140,8 @@ function getFullName(person) {
 
 function convertNumberToColumn(number) {
   // 0 => A, 1 => B, etc
-  var t;
-  var s = "";
+  let t = 0;
+  let s = "";
   while (number > 0) {
     t = (number - 1) % 26;
     s = String.fromCharCode(66 + t) + s;

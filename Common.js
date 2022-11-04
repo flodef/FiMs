@@ -216,7 +216,7 @@ function getTableReadOnlyContent(content = "", isHeader, isDisabled, color, tool
     const value = matches ? matches[matches.length - 1] : content;
     const isCur = /(€|%|\$)/.test(value);
     color = getColor(value, isDisabled, isCur, color);
-    return "<td align=\"center\" style=\"color:" + color + "\">" + html + "</td>";
+    return "<td align=\"center\" style=\"color:" + color + "\"><code>" + html + "</code></td>";
   } else {
     return "<th align=\"center\">" + html + "</th>";
   }
