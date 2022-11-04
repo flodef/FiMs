@@ -1,19 +1,16 @@
-/* global GmailApp, FR, FC, FM, _getSheet, _isCurrentMonth, _copyFirstRow,
-_sendMessage, _toDate, _insertFirstRow, _round, _copySheetFromModel*/
+/* global GmailApp, FR, FC, FM, _getSheet, _sendMessage, _toDate, 
+_insertFirstRow, _round, _copySheetFromModel, _toStringDate, _setRangeValues*/
 /* exported updateAssociate, sendCharity */
 
 // ASSOCIATE COLS
 const ID_COL = 2; // Should be the "ID" column
-const RECURRENT_COL = 3; // Should be the "Recurrent" column
 const CHARITY_COL = 4; // Should be the "Charity" column
-const DEPOSIT_COL = 11; // Should be the "Deposit" column
-const TOTAL_COL = 15; // Should be the "Total" column
-const EMAIL_COL = 16; // Should be the "EMail" column
+const DEPOSIT_COL = 10; // Should be the "Deposit" column
+const EMAIL_COL = 15; // Should be the "EMail" column
 
 // SHEET NAMES
 const ASSOCIATE = "Associate"; // The "Associate" sheet name
 const ASSMODEL = "AssociateModel"; // The "AssociateModel" sheet name
-const ASSHISTO = "AssociateHistoric"; // The "AssociateHistoric" sheet name
 
 // SHOULD RUN ONCE A MONTH
 function updateAssociate() {
@@ -24,46 +21,53 @@ function updateAssociate() {
   for (let i = 0; i < associateArray.length; ++i) {
     // Retrieve associate account data
     const depo = associateArray[i][DEPOSIT_COL - 1];
-    const total = associateArray[i][TOTAL_COL - 1];
 
     if (depo > 0) {
       const name = associateArray[i][ID_COL - 1];
-      const recu = associateArray[i][RECURRENT_COL - 1];
 
       // If the sheet does not exist, create a new associate sheet from the model
       const sheet = _copySheetFromModel(name, ASSMODEL);
       const lc = sheet.getMaxColumns();
       sheet.getRange(FR, lc).setValue(name);
-      sheet.hideColumns(lc);
+      // sheet.hideColumns(lc);
 
-      const array = sheet.getSheetValues(FR, FC, 1, -1);
+      const array = sheet.getSheetValues(FR, FC, 2, -1);
+
+      // Do a copy only if it is the first day of the month and the copy has not already been done
+      if (array[0][0].getDate() == 1 && _toStringDate(array[0][0]) != _toStringDate(array[1][0])) {
+        _insertFirstRow(sheet, null, true);
+        _setRangeValues(sheet, FR + 1, FC, [array[0]]); // Copy only values into previous row (archive)
+
+        const date = _toDate(); // Get date without hours
+        sheet.getRange(FR + 1, FC).setValue(date); // Update the previous month date
+      }
 
       // Add monthly associate profit
-      if (!_isCurrentMonth(array)) {
-        _copyFirstRow(sheet, array);
+      //   if (!_isCurrentMonth(array)) {
+      //     _copyFirstRow(sheet, array);
 
-        // Add recurrent withdrawal to associate historic
-        if (recu < 0) {
-          if (recu < -total) {
-            _sendMessage(
-              "STOP RECURRENT WITHDRAW FOR " + name + " !!",
-              name +
-                " asked for " +
-                -recu +
-                " € but there is only " +
-                total +
-                " € left in the bank !"
-            );
-          }
+      //     // Add recurrent withdrawal to associate historic
+      //     if (recu < 0) {
+      //       if (recu < -total) {
+      //         _sendMessage(
+      //           "STOP RECURRENT WITHDRAW FOR " + name + " !!",
+      //           name +
+      //             " asked for " +
+      //             -recu +
+      //             " € but there is only " +
+      //             total +
+      //             " € left in the bank !"
+      //         );
+      //       }
 
-          const histoSheet = _getSheet(ASSHISTO);
-          const d = _toDate(); // Get date without hours to match range's date
-          d.setDate(d.getDate() + 5); // Take around 5 days to make a bank transfer
+      //       const histoSheet = _getSheet(ASSHISTO);
+      //       const d = _toDate(); // Get date without hours to match range's date
+      //       d.setDate(d.getDate() + 5); // Take around 5 days to make a bank transfer
 
-          const data = [[d, name, Math.max(recu, -total), 0]];
-          _insertFirstRow(histoSheet, data);
-        }
-      }
+    //       const data = [[d, name, Math.max(recu, -total), 0]];
+    //       _insertFirstRow(histoSheet, data);
+    //     }
+    //   }
     }
   }
 }
