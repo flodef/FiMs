@@ -1,16 +1,18 @@
 /* global GmailApp, FR, FC, FM, _getSheet, _sendMessage, _toDate, 
 _insertFirstRow, _round, _copySheetFromModel, _toStringDate, _setRangeValues*/
-/* exported updateAssociate, sendCharity */
+/* exported updateAssociate, sendCharity, reminderNewsLetter */
 
 // ASSOCIATE COLS
 const ID_COL = 2; // Should be the "ID" column
 const CHARITY_COL = 4; // Should be the "Charity" column
 const DEPOSIT_COL = 10; // Should be the "Deposit" column
+const TOTAL_COL = 14; // Should be the "Total" column
 const EMAIL_COL = 15; // Should be the "EMail" column
 
 // SHEET NAMES
 const ASSOCIATE = "Associate"; // The "Associate" sheet name
 const ASSMODEL = "AssociateModel"; // The "AssociateModel" sheet name
+
 
 // SHOULD RUN ONCE A MONTH
 function updateAssociate() {
@@ -41,34 +43,26 @@ function updateAssociate() {
         const date = _toDate(); // Get date without hours
         sheet.getRange(FR + 1, FC).setValue(date); // Update the previous month date
       }
-
-      // Add monthly associate profit
-      //   if (!_isCurrentMonth(array)) {
-      //     _copyFirstRow(sheet, array);
-
-      //     // Add recurrent withdrawal to associate historic
-      //     if (recu < 0) {
-      //       if (recu < -total) {
-      //         _sendMessage(
-      //           "STOP RECURRENT WITHDRAW FOR " + name + " !!",
-      //           name +
-      //             " asked for " +
-      //             -recu +
-      //             " € but there is only " +
-      //             total +
-      //             " € left in the bank !"
-      //         );
-      //       }
-
-      //       const histoSheet = _getSheet(ASSHISTO);
-      //       const d = _toDate(); // Get date without hours to match range's date
-      //       d.setDate(d.getDate() + 5); // Take around 5 days to make a bank transfer
-
-    //       const data = [[d, name, Math.max(recu, -total), 0]];
-    //       _insertFirstRow(histoSheet, data);
-    //     }
-    //   }
     }
+  }
+}
+
+// SHOULD RUN ONCE A MONTH
+function reminderNewsLetter() {
+  // Retrieve associate main data
+  const sheet = _getSheet(ASSOCIATE);
+  const array = sheet.getSheetValues(FR, FC, -1, -1);
+
+  // List all newsletter subscribers
+  const object = "Associate Mail Reminder /!\\ BCC /!\\";
+  let list = "";
+  for (let i = 0; i < array.length; ++i) {
+    list += parseInt(array[i][TOTAL_COL - 1]) > 0 ? array[i][EMAIL_COL - 1] + "," : "";
+  }
+
+  // Message with list send to myself
+  if (list != "") {
+    _sendMessage(object, list.slice(0, -1)); // Remove last comma at the end of the list
   }
 }
 
