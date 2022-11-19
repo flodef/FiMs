@@ -153,25 +153,25 @@ function processMail() {
             const fn =
               id != null
                 ? function x(thr, id) {
-                  if (!alertThread[id]) {
-                    alertThread[id] = thr;
-                  } else {
-                    _archiveMessage(thr);
+                    if (!alertThread[id]) {
+                      alertThread[id] = thr;
+                    } else {
+                      _archiveMessage(thr);
+                    }
                   }
-                }
                 : sub == "Rapport du solde de vos comptes"
-                  ? function x(thr) {
+                ? function x(thr) {
                     _processAccountBalance(thr);
                   }
-                  : sub == "Alerte sur opération recherchée"
-                    ? function x(thr) {
-                      _processAccountTransaction(thr);
-                    }
-                    : sub.substring(0, 21) == "DEGIRO - Avis d’opéré"
-                      ? function x(thr) {
-                        _processStockTrade(thr);
-                      }
-                      : null;
+                : sub == "Alerte sur opération recherchée"
+                ? function x(thr) {
+                    _processAccountTransaction(thr);
+                  }
+                : sub.substring(0, 21) == "DEGIRO - Avis d’opéré"
+                ? function x(thr) {
+                    _processStockTrade(thr);
+                  }
+                : null;
 
             if (fn) {
               fn(thr, id);
@@ -401,19 +401,18 @@ function _updateClosePrice() {
 }
 
 function _sendEvolution() {
-  // Get values
-  let sheet = _getSheet(PRICE);
-  let array = sheet.getSheetValues(FR, FC, 2, -1);
+  // Get price values
+  const priceArray = _getSheet(PRICE).getSheetValues(FR, FC, 2, -1);
+
+  // Daily Performance mail
+  const sheet = _getSheet(EVOLUTION);
+  const array = sheet.getSheetValues(1, FC, 2, -1);
+
   let msg = "";
-
-  // Check for difference
-  if (_AreRowsDifferent(array)) {
-    // Daily Performance mail
-    sheet = _getSheet(EVOLUTION);
-    array = sheet.getSheetValues(1, FC, 2, -1);
-
-    const start = 5;
-    if (array[1][start]) {
+  const start = 5;
+  if (array[1][start]) {
+    // Check for difference
+    if (_AreRowsDifferent(priceArray)) {
       for (let i = start; i < array[0].length; ++i) {
         const label = array[0][i];
         const value = array[1][i];
@@ -423,10 +422,10 @@ function _sendEvolution() {
       msg += APPLINK;
 
       _sendMessage("Daily Stock report", msg);
+    } else {
+      msg = "If today is bank holiday, delete the message, otherwise check spreadsheet.";
+      _sendMessage("No update for Evolution/Price", msg);
     }
-  } else {
-    msg = "If today is bank holiday, delete the message, otherwise check spreadsheet.";
-    _sendMessage("No update for Evolution/Price", msg);
   }
 }
 
