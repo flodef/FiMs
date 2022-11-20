@@ -401,9 +401,6 @@ function _updateClosePrice() {
 }
 
 function _sendEvolution() {
-  // Get price values
-  const priceArray = _getSheet(PRICE).getSheetValues(FR, FC, 2, -1);
-
   // Daily Performance mail
   const sheet = _getSheet(EVOLUTION);
   const array = sheet.getSheetValues(1, FC, 2, -1);
@@ -412,6 +409,7 @@ function _sendEvolution() {
   const start = 5;
   if (array[1][start]) {
     // Check for difference
+    const priceArray = _getSheet(PRICE).getSheetValues(FR, FC, 2, -1); // Get price values
     if (_AreRowsDifferent(priceArray)) {
       for (let i = start; i < array[0].length; ++i) {
         const label = array[0][i];
