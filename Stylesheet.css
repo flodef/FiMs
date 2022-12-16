@@ -1,458 +1,462 @@
 h0 {
-  font-size: 50px;
-  line-height: 80px;
-  padding: 35px 20px 25px 20px;
-  font-weight: bold;
-  margin: 0px;
-  color: royalblue;
+    font-size: 50px;
+    line-height: 80px;
+    padding: 35px 20px 25px 20px;
+    font-weight: bold;
+    margin: 0px;
+    color: royalblue;
 }
 
 h1,
 h2 {
-  font-weight: 400;
-  color: #b1b1b1;
-  margin: 0px;
+    font-weight: 400;
+    color: #b1b1b1;
+    margin: 0px;
 }
 
 h1 {
-  font-size: 33px;
-  line-height: 20px;
-  padding: 35px 20px 25px 20px;
+    font-size: 33px;
+    line-height: 20px;
+    padding: 35px 20px 25px 20px;
 }
 
 h2 {
-  font-size: 21px;
-  line-height: 33px;
-  cursor: pointer;
+    font-size: 21px;
+    line-height: 33px;
+    cursor: pointer;
 }
 
 table {
-  border-collapse: collapse;
-  border: 5px solid transparent;
-  padding: 5px;
-  width: 100%;
+    border-collapse: collapse;
+    border: 5px solid transparent;
+    padding: 5px;
+    width: 100%;
 }
 
 td {
-  padding: 2px 10px 2px 10px;
+    padding: 2px 10px 2px 10px;
 }
 
 th {
-  padding: 2px 10px 2px 10px;
-  text-align: center;
-  background-color: #f1f1f1;
-  font-weight: bold;
-  cursor: pointer;
+    padding: 2px 10px 2px 10px;
+    text-align: center;
+    background-color: #f1f1f1;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 tfoot {
-  padding: 2px 10px 2px 10px;
-  text-align: center;
-  font-weight: bold;
+    padding: 2px 10px 2px 10px;
+    text-align: center;
+    font-weight: bold;
 }
 
 body {
-  padding: 0;
-  margin: 0;
-  color: #222;
-  font: 13px/18px arial, sans-serif;
+    padding: 0;
+    margin: 0;
+    color: #222;
+    font: 13px/18px arial, sans-serif;
 }
 
 button {
-  color: #fff;
-  border-radius: 3px;
-  background-color: #00aeef;
-  border-bottom: 3px solid #008bbf;
-  border-top: 3px solid #00aeef;
-  border-left: 3px solid #00aeef;
-  border-right: 3px solid #00aeef;
-  text-align: center;
-  height: 38px;
-  line-height: 22px;
-  font-size: 11px;
-  width: 100px;
-  cursor: pointer;
-  margin: 0px 15px 0px 15px;
+    color: #fff;
+    border-radius: 3px;
+    background-color: #00aeef;
+    border-bottom: 3px solid #008bbf;
+    border-top: 3px solid #00aeef;
+    border-left: 3px solid #00aeef;
+    border-right: 3px solid #00aeef;
+    text-align: center;
+    height: 38px;
+    line-height: 22px;
+    font-size: 11px;
+    width: 100px;
+    cursor: pointer;
+    margin: 0px 15px 0px 15px;
 }
 
 a.button {
-  -webkit-appearance: button;
-  -moz-appearance: button;
-  appearance: button;
-  text-decoration: none;
-  color: initial;
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+    text-decoration: none;
+    color: initial;
 }
 
 marquee {
-  width: 320px;
-  height: 60px;
-  margin: 15px;
-  font-weight: bold;
-  font-size: large;
-  background-color: rgba(255, 255, 255, 0.8);
+    width: 320px;
+    height: 60px;
+    margin: 15px;
+    font-weight: bold;
+    font-size: large;
+    background-color: rgba(255, 255, 255, 0.8);
 }
 
 .hidden {
-  display: none;
+    display: none;
 }
 
 .mainHeading {
-  background: rgba(255, 255, 255, 0.8);
-  width: fit-content;
+    background: rgba(255, 255, 255, 0.8);
+    width: fit-content;
 }
 
 .mainDiv {
-  overflow-x: auto;
-  overflow-y: hidden;
-  margin: 25px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin: 25px;
 }
 
 .topMenu {
-  width: auto;
-  background-color: rgba(255, 255, 255, 0.8);
-  margin: 15px 0px 0px 0px;
+    width: auto;
+    background-color: rgba(255, 255, 255, 0.8);
+    margin: 15px 0px 0px 0px;
 }
 
 .blur-filter {
-  -webkit-filter: blur(2px);
-  -moz-filter: blur(2px);
-  -o-filter: blur(2px);
-  -ms-filter: blur(2px);
-  filter: blur(2px);
+    -webkit-filter: blur(2px);
+    -moz-filter: blur(2px);
+    -o-filter: blur(2px);
+    -ms-filter: blur(2px);
+    filter: blur(2px);
 }
 
 .tableTitle {
-  border: 0px;
-  font-size: 16px;
-  line-height: 33px;
-  color: #b1b1b1;
-  margin: 6px;
+    border: 0px;
+    font-size: 16px;
+    line-height: 33px;
+    color: #b1b1b1;
+    margin: 6px;
 }
 
 #content {
-  position: absolute;
+    position: absolute;
 }
 
 #footer {
-  font-size: xx-small;
-  margin: 15px;
+    font-size: xx-small;
+    margin: 15px;
 }
 
 /* Tab */
 #tabContainer {
-  overflow: hidden;
-  border: 1px solid #ccc;
-  background-color: white;
-  margin: 25px;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: white;
+    margin: 25px;
 }
 
 .tabLinks {
-  background-color: inherit;
-  float: left;
-  border: none;
-  outline: none;
-  transition: 0.3s;
-  font-weight: 400;
-  color: #b1b1b1;
-  margin: 0px;
-  font-size: 21px;
-  line-height: 33px;
-  border-radius: 0px;
-  height: 60px;
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    transition: 0.3s;
+    font-weight: 400;
+    color: #b1b1b1;
+    margin: 0px;
+    font-size: 21px;
+    line-height: 33px;
+    border-radius: 0px;
+    height: 60px;
 }
 
 .tabLinks:hover {
-  background-color: #f1f1f1;
-  cursor: pointer;
+    background-color: #f1f1f1;
+    cursor: pointer;
 }
 
 .tabLinks.active {
-  background-color: #ddd;
-  cursor: default;
+    background-color: #ddd;
+    cursor: default;
 }
 
 .tabLinks:disabled,
 .tabLinks[disabled] {
-  background-color: inherit;
-  cursor: default;
+    background-color: inherit;
+    cursor: default;
 }
 
 .tabContent {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-top: none;
+    padding: 6px 12px;
+    border: 0px solid #ccc;
+    border-top: none;
 }
 
 /* Search bar */
 .mainSearch {
-  border-radius: 25px;
-  background-image: url("Img/Image/searchicon.png");
-  /* Add a search icon to input */
-  background-position: 6px 4px;
-  /* Position the search icon */
-  background-repeat: no-repeat;
-  /* Do not repeat the icon image */
-  height: 28px;
-  font-size: 16px;
-  /* Increase font-size */
-  padding: 0px 0px 0px 40px;
-  /* Add some padding */
-  border: 1px solid #b1b1b1;
-  /* Add a grey border */
-  vertical-align: bottom;
-  width: 130px;
-  -webkit-transition: width 0.4s ease-in-out;
-  transition: width 0.4s ease-in-out;
+    border-radius: 25px;
+    background-image: url("Img/Image/searchicon.png");
+    /* Add a search icon to input */
+    background-position: 6px 4px;
+    /* Position the search icon */
+    background-repeat: no-repeat;
+    /* Do not repeat the icon image */
+    height: 28px;
+    font-size: 16px;
+    /* Increase font-size */
+    padding: 0px 0px 0px 40px;
+    /* Add some padding */
+    border: 1px solid #b1b1b1;
+    /* Add a grey border */
+    vertical-align: bottom;
+    width: 130px;
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
 }
 
 .mainSearch:focus {
-  width: 250px;
+    width: 250px;
+}
+
+.mainTable {
+    margin-bottom: 80px;
 }
 
 table.mainTable tr {
-  /* Add a bottom border to all table rows */
-  border-bottom: 1px solid #ddd;
+    /* Add a bottom border to all table rows */
+    border-bottom: 1px solid #ddd;
 }
 
 table.mainTable tr.header,
 table.mainTable tr:hover {
-  /* Add a grey background color to the table header and on hover */
-  background-color: #f1f1f1;
+    /* Add a grey background color to the table header and on hover */
+    background-color: #f1f1f1;
 }
 
 /* Loader and Overlay */
 .contentOverlay,
 .shadeOverlay,
 .overlay {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .contentOverlay {
-  height: 60px;
+    height: 60px;
 }
 
 .shadeOverlay {
-  background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
 #popup {
-  background-color: #fefefe;
-  margin: 15% auto;
-  /* 15% from the top and centered */
-  padding: 20px;
-  border: 1px solid #888;
-  width: 555px;
-  /* Could be more or less, depending on screen size */
+    background-color: #fefefe;
+    margin: 15% auto;
+    /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 555px;
+    /* Could be more or less, depending on screen size */
 }
 
 #loader {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 1;
-  margin: -75px 0 0 -75px;
-  border: 16px solid transparent;
-  border-radius: 50%;
-  border-top: 16px solid #3498db;
-  border-right: 16px solid #3498db;
-  border-bottom: 16px solid #3498db;
-  width: 120px;
-  height: 120px;
-  -webkit-animation: spin 2s linear infinite;
-  animation: spin 2s linear infinite;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    margin: -75px 0 0 -75px;
+    border: 16px solid transparent;
+    border-radius: 50%;
+    border-top: 16px solid #3498db;
+    border-right: 16px solid #3498db;
+    border-bottom: 16px solid #3498db;
+    width: 120px;
+    height: 120px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
 }
 
 @-webkit-keyframes spin {
-  0% {
-    -webkit-transform: rotate(0deg);
-  }
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
 
-  100% {
-    -webkit-transform: rotate(360deg);
-  }
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
+    0% {
+        transform: rotate(0deg);
+    }
 
-  100% {
-    transform: rotate(360deg);
-  }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Add animation to "page content" */
 .animate-bottom {
-  position: relative;
-  -webkit-animation-name: animatebottom;
-  -webkit-animation-duration: 1s;
-  animation-name: animatebottom;
-  animation-duration: 1s;
+    position: relative;
+    -webkit-animation-name: animatebottom;
+    -webkit-animation-duration: 1s;
+    animation-name: animatebottom;
+    animation-duration: 1s;
 }
 
 @-webkit-keyframes animatebottom {
-  from {
-    bottom: -100px;
-    opacity: 0;
-  }
+    from {
+        bottom: -100px;
+        opacity: 0;
+    }
 
-  to {
-    bottom: 0px;
-    opacity: 1;
-  }
+    to {
+        bottom: 0px;
+        opacity: 1;
+    }
 }
 
 @keyframes animatebottom {
-  from {
-    bottom: -100px;
-    opacity: 0;
-  }
+    from {
+        bottom: -100px;
+        opacity: 0;
+    }
 
-  to {
-    bottom: 0;
-    opacity: 1;
-  }
+    to {
+        bottom: 0;
+        opacity: 1;
+    }
 }
 
 /* The snackbar - position it at the bottom and in the middle of the screen */
 #snackbar {
-  visibility: hidden;
-  /* Hidden by default. Visible on click */
-  min-width: 250px;
-  /* Set a default minimum width */
-  margin-left: -125px;
-  /* Divide value of min-width by 2 */
-  background-color: #333;
-  /* Black background color */
-  color: #fff;
-  /* White text color */
-  text-align: center;
-  /* Centered text */
-  border-radius: 2px;
-  /* Rounded borders */
-  padding: 16px;
-  /* Padding */
-  position: fixed;
-  /* Sit on top of the screen */
-  z-index: 1;
-  /* Add a z-index if needed */
-  left: 50%;
-  /* Center the snackbar */
-  bottom: 30px;
-  /* 30px from the bottom */
+    visibility: hidden;
+    /* Hidden by default. Visible on click */
+    min-width: 250px;
+    /* Set a default minimum width */
+    margin-left: -125px;
+    /* Divide value of min-width by 2 */
+    background-color: #333;
+    /* Black background color */
+    color: #fff;
+    /* White text color */
+    text-align: center;
+    /* Centered text */
+    border-radius: 2px;
+    /* Rounded borders */
+    padding: 16px;
+    /* Padding */
+    position: fixed;
+    /* Sit on top of the screen */
+    z-index: 1;
+    /* Add a z-index if needed */
+    left: 50%;
+    /* Center the snackbar */
+    bottom: 30px;
+    /* 30px from the bottom */
 }
 
 /* Show the snackbar when clicking on a button (class added with JavaScript) */
 #snackbar.show {
-  visibility: visible;
-  /* Show the snackbar */
-  /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
+    visibility: visible;
+    /* Show the snackbar */
+    /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
   However, delay the fade out process for 2.5 seconds */
-  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
 }
 
 /* Animations to fade the snackbar in and out */
 @-webkit-keyframes fadein {
-  from {
-    bottom: 0;
-    opacity: 0;
-  }
+    from {
+        bottom: 0;
+        opacity: 0;
+    }
 
-  to {
-    bottom: 30px;
-    opacity: 1;
-  }
+    to {
+        bottom: 30px;
+        opacity: 1;
+    }
 }
 
 @keyframes fadein {
-  from {
-    bottom: 0;
-    opacity: 0;
-  }
+    from {
+        bottom: 0;
+        opacity: 0;
+    }
 
-  to {
-    bottom: 30px;
-    opacity: 1;
-  }
+    to {
+        bottom: 30px;
+        opacity: 1;
+    }
 }
 
 @-webkit-keyframes fadeout {
-  from {
-    bottom: 30px;
-    opacity: 1;
-  }
+    from {
+        bottom: 30px;
+        opacity: 1;
+    }
 
-  to {
-    bottom: 0;
-    opacity: 0;
-  }
+    to {
+        bottom: 0;
+        opacity: 0;
+    }
 }
 
 @keyframes fadeout {
-  from {
-    bottom: 30px;
-    opacity: 1;
-  }
+    from {
+        bottom: 30px;
+        opacity: 1;
+    }
 
-  to {
-    bottom: 0;
-    opacity: 0;
-  }
+    to {
+        bottom: 0;
+        opacity: 0;
+    }
 }
 
 /* Toggle switch */
 input[type="checkbox"][class="toggle"] {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  -webkit-tap-highlight-color: transparent;
-  cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
 }
 
 input[type="checkbox"][class="toggle"]:focus {
-  outline: 0;
+    outline: 0;
 }
 
 .toggle {
-  height: 32px;
-  width: 52px;
-  border-radius: 16px;
-  display: inline-block;
-  position: relative;
-  margin: 10px 10px;
-  border: 2px solid #ccc;
-  background: #ccc;
-  transition: all 0.2s ease;
+    height: 32px;
+    width: 52px;
+    border-radius: 16px;
+    display: inline-block;
+    position: relative;
+    margin: 10px 10px;
+    border: 2px solid #ccc;
+    background: #ccc;
+    transition: all 0.2s ease;
 }
 
 .toggle:after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: white;
-  box-shadow: 0 1px 2px rgba(44, 44, 44, 0.2);
-  transition: all 0.2s cubic-bezier(0.5, 0.1, 0.75, 1.35);
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 2px rgba(44, 44, 44, 0.2);
+    transition: all 0.2s cubic-bezier(0.5, 0.1, 0.75, 1.35);
 }
 
 .toggle:checked {
-  border-color: #2196f3;
-  background: #2196f3;
+    border-color: #2196f3;
+    background: #2196f3;
 }
 
 .toggle:checked:after {
-  transform: translatex(20px);
+    transform: translatex(20px);
 }
 
 /* The switch - the box around the slider */
@@ -514,389 +518,414 @@ input:checked + .slider:before {
 } */
 /* Tooltip */
 .tooltip {
-  position: relative;
-  display: inline-block;
-  /*border-bottom: 1px dotted black;*/
+    position: relative;
+    display: inline-block;
+    /*border-bottom: 1px dotted black;*/
 }
 
 .tooltip .tooltiptext {
-  visibility: hidden;
-  width: 120px;
-  background-color: #555;
-  color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  padding: 5px 0;
-  position: absolute;
-  z-index: 1;
-  /*bottom: 125%;*/
-  top: 125%;
-  left: 50%;
-  margin-left: -60px;
-  opacity: 0;
-  transition: opacity 3s;
-  font-size: small;
-  font-weight: normal;
-  line-height: 20px;
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    /*bottom: 125%;*/
+    top: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 3s;
+    font-size: small;
+    font-weight: normal;
+    line-height: 20px;
 }
 
 .tooltip .tooltiptext::after {
-  content: "";
-  position: absolute;
-  /*top: 100%;*/
-  bottom: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  /*border-color: #555 transparent transparent transparent;*/
-  border-color: transparent transparent #555 transparent;
+    content: "";
+    position: absolute;
+    /*top: 100%;*/
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    /*border-color: #555 transparent transparent transparent;*/
+    border-color: transparent transparent #555 transparent;
 }
 
 .tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
+    visibility: visible;
+    opacity: 1;
 }
 
 /* Image effect */
 img:hover {
-  -webkit-filter: blur(1px);
-  filter: blur(1px);
-  /* box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); */
-  cursor: pointer;
+    -webkit-filter: blur(1px);
+    filter: blur(1px);
+    /* box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); */
+    cursor: pointer;
 }
 
 /* Alert */
 #alert {
-  padding: 25px;
-  font-size: large;
-  color: white;
-  opacity: 1;
-  transition: opacity 0.6s;
-  margin-bottom: 15px;
-  line-height: normal;
+    padding: 25px;
+    font-size: large;
+    color: white;
+    opacity: 1;
+    transition: opacity 0.6s;
+    margin-bottom: 15px;
+    line-height: normal;
 }
 
 .closebtn {
-  margin-left: 15px;
-  color: white;
-  font-weight: bold;
-  float: right;
-  font-size: 22px;
-  line-height: 20px;
-  cursor: pointer;
-  transition: 0.5s;
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.5s;
 }
 
 .closebtn:hover {
-  color: black;
+    color: black;
 }
 
 /* Removes border and other stuff on input type image */
 input[type="image"] {
-  width: 48px;
-  height: 48px;
-  min-width: 0px;
-  min-height: 0px;
-  padding: 0px 10px 0px 0px;
-  background: transparent;
-  outline: transparent;
+    width: 48px;
+    height: 48px;
+    min-width: 0px;
+    min-height: 0px;
+    padding: 0px 10px 0px 0px;
+    background: transparent;
+    outline: transparent;
 }
 
 input[type="image"]:focus,
 input[type="image"]:hover {
-  -webkit-filter: blur(1px);
-  filter: blur(1px);
-  cursor: pointer;
+    -webkit-filter: blur(1px);
+    filter: blur(1px);
+    cursor: pointer;
 }
 
 input[type="image"]:disabled,
 button:disabled {
-  -webkit-filter: grayscale(100%);
-  -moz-filter: grayscale(100%);
-  -o-filter: grayscale(100%);
-  -ms-filter: grayscale(100%);
-  filter: grayscale(100%);
-  border: 0px;
-  cursor: default;
-  width: 0px;
-  padding: 0px;
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    filter: grayscale(100%);
+    border: 0px;
+    cursor: default;
+    width: 0px;
+    padding: 0px;
 }
 
 /* Removes step arrows on input type number */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  /* display: none; <- Crashes Chrome on hover */
-  -webkit-appearance: none;
-  margin: 0;
-  /* <-- Apparently some margin are still there even though it's hidden */
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0;
+    /* <-- Apparently some margin are still there even though it's hidden */
 }
 
 input[type="text"] {
-  outline: 0px;
-  border: 0px;
-  width: 100px;
-  min-width: 5px;
-  font-style: italic;
-  animation: shrink 0.5s;
-  background-color: transparent;
+    outline: 0px;
+    border: 0px;
+    width: 100px;
+    min-width: 5px;
+    font-style: italic;
+    animation: shrink 0.5s;
+    background-color: transparent;
 }
 
 input[type="text"]:hover,
 input[type="text"]:focus {
-  min-width: 35px;
-  animation: expand 0.5s;
-  background-color: white;
+    min-width: 35px;
+    animation: expand 0.5s;
+    background-color: white;
 }
 
 @-webkit-keyframes expand {
-  from {
-    min-width: 5px;
-  }
+    from {
+        min-width: 5px;
+    }
 
-  to {
-    min-width: 35px;
-  }
+    to {
+        min-width: 35px;
+    }
 }
 
 @keyframes expand {
-  from {
-    min-width: 5px;
-  }
+    from {
+        min-width: 5px;
+    }
 
-  to {
-    min-width: 35px;
-  }
+    to {
+        min-width: 35px;
+    }
 }
 
 @-webkit-keyframes shrink {
-  from {
-    min-width: 35px;
-  }
+    from {
+        min-width: 35px;
+    }
 
-  to {
-    min-width: 5px;
-  }
+    to {
+        min-width: 5px;
+    }
 }
 
 @keyframes shrink {
-  from {
-    min-width: 35px;
-  }
+    from {
+        min-width: 35px;
+    }
 
-  to {
-    min-width: 5px;
-  }
+    to {
+        min-width: 5px;
+    }
 }
 
 /* Animated Progress bar */
 .loaderBar {
-  height: 20px;
-  /* Can be anything */
-  position: relative;
-  margin: 60px 0 20px 0;
-  /* Just for demo spacing */
-  background: none;
-  -moz-border-radius: 25px;
-  -webkit-border-radius: 25px;
-  border-radius: 25px;
-  padding: 250px;
-  -webkit-box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
-  -moz-box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
-  box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
+    height: 20px;
+    /* Can be anything */
+    position: relative;
+    margin: 60px 0 20px 0;
+    /* Just for demo spacing */
+    background: none;
+    -moz-border-radius: 25px;
+    -webkit-border-radius: 25px;
+    border-radius: 25px;
+    padding: 250px;
+    -webkit-box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
+    -moz-box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
 }
 
 .loaderBar > span {
-  display: block;
-  height: 100%;
-  -webkit-border-top-right-radius: 20px;
-  -webkit-border-bottom-right-radius: 20px;
-  -moz-border-radius-topright: 20px;
-  -moz-border-radius-bottomright: 20px;
-  border-top-right-radius: 20px;
-  border-bottom-right-radius: 20px;
-  -webkit-border-top-left-radius: 20px;
-  -webkit-border-bottom-left-radius: 20px;
-  -moz-border-radius-topleft: 20px;
-  -moz-border-radius-bottomleft: 20px;
-  border-top-left-radius: 20px;
-  border-bottom-left-radius: 20px;
-  background-color: rgb(43, 194, 83);
-  background-image: -webkit-gradient(
-    linear,
-    left bottom,
-    left top,
-    color-stop(0, rgb(43, 194, 83)),
-    color-stop(1, rgb(84, 240, 84))
-  );
-  background-image: -moz-linear-gradient(center bottom, rgb(43, 194, 83) 37%, rgb(84, 240, 84) 69%);
-  -webkit-box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
-  -moz-box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
-  box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
-  position: relative;
-  overflow: hidden;
+    display: block;
+    height: 100%;
+    -webkit-border-top-right-radius: 20px;
+    -webkit-border-bottom-right-radius: 20px;
+    -moz-border-radius-topright: 20px;
+    -moz-border-radius-bottomright: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    -webkit-border-top-left-radius: 20px;
+    -webkit-border-bottom-left-radius: 20px;
+    -moz-border-radius-topleft: 20px;
+    -moz-border-radius-bottomleft: 20px;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    background-color: rgb(43, 194, 83);
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0, rgb(43, 194, 83)),
+        color-stop(1, rgb(84, 240, 84))
+    );
+    background-image: -moz-linear-gradient(
+        center bottom,
+        rgb(43, 194, 83) 37%,
+        rgb(84, 240, 84) 69%
+    );
+    -webkit-box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+    -moz-box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+    box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
 }
 
 .loaderBar > span:after,
 .animate > span > span {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background-image: -webkit-gradient(
-    linear,
-    0 0,
-    100% 100%,
-    color-stop(0.25, rgba(255, 255, 255, 0.2)),
-    color-stop(0.25, transparent),
-    color-stop(0.5, transparent),
-    color-stop(0.5, rgba(255, 255, 255, 0.2)),
-    color-stop(0.75, rgba(255, 255, 255, 0.2)),
-    color-stop(0.75, transparent),
-    to(transparent)
-  );
-  background-image: -moz-linear-gradient(
-    -45deg,
-    rgba(255, 255, 255, 0.2) 25%,
-    transparent 25%,
-    transparent 50%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0.2) 75%,
-    transparent 75%,
-    transparent
-  );
-  z-index: 1;
-  -webkit-background-size: 50px 50px;
-  -moz-background-size: 50px 50px;
-  background-size: 50px 50px;
-  animation: move 2s linear infinite;
-  -webkit-animation: move 2s linear infinite;
-  -moz-animation: move 2s linear infinite;
-  -webkit-border-top-right-radius: 20px;
-  -webkit-border-bottom-right-radius: 20px;
-  -moz-border-radius-topright: 20px;
-  -moz-border-radius-bottomright: 20px;
-  border-top-right-radius: 20px;
-  border-bottom-right-radius: 20px;
-  -webkit-border-top-left-radius: 20px;
-  -webkit-border-bottom-left-radius: 20px;
-  -moz-border-radius-topleft: 20px;
-  -moz-border-radius-bottomleft: 20px;
-  border-top-left-radius: 20px;
-  border-bottom-left-radius: 20px;
-  overflow: hidden;
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: -webkit-gradient(
+        linear,
+        0 0,
+        100% 100%,
+        color-stop(0.25, rgba(255, 255, 255, 0.2)),
+        color-stop(0.25, transparent),
+        color-stop(0.5, transparent),
+        color-stop(0.5, rgba(255, 255, 255, 0.2)),
+        color-stop(0.75, rgba(255, 255, 255, 0.2)),
+        color-stop(0.75, transparent),
+        to(transparent)
+    );
+    background-image: -moz-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.2) 75%,
+        transparent 75%,
+        transparent
+    );
+    z-index: 1;
+    -webkit-background-size: 50px 50px;
+    -moz-background-size: 50px 50px;
+    background-size: 50px 50px;
+    animation: move 2s linear infinite;
+    -webkit-animation: move 2s linear infinite;
+    -moz-animation: move 2s linear infinite;
+    -webkit-border-top-right-radius: 20px;
+    -webkit-border-bottom-right-radius: 20px;
+    -moz-border-radius-topright: 20px;
+    -moz-border-radius-bottomright: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    -webkit-border-top-left-radius: 20px;
+    -webkit-border-bottom-left-radius: 20px;
+    -moz-border-radius-topleft: 20px;
+    -moz-border-radius-bottomleft: 20px;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    overflow: hidden;
 }
 
 .animate > span:after {
-  display: none;
+    display: none;
 }
 
 @keyframes move {
-  0% {
-    background-position: 0 0;
-  }
+    0% {
+        background-position: 0 0;
+    }
 
-  100% {
-    background-position: 50px 50px;
-  }
+    100% {
+        background-position: 50px 50px;
+    }
 }
 
 @-webkit-keyframes move {
-  0% {
-    background-position: 0 0;
-  }
+    0% {
+        background-position: 0 0;
+    }
 
-  100% {
-    background-position: 50px 50px;
-  }
+    100% {
+        background-position: 50px 50px;
+    }
 }
 
 @-moz-keyframes move {
-  0% {
-    background-position: 0 0;
-  }
+    0% {
+        background-position: 0 0;
+    }
 
-  100% {
-    background-position: 50px 50px;
-  }
+    100% {
+        background-position: 50px 50px;
+    }
 }
 
 .grey > span {
-  background-color: #b1b1b1;
-  background-image: -moz-linear-gradient(top, #b1b1b1, #afe60c);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #b1b1b1), color-stop(1, #afe60c));
-  background-image: -webkit-linear-gradient(#b1b1b1, #afe60c);
+    background-color: #b1b1b1;
+    background-image: -moz-linear-gradient(top, #b1b1b1, #afe60c);
+    background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #b1b1b1),
+        color-stop(1, #afe60c)
+    );
+    background-image: -webkit-linear-gradient(#b1b1b1, #afe60c);
 }
 
 .orange > span {
-  background-color: #f1a165;
-  background-image: -moz-linear-gradient(top, #f1a165, #f36d0a);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #f1a165), color-stop(1, #f36d0a));
-  background-image: -webkit-linear-gradient(#f1a165, #f36d0a);
+    background-color: #f1a165;
+    background-image: -moz-linear-gradient(top, #f1a165, #f36d0a);
+    background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #f1a165),
+        color-stop(1, #f36d0a)
+    );
+    background-image: -webkit-linear-gradient(#f1a165, #f36d0a);
 }
 
 .red > span {
-  background-color: #f0a3a3;
-  background-image: -moz-linear-gradient(top, #f0a3a3, #f42323);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #f0a3a3), color-stop(1, #f42323));
-  background-image: -webkit-linear-gradient(#f0a3a3, #f42323);
+    background-color: #f0a3a3;
+    background-image: -moz-linear-gradient(top, #f0a3a3, #f42323);
+    background-image: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #f0a3a3),
+        color-stop(1, #f42323)
+    );
+    background-image: -webkit-linear-gradient(#f0a3a3, #f42323);
 }
 
 .nostripes > span > span,
 .nostripes > span:after {
-  animation: none;
-  -webkit-animation: none;
-  -moz-animation: none;
-  background-image: none;
+    animation: none;
+    -webkit-animation: none;
+    -moz-animation: none;
+    background-image: none;
 }
 
 .drawlb {
-  animation-duration: 1000ms;
-  animation-timing-function: ease;
-  animation-name: move;
-  cursor: default;
+    animation-duration: 1000ms;
+    animation-timing-function: ease;
+    animation-name: move;
+    cursor: default;
 }
 
 /* Checkmark */
 .checkmark {
-  display: none;
-  cursor: pointer;
-  opacity: 1;
-  height: 25px;
-  width: 12px;
-  transform-origin: left top;
-  border-right: 3px solid #b1b1b1;
-  border-top: 3px solid #b1b1b1;
-  content: "";
-  position: absolute;
-  transform: scaleX(-1) rotate(135deg);
+    display: none;
+    cursor: pointer;
+    opacity: 1;
+    height: 25px;
+    width: 12px;
+    transform-origin: left top;
+    border-right: 3px solid #b1b1b1;
+    border-top: 3px solid #b1b1b1;
+    content: "";
+    position: absolute;
+    transform: scaleX(-1) rotate(135deg);
 }
 
 .draw {
-  animation-duration: 1000ms;
-  animation-timing-function: ease;
-  animation-name: checkmark;
-  cursor: default;
+    animation-duration: 1000ms;
+    animation-timing-function: ease;
+    animation-name: checkmark;
+    cursor: default;
 }
 
 @keyframes checkmark {
-  0% {
-    height: 0;
-    width: 0;
-    opacity: 1;
-  }
+    0% {
+        height: 0;
+        width: 0;
+        opacity: 1;
+    }
 
-  40% {
-    height: 0;
-    width: 12px;
-    opacity: 1;
-  }
+    40% {
+        height: 0;
+        width: 12px;
+        opacity: 1;
+    }
 
-  100% {
-    height: 25px;
-    width: 12px;
-    opacity: 1;
-  }
+    100% {
+        height: 25px;
+        width: 12px;
+        opacity: 1;
+    }
 }
