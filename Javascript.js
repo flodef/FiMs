@@ -1,7 +1,7 @@
 /*global google, $, XLSX*/
 
 const GLOBAL = {};
-GLOBAL.isLocal = document.URL.includes(":8080") || document.URL.includes("github"); // Whether the app is running in local mode
+GLOBAL.isLocal = document.URL.includes("localhost") || document.URL.includes("127.0.0.1") || document.URL.includes("github"); // Whether the app is running in local mode
 GLOBAL.serverUrl = GLOBAL.isLocal ? "" : "https://raw.githubusercontent.com/flodef/FiMs/master/"; // Remove the server URL if in local mode
 GLOBAL.scriptUrl = GLOBAL.isLocal ? "" : "https://flodef.github.io/FiMs/"; // Remove the server URL if in local mode
 
@@ -152,5 +152,5 @@ function getOverlayDiv(id, cssClass = "overlay") {
 }
 
 function addAttr(name, value, isSingle) {
-  return value || value == 0 ? " " + name + (!isSingle ? "='" + value.toString().trim() + "'" : "") : "";
+  return value || value == 0 ? " " + name + (!isSingle ? "=\"" + value.toString().trim() + "\"" : "") : "";
 }
