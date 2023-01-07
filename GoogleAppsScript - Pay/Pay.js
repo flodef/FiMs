@@ -16,11 +16,11 @@ const TRANS_COL_COUNT = 6; // Should be the number of column
 // MERCHANT COLS
 const INDEX_COL = 1; // Should be the "Index" column
 const COMPANY_COL = 3; // Should be the "Company" column
-const FIATWD_COL = 5; // Should be the "Fiat Withdraw" column
-const NOTPAID_COL = 8; // Should be the "Not Paid" column
-const LASTWD_COL = 10; // Should be the "Last withdraw" column
-const NEXTWD_COL = 11; // Should be the "Next withdraw" column
-const EMAIL_COL = 12; // Should be the "EMail" column
+const FIATWD_COL = 7; // Should be the "Fiat Withdraw" column
+const NOTPAID_COL = 9; // Should be the "Not Paid" column
+const LASTWD_COL = 11; // Should be the "Last withdraw" column
+const NEXTWD_COL = 12; // Should be the "Next withdraw" column
+const EMAIL_COL = 13; // Should be the "EMail" column
 
 // SPECIFIC MERCHANT UPDATE CELL
 const DATA_COL = 7; // Should be the column after transactions data
