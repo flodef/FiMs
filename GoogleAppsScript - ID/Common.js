@@ -58,7 +58,8 @@ function _copyFormula(formula, range) {
 // Modify the cell to update the formula and load data
 function _updateFormula(sheet, row, col) {
   const range = sheet.getRange(row, col);
-  range.setValue(range.getValue() == "" ? " " : "");
+  const value = range.getValue();
+  range.setValue(value.endsWith(" ") ? value.trimEnd() : value + " ");
 }
 
 function _insertFirstRow(sheet, data, isFast, lc) {
