@@ -23,7 +23,7 @@ const BIRTHDAY_COL = 7; // Should be the "Birth date" column
 
 // SHEET NAMES
 const ASSOCIATE = "Associate"; // The "Associate" sheet name
-
+const KEY = "Key"; // The "Key" sheet name
 
 // SHOULD RUN ONCE A DAY
 function reminderBirthday() {
@@ -42,4 +42,9 @@ function reminderBirthday() {
       _sendMessage(object, "Happy Birthday " + name + " !!!\n\nWish her/him by email at " + email, true);
     }
   }
+}
+
+// SHOULD RUN ONCE A DAY
+function generateKey() {
+  _insertFirstRow(_getSheet(KEY), [[Math.random()*10]], true, 1);
 }
