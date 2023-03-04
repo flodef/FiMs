@@ -46,5 +46,11 @@ function reminderBirthday() {
 
 // SHOULD RUN ONCE A DAY
 function generateKey() {
-  _insertFirstRow(_getSheet(KEY), [[Math.random()*10]], true, 1);
+  const length = 64;
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&~#{}()[]|_<>^@=+-";
+  let key = "";
+  for (let i = 0, n = charset.length; i < length; ++i) {
+      key += charset.charAt(Math.floor(Math.random() * n));
+  }
+  _insertFirstRow(_getSheet(KEY), [[key]], true, 1);
 }
