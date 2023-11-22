@@ -41,7 +41,7 @@ GLOBAL.displayData = {
   },
   historic: {
     id: "historic",
-    formula: "!A:N",
+    formula: "!A:K",
     updateTable: updateHistoricTable,
     loadOnce: true,
   },
