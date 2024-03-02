@@ -1,6 +1,7 @@
-/* global GmailApp, FR, FC, FM, _getSheet, _sendMessage, _toDate, 
-_insertFirstRow, _round, _copySheetFromModel, _toStringDate, _setRangeValues*/
-/* exported updateAssociate, sendCharity, reminderNewsLetter */
+/* global GmailApp, FR, FC, FM, CacheService, _getSheet, _sendMessage, _toDate, 
+_insertFirstRow, _round, _copySheetFromModel, _toStringDate, _setRangeValues,
+_isSubHour, _isLoading, _isError, _updateFormula */
+/* exported updateAssociate, sendCharity, reminderNewsLetter, updateValue, checkValue */
 
 // ASSOCIATE COLS
 const NAME_COL = 2; // Should be the "NAME" column
@@ -13,20 +14,22 @@ const EMAIL_COL = 12; // Should be the "EMail" column
 const CACHE_COL = 15; // Should be the "" column
 
 // SHEET NAMES
-const ASSOCIATE = 'Associate'; // The "Associate" sheet name
-const ASSMODEL = 'AssociateModel'; // The "AssociateModel" sheet name
-const PORTFOLIO = 'Portfolio'; // The "Portfolio" sheet name
+const ASSOCIATE = "Associate"; // The "Associate" sheet name
+const ASSMODEL = "AssociateModel"; // The "AssociateModel" sheet name
+const PORTFOLIO = "Portfolio"; // The "Portfolio" sheet name
+
+// MISC
+const CACHE_UPDATE = 10; // Number of minutes between price updates
 
 // SHOULD RUN ONCE A DAY
 function updateValue() {
-  if (_isSubHour(PRICE_UPDATE, 0)) {
+  if (_isSubHour(CACHE_UPDATE, 0)) {
     // Remove the offset to avoid caching if it failed until there
     const cache = CacheService.getScriptCache();
-    cache.remove('offset');
+    cache.remove("offset");
 
     // Modify the cell to update the formula and load data
     const sheet = _getSheet(PORTFOLIO);
-    const lc = sheet.getMaxColumns();
     _updateFormula(sheet, 1, CACHE_COL);
   }
 }
@@ -85,14 +88,14 @@ function reminderNewsLetter() {
   const array = sheet.getSheetValues(FR, FC, -1, -1);
 
   // List all newsletter subscribers
-  const object = 'Associate Mail Reminder /!\\ BCC /!\\';
-  let list = '';
+  const object = "Associate Mail Reminder /!\\ BCC /!\\";
+  let list = "";
   for (let i = 0; i < array.length; ++i) {
-    list += parseInt(array[i][TOTAL_COL - 1]) > 0 ? array[i][EMAIL_COL - 1] + ',' : '';
+    list += parseInt(array[i][TOTAL_COL - 1]) > 0 ? array[i][EMAIL_COL - 1] + "," : "";
   }
 
   // Message with list send to myself
-  if (list != '') {
+  if (list != "") {
     _sendMessage(object, list.slice(0, -1)); // Remove last comma at the end of the list
   }
 }
@@ -106,8 +109,8 @@ function sendCharity() {
     const sheet = _getSheet(ASSOCIATE);
     const array = sheet.getSheetValues(FR, FC, -1, -1);
 
-    const object = 'Don annuel à une oeuvre de charité';
-    let recap = 'Liste des dons :\n';
+    const object = "Don annuel à une oeuvre de charité";
+    let recap = "Liste des dons :\n";
     let total = 0;
     for (let i = 0; i < array.length; ++i) {
       // Retrieve associate account data
@@ -117,31 +120,31 @@ function sendCharity() {
 
       // Send charity message if amount <= -1
       if (char <= -1) {
-        const money = _round(-char, 2, ' €');
+        const money = _round(-char, 2, " €");
         const message =
-          'Cher(e) ' +
+          "Cher(e) " +
           name +
-          ',\n\n' +
+          ",\n\n" +
           "Tout d'abord, mes meilleurs voeux pour cette nouvelle année qui commence, je l'espère, le plus magnifiquement pour toi.\n\n" +
-          'Comme chaque année, je tiens tout particulièrement à reverser 10% des gains récoltés par notre projet de financement participatif.\n' +
-          'Cette année, ce pourcentage représente la somme de ' +
+          "Comme chaque année, je tiens tout particulièrement à reverser 10% des gains récoltés par notre projet de financement participatif.\n" +
+          "Cette année, ce pourcentage représente la somme de " +
           money +
-          ' !\n\n' +
-          'Tu recevras donc très prochainement cet argent sur ton compte.\n' +
+          " !\n\n" +
+          "Tu recevras donc très prochainement cet argent sur ton compte.\n" +
           "Libre à toi de le verser ou non à l'association ou personne de ton choix.\n\n" +
           "Enfin, toute ma reconnaissance pour ta confiance et ton investissement qui aide, à notre échelle, l'épanouissement de l'économie locale et solidaire.\n\n" +
-          'Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n' +
-          'Flo';
+          "Je te renouvelle tous mes voeux de bonheur, de joie et de prosperité.\n\n" +
+          "Flo";
 
         GmailApp.sendEmail(mail, object, message);
 
         total += -char;
-        recap += ' - ' + name + ' (' + mail + ') : don de ' + money + '\n';
+        recap += " - " + name + " (" + mail + ") : don de " + money + "\n";
       }
     }
 
     // Recap message send to myself
-    recap += '\nTOTAL = ' + _round(total, 2, ' €');
+    recap += "\nTOTAL = " + _round(total, 2, " €");
     _sendMessage(object, recap);
   }
 }

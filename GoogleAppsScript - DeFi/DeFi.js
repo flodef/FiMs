@@ -4,12 +4,12 @@ _toStringDate, _insertFirstRow, _setRangeValues */
 /* exported nightlyUpdate, monthlyUpdate, updatePrice, cachePrice */
 
 // SHEET NAMES
-const EVOLUTION = 'Evolution'; // The "Evolution" sheet name
-const PRICE = 'Price'; // The "Price" sheet name
-const HISTORIC = 'Historic'; // The "Historic" sheet name
-const PRICECACHE = 'PriceCache'; // The "PriceCache" sheet name
-const TOKEN = 'Token'; // The "Token" sheet name
-const WALLET = 'Wallet'; // The "Wallet" sheet name
+const EVOLUTION = "Evolution"; // The "Evolution" sheet name
+const PRICE = "Price"; // The "Price" sheet name
+const HISTORIC = "Historic"; // The "Historic" sheet name
+const PRICECACHE = "PriceCache"; // The "PriceCache" sheet name
+const TOKEN = "Token"; // The "Token" sheet name
+const WALLET = "Wallet"; // The "Wallet" sheet name
 
 // CACHEPRICE COLS
 const PRICE_COL = 2; // Should be the "Price" column
@@ -35,7 +35,7 @@ function updatePrice() {
   if (_isSubHour(PRICE_UPDATE, 0)) {
     // Remove the offset to avoid caching if it failed until there
     const cache = CacheService.getScriptCache();
-    cache.remove('offset');
+    cache.remove("offset");
 
     // Modify the cell to update the formula and load data
     const sheet = _getSheet(PRICECACHE);
@@ -46,7 +46,7 @@ function updatePrice() {
 
 function cachePrice() {
   const cache = CacheService.getScriptCache();
-  const cv = cache.get('offset');
+  const cv = cache.get("offset");
   const offset = cv ? Number(cv) : 1;
   if (_isSubHour(PRICE_UPDATE, offset)) {
     _doCache(_getSheet(TOKEN), AVAILABLE_COL);
@@ -59,7 +59,7 @@ function cachePrice() {
 
     // If all values has not been cached, set the offset to cache Price again,
     if (cached < lr - 1) {
-      cache.put('offset', offset + 1);
+      cache.put("offset", offset + 1);
       _updateFormula(sheet, FR, lc - 1);
     }
   }
