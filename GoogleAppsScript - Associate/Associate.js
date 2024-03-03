@@ -42,8 +42,10 @@ function checkValue() {
   for (let i = 0; i < lr - 1; ++i) {
     const v = val[i][0];
     if (v.toString() && (_isLoading(v) || _isError(v))) {
-      _updateFormula(sheet, 1, CACHE_COL);
-      return;
+      const range = sheet.getRange(FR + i, CACHE_COL);
+      const formula = range.getFormula();
+      range.setValue("");
+      range.setFormula(formula);
     }
   }
 }
