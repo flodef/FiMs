@@ -9,8 +9,8 @@ fileArray[1lH6uLLPKZyltpxP83qUMr6veIyIQjzGm-qxaIh2ihIU]="FiMs Pay"
 
 # Set the main variables
 ext=".xlsx"
-#dir="$HOME/Downloads/"   # Ubuntu
-dir="/mnt/chromeos/MyFiles/Downloads/"   #Chrome OS
+dir="$HOME/Downloads/"   # Ubuntu
+#dir="/mnt/chromeos/MyFiles/Downloads/"   #Chrome OS
 gs="https://docs.google.com/spreadsheets/d/"
 ge="/export?format=xlsx&id="
 
