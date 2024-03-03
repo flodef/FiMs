@@ -1,6 +1,6 @@
 /* global GmailApp, FR, FC, FM, CacheService, _getSheet, _sendMessage, _toDate, 
 _insertFirstRow, _round, _copySheetFromModel, _toStringDate, _setRangeValues,
-_isSubHour, _isLoading, _isError, _updateFormula */
+_isSubHour, _isLoading, _isError, _updateFormula, _copyFormula */
 /* exported updateAssociate, sendCharity, reminderNewsLetter, updateValue, checkValue */
 
 // ASSOCIATE COLS
@@ -12,6 +12,7 @@ const EMAIL_COL = 12; // Should be the "EMail" column
 
 // PORTFOLIO COLS
 const CACHE_COL = 15; // Should be the "" column
+const FORMULA_COL = 16; // Should be the "" column
 
 // SHEET NAMES
 const ASSOCIATE = "Associate"; // The "Associate" sheet name
@@ -30,7 +31,7 @@ function updateValue() {
 
     // Modify the cell to update the formula and load data
     const sheet = _getSheet(PORTFOLIO);
-    _updateFormula(sheet, 1, CACHE_COL);
+    _updateFormula(sheet, 1, FORMULA_COL);
   }
 }
 
@@ -44,8 +45,11 @@ function checkValue() {
     if (v.toString() && (_isLoading(v) || _isError(v))) {
       const range = sheet.getRange(FR + i, CACHE_COL);
       const formula = range.getFormula();
-      range.setValue("");
-      range.setFormula(formula);
+      if (formula) {
+        range.setValue(v);
+      } else {
+        _copyFormula(sheet.getRange(1, CACHE_COL), range);
+      }
     }
   }
 }
