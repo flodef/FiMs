@@ -1,6 +1,6 @@
-/* global GmailApp, FR, FC, FM, CacheService, _getSheet, _sendMessage, _toDate, 
+/* global GmailApp, FR, FC, FM, _getSheet, _sendMessage, _toDate, 
 _insertFirstRow, _round, _copySheetFromModel, _toStringDate, _setRangeValues,
-_isSubHour, _isLoading, _isError, _updateFormula, _copyFormula */
+_isLoading, _isError, _updateFormula, _copyFormula */
 /* exported updateAssociate, sendCharity, reminderNewsLetter, updateValue, checkValue */
 
 // ASSOCIATE COLS
