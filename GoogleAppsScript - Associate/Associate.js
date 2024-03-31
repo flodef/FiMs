@@ -19,20 +19,12 @@ const ASSOCIATE = "Associate"; // The "Associate" sheet name
 const ASSMODEL = "AssociateModel"; // The "AssociateModel" sheet name
 const PORTFOLIO = "Portfolio"; // The "Portfolio" sheet name
 
-// MISC
-const CACHE_UPDATE = 10; // Number of minutes between price updates
 
 // SHOULD RUN ONCE A DAY
 function updateValue() {
-  if (_isSubHour(CACHE_UPDATE, 0)) {
-    // Remove the offset to avoid caching if it failed until there
-    const cache = CacheService.getScriptCache();
-    cache.remove("offset");
-
-    // Modify the cell to update the formula and load data
-    const sheet = _getSheet(PORTFOLIO);
-    _updateFormula(sheet, 1, FORMULA_COL);
-  }
+  // Modify the cell to update the formula and load data
+  const sheet = _getSheet(PORTFOLIO);
+  _updateFormula(sheet, 1, FORMULA_COL);
 }
 
 // SHOULD RUN ONCE A MINUTE
@@ -54,7 +46,7 @@ function checkValue() {
   }
 }
 
-// SHOULD RUN ONCE A MONTH
+// SHOULD RUN ONCE A DAY
 function updateAssociate() {
   // Retrieve associate main data
   const associateSheet = _getSheet(ASSOCIATE);
