@@ -11,19 +11,40 @@ const TOTAL_COL = 11; // Should be the "Total" column
 const EMAIL_COL = 12; // Should be the "EMail" column
 
 // PORTFOLIO COLS
-const CACHE_COL = 15; // Should be the "" column
-const FORMULA_COL = 16; // Should be the "" column
+const CACHE_COL = 15; // Should be the "Cache" column
+const DATA_COL = 16; // Should be the column containing the formula to copy
+const FORMULA_COL = 17; // Should be the column containing the formula update space
 
 // SHEET NAMES
 const ASSOCIATE = "Associate"; // The "Associate" sheet name
 const ASSMODEL = "AssociateModel"; // The "AssociateModel" sheet name
 const PORTFOLIO = "Portfolio"; // The "Portfolio" sheet name
 
-
 // SHOULD RUN ONCE A DAY
 function updateValue() {
-  // Modify the cell to update the formula and load data
   const sheet = _getSheet(PORTFOLIO);
+  const lr = sheet.getMaxRows();
+  const lc = sheet.getMaxColumns();
+
+  // Cache the data previously fetched
+  const cols = lc - DATA_COL + 1;
+  const rows = lr - 1;
+  const val = sheet.getRange(FR, DATA_COL, rows, cols).getValues();
+  for (let i = 0; i < rows; ++i) {
+    const v = val[i][0];
+    if (v.toString().trim() && !_isLoading(v) && !_isError(v)) {
+      let cache = [];
+      for (let j = 0; j < cols; ++j) {
+        const data = val[i][j];
+        if (data) {
+          cache.push(data);
+        }
+      }
+      sheet.getRange(FR + i, CACHE_COL).setValue(cache.join("|"));
+    }
+  }
+
+  // Modify the cell to update the formula and load fresh data
   _updateFormula(sheet, 1, FORMULA_COL);
 }
 
@@ -31,16 +52,18 @@ function updateValue() {
 function checkValue() {
   const sheet = _getSheet(PORTFOLIO);
   const lr = sheet.getMaxRows();
-  const val = sheet.getRange(FR, CACHE_COL, lr, 1).getValues();
-  for (let i = 0; i < lr - 1; ++i) {
-    const v = val[i][0];
-    if (v.toString() && (_isLoading(v) || _isError(v))) {
-      const range = sheet.getRange(FR + i, CACHE_COL);
+  const rows = lr - 1;
+  const val = sheet.getRange(FR, CACHE_COL, rows, 2).getValues();
+  for (let i = 0; i < rows; ++i) {
+    const c = val[i][0];
+    const v = val[i][1];
+    if (c.toString().trim() && (_isLoading(v) || _isError(v))) {
+      const range = sheet.getRange(FR + i, DATA_COL);
       const formula = range.getFormula();
       if (formula) {
         range.setValue(v);
       } else {
-        _copyFormula(sheet.getRange(1, CACHE_COL), range);
+        _copyFormula(sheet.getRange(1, DATA_COL), range);
       }
     }
   }
