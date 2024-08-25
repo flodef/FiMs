@@ -4,11 +4,12 @@ _isLoading, _isError, _updateFormula, _copyFormula */
 /* exported updateAssociate, sendCharity, reminderNewsLetter, updateValue, checkValue */
 
 // ASSOCIATE COLS
-const NAME_COL = 2; // Should be the "NAME" column
-const CHARITY_COL = 4; // Should be the "Charity" column
-const DEPOSIT_COL = 7; // Should be the "Deposit" column
-const TOTAL_COL = 11; // Should be the "Total" column
-const EMAIL_COL = 12; // Should be the "EMail" column
+const INDEX_COL = 1; // Should be the "Index" column
+const NAME_COL = 2; // Should be the "Name" column
+const DONATED_COL = 3; // Should be the "Donated" column
+const DEPOSIT_COL = 5; // Should be the "Deposit" column
+const TOTAL_COL = 9; // Should be the "Total" column
+const EMAIL_COL = 10; // Should be the "EMail" column
 
 // PORTFOLIO COLS
 const CACHE_COL = 15; // Should be the "Cache" column
@@ -57,14 +58,19 @@ function checkValue() {
   for (let i = 0; i < rows; ++i) {
     const c = val[i][0];
     const v = val[i][1];
-    if (c.toString().trim() && (_isLoading(v) || _isError(v))) {
-      const range = sheet.getRange(FR + i, DATA_COL);
-      const formula = range.getFormula();
-      if (formula) {
-        range.setValue(v);
-      } else {
-        _copyFormula(sheet.getRange(1, DATA_COL), range);
+    if (c.toString().trim()) {
+      if (_isLoading(v) || _isError(v)) {
+        const range = sheet.getRange(FR + i, DATA_COL);
+        const formula = range.getFormula();
+        if (formula) {
+          range.setValue(v);
+        } else {
+          _copyFormula(sheet.getRange(1, DATA_COL), range);
+        }
       }
+    } else {
+      const range = sheet.getRange(FR + i, DATA_COL);
+      _copyFormula(sheet.getRange(1, DATA_COL), range);
     }
   }
 }
@@ -80,12 +86,12 @@ function updateAssociate() {
     const depo = associateArray[i][DEPOSIT_COL - 1];
 
     if (depo > 0) {
-      const name = associateArray[i][NAME_COL - 1];
+      const index = associateArray[i][INDEX_COL - 1];
 
       // If the sheet does not exist, create a new associate sheet from the model
-      const sheet = _copySheetFromModel(name, ASSMODEL);
+      const sheet = _copySheetFromModel(index, ASSMODEL);
       const lc = sheet.getMaxColumns();
-      sheet.getRange(FR, lc).setValue(name);
+      sheet.getRange(FR, lc).setValue(index);
       // sheet.hideColumns(lc);
 
       const array = sheet.getSheetValues(FR, FC, 2, -1);
@@ -136,7 +142,7 @@ function sendCharity() {
     for (let i = 0; i < array.length; ++i) {
       // Retrieve associate account data
       const name = array[i][NAME_COL - 1];
-      const char = array[i][CHARITY_COL - 1];
+      const char = array[i][DONATED_COL - 1];
       const mail = array[i][EMAIL_COL - 1];
 
       // Send charity message if amount <= -1
