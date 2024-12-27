@@ -11,7 +11,7 @@ const PRICECACHE = "PriceCache"; // The "PriceCache" sheet name
 const TOKEN = "Token"; // The "Token" sheet name
 const WALLET = "Wallet"; // The "Wallet" sheet name
 
-// CACHEPRICE COLS
+// PRICECACHE COLS
 const PRICE_COL = 2; // Should be the "Price" column
 
 // TOKEN COLS
@@ -23,14 +23,17 @@ const CACHE_COL = 8; // Should be the "Cache" column
 // MISC
 const PRICE_UPDATE = 10; // Number of minutes between price updates
 
+// SHOULD RUN ONCE A DAY
 function nightlyUpdate() {
   _updateEvolution();
 }
 
+// SHOULD RUN ONCE A MONTH
 function monthlyUpdate() {
   _updateHistoric();
 }
 
+// SHOULD RUN ONCE AN HOUR
 function updatePrice() {
   if (_isSubHour(PRICE_UPDATE, 0)) {
     // Remove the offset to avoid caching if it failed until there
@@ -40,10 +43,11 @@ function updatePrice() {
     // Modify the cell to update the formula and load data
     const sheet = _getSheet(PRICECACHE);
     const lc = sheet.getMaxColumns();
-    _updateFormula(sheet, FR, lc - 1);
+    _updateFormula(sheet, 1, lc);
   }
 }
 
+// SHOULD RUN ONCE AN HOUR
 function cachePrice() {
   const cache = CacheService.getScriptCache();
   const cv = cache.get("offset");
@@ -60,10 +64,12 @@ function cachePrice() {
     // If all values has not been cached, set the offset to cache Price again,
     if (cached < lr - 1) {
       cache.put("offset", offset + 1);
-      _updateFormula(sheet, FR, lc - 1);
+      _updateFormula(sheet, 1, lc - 1);
     }
   }
 }
+
+// --------------- SUB FUNCTIONS ---------------
 
 function _doCache(sheet, column, hasDate) {
   const lr = sheet.getMaxRows();
@@ -121,3 +127,4 @@ function _updateHistoric() {
     sheet.getRange(FR + 1, FC).setValue(date); // Update the previous month date
   }
 }
+

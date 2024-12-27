@@ -1,7 +1,8 @@
-/* global GmailApp, FR, FC, FM, _getSheet, _sendMessage, _toDate, 
-_insertFirstRow, _round, _copySheetFromModel, _toStringDate, _setRangeValues,
-_isLoading, _isError, _updateFormula, _copyFormula */
-/* exported updateAssociate, sendCharity, reminderNewsLetter, updateValue, checkValue */
+/* global GmailApp, FR, FC, FM, SpreadsheetApp, CacheService, _getSheet, _sendMessage, 
+_toDate, _insertFirstRow, _round, _copySheetFromModel, _toStringDate, _setRangeValues,
+_isLoading, _isError, _updateFormula, _copyFormula, _isSubHour */
+/* exported onOpen, updateAssociate, sendCharity, reminderNewsLetter, updateValue, 
+checkValue */
 
 // ASSOCIATE COLS
 const INDEX_COL = 1; // Should be the "Index" column
@@ -12,7 +13,6 @@ const TOTAL_COL = 9; // Should be the "Total" column
 const EMAIL_COL = 10; // Should be the "EMail" column
 
 // PORTFOLIO COLS
-const CACHE_COL = 15; // Should be the "Cache" column
 const DATA_COL = 16; // Should be the column containing the formula to copy
 const FORMULA_COL = 17; // Should be the column containing the formula update space
 
@@ -21,45 +21,58 @@ const ASSOCIATE = "Associate"; // The "Associate" sheet name
 const ASSMODEL = "AssociateModel"; // The "AssociateModel" sheet name
 const PORTFOLIO = "Portfolio"; // The "Portfolio" sheet name
 
-// SHOULD RUN ONCE A DAY
+// MISC
+const PRICE_UPDATE = 10; // Number of minutes between price updates
+
+// Add a menu into the spreadsheet to manually trigger functions
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu("Update")
+    .addItem("Update values", "updateValue")
+    .addItem("Update associates", "updateAssociate")
+    .addToUi();
+}
+
+// SHOULD RUN ONCE AN HOUR
 function updateValue() {
-  const sheet = _getSheet(PORTFOLIO);
-  const lr = sheet.getMaxRows();
-  const lc = sheet.getMaxColumns();
-
-  // Cache the data previously fetched
-  const cols = lc - DATA_COL + 1;
-  const rows = lr - 1;
-  const val = sheet.getRange(FR, DATA_COL, rows, cols).getValues();
-  for (let i = 0; i < rows; ++i) {
-    const v = val[i][0];
-    if (v.toString().trim() && !_isLoading(v) && !_isError(v)) {
-      let cache = [];
-      for (let j = 0; j < cols; ++j) {
-        const data = val[i][j];
-        if (data) {
-          cache.push(data);
-        }
-      }
-      sheet.getRange(FR + i, CACHE_COL).setValue(cache.join("|"));
-    }
-  }
-
   // Modify the cell to update the formula and load fresh data
+  const sheet = _getSheet(PORTFOLIO);
   _updateFormula(sheet, 1, FORMULA_COL);
+
+  // Set an update flag into the cache
+  const cache = CacheService.getScriptCache();
+  cache.put("update", true);
 }
 
 // SHOULD RUN ONCE A MINUTE
 function checkValue() {
-  const sheet = _getSheet(PORTFOLIO);
-  const lr = sheet.getMaxRows();
-  const rows = lr - 1;
-  const val = sheet.getRange(FR, CACHE_COL, rows, 2).getValues();
-  for (let i = 0; i < rows; ++i) {
-    const c = val[i][0];
-    const v = val[i][1];
-    if (c.toString().trim()) {
-      if (_isLoading(v) || _isError(v)) {
+  // Check if there is an update flag indicating to update
+  const cache = CacheService.getScriptCache();
+  const shouldUpdate = cache.get("update");
+
+  if (_isSubHour(PRICE_UPDATE, 0) || shouldUpdate) {
+    cache.remove("update");
+
+    const sheet = _getSheet(PORTFOLIO);
+    const lr = sheet.getMaxRows();
+    const lc = sheet.getMaxColumns();
+
+    // Cache the data previously fetched
+    const cols = lc - DATA_COL + 1;
+    const rows = lr - 1;
+    const val = sheet.getRange(FR, DATA_COL, rows, cols).getValues();
+    for (let i = 0; i < rows; ++i) {
+      const v = val[i][0];
+      if (v.toString().trim() && !_isLoading(v) && !_isError(v)) {
+        const dataCache = [];
+        for (let j = 0; j < cols; ++j) {
+          const data = val[i][j];
+          if (data) {
+            dataCache.push(data);
+          }
+        }
+        sheet.getRange(FR + i, DATA_COL - 1).setValue(dataCache.join("|"));
+      } else {
         const range = sheet.getRange(FR + i, DATA_COL);
         const formula = range.getFormula();
         if (formula) {
@@ -68,15 +81,16 @@ function checkValue() {
           _copyFormula(sheet.getRange(1, DATA_COL), range);
         }
       }
-    } else {
-      const range = sheet.getRange(FR + i, DATA_COL);
-      _copyFormula(sheet.getRange(1, DATA_COL), range);
     }
   }
 }
 
 // SHOULD RUN ONCE A DAY
 function updateAssociate() {
+  // Update the associates from the db
+  const portfolioSheet = _getSheet(PORTFOLIO);
+  _updateFormula(portfolioSheet, 1, FORMULA_COL + 1);
+
   // Retrieve associate main data
   const associateSheet = _getSheet(ASSOCIATE);
   const associateArray = associateSheet.getSheetValues(FR, FC, -1, -1);
