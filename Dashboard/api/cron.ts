@@ -54,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const body =
         triggered === "danger"
           ? `Bail out quick before the boat sink. ${c.token}: LTV ${pct(c.ltv)} / liq ${liq}`
-          : `${c.token}: LTV ${pct(c.ltv)} > target ${pct(c.target)} (liq ${liq})`;
+          : `${c.token}: LTV ${pct(c.ltv)} > target ${c.target != null ? pct(c.target) : "?"} (liq ${liq})`;
       lines.push(`${triggered === "danger" ? "Loan is Under Water !" : "LTV above target"} — ${body}`);
       next[c.token] = { level: c.level, lastSentAt: now };
     } else {

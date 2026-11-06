@@ -9,7 +9,7 @@ import {
   MULTIPLY_INIT_L9,
 } from "./config.js";
 import { daysInMonthParis, daysSinceStart } from "./time.js";
-import type { Inputs, SourceName } from "./types.js";
+import type { ExtraPosition, Inputs, SourceName } from "./types.js";
 
 export type StatusLevel = "ok" | "warn" | "danger" | "error";
 export type AlertLevel = "ok" | "warn" | "danger";
@@ -18,10 +18,11 @@ export interface CollateralAlert {
   token: string;
   source: string;
   ltv: number;
-  target: number;
+  target: number | null;
   liqThreshold: number | null;
   level: AlertLevel;
   liqPriceEur: number | null;
+  currentPriceEur: number | null;
 }
 
 export interface StrategyRowView {
@@ -46,11 +47,20 @@ export interface PriceEntry {
 export interface BorrowLendRow {
   key: string;
   label: string;
+  unit: string;
   gainPct: number;
   value: number;
   gainDay: number;
   valueDay: number;
   valueMonth: number;
+}
+
+export interface ExtraComputation extends ExtraPosition {
+  valueEur: number;
+  perDayEur: number;
+  perDay: number;
+  perMonth: number;
+  noPrice: boolean;
 }
 
 export interface DashboardResult {
@@ -66,6 +76,7 @@ export interface DashboardResult {
   perDayText: string;
   perMonth: number;
   perMonthText: string;
+  extras: { rows: ExtraComputation[]; perDay: number; perMonth: number };
   borrowLend: {
     rows: BorrowLendRow[];
     totalGainPct: number;
@@ -180,6 +191,20 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
   I.I15 = 1 / I.I13;
   set("I15", I.I15);
 
+  /** EUR price of a unit/symbol: EUR/EURC→1, USD*→I15, FIMS→I14, else Price-header lookup (same as Prices). */
+  const priceEurOf = (unit: string): number | null => {
+    const u = unit.trim();
+    if (!u) return null;
+    if (eq(u, "EUR") || eq(u, "EURC")) return 1;
+    const up = u.toUpperCase();
+    if (up === "USD" || up.startsWith("USD")) return I.I15;
+    if (eq(u, "FIMS")) return I.I14;
+    const i = priceIdx(u);
+    if (i < 0) return null;
+    const v = num(today[i]);
+    return Number.isFinite(v) && v > 0 ? v : null;
+  };
+
   // ---- Strategy rows A6:C16 (amount B, apy C) ----
   const targetOf = (token: string) => LTV_TARGETS[token] ?? null;
   const fromPos = (token: string) => ({ amount: posField(token, "amount"), apy: posField(token, "apy") });
@@ -272,7 +297,7 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
     set(`G${d.row}`, gainDay);
     set(`H${d.row}`, valueDay);
     set(`I${d.row}`, valueMonth);
-    lendRows.push({ key: d.key, label: d.label, gainPct, value, gainDay, valueDay, valueMonth });
+    lendRows.push({ key: d.key, label: d.label, unit: d.key, gainPct, value, gainDay, valueDay, valueMonth });
   }
   const e5 = (lendRows[2].gainPct ?? 0) + (lendRows[1].gainPct ?? 0);
   const h5 = lendRows.reduce((s, r) => s + r.valueDay, 0);
@@ -307,8 +332,24 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
   set("M4", M4);
   set("M5", M5);
 
-  const perDay = Math.round((M4 + M5 + h5) * 100) / 100;
-  const perMonth = Math.round((M4 + M5 + h5) * days);
+  // ---- Extra positions (manual + tracked wallets) — added to totals only, never to sheet rows ----
+  const extrasRows: ExtraComputation[] = (inputs.extraPositions ?? []).map(p => {
+    const price = priceEurOf(p.unit);
+    const perDayEur = price != null ? ((p.amount * p.apy) / 365) * price : 0;
+    return {
+      ...p,
+      valueEur: price != null ? p.amount * price : 0,
+      perDayEur,
+      perDay: perDayEur,
+      perMonth: perDayEur * days,
+      noPrice: price == null,
+    };
+  });
+  const extrasPerDay = extrasRows.reduce((s, r) => s + r.perDay, 0);
+  const extrasPerMonth = extrasPerDay * days;
+
+  const perDay = Math.round((M4 + M5 + h5 + extrasPerDay) * 100) / 100;
+  const perMonth = Math.round((M4 + M5 + h5 + extrasPerDay) * days);
   set("B2", perDay);
   set("B3", perMonth);
 
@@ -368,13 +409,15 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
 
   // ---- Collaterals + status ----
   const collaterals: CollateralAlert[] = [];
-  for (const p of positions) {
+  for (const p of [...positions, ...(inputs.extraPositions ?? [])]) {
     if (p.ltv == null || !Number.isFinite(p.ltv)) continue;
-    const target = LTV_TARGETS[p.token] ?? 0;
-    if (!(target > 0)) continue;
+    const t = LTV_TARGETS[p.token];
+    const target = t != null && t > 0 ? t : null;
     const liqT = p.liqThreshold != null && Number.isFinite(p.liqThreshold) ? p.liqThreshold : null;
-    const level: AlertLevel = liqT != null && p.ltv >= DANGER_RATIO * liqT ? "danger" : p.ltv > target ? "warn" : "ok";
+    const danger = liqT != null && p.ltv >= DANGER_RATIO * liqT;
+    const level: AlertLevel = danger ? "danger" : target != null && p.ltv > target ? "warn" : "ok";
     const crow = strat.find(r => eq(r.label, p.token) || eq(r.label, `${p.token} Jupiter`));
+    const sym = p.token.trim().split(/\s+/).pop() ?? p.token;
     collaterals.push({
       token: p.token,
       source: p.source,
@@ -383,6 +426,7 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
       liqThreshold: liqT,
       level,
       liqPriceEur: crow?.liqPriceEur ?? null,
+      currentPriceEur: priceEurOf(sym),
     });
   }
 
@@ -433,9 +477,10 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
     priceUpdatedAt: Number.isFinite(inputs.defi.priceLastUpdated) ? inputs.defi.priceLastUpdated : null,
     positionsUpdatedAt,
     perDay,
-    perDayText: `${perDay.toLocaleString("en-US", { maximumFractionDigits: 2 })} € / day`,
+    perDayText: `${perDay.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € / day`,
     perMonth,
     perMonthText: `${perMonth.toLocaleString("en-US", { maximumFractionDigits: 0 })} € / month`,
+    extras: { rows: extrasRows, perDay: extrasPerDay, perMonth: extrasPerMonth },
     borrowLend: {
       rows: lendRows,
       totalGainPct: e5,

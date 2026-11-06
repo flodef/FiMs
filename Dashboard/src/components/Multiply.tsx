@@ -1,6 +1,6 @@
 import type { DashboardResult } from "../lib/compute";
 import { fmtEUR, fmtNum, fmtPct } from "../lib/format";
-import { Card, CardTitle, KV } from "./ui";
+import { Card, CardTitle } from "./ui";
 
 const MULTIPLY_ROWS: { label: string; get: (r: DashboardResult) => [number, number]; pct?: boolean }[] = [
   { label: "Total", get: r => [r.multiply.jlpTotal, r.multiply.jlpValue] },
@@ -14,21 +14,34 @@ const MULTIPLY_ROWS: { label: string; get: (r: DashboardResult) => [number, numb
   { label: "Annualized", get: r => [0, r.multiply.gainsAnnual], pct: true },
 ];
 
-const FIMS_ROWS: { label: string; get: (r: DashboardResult) => number }[] = [
-  { label: "Total / Sol ratio", get: r => r.fims.totalSolRatio },
-  { label: "JLP Day Average", get: r => r.fims.jlpDayAverage },
-  { label: "FiMs SOL Diff", get: r => r.fims.fimsSolDiff },
-  { label: "FiMs EURC Diff", get: r => r.fims.fimsEurcDiff },
-  { label: "JLP Ratio", get: r => r.fims.jlpRatio },
-  { label: "FiMs Token", get: r => r.fims.fimsToken },
-  { label: "Due per day", get: r => r.fims.duePerDay },
-  { label: "TOTAL", get: r => r.fims.total },
-  { label: "Gains", get: r => r.fims.gainsPerSol },
+const eur = (v: number) => `${fmtEUR(v)} €`;
+
+const FIMS_ROWS: { label: string; get: (r: DashboardResult) => number; fmt: (v: number) => string }[] = [
+  { label: "Total / Sol ratio", get: r => r.fims.totalSolRatio, fmt: v => fmtPct(v) },
+  { label: "JLP Day Average", get: r => r.fims.jlpDayAverage, fmt: v => fmtNum(v, 4) },
+  { label: "FiMs SOL Diff", get: r => r.fims.fimsSolDiff, fmt: v => fmtNum(v, 2) },
+  { label: "FiMs EURC Diff", get: r => r.fims.fimsEurcDiff, fmt: eur },
+  { label: "JLP Ratio", get: r => r.fims.jlpRatio, fmt: v => fmtNum(v, 2) },
+  { label: "FiMs Token", get: r => r.fims.fimsToken, fmt: eur },
+  { label: "Due per day", get: r => r.fims.duePerDay, fmt: eur },
+  { label: "TOTAL", get: r => r.fims.total, fmt: eur },
 ];
 
 export function Multiply({ r }: { r: DashboardResult }) {
   return (
     <div className="space-y-3">
+      <Card>
+        <CardTitle>FiMs</CardTitle>
+        <div className="-mx-1 divide-y divide-line/60">
+          {FIMS_ROWS.map(row => (
+            <div key={row.label} className="flex items-baseline justify-between px-1 py-2">
+              <span className="text-sm">{row.label}</span>
+              <span className="text-sm font-semibold tabular-nums">{row.fmt(row.get(r))}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+
       <Card>
         <CardTitle>Multiply — JLP</CardTitle>
         <div className="-mx-1 divide-y divide-line/60">
@@ -44,21 +57,6 @@ export function Multiply({ r }: { r: DashboardResult }) {
               </div>
             );
           })}
-        </div>
-        <div className="mt-2 border-t border-line/60 pt-2">
-          <KV label="Change day" value={fmtEUR(r.multiply.changeDay)} />
-        </div>
-      </Card>
-
-      <Card>
-        <CardTitle>FiMs</CardTitle>
-        <div className="-mx-1 divide-y divide-line/60">
-          {FIMS_ROWS.map(row => (
-            <div key={row.label} className="flex items-baseline justify-between px-1 py-2">
-              <span className="text-sm">{row.label}</span>
-              <span className="text-sm font-semibold tabular-nums">{fmtNum(row.get(r), 6)}</span>
-            </div>
-          ))}
         </div>
       </Card>
     </div>

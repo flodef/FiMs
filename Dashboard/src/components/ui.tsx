@@ -60,21 +60,23 @@ export function BigStat({ label, value, sub }: { label: string; value: string; s
   );
 }
 
-export function LtvGauge({ ltv, target, liq }: { ltv: number; target: number; liq: number | null }) {
+export function LtvGauge({ ltv, target, liq }: { ltv: number; target: number | null; liq: number | null }) {
   const pct = (v: number) => Math.min(100, Math.max(0, v * 100));
   return (
     <div>
       <div className="relative h-2 w-full rounded-full bg-line">
         <div
-          className={`absolute inset-y-0 left-0 rounded-full ${ltv >= (liq ?? 1) * 0.95 ? "bg-danger" : ltv > target ? "bg-warn" : "bg-ok"}`}
+          className={`absolute inset-y-0 left-0 rounded-full ${ltv >= (liq ?? 1) * 0.95 ? "bg-danger" : target != null && ltv > target ? "bg-warn" : "bg-ok"}`}
           style={{ width: `${pct(ltv)}%` }}
         />
         {liq != null && <div className="absolute inset-y-[-3px] w-0.5 bg-danger/80" style={{ left: `${pct(liq)}%` }} />}
-        <div className="absolute inset-y-[-3px] w-0.5 bg-accent" style={{ left: `${pct(target)}%` }} />
+        {target != null && (
+          <div className="absolute inset-y-[-3px] w-0.5 bg-accent" style={{ left: `${pct(target)}%` }} />
+        )}
       </div>
       <div className="mt-1 flex justify-between text-[10px] text-muted">
         <span>LTV {fmtPct(ltv)}</span>
-        <span>target {fmtPct(target)}</span>
+        <span>{target != null ? `target ${fmtPct(target)}` : ""}</span>
         <span>{liq != null ? `liq ${fmtPct(liq)}` : ""}</span>
       </div>
     </div>

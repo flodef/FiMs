@@ -20,7 +20,7 @@ const aprToApy = (rate: unknown): number => {
 
 const src = (token: string): PositionRow["source"] => (token === "EURC" ? "Jupiter Earn" : "Jupiter Borrow");
 
-export async function fetchJupiter(apiKey: string): Promise<PositionRow[]> {
+export async function fetchJupiter(apiKey: string, wallet: string = WALLET): Promise<PositionRow[]> {
   if (!apiKey) throw new Error("JUPITER_API_KEY missing");
   const rows: PositionRow[] = [];
 
@@ -35,7 +35,7 @@ export async function fetchJupiter(apiKey: string): Promise<PositionRow[]> {
     // Code.js swallows this; positions fall back to token.totalRate
   }
 
-  const earn = await jget(`/earn/positions?users=${WALLET}`, apiKey);
+  const earn = await jget(`/earn/positions?users=${wallet}`, apiKey);
   for (const pos of earn ?? []) {
     const token = pos.token || {};
     const addr = token.assetAddress || token.address;
@@ -47,7 +47,7 @@ export async function fetchJupiter(apiKey: string): Promise<PositionRow[]> {
     rows.push({ source: src(symbol), token: symbol, amount, apy });
   }
 
-  const borrow = await jget(`/borrow/positions?users=${WALLET}`, apiKey);
+  const borrow = await jget(`/borrow/positions?users=${wallet}`, apiKey);
   for (const pos of borrow ?? []) {
     const vault = pos.vault || {};
     const supplyToken = vault.supplyToken || {};

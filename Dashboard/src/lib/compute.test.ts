@@ -112,3 +112,81 @@ describe("computeDashboard vs Strategy sheet 2026-11-06", () => {
     ]);
   });
 });
+
+describe("extra positions", () => {
+  const base = computeDashboard(fixture as unknown as Inputs, now);
+  const i15 = base.cells.I15 as number;
+
+  const withExtras = (extraPositions: NonNullable<Inputs["extraPositions"]>) =>
+    computeDashboard({ ...(fixture as unknown as Inputs), extraPositions }, now);
+
+  test("empty extras leave B2/B3 identical", () => {
+    const r0 = computeDashboard({ ...(fixture as unknown as Inputs), extraPositions: [] }, now);
+    expect(r0.cells.B2).toBe(base.cells.B2);
+    expect(r0.cells.B3).toBe(base.cells.B3);
+    expect(r0.extras.rows).toEqual([]);
+  });
+
+  test("manual USD position adds amount*apy/365*I15 to perDay", () => {
+    const r1 = withExtras([
+      { id: 1, origin: "manual", token: "USD", source: "Manual", amount: 1000, apy: 0.1, unit: "USD" },
+    ]);
+    const expected = (1000 * 0.1) / 365;
+    expect(r1.extras.perDay).toBeCloseTo(expected * i15, 10);
+    // B2 = round((base + extrasPerDay) * 100) / 100 → within half a cent of base + delta
+    expect(Math.abs((r1.cells.B2 as number) - ((base.cells.B2 as number) + expected * i15))).toBeLessThanOrEqual(0.011);
+    expect(r1.cells.B2 as number).toBeGreaterThan(base.cells.B2 as number);
+    expect(r1.extras.rows[0].noPrice).toBe(false);
+  });
+
+  test("EURC unit prices at par", () => {
+    const r5 = withExtras([
+      { id: 5, origin: "manual", token: "EURC", source: "Manual", amount: 1000, apy: 0.0365, unit: "EURC" },
+    ]);
+    expect(r5.extras.rows[0].perDay).toBeCloseTo(0.1, 10);
+    expect(r5.extras.rows[0].noPrice).toBe(false);
+  });
+
+  test("unknown unit gives 0 + noPrice", () => {
+    const r2 = withExtras([
+      { id: 2, origin: "manual", token: "XXX", source: "Manual", amount: 100, apy: 0.1, unit: "NOPE" },
+    ]);
+    expect(r2.extras.rows[0].perDay).toBe(0);
+    expect(r2.extras.rows[0].noPrice).toBe(true);
+    expect(r2.cells.B2).toBe(base.cells.B2);
+  });
+
+  test("extra borrow row without target uses danger rule only", () => {
+    const r3 = withExtras([
+      {
+        id: 3,
+        origin: "jupiter",
+        token: "XYZ",
+        source: "Jupiter Borrow",
+        amount: 1000,
+        apy: 0.05,
+        ltv: 0.97,
+        liqThreshold: 1.0,
+        unit: "USD",
+      },
+    ]);
+    const c3 = r3.collaterals.find(x => x.token === "XYZ");
+    expect(c3).toBeDefined();
+    expect(c3!.target).toBeNull();
+    expect(c3!.level).toBe("danger"); // 0.97 >= 0.95*1.0
+    const r4 = withExtras([
+      {
+        id: 4,
+        origin: "jupiter",
+        token: "XYZ",
+        source: "Jupiter Borrow",
+        amount: 1000,
+        apy: 0.05,
+        ltv: 0.5,
+        liqThreshold: 1.0,
+        unit: "USD",
+      },
+    ]);
+    expect(r4.collaterals.find(x => x.token === "XYZ")!.level).toBe("ok");
+  });
+});

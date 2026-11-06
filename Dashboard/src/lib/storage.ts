@@ -1,7 +1,12 @@
 import { neon } from "@neondatabase/serverless";
+import type { TrackedKind, TrackedPosition } from "./types.js";
 
 const url = process.env.DATABASE_URL;
 const sql = url ? neon(url) : null;
+
+export function dbReady(): boolean {
+  return sql != null;
+}
 
 export const LASTGOOD_PREFIX = "lastGood:";
 export const ALERT_STATE_KEY = "alert:state";
@@ -97,4 +102,62 @@ export async function setAlertState(state: unknown): Promise<void> {
   } catch {
     // best effort
   }
+}
+
+export interface TrackedInput {
+  kind: TrackedKind;
+  label?: string | null;
+  platform?: string | null;
+  wallet?: string | null;
+  tokens?: string | null;
+  asset?: string | null;
+  amount?: number | null;
+  apy?: number | null;
+  unit?: string | null;
+}
+
+const txt = (v: string | null | undefined) => (v && v.trim() ? v.trim() : null);
+
+export async function trackedList(): Promise<TrackedPosition[]> {
+  if (!sql) return [];
+  try {
+    const rows = await sql`
+      select id, kind, label, platform, wallet, tokens, asset, amount, apy, unit
+      from tracked_positions order by id
+    `;
+    return rows as unknown as TrackedPosition[];
+  } catch {
+    return [];
+  }
+}
+
+export async function trackedCreate(t: TrackedInput): Promise<number | null> {
+  if (!sql) return null;
+  const rows = await sql`
+    insert into tracked_positions (kind, label, platform, wallet, tokens, asset, amount, apy, unit)
+    values (${t.kind}, ${txt(t.label)}, ${txt(t.platform)}, ${txt(t.wallet)}, ${txt(t.tokens)}, ${txt(t.asset)},
+            ${t.amount ?? null}, ${t.apy ?? null}, ${txt(t.unit)})
+    returning id
+  `;
+  return (rows[0] as { id?: number } | undefined)?.id ?? null;
+}
+
+export async function trackedUpdate(id: number, t: TrackedInput): Promise<boolean> {
+  if (!sql) return false;
+  const rows = await sql`
+    update tracked_positions set
+      kind = ${t.kind}, label = ${txt(t.label)}, platform = ${txt(t.platform)},
+      wallet = ${txt(t.wallet)}, tokens = ${txt(t.tokens)}, asset = ${txt(t.asset)},
+      amount = ${t.amount ?? null}, apy = ${t.apy ?? null}, unit = ${txt(t.unit)},
+      updated_at = now()
+    where id = ${id}
+    returning id
+  `;
+  return rows.length > 0;
+}
+
+export async function trackedDelete(id: number): Promise<boolean> {
+  if (!sql) return false;
+  const rows = await sql`delete from tracked_positions where id = ${id} returning id`;
+  return rows.length > 0;
 }

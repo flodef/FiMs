@@ -5,8 +5,17 @@ import { fetchDefi } from "./sources/defi.js";
 import { fetchJupiter } from "./sources/jupiter.js";
 import { fetchKamino } from "./sources/kamino.js";
 import { fetchSanctum, type SanctumRaw } from "./sources/sanctum.js";
-import { getLastGood, setLastGood } from "./storage.js";
-import type { DefiData, Inputs, PositionRow, SanctumData, SourceName, SourceStatus } from "./types.js";
+import { getLastGood, setLastGood, trackedList } from "./storage.js";
+import type {
+  DefiData,
+  ExtraPosition,
+  Inputs,
+  PositionRow,
+  SanctumData,
+  SourceName,
+  SourceStatus,
+  TrackedPosition,
+} from "./types.js";
 
 /** _copyValues rule: a row is kept only if token non-empty and amount/apy are valid numbers. */
 export function sanitizeRows(rows: PositionRow[]): PositionRow[] {
@@ -44,7 +53,7 @@ interface SourceOutcome<T> {
 }
 
 async function withLastGood<T>(
-  source: SourceName,
+  source: SourceName | string,
   fetcher: () => Promise<T>,
   validate: (d: T) => boolean,
 ): Promise<SourceOutcome<T>> {
@@ -62,14 +71,73 @@ async function withLastGood<T>(
   }
 }
 
+const firstWord = (s: string) => s.trim().split(/\s+/)[0] ?? "";
+const rowsOk = (rows: PositionRow[]) => Array.isArray(rows);
+
+async function fetchTrackedEntry(t: TrackedPosition, jupKey: string): Promise<PositionRow[]> {
+  if (t.kind === "jupiter") return sanitizeRows(await fetchJupiter(jupKey, t.wallet ?? ""));
+  if (t.kind === "kamino") {
+    const symbols = (t.tokens ?? "")
+      .split(",")
+      .map(s => s.trim())
+      .filter(Boolean);
+    return sanitizeRows(await fetchKamino(t.wallet ?? "", symbols));
+  }
+  return [];
+}
+
+/** Extra positions from tracked_positions — isolated per entry, never affect main sources. */
+async function fetchExtras(tracked: TrackedPosition[]): Promise<ExtraPosition[]> {
+  const jupKey = process.env.JUPITER_API_KEY ?? "";
+  const groups = await Promise.all(
+    tracked.map(async (t): Promise<ExtraPosition[]> => {
+      const meta = {
+        id: t.id,
+        origin: t.kind,
+        label: t.label ?? undefined,
+        platform: t.platform ?? undefined,
+        wallet: t.wallet ?? undefined,
+        tokens: t.tokens ?? undefined,
+      };
+      if (t.kind === "manual") {
+        const amount = t.amount != null && Number.isFinite(t.amount) ? Math.max(0, t.amount) : 0;
+        const apy = t.apy != null && Number.isFinite(t.apy) ? t.apy : 0;
+        const unit = (t.unit ?? "").trim().toUpperCase();
+        return [
+          {
+            ...meta,
+            token: t.asset ?? t.label ?? "Manual",
+            source: "Manual",
+            amount,
+            apy,
+            unit,
+          },
+        ];
+      }
+      const outcome = await withLastGood<PositionRow[]>(`tracked:${t.id}`, () => fetchTrackedEntry(t, jupKey), rowsOk);
+      return (outcome.data ?? []).map(r => ({
+        ...r,
+        ...meta,
+        unit: firstWord(r.token),
+        stale: outcome.stale || undefined,
+        error: outcome.ok ? undefined : outcome.error,
+      }));
+    }),
+  );
+  return groups.flat();
+}
+
 export async function fetchInputs(): Promise<Inputs> {
   const env = (k: string) => process.env[k] ?? "";
 
-  const [jup, kam, san, def] = await Promise.all([
+  const tracked = await trackedList();
+
+  const [jup, kam, san, def, extras] = await Promise.all([
     withLastGood<PositionRow[]>("jupiter", () => fetchJupiter(env("JUPITER_API_KEY")).then(sanitizeRows), validRows),
     withLastGood<PositionRow[]>("kamino", () => fetchKamino().then(sanitizeRows), validRows),
     withLastGood<SanctumRaw>("sanctum", () => fetchSanctum(), validSanctum),
     withLastGood<DefiData>("defi", () => fetchDefi(env("GOOGLE_API_KEY")), validDefi),
+    fetchExtras(tracked),
   ]);
 
   const jupRows = sanitizeRows(jup.data ?? []);
@@ -109,7 +177,7 @@ export async function fetchInputs(): Promise<Inputs> {
     defi: mk(def),
   };
 
-  return { fetchedAt: Date.now(), positions, sanctum, defi, sources };
+  return { fetchedAt: Date.now(), positions, sanctum, defi, sources, extraPositions: extras };
 }
 
 export async function computeLive(): Promise<{ inputs: Inputs; result: DashboardResult }> {
