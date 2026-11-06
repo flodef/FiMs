@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { IconLock } from "@tabler/icons-react";
+import { IconEye, IconEyeOff, IconLock } from "@tabler/icons-react";
 
 export function Login({ onSuccess, compact = false }: { onSuccess: () => void; compact?: boolean }) {
   const [password, setPassword] = useState("");
+  const [visible, setVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -41,14 +42,28 @@ export function Login({ onSuccess, compact = false }: { onSuccess: () => void; c
           </div>
         )}
         {compact && <p className="mb-3 text-sm font-semibold">Log in to refresh data</p>}
-        <input
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          placeholder="Password"
-          autoFocus
-          className="w-full rounded-lg border border-line bg-card2 px-3 py-2.5 text-sm outline-none focus:border-accent"
-        />
+        <div className="relative">
+          <input
+            type={visible ? "text" : "password"}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Password"
+            autoFocus
+            autoComplete="current-password"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+            className="w-full rounded-lg border border-line bg-card2 py-2.5 pl-3 pr-11 text-sm outline-none focus:border-accent"
+          />
+          <button
+            type="button"
+            onClick={() => setVisible(v => !v)}
+            aria-label={visible ? "Hide password" : "Show password"}
+            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted hover:text-white"
+          >
+            {visible ? <IconEyeOff size={18} /> : <IconEye size={18} />}
+          </button>
+        </div>
         {error && <p className="mt-2 text-xs text-danger">{error}</p>}
         <button
           type="submit"
