@@ -1,0 +1,120 @@
+{
+  "fetchedAt": 1793988718000,
+  "positions": [
+    {
+      "source": "Jupiter Earn",
+      "token": "EURC",
+      "amount": 192505.64,
+      "apy": 0.0288
+    },
+    {
+      "source": "Jupiter Borrow",
+      "token": "JLP",
+      "amount": 35552.78,
+      "apy": 0.1249,
+      "liqThreshold": 0.9,
+      "ltv": 0.8402
+    },
+    {
+      "source": "Jupiter Borrow",
+      "token": "USDT JLP",
+      "amount": 126292.28,
+      "apy": -0.0624
+    },
+    {
+      "source": "Jupiter Borrow",
+      "token": "JupSOL",
+      "amount": 1003.44,
+      "apy": 0.0515,
+      "liqThreshold": 0.8,
+      "ltv": 0.7431
+    },
+    {
+      "source": "Jupiter Borrow",
+      "token": "USDT JupSOL",
+      "amount": 82313.79,
+      "apy": -0.0624
+    },
+    {
+      "source": "Kamino Borrow",
+      "token": "USDG",
+      "amount": 207983.3286,
+      "apy": 0.1016
+    }
+  ],
+  "sanctum": {
+    "jupsolRatio": 1.18394498,
+    "jupsolApy": 0,
+    "jupsolApySource": "sanctum"
+  },
+  "defi": {
+    "priceHeaders": [
+      "Date",
+      "EUR to USD (EURC)",
+      "FiMs SOL (FSOL)",
+      "FiMs Token (FiMs)",
+      "FiMs Liquidity Provider (FLiP)",
+      "Zcash (ZEC)",
+      "OKX Wrapped BTC (xBTC)",
+      "Ether (ETH)",
+      "Solana (SOL)",
+      "Jupiter (JUP)",
+      "Jupiter Staked SOL (JUPSOL)",
+      "Jupiter Perps LP (JLP)",
+      "Drift Staked SOL (DSOL)",
+      "Paypal USD (PYUSD)",
+      "USDS (USDS)",
+      "USD Tether (USDT)",
+      "USD Circle (USDC)",
+      "Euro Circle (EURC)"
+    ],
+    "priceRows": [
+      [
+        46332.759156875, 1.11196, 98.3733323757025, 1.191275725974956, 3.7803224821790886, 1221.7029698525846,
+        67831.96344244339, 1996.007918409854, 80.76468317382795, 0.21983014023306338, 98.3733323757025,
+        3.7803224821790886, 99.14404862370495, 0.897778895013736, 0.897778895013736, 0.897778895013736,
+        0.897778895013736, 1
+      ],
+      [
+        46331.95995376157, 1.12079, 97.22329066500156, 1.1912035089338233, 3.7566121047232506, 1125.067392176977,
+        67506.08467062129, 1987.8719414834304, 79.8030150305517, 0.21434369564247802, 97.22329066500156,
+        3.7566121047232506, 97.43021274697827, 0.8920208732884348, 0.8920208732884348, 0.8920208732884348,
+        0.8920208732884348, 1
+      ],
+      [
+        46330.95979896991, 1.12275, 104.15700719783352, 1.1911000411593815, 3.914721707525656, 1173.8764787628277,
+        71839.60032425883, 2168.974308722919, 85.47906570695554, 0.2347046037628278, 104.15700719783352,
+        3.914721707525656, 104.04544077822122, 0.8908209806157354, 0.8908209806157354, 0.8908209806157354,
+        0.8908209806157354, 1
+      ]
+    ],
+    "jlpDayAverage": 0.001256823695101396,
+    "jlpTotal": 22098.771299977838,
+    "fimsSol": 1003.43345,
+    "fimsToken": 161596.208,
+    "total": 176859.42489522634,
+    "priceLastUpdated": 1793988718000
+  },
+  "sources": {
+    "jupiter": {
+      "ok": true,
+      "stale": false,
+      "at": 1793988718000
+    },
+    "kamino": {
+      "ok": true,
+      "stale": false,
+      "at": 1793988718000
+    },
+    "sanctum": {
+      "ok": true,
+      "stale": false,
+      "at": 1793988718000
+    },
+    "defi": {
+      "ok": true,
+      "stale": false,
+      "at": 1793988718000
+    }
+  }
+}

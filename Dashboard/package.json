@@ -1,0 +1,56 @@
+{
+  "name": "fims-dashboard",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.sw.json",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "1.2.0",
+    "@tabler/icons-react": "3.50.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "web-push": "3.6.7",
+    "workbox-precaching": "7.4.1",
+    "workbox-routing": "7.4.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/web-push": "3.6.4",
+    "@vitejs/plugin-react": "6.1.2",
+    "autoprefixer": "10.6.2",
+    "bun-types": "1.4.4",
+    "eslint": "10.13.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.7",
+    "globals": "17.13.0",
+    "postcss": "8.5.32",
+    "prettier": "3.9.10",
+    "tailwindcss": "3.4.19",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "vite": "8.3.5",
+    "vite-plugin-pwa": "2.0.0",
+    "workbox-build": "7.4.1",
+    "workbox-window": "7.4.1"
+  },
+  "prettier": {
+    "useTabs": false,
+    "tabWidth": 2,
+    "singleQuote": false,
+    "arrowParens": "avoid",
+    "printWidth": 120,
+    "trailingComma": "all",
+    "semi": true
+  }
+}
