@@ -19,24 +19,22 @@ export function ConvertTab({ r }: { r: DashboardResult }) {
     <div className="space-y-3">
       <Card>
         <CardTitle>Amount</CardTitle>
-        <div className="flex gap-2">
-          <input
-            inputMode="decimal"
-            value={amount}
-            onChange={e => setAmount(e.target.value)}
-            className="w-28 rounded-lg border border-line bg-card2 px-3 py-2 text-lg font-semibold tabular-nums outline-none focus:border-accent"
-          />
-          <div className="flex flex-1 flex-wrap gap-1.5">
-            {UNITS.map(u => (
-              <button
-                key={u}
-                onClick={() => setUnit(u)}
-                className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold ${u === unit ? "bg-accent text-white" : "bg-card2 text-muted"}`}
-              >
-                {u}
-              </button>
-            ))}
-          </div>
+        <input
+          inputMode="decimal"
+          value={amount}
+          onChange={e => setAmount(e.target.value)}
+          className="w-full rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold tabular-nums outline-none focus:border-accent"
+        />
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {UNITS.map(u => (
+            <button
+              key={u}
+              onClick={() => setUnit(u)}
+              className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold ${u === unit ? "bg-accent text-white" : "bg-card2 text-muted"}`}
+            >
+              {u}
+            </button>
+          ))}
         </div>
       </Card>
 

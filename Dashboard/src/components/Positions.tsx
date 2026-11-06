@@ -40,16 +40,13 @@ function PosLine({ p }: { p: Row }) {
 
 function NarrowLine({ p }: { p: Row }) {
   return (
-    <div className="px-1 py-1.5">
-      <div className="flex items-baseline justify-between gap-1">
-        <span className="truncate text-xs font-medium">{p.token}</span>
-        <span className={`shrink-0 text-[10px] font-semibold tabular-nums ${p.apy < 0 ? "text-danger" : "text-ok"}`}>
-          {fmtPct(p.apy)}
-        </span>
-      </div>
-      <div className="mt-0.5 text-[11px] font-semibold tabular-nums">
+    <div className="flex items-baseline justify-between gap-1 px-1 py-1.5">
+      <span className="whitespace-nowrap text-[11px] font-semibold tabular-nums">
         {fmtNum(p.amount)} {firstWord(p.token)}
-      </div>
+      </span>
+      <span className={`shrink-0 text-[10px] font-semibold tabular-nums ${p.apy < 0 ? "text-danger" : "text-ok"}`}>
+        {fmtPct(p.apy)}
+      </span>
     </div>
   );
 }
@@ -57,17 +54,18 @@ function NarrowLine({ p }: { p: Row }) {
 function NarrowExtra({ p }: { p: ExtraComputation }) {
   const unit = p.origin === "manual" ? p.token : p.unit || "—";
   return (
-    <div className="px-1 py-1.5">
-      <div className="flex items-baseline justify-between gap-1">
-        <span className="truncate text-xs font-medium">{p.token}</span>
-        <span className={`shrink-0 text-[10px] tabular-nums ${p.apy < 0 ? "text-danger" : "text-ok"}`}>
+    <div>
+      <div className="flex items-baseline justify-between gap-1 px-1 py-1.5">
+        <span className="whitespace-nowrap text-[11px] font-semibold tabular-nums">
+          {fmtNum(p.amount)} {unit}
+        </span>
+        <span className={`shrink-0 text-[10px] font-semibold tabular-nums ${p.apy < 0 ? "text-danger" : "text-ok"}`}>
           {fmtPct(p.apy)}
         </span>
       </div>
-      <div className="mt-0.5 text-[11px] font-semibold tabular-nums">
-        {fmtNum(p.amount)} {unit}
+      <div className="px-1 pb-1.5 text-[10px] text-muted tabular-nums">
+        {p.noPrice ? "no price" : `${fmtEUR(p.perDay)}/day`}
       </div>
-      <div className="text-[10px] text-muted tabular-nums">{p.noPrice ? "no price" : `${fmtEUR(p.perDay)}/day`}</div>
     </div>
   );
 }

@@ -154,17 +154,17 @@ export default function App() {
             onClick={() => setDrawer("prices")}
             className="hidden items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2 lg:flex"
             aria-label="Prices"
+            title="Prices"
           >
             <IconCoin size={18} />
-            <span className="text-xs font-medium">Prices</span>
           </button>
           <button
             onClick={() => setDrawer("convert")}
             className="hidden items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2 lg:flex"
             aria-label="Convert"
+            title="Convert"
           >
             <IconArrowsExchange size={18} />
-            <span className="text-xs font-medium">Convert</span>
           </button>
           <button
             onClick={() => setPosSheet({ open: true, editing: null })}
