@@ -1,8 +1,8 @@
 import { createHash, timingSafeEqual } from "node:crypto";
-import { computeDashboard, type AlertLevel } from "../src/lib/compute";
-import { fetchInputs } from "../src/lib/server";
-import { getAlertState, setAlertState } from "../src/lib/storage";
-import { sendJson, sendPush, type VercelRequest, type VercelResponse } from "./_lib";
+import { computeDashboard, type AlertLevel } from "../src/lib/compute.js";
+import { fetchInputs } from "../src/lib/server.js";
+import { getAlertState, setAlertState } from "../src/lib/storage.js";
+import { sendJson, sendPush, type VercelRequest, type VercelResponse } from "./_lib.js";
 
 export const maxDuration = 60;
 

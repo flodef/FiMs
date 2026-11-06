@@ -1,4 +1,4 @@
-import { START_DATE } from "./config";
+import { START_DATE } from "./config.js";
 
 const dtf = new Intl.DateTimeFormat("en-US", {
   timeZone: "Europe/Paris",

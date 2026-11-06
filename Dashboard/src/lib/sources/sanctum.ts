@@ -1,4 +1,4 @@
-import { FETCH_TIMEOUT_MS } from "../config";
+import { FETCH_TIMEOUT_MS } from "../config.js";
 
 export interface SanctumRaw {
   jupsolRatio: number;

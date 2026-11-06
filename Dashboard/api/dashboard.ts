@@ -1,5 +1,5 @@
-import { fetchInputs } from "../src/lib/server";
-import { sendJson, requireAuth, type VercelRequest, type VercelResponse } from "./_lib";
+import { fetchInputs } from "../src/lib/server.js";
+import { sendJson, requireAuth, type VercelRequest, type VercelResponse } from "./_lib.js";
 
 export const maxDuration = 30;
 

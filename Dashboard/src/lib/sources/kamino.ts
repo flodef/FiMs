@@ -1,5 +1,5 @@
-import { FETCH_TIMEOUT_MS, KAMINO_MARKET, WALLET } from "../config";
-import type { PositionRow } from "../types";
+import { FETCH_TIMEOUT_MS, KAMINO_MARKET, WALLET } from "../config.js";
+import type { PositionRow } from "../types.js";
 
 async function kget(path: string): Promise<any> {
   const res = await fetch(`https://api.kamino.finance/kamino-market/${KAMINO_MARKET}${path}`, {

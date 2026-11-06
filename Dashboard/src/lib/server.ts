@@ -1,12 +1,12 @@
-import { FETCH_TIMEOUT_MS } from "./config";
-import { computeDashboard } from "./compute";
-import type { DashboardResult } from "./compute";
-import { fetchDefi } from "./sources/defi";
-import { fetchJupiter } from "./sources/jupiter";
-import { fetchKamino } from "./sources/kamino";
-import { fetchSanctum, type SanctumRaw } from "./sources/sanctum";
-import { getLastGood, setLastGood } from "./storage";
-import type { DefiData, Inputs, PositionRow, SanctumData, SourceName, SourceStatus } from "./types";
+import { FETCH_TIMEOUT_MS } from "./config.js";
+import { computeDashboard } from "./compute.js";
+import type { DashboardResult } from "./compute.js";
+import { fetchDefi } from "./sources/defi.js";
+import { fetchJupiter } from "./sources/jupiter.js";
+import { fetchKamino } from "./sources/kamino.js";
+import { fetchSanctum, type SanctumRaw } from "./sources/sanctum.js";
+import { getLastGood, setLastGood } from "./storage.js";
+import type { DefiData, Inputs, PositionRow, SanctumData, SourceName, SourceStatus } from "./types.js";
 
 /** _copyValues rule: a row is kept only if token non-empty and amount/apy are valid numbers. */
 export function sanitizeRows(rows: PositionRow[]): PositionRow[] {

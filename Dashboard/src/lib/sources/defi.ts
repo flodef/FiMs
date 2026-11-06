@@ -1,6 +1,6 @@
-import { DEFI_SHEET_ID, FETCH_TIMEOUT_MS, SHEETS_REFERER } from "../config";
-import { serialToParisMs } from "../time";
-import type { DefiData } from "../types";
+import { DEFI_SHEET_ID, FETCH_TIMEOUT_MS, SHEETS_REFERER } from "../config.js";
+import { serialToParisMs } from "../time.js";
+import type { DefiData } from "../types.js";
 
 const num = (v: unknown): number => {
   const n = Number(v);

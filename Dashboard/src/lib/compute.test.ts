@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import fixture from "./__fixtures__/sheet-2026-11-06.json";
-import { computeDashboard } from "./compute";
-import { convert, priceMapFromCells } from "./convert";
-import type { Inputs } from "./types";
+import { computeDashboard } from "./compute.js";
+import { convert, priceMapFromCells } from "./convert.js";
+import type { Inputs } from "./types.js";
 
 const inputs = fixture as unknown as Inputs;
 // Price today serial date at 18:13 Europe/Paris (CET = UTC+1)

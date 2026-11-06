@@ -1,4 +1,4 @@
-import type { Inputs } from "./types";
+import type { Inputs } from "./types.js";
 
 export function fixtureMode(): boolean {
   if (typeof location === "undefined") return false;

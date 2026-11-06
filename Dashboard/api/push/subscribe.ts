@@ -1,5 +1,5 @@
-import { pushSubsAdd, pushSubsAll, pushSubsRemove } from "../../src/lib/storage";
-import { readBody, requireAuth, sendJson, type VercelRequest, type VercelResponse } from "../_lib";
+import { pushSubsAdd, pushSubsAll, pushSubsRemove } from "../../src/lib/storage.js";
+import { readBody, requireAuth, sendJson, type VercelRequest, type VercelResponse } from "../_lib.js";
 
 export const maxDuration = 15;
 

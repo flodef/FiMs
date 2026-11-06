@@ -1,5 +1,5 @@
-import { FETCH_TIMEOUT_MS, WALLET } from "../config";
-import type { PositionRow } from "../types";
+import { FETCH_TIMEOUT_MS, WALLET } from "../config.js";
+import type { PositionRow } from "../types.js";
 
 const API = "https://api.jup.ag/lend/v1";
 

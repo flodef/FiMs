@@ -7,9 +7,9 @@ import {
   MULTIPLY_CHANGE_RATE,
   MULTIPLY_G7,
   MULTIPLY_INIT_L9,
-} from "./config";
-import { daysInMonthParis, daysSinceStart } from "./time";
-import type { Inputs, SourceName } from "./types";
+} from "./config.js";
+import { daysInMonthParis, daysSinceStart } from "./time.js";
+import type { Inputs, SourceName } from "./types.js";
 
 export type StatusLevel = "ok" | "warn" | "danger" | "error";
 export type AlertLevel = "ok" | "warn" | "danger";

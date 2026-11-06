@@ -113,7 +113,7 @@ export function vapidPublicKey(): string | null {
 }
 
 export async function sendPush(title: string, body: string, url = "/"): Promise<{ sent: number; removed: number }> {
-  const { pushSubsAll, pushSubsRemove } = await import("../src/lib/storage");
+  const { pushSubsAll, pushSubsRemove } = await import("../src/lib/storage.js");
   const subs = await pushSubsAll();
   let sent = 0;
   let removed = 0;
