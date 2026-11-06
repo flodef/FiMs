@@ -38,6 +38,40 @@ function PosLine({ p }: { p: Row }) {
   );
 }
 
+function NarrowLine({ p }: { p: Row }) {
+  return (
+    <div className="px-1 py-1.5">
+      <div className="flex items-baseline justify-between gap-1">
+        <span className="truncate text-xs font-medium">{p.token}</span>
+        <span className={`shrink-0 text-[10px] font-semibold tabular-nums ${p.apy < 0 ? "text-danger" : "text-ok"}`}>
+          {fmtPct(p.apy)}
+        </span>
+      </div>
+      <div className="mt-0.5 text-[11px] font-semibold tabular-nums">
+        {fmtNum(p.amount)} {firstWord(p.token)}
+      </div>
+    </div>
+  );
+}
+
+function NarrowExtra({ p }: { p: ExtraComputation }) {
+  const unit = p.origin === "manual" ? p.token : p.unit || "—";
+  return (
+    <div className="px-1 py-1.5">
+      <div className="flex items-baseline justify-between gap-1">
+        <span className="truncate text-xs font-medium">{p.token}</span>
+        <span className={`shrink-0 text-[10px] tabular-nums ${p.apy < 0 ? "text-danger" : "text-ok"}`}>
+          {fmtPct(p.apy)}
+        </span>
+      </div>
+      <div className="mt-0.5 text-[11px] font-semibold tabular-nums">
+        {fmtNum(p.amount)} {unit}
+      </div>
+      <div className="text-[10px] text-muted tabular-nums">{p.noPrice ? "no price" : `${fmtEUR(p.perDay)}/day`}</div>
+    </div>
+  );
+}
+
 function ExtraLine({ p }: { p: ExtraComputation }) {
   const unit = p.origin === "manual" ? p.token : p.unit || "—";
   return (
@@ -241,47 +275,52 @@ export function Positions({
         <div className="rounded-lg bg-card2 px-3 py-2 text-[11px] text-muted">{manageHint}</div>
       )}
 
-      {(earnBase.length > 0 || earnEntries.length > 0) && (
-        <Card>
-          <CardTitle>Jupiter Earn</CardTitle>
-          <div className="-mx-1 divide-y divide-line/60">
-            {earnBase.map((p, i) => (
-              <div key={`${p.token}-${i}`} className="px-1 py-2">
-                <PosLine p={p} />
-              </div>
-            ))}
-            {earnEntries.map(({ rows }) => (
-              <div key={rows[0].id}>
-                <EntryHead rows={rows} {...entryProps} />
-                {rows.map(p => (
-                  <ExtraLine key={`${p.id}-${p.token}`} p={p} />
-                ))}
-              </div>
-            ))}
+      {(() => {
+        const showEarn = earnBase.length > 0 || earnEntries.length > 0;
+        const showKamino = kaminoBase.length > 0 || kaminoEntries.length > 0;
+        if (!showEarn && !showKamino) return null;
+        const lone = showEarn !== showKamino ? "col-span-2" : "";
+        return (
+          <div className="grid grid-cols-2 gap-3">
+            {showEarn && (
+              <Card className={lone}>
+                <CardTitle>Jupiter Earn</CardTitle>
+                <div className="-mx-1 divide-y divide-line/60">
+                  {earnBase.map((p, i) => (
+                    <NarrowLine key={`${p.token}-${i}`} p={p} />
+                  ))}
+                  {earnEntries.map(({ rows }) => (
+                    <div key={rows[0].id} className="divide-y divide-line/60">
+                      <EntryHead rows={rows} {...entryProps} />
+                      {rows.map(p => (
+                        <NarrowExtra key={`${p.id}-${p.token}`} p={p} />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+            {showKamino && (
+              <Card className={lone}>
+                <CardTitle>Kamino</CardTitle>
+                <div className="-mx-1 divide-y divide-line/60">
+                  {kaminoBase.map((p, i) => (
+                    <NarrowLine key={`${p.token}-${i}`} p={p} />
+                  ))}
+                  {kaminoEntries.map(({ rows }) => (
+                    <div key={rows[0].id} className="divide-y divide-line/60">
+                      <EntryHead rows={rows} {...entryProps} />
+                      {rows.map(p => (
+                        <NarrowExtra key={`${p.id}-${p.token}`} p={p} />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </div>
-        </Card>
-      )}
-
-      {(kaminoBase.length > 0 || kaminoEntries.length > 0) && (
-        <Card>
-          <CardTitle>Kamino</CardTitle>
-          <div className="-mx-1 divide-y divide-line/60">
-            {kaminoBase.map((p, i) => (
-              <div key={`${p.token}-${i}`} className="px-1 py-2">
-                <PosLine p={p} />
-              </div>
-            ))}
-            {kaminoEntries.map(({ rows }) => (
-              <div key={rows[0].id}>
-                <EntryHead rows={rows} {...entryProps} />
-                {rows.map(p => (
-                  <ExtraLine key={`${p.id}-${p.token}`} p={p} />
-                ))}
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+        );
+      })()}
 
       {(borrowBase.length > 0 || borrowEntries.length > 0) && (
         <Card>

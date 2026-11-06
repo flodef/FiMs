@@ -240,11 +240,13 @@ export default function App() {
       </nav>
 
       {settingsOpen && (
-        <Settings
-          onClose={() => setSettingsOpen(false)}
-          onRefresh={() => void refresh()}
-          onLogout={() => void logout()}
-        />
+        <Drawer title="Settings" onClose={() => setSettingsOpen(false)}>
+          <Settings
+            onClose={() => setSettingsOpen(false)}
+            onRefresh={() => void refresh()}
+            onLogout={() => void logout()}
+          />
+        </Drawer>
       )}
 
       {posSheet.open && (
@@ -260,8 +262,8 @@ export default function App() {
       )}
 
       {drawer === "prices" && (
-        <Drawer title="Prices" onClose={() => setDrawer(null)}>
-          <Prices r={result} />
+        <Drawer title="Prices (EUR)" onClose={() => setDrawer(null)}>
+          <Prices r={result} hideTitle />
         </Drawer>
       )}
       {drawer === "convert" && (

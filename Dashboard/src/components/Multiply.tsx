@@ -48,12 +48,12 @@ export function Multiply({ r }: { r: DashboardResult }) {
           {MULTIPLY_ROWS.map(row => {
             const [jlp, value] = row.get(r);
             return (
-              <div key={row.label} className="flex items-baseline justify-between px-1 py-2">
+              <div key={row.label} className="flex items-baseline justify-between gap-2 px-1 py-2">
                 <span className="text-sm">{row.label}</span>
-                <div className="text-right">
-                  <div className="text-sm font-semibold tabular-nums">{row.pct ? fmtPct(value) : fmtNum(jlp)}</div>
-                  <div className="text-[11px] text-muted tabular-nums">{row.pct ? "" : `${fmtEUR(value)} €`}</div>
-                </div>
+                <span className="flex items-baseline gap-1.5 whitespace-nowrap">
+                  <span className="text-sm font-semibold tabular-nums">{row.pct ? fmtPct(value) : fmtNum(jlp)}</span>
+                  {!row.pct && <span className="text-[11px] text-muted tabular-nums">{fmtEUR(value)} €</span>}
+                </span>
               </div>
             );
           })}
