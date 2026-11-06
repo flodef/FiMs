@@ -23,6 +23,8 @@ export interface CollateralAlert {
   level: AlertLevel;
   liqPriceEur: number | null;
   currentPriceEur: number | null;
+  /** tracked_positions id for extra positions; undefined for base config rows */
+  id?: number;
 }
 
 export interface StrategyRowView {
@@ -408,8 +410,28 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
   for (const [k, v] of Object.entries({ L10, M10, L11, M11, L12, M12, L13, M13, L14, M14, L15, M15 })) set(k, v);
 
   // ---- Collaterals + status ----
+  const extraInputs = inputs.extraPositions ?? [];
+  // Extra collaterals have no sheet liq-price cell: derive it from the entry's own
+  // debt rows — sum(debt amount × priceEur) / (liqThreshold × collateral amount).
+  const extraLiqPriceEur = (col: ExtraPosition): number | null => {
+    const lt = col.liqThreshold;
+    if (lt == null || !Number.isFinite(lt) || !(col.amount > 0)) return null;
+    const colTok = col.token.trim().toLowerCase();
+    let debtEur = 0;
+    let matched = false;
+    for (const d of extraInputs) {
+      if (d.id !== col.id) continue;
+      const words = d.token.trim().split(/\s+/);
+      if (words.length < 2 || words[words.length - 1].toLowerCase() !== colTok) continue;
+      const pr = priceEurOf(words[0]);
+      if (pr == null) return null;
+      debtEur += d.amount * pr;
+      matched = true;
+    }
+    return matched ? debtEur / (lt * col.amount) : null;
+  };
   const collaterals: CollateralAlert[] = [];
-  for (const p of [...positions, ...(inputs.extraPositions ?? [])]) {
+  for (const p of [...positions, ...extraInputs]) {
     if (p.ltv == null || !Number.isFinite(p.ltv)) continue;
     const t = LTV_TARGETS[p.token];
     const target = t != null && t > 0 ? t : null;
@@ -418,6 +440,7 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
     const level: AlertLevel = danger ? "danger" : target != null && p.ltv > target ? "warn" : "ok";
     const crow = strat.find(r => eq(r.label, p.token) || eq(r.label, `${p.token} Jupiter`));
     const sym = p.token.trim().split(/\s+/).pop() ?? p.token;
+    const eid = (p as ExtraPosition).id;
     collaterals.push({
       token: p.token,
       source: p.source,
@@ -425,8 +448,9 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
       target,
       liqThreshold: liqT,
       level,
-      liqPriceEur: crow?.liqPriceEur ?? null,
+      liqPriceEur: eid != null ? extraLiqPriceEur(p as ExtraPosition) : (crow?.liqPriceEur ?? null),
       currentPriceEur: priceEurOf(sym),
+      id: eid,
     });
   }
 

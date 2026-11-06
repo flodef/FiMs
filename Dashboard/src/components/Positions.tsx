@@ -1,26 +1,21 @@
-import { IconPencil, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
-import { useMemo, useState, type ChangeEvent, type ReactNode } from "react";
-import type { DashboardResult, ExtraComputation } from "../lib/compute";
+import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { useState } from "react";
+import type { CollateralAlert, DashboardResult, ExtraComputation } from "../lib/compute";
 import { fixtureMode } from "../lib/fixture";
 import { fmtEUR, fmtNum, fmtPct } from "../lib/format";
-import type { PositionRow as Row, TrackedKind } from "../lib/types";
+import type { PositionRow as Row } from "../lib/types";
 import { Card, CardTitle, KV, LtvGauge } from "./ui";
-
-const GROUPS: { source: string; title: string }[] = [
-  { source: "Jupiter Earn", title: "Jupiter Earn" },
-  { source: "Kamino Borrow", title: "Kamino" },
-];
 
 const firstWord = (t: string) => t.trim().split(/\s+/)[0] ?? t;
 const lastWord = (t: string) => t.trim().split(/\s+/).pop() ?? t;
 const shortAddr = (w?: string) => (w && w.length > 12 ? `${w.slice(0, 4)}…${w.slice(-4)}` : (w ?? ""));
 
-interface Bundle {
-  col: Row;
-  debts: Row[];
+interface Bundle<T extends Row> {
+  col: T;
+  debts: T[];
 }
 
-function borrowBundles(rows: Row[]): { bundles: Bundle[]; leftover: Row[] } {
+function borrowBundles<T extends Row>(rows: T[]): { bundles: Bundle<T>[]; leftover: T[] } {
   const isDebtOf = (p: Row, col: string) =>
     p.token !== col && /\s/.test(p.token.trim()) && lastWord(p.token).toLowerCase() === col.toLowerCase();
   const cols = rows.filter(p => p.ltv != null || rows.some(d => isDebtOf(d, p.token)));
@@ -29,12 +24,12 @@ function borrowBundles(rows: Row[]): { bundles: Bundle[]; leftover: Row[] } {
   return { bundles, leftover: rows.filter(p => !inBundle.has(p)) };
 }
 
-function PosLine({ p, indent = false }: { p: Row; indent?: boolean }) {
+function PosLine({ p }: { p: Row }) {
   return (
-    <div className={`flex items-baseline justify-between ${indent ? "mt-1 pl-4" : ""}`}>
-      <span className={indent ? "text-xs text-muted" : "text-sm font-medium"}>{p.token}</span>
+    <div className="flex items-baseline justify-between">
+      <span className="text-sm font-medium">{p.token}</span>
       <div className="text-right">
-        <div className={`tabular-nums ${indent ? "text-xs" : "text-sm font-semibold"}`}>
+        <div className="text-sm font-semibold tabular-nums">
           {fmtNum(p.amount)} {firstWord(p.token)}
         </div>
         <div className={`text-[11px] tabular-nums ${p.apy < 0 ? "text-danger" : "text-ok"}`}>{fmtPct(p.apy)}</div>
@@ -43,243 +38,136 @@ function PosLine({ p, indent = false }: { p: Row; indent?: boolean }) {
   );
 }
 
-type KindTab = TrackedKind;
-
-const inputCls = "w-full rounded-lg border border-line bg-card2 px-3 py-2 text-sm outline-none focus:border-accent";
-
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function ExtraLine({ p }: { p: ExtraComputation }) {
+  const unit = p.origin === "manual" ? p.token : p.unit || "—";
   return (
-    <label className="block">
-      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-muted">{label}</span>
-      {children}
-    </label>
+    <div className="flex items-baseline justify-between gap-2 px-1 py-1.5">
+      <span className="text-sm font-medium">{p.token}</span>
+      <div className="text-right">
+        <div className="text-sm font-semibold tabular-nums">
+          {fmtNum(p.amount)} {unit}
+        </div>
+        <div className="text-[11px] tabular-nums">
+          <span className={p.apy < 0 ? "text-danger" : "text-ok"}>{fmtPct(p.apy)}</span>
+          <span className="text-muted"> · {p.noPrice ? "no price" : `${fmtEUR(p.perDay)}/day`}</span>
+        </div>
+      </div>
+    </div>
   );
 }
 
-interface SheetState {
-  label: string;
-  platform: string;
-  asset: string;
-  amount: string;
-  apyPct: string;
-  unit: string;
-  wallet: string;
-  tokens: string;
+function BundleLine({ label, p }: { label: string; p: Row }) {
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <span className="w-14 shrink-0 text-[10px] font-bold uppercase tracking-wider text-muted">{label}</span>
+      <span className="text-right">
+        <span className="text-sm font-semibold tabular-nums">
+          {fmtNum(p.amount)} {firstWord(p.token)}
+        </span>{" "}
+        <span className={`text-[11px] tabular-nums ${p.apy < 0 ? "text-danger" : "text-ok"}`}>({fmtPct(p.apy)})</span>
+      </span>
+    </div>
+  );
 }
 
-const EMPTY_FORM: SheetState = {
-  label: "",
-  platform: "",
-  asset: "",
-  amount: "",
-  apyPct: "",
-  unit: "USD",
-  wallet: "",
-  tokens: "",
+function BundleView({ b, alert }: { b: Bundle<Row>; alert: CollateralAlert | undefined }) {
+  const dist =
+    alert?.liqPriceEur != null && alert.currentPriceEur != null ? alert.liqPriceEur / alert.currentPriceEur - 1 : null;
+  const parts = [
+    alert?.liqPriceEur != null ? `liq ${fmtEUR(alert.liqPriceEur)} €` : null,
+    alert?.currentPriceEur != null ? `now ${fmtEUR(alert.currentPriceEur)} €` : null,
+    dist != null ? `(${fmtPct(dist, 1)})` : null,
+  ].filter(Boolean);
+  return (
+    <div className="px-1 py-2">
+      <div className="text-sm font-semibold">{b.col.token}</div>
+      <div className="mt-1 space-y-0.5">
+        <BundleLine label="Deposit" p={b.col} />
+        {b.debts.map(d => (
+          <BundleLine key={d.token} label="Borrow" p={d} />
+        ))}
+      </div>
+      {alert && (
+        <div className="mt-1.5">
+          <LtvGauge ltv={alert.ltv} target={alert.target} liq={alert.liqThreshold} />
+        </div>
+      )}
+      {parts.length > 0 && <div className="mt-1 text-right text-[11px] text-muted">{parts.join(" · ")}</div>}
+    </div>
+  );
+}
+
+const entryTitle = (rows: ExtraComputation[]) => {
+  const p = rows[0];
+  if (p.label) return p.label;
+  if (p.origin === "manual") return p.token;
+  if (p.origin === "jupiter") return shortAddr(p.wallet) || "Jupiter wallet";
+  return p.tokens || shortAddr(p.wallet) || "Kamino";
 };
 
-function PositionSheet({
-  editing,
-  unitOptions,
-  onClose,
-  onSaved,
+const entryEmpty = (rows: ExtraComputation[]) => rows.every(p => !(p.amount > 0));
+
+const entrySummary = (rows: ExtraComputation[]) => {
+  const s = rows.map(p => `${fmtNum(p.amount)} ${p.origin === "manual" ? p.token : p.unit || p.token}`).join(", ");
+  return s.length > 80 ? `${s.slice(0, 77)}…` : s;
+};
+
+function groupById(rows: ExtraComputation[]): { id: number; rows: ExtraComputation[] }[] {
+  const m = new Map<number, ExtraComputation[]>();
+  for (const p of rows) {
+    const arr = m.get(p.id) ?? [];
+    arr.push(p);
+    m.set(p.id, arr);
+  }
+  return [...m.entries()].map(([id, rs]) => ({ id, rows: rs }));
+}
+
+function EntryHead({
+  rows,
+  canEdit,
+  manageHint,
+  onEdit,
+  onRemove,
 }: {
-  editing: ExtraComputation | null;
-  unitOptions: string[];
-  onClose: () => void;
-  onSaved: () => void;
+  rows: ExtraComputation[];
+  canEdit: boolean;
+  manageHint: string | null;
+  onEdit: (entry: ExtraComputation) => void;
+  onRemove: (rows: ExtraComputation[]) => void;
 }) {
-  const [kind, setKind] = useState<KindTab>(editing?.origin ?? "manual");
-  const [form, setForm] = useState<SheetState>(() => {
-    if (!editing) return EMPTY_FORM;
-    return {
-      label: editing.label ?? "",
-      platform: editing.platform ?? "",
-      asset: editing.origin === "manual" ? editing.token : "",
-      amount: editing.origin === "manual" ? String(editing.amount) : "",
-      apyPct: editing.origin === "manual" ? String(editing.apy * 100) : "",
-      unit: editing.unit || "USD",
-      wallet: editing.wallet ?? "",
-      tokens: editing.tokens ?? "",
-    };
-  });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const set = (k: keyof SheetState) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setForm(f => ({ ...f, [k]: e.target.value }));
-
-  const save = async () => {
-    if (fixtureMode()) {
-      setError("Fixture mode — positions are not saved.");
-      return;
-    }
-    if (kind === "manual" && (!form.asset.trim() || !form.amount.trim() || !form.apyPct.trim())) {
-      setError("Asset, amount and APY are required.");
-      return;
-    }
-    if (kind !== "manual" && !form.wallet.trim()) {
-      setError("Wallet address is required.");
-      return;
-    }
-    if (kind === "kamino" && !form.tokens.trim()) {
-      setError("Tokens are required (e.g. USDC,USDT).");
-      return;
-    }
-    const payload: Record<string, unknown> = {
-      kind,
-      label: form.label.trim() || null,
-      platform: kind === "manual" ? form.platform.trim() || null : null,
-      wallet: kind === "manual" ? null : form.wallet.trim(),
-      tokens: kind === "kamino" ? form.tokens.trim() : null,
-      asset: kind === "manual" ? form.asset.trim() : null,
-      amount: kind === "manual" ? Number(form.amount) : null,
-      apy: kind === "manual" ? Number(form.apyPct) / 100 : null,
-      unit: kind === "manual" ? form.unit : null,
-    };
-    if (editing) payload.id = editing.id;
-    setSaving(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/positions", {
-        method: editing ? "PUT" : "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setError(data.error ?? `HTTP ${res.status}`);
-        return;
-      }
-      onSaved();
-    } catch {
-      setError("Network error — try again.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const KINDS: { id: KindTab; label: string }[] = [
-    { id: "manual", label: "Manual" },
-    { id: "jupiter", label: "Jupiter wallet" },
-    { id: "kamino", label: "Kamino wallet" },
-  ];
-
+  const stale = rows.some(x => x.stale);
+  const error = rows.find(x => x.error)?.error;
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4"
-      onClick={onClose}
-    >
-      <div
-        className="max-h-[85dvh] w-full overflow-y-auto rounded-t-2xl border border-line bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-w-md sm:rounded-2xl"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-bold">{editing ? "Edit position" : "Add position"}</h3>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-muted hover:bg-card2" aria-label="Close">
-            <IconX size={18} />
-          </button>
-        </div>
-
-        <div className="mb-3 grid grid-cols-3 gap-1 rounded-lg bg-card2 p-1">
-          {KINDS.map(k => (
-            <button
-              key={k.id}
-              onClick={() => setKind(k.id)}
-              className={`rounded-md px-2 py-1.5 text-xs font-semibold ${kind === k.id ? "bg-accent text-white" : "text-muted"}`}
-            >
-              {k.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="space-y-3">
-          <Field label="Label (optional)">
-            <input className={inputCls} value={form.label} onChange={set("label")} placeholder="e.g. Cold wallet" />
-          </Field>
-
-          {kind === "manual" && (
-            <>
-              <div className="grid grid-cols-2 gap-2">
-                <Field label="Asset">
-                  <input className={inputCls} value={form.asset} onChange={set("asset")} placeholder="USDT, JLP…" />
-                </Field>
-                <Field label="Platform">
-                  <input
-                    className={inputCls}
-                    value={form.platform}
-                    onChange={set("platform")}
-                    placeholder="Manual, Ledger…"
-                  />
-                </Field>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Field label="Amount">
-                  <input
-                    className={inputCls}
-                    inputMode="decimal"
-                    value={form.amount}
-                    onChange={set("amount")}
-                    placeholder="0"
-                  />
-                </Field>
-                <Field label="APY %">
-                  <input
-                    className={inputCls}
-                    inputMode="decimal"
-                    value={form.apyPct}
-                    onChange={set("apyPct")}
-                    placeholder="8"
-                  />
-                </Field>
-              </div>
-              <Field label="Unit (pricing)">
-                <select className={inputCls} value={form.unit} onChange={set("unit")}>
-                  {unitOptions.map(u => (
-                    <option key={u} value={u}>
-                      {u}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </>
+    <div className="px-1 pt-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate text-[11px] font-bold uppercase tracking-wider text-muted">{entryTitle(rows)}</span>
+          {stale && (
+            <span className="shrink-0 rounded bg-warn/15 px-1 text-[9px] font-bold uppercase text-warn">stale</span>
           )}
-
-          {kind !== "manual" && (
-            <>
-              <Field label="Wallet">
-                <input
-                  className={`${inputCls} font-mono text-xs`}
-                  value={form.wallet}
-                  onChange={set("wallet")}
-                  placeholder="Solana address"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                />
-              </Field>
-              {kind === "kamino" && (
-                <Field label="Tokens">
-                  <input className={inputCls} value={form.tokens} onChange={set("tokens")} placeholder="USDC,USDT" />
-                </Field>
-              )}
-              <p className="text-[11px] leading-4 text-muted">
-                {kind === "jupiter"
-                  ? "Tracks the wallet's full Jupiter portfolio (earn + borrow)."
-                  : "Tracks deposits of the listed tokens on Kamino."}
-              </p>
-            </>
-          )}
-
-          {error && <div className="rounded-lg bg-danger/10 px-3 py-2 text-xs text-danger">{error}</div>}
-
+        </div>
+        <div className="flex shrink-0 gap-0.5">
           <button
-            onClick={() => void save()}
-            disabled={saving}
-            className="w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            onClick={() => onEdit(rows[0])}
+            disabled={!canEdit}
+            title={manageHint ?? "Edit position"}
+            className="rounded p-1 text-muted hover:bg-card2 disabled:opacity-40"
+            aria-label="Edit"
           >
-            {saving ? "Saving…" : editing ? "Save changes" : "Add position"}
+            <IconPencil size={14} />
+          </button>
+          <button
+            onClick={() => onRemove(rows)}
+            disabled={!canEdit}
+            title={manageHint ?? "Remove position"}
+            className="rounded p-1 text-muted hover:bg-card2 hover:text-danger disabled:opacity-40"
+            aria-label="Remove"
+          >
+            <IconTrash size={14} />
           </button>
         </div>
       </div>
+      {error && <div className="mt-0.5 text-[10px] text-danger">{error}</div>}
     </div>
   );
 }
@@ -287,147 +175,137 @@ function PositionSheet({
 export function Positions({
   r,
   positions,
-  unitOptions,
   canEdit,
   manageHint,
   onChanged,
+  onEdit,
 }: {
   r: DashboardResult;
   positions: Row[];
-  unitOptions: string[];
   canEdit: boolean;
   manageHint: string | null;
   onChanged: () => void;
+  onEdit: (entry: ExtraComputation) => void;
 }) {
-  const [sheet, setSheet] = useState<{ open: boolean; editing: ExtraComputation | null }>({
-    open: false,
-    editing: null,
-  });
+  const [confirm, setConfirm] = useState<{ id: number; title: string; summary: string } | null>(null);
 
-  // Group extras: section = origin (+platform for manual), entry = tracked row id.
-  const sections = useMemo(() => {
-    const secMap = new Map<string, { title: string; entries: Map<number, ExtraComputation[]> }>();
-    for (const p of r.extras.rows) {
-      const manual = p.origin === "manual";
-      const key = manual ? `manual|${p.platform ?? ""}` : p.origin;
-      let sec = secMap.get(key);
-      if (!sec) {
-        sec = {
-          title: manual ? p.platform || "Manual" : p.origin === "jupiter" ? "Jupiter wallets" : "Kamino wallets",
-          entries: new Map(),
-        };
-        secMap.set(key, sec);
-      }
-      const arr = sec.entries.get(p.id) ?? [];
-      arr.push(p);
-      sec.entries.set(p.id, arr);
+  const extras = r.extras.rows;
+  const earnBase = positions.filter(p => p.source === "Jupiter Earn");
+  const kaminoBase = positions.filter(p => p.source === "Kamino Borrow");
+  const borrowBase = positions.filter(p => p.source === "Jupiter Borrow");
+  const earnEntries = groupById(extras.filter(p => p.source === "Jupiter Earn"));
+  const kaminoEntries = groupById(extras.filter(p => p.source === "Kamino Borrow"));
+  const borrowEntries = groupById(extras.filter(p => p.source === "Jupiter Borrow"));
+
+  const manualPlatforms = (() => {
+    const m = new Map<string, { id: number; rows: ExtraComputation[] }[]>();
+    for (const { id, rows } of groupById(extras.filter(p => p.origin === "manual"))) {
+      const plat = rows[0].platform || "";
+      const arr = m.get(plat) ?? [];
+      arr.push({ id, rows });
+      m.set(plat, arr);
     }
-    return [...secMap.values()];
-  }, [r.extras.rows]);
+    return [...m.entries()].map(([platform, entries]) => ({ platform, entries }));
+  })();
 
-  const entryTitle = (rows: ExtraComputation[]) => {
-    const p = rows[0];
-    if (p.label) return p.label;
-    if (p.origin === "manual") return p.token;
-    if (p.origin === "jupiter") return `Jupiter · ${shortAddr(p.wallet)}`;
-    return `Kamino · ${p.tokens ?? ""}`;
-  };
+  const alertFor = (token: string, id: number | undefined) => r.collaterals.find(c => c.token === token && c.id === id);
 
-  const entrySub = (rows: ExtraComputation[]) => {
-    const p = rows[0];
-    if (p.origin === "manual") return p.platform || "manual";
-    if (p.origin === "jupiter") return shortAddr(p.wallet);
-    return p.tokens ?? "";
-  };
-
-  const remove = async (id: number) => {
+  const doRemove = async (id: number) => {
+    setConfirm(null);
     if (fixtureMode()) return;
-    if (!window.confirm("Delete this position?")) return;
     await fetch(`/api/positions?id=${id}`, { method: "DELETE" }).catch(() => {});
     onChanged();
   };
 
-  const { bundles, leftover } = borrowBundles(positions.filter(p => p.source === "Jupiter Borrow"));
-  const borrowRows = positions.filter(p => p.source === "Jupiter Borrow");
+  const requestRemove = (rows: ExtraComputation[]) => {
+    const head = rows[0];
+    if (entryEmpty(rows)) {
+      void doRemove(head.id);
+      return;
+    }
+    setConfirm({ id: head.id, title: entryTitle(rows), summary: entrySummary(rows) });
+  };
+
+  const entryProps = {
+    canEdit,
+    manageHint,
+    onEdit,
+    onRemove: requestRemove,
+  };
+
+  const baseBundles = borrowBundles(borrowBase);
 
   return (
     <div className="space-y-3">
-      {GROUPS.map(g => {
-        const rows = positions.filter(p => p.source === g.source);
-        if (!rows.length) return null;
-        return (
-          <Card key={g.source}>
-            <CardTitle>{g.title}</CardTitle>
-            <div className="-mx-1 divide-y divide-line/60">
-              {rows.map((p, i) => (
-                <div key={`${p.token}-${i}`} className="px-1 py-2">
-                  <PosLine p={p} />
-                  {(p.liqThreshold != null || p.ltv != null) && (
-                    <div className="mt-0.5 text-[11px] text-muted">
-                      {p.liqThreshold != null && `liq ${fmtPct(p.liqThreshold)}`}
-                      {p.ltv != null && ` · ltv ${fmtPct(p.ltv)}`}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </Card>
-        );
-      })}
+      {!canEdit && manageHint && (
+        <div className="rounded-lg bg-card2 px-3 py-2 text-[11px] text-muted">{manageHint}</div>
+      )}
 
-      {borrowRows.length > 0 && (
+      {(earnBase.length > 0 || earnEntries.length > 0) && (
         <Card>
-          <CardTitle>Jupiter Borrow</CardTitle>
+          <CardTitle>Jupiter Earn</CardTitle>
           <div className="-mx-1 divide-y divide-line/60">
-            {bundles.map(b => {
-              const alert = r.collaterals.find(c => c.token === b.col.token);
-              return (
-                <div key={b.col.token} className="px-1 py-2">
-                  <PosLine p={b.col} />
-                  {(b.col.ltv != null || b.col.liqThreshold != null) && (
-                    <div className="mt-0.5 text-[11px] text-muted">
-                      {b.col.ltv != null && `LTV ${fmtPct(b.col.ltv)}`}
-                      {b.col.liqThreshold != null && ` · liq ${fmtPct(b.col.liqThreshold)}`}
-                      {alert?.liqPriceEur != null && ` · liq price ≈ ${fmtEUR(alert.liqPriceEur)} €`}
-                    </div>
-                  )}
-                  {b.debts.map(d => (
-                    <PosLine key={d.token} p={d} indent />
-                  ))}
-                </div>
-              );
-            })}
-            {leftover.map((p, i) => (
+            {earnBase.map((p, i) => (
               <div key={`${p.token}-${i}`} className="px-1 py-2">
                 <PosLine p={p} />
               </div>
             ))}
+            {earnEntries.map(({ rows }) => (
+              <div key={rows[0].id}>
+                <EntryHead rows={rows} {...entryProps} />
+                {rows.map(p => (
+                  <ExtraLine key={`${p.id}-${p.token}`} p={p} />
+                ))}
+              </div>
+            ))}
           </div>
         </Card>
       )}
 
-      {r.collaterals.length > 0 && (
+      {(kaminoBase.length > 0 || kaminoEntries.length > 0) && (
         <Card>
-          <CardTitle>Collateral health</CardTitle>
-          <div className="space-y-4">
-            {r.collaterals.map(c => {
-              const dist =
-                c.liqPriceEur != null && c.currentPriceEur != null ? c.liqPriceEur / c.currentPriceEur - 1 : null;
-              const parts = [
-                c.liqPriceEur != null ? `liq ${fmtEUR(c.liqPriceEur)} €` : null,
-                c.currentPriceEur != null ? `now ${fmtEUR(c.currentPriceEur)} €` : null,
-                dist != null ? `(${fmtPct(dist, 1)})` : null,
-              ].filter(Boolean);
+          <CardTitle>Kamino</CardTitle>
+          <div className="-mx-1 divide-y divide-line/60">
+            {kaminoBase.map((p, i) => (
+              <div key={`${p.token}-${i}`} className="px-1 py-2">
+                <PosLine p={p} />
+              </div>
+            ))}
+            {kaminoEntries.map(({ rows }) => (
+              <div key={rows[0].id}>
+                <EntryHead rows={rows} {...entryProps} />
+                {rows.map(p => (
+                  <ExtraLine key={`${p.id}-${p.token}`} p={p} />
+                ))}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {(borrowBase.length > 0 || borrowEntries.length > 0) && (
+        <Card>
+          <CardTitle>Jupiter Borrow</CardTitle>
+          <div className="-mx-1 divide-y divide-line/60">
+            {baseBundles.bundles.map(b => (
+              <BundleView key={b.col.token} b={b} alert={alertFor(b.col.token, undefined)} />
+            ))}
+            {baseBundles.leftover.map((p, i) => (
+              <div key={`${p.token}-${i}`} className="px-1 py-2">
+                <PosLine p={p} />
+              </div>
+            ))}
+            {borrowEntries.map(({ id, rows }) => {
+              const { bundles, leftover } = borrowBundles(rows);
               return (
-                <div key={`${c.token}-${c.source}`}>
-                  <div className="mb-1 flex items-baseline justify-between">
-                    <span className="text-sm font-semibold">{c.token}</span>
-                    <span className="text-[11px] text-muted">{c.source}</span>
-                  </div>
-                  <LtvGauge ltv={c.ltv} target={c.target} liq={c.liqThreshold} />
-                  {parts.length > 0 && (
-                    <div className="mt-1 text-right text-[11px] text-muted">{parts.join(" · ")}</div>
-                  )}
+                <div key={id}>
+                  <EntryHead rows={rows} {...entryProps} />
+                  {bundles.map(b => (
+                    <BundleView key={b.col.token} b={b} alert={alertFor(b.col.token, id)} />
+                  ))}
+                  {leftover.map(p => (
+                    <ExtraLine key={`${p.id}-${p.token}`} p={p} />
+                  ))}
                 </div>
               );
             })}
@@ -435,89 +313,21 @@ export function Positions({
         </Card>
       )}
 
-      <Card>
-        <CardTitle
-          right={
-            <button
-              onClick={() => setSheet({ open: true, editing: null })}
-              disabled={!canEdit}
-              className="flex items-center gap-1 rounded-lg bg-accent/15 px-2 py-1 text-[11px] font-semibold text-accent disabled:opacity-40"
-            >
-              <IconPlus size={13} /> Add
-            </button>
-          }
-        >
-          Other positions
-        </CardTitle>
-        {manageHint && <div className="mb-2 text-[11px] text-muted">{manageHint}</div>}
-        {sections.length === 0 ? (
-          <div className="py-2 text-center text-xs text-muted">No extra positions tracked.</div>
-        ) : (
-          <div className="space-y-3">
-            {sections.map(sec => (
-              <div key={sec.title}>
-                <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted">{sec.title}</div>
-                <div className="-mx-1 divide-y divide-line/60">
-                  {[...sec.entries.values()].map(rows => {
-                    const head = rows[0];
-                    const anyStale = rows.some(x => x.stale);
-                    return (
-                      <div key={head.id} className="px-1 py-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex min-w-0 items-center gap-1.5">
-                            <span className="truncate text-sm font-semibold">{entryTitle(rows)}</span>
-                            {anyStale && (
-                              <span className="shrink-0 rounded bg-warn/15 px-1 text-[9px] font-bold uppercase text-warn">
-                                stale
-                              </span>
-                            )}
-                          </div>
-                          {canEdit && (
-                            <div className="flex shrink-0 gap-0.5">
-                              <button
-                                onClick={() => setSheet({ open: true, editing: head })}
-                                className="rounded p-1 text-muted hover:bg-card2"
-                                aria-label="Edit"
-                              >
-                                <IconPencil size={14} />
-                              </button>
-                              <button
-                                onClick={() => void remove(head.id)}
-                                className="rounded p-1 text-muted hover:bg-card2 hover:text-danger"
-                                aria-label="Delete"
-                              >
-                                <IconTrash size={14} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-muted">{entrySub(rows)}</div>
-                        {rows.map(p => (
-                          <div key={`${p.id}-${p.token}`} className="mt-1 flex items-baseline justify-between gap-2">
-                            <span className="text-xs text-muted">
-                              {p.token} · {fmtNum(p.amount)} {p.origin === "manual" ? p.token : p.unit}
-                            </span>
-                            <span className="text-right text-[11px] tabular-nums">
-                              <span className={p.apy < 0 ? "text-danger" : "text-ok"}>{fmtPct(p.apy)}</span>
-                              <span className="text-muted">
-                                {" "}
-                                · {p.noPrice ? "no price" : `${fmtEUR(p.perDay)}/day`}
-                              </span>
-                            </span>
-                          </div>
-                        ))}
-                        {rows.some(x => x.error) && (
-                          <div className="mt-0.5 text-[10px] text-danger">{rows.find(x => x.error)?.error}</div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+      {manualPlatforms.map(({ platform, entries }) => (
+        <Card key={platform || "manual"}>
+          <CardTitle>{platform || "Manual"}</CardTitle>
+          <div className="-mx-1 divide-y divide-line/60">
+            {entries.map(({ rows }) => (
+              <div key={rows[0].id}>
+                <EntryHead rows={rows} {...entryProps} />
+                {rows.map(p => (
+                  <ExtraLine key={`${p.id}-${p.token}`} p={p} />
+                ))}
               </div>
             ))}
           </div>
-        )}
-      </Card>
+        </Card>
+      ))}
 
       <Card>
         <CardTitle>FiMs EURC / USD</CardTitle>
@@ -527,16 +337,33 @@ export function Positions({
         <KV label="FiMs USD (value)" value={`${fmtEUR(r.fims.usd.eurAmount)} €`} />
       </Card>
 
-      {sheet.open && (
-        <PositionSheet
-          editing={sheet.editing}
-          unitOptions={unitOptions}
-          onClose={() => setSheet({ open: false, editing: null })}
-          onSaved={() => {
-            setSheet({ open: false, editing: null });
-            onChanged();
-          }}
-        />
+      {confirm && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setConfirm(null)}
+        >
+          <div
+            className="w-full max-w-xs rounded-2xl border border-line bg-card p-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-sm font-bold">Remove {confirm.title}?</h3>
+            <p className="mt-1 text-xs text-muted">It still holds {confirm.summary}.</p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setConfirm(null)}
+                className="rounded-lg border border-line py-2 text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void doRemove(confirm.id)}
+                className="rounded-lg bg-danger py-2 text-xs font-semibold text-white"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

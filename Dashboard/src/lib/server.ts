@@ -115,7 +115,23 @@ async function fetchExtras(tracked: TrackedPosition[]): Promise<ExtraPosition[]>
         ];
       }
       const outcome = await withLastGood<PositionRow[]>(`tracked:${t.id}`, () => fetchTrackedEntry(t, jupKey), rowsOk);
-      return (outcome.data ?? []).map(r => ({
+      const rows = outcome.data ?? [];
+      if (!rows.length) {
+        // placeholder so empty tracked wallets stay visible/removable in the UI
+        return [
+          {
+            ...meta,
+            token: "(empty)",
+            source: t.kind === "jupiter" ? "Jupiter Earn" : "Kamino Borrow",
+            amount: 0,
+            apy: 0,
+            unit: "",
+            stale: outcome.stale || undefined,
+            error: outcome.ok ? undefined : outcome.error,
+          },
+        ];
+      }
+      return rows.map(r => ({
         ...r,
         ...meta,
         unit: firstWord(r.token),

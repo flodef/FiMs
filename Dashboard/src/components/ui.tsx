@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { IconX } from "@tabler/icons-react";
+import { useEffect, type ReactNode } from "react";
 import { fmtPct } from "../lib/format";
 import type { StatusLevel } from "../lib/compute";
 
@@ -57,6 +58,45 @@ export function BigStat({ label, value, sub }: { label: string; value: string; s
       <div className="mt-1 text-2xl font-bold tabular-nums">{value}</div>
       {sub && <div className="mt-0.5 text-xs text-muted">{sub}</div>}
     </Card>
+  );
+}
+
+export function Drawer({
+  title,
+  onClose,
+  children,
+  wide = false,
+}: {
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+  wide?: boolean;
+}) {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className={`max-h-[85dvh] w-full overflow-y-auto rounded-t-2xl border border-line bg-card p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:rounded-2xl ${wide ? "sm:max-w-2xl" : "sm:max-w-md"}`}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-bold">{title}</h3>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-muted hover:bg-card2" aria-label="Close">
+            <IconX size={18} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
   );
 }
 

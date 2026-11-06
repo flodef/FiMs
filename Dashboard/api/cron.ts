@@ -29,6 +29,7 @@ const secretOk = (req: VercelRequest): boolean => {
 };
 
 const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
+const shortAddr = (w?: string | null) => (w && w.length > 12 ? `${w.slice(0, 4)}…${w.slice(-4)}` : (w ?? ""));
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET" && req.method !== "POST") return sendJson(res, 405, { error: "method not allowed" });
@@ -43,22 +44,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const lines: string[] = [];
   const pushes: { title: string; body: string; sent: number; removed: number }[] = [];
 
+  const extraMeta = new Map((inputs.extraPositions ?? []).map(e => [`${e.id}:${e.token}`, e]));
+
   for (const c of result.collaterals) {
-    const p = prev[c.token] ?? { level: "ok" as AlertLevel, lastSentAt: 0 };
+    const key = `${c.id ?? "base"}:${c.token}`;
+    const p = prev[key] ?? { level: "ok" as AlertLevel, lastSentAt: 0 };
     let triggered: "danger" | "warn" | null = null;
     if (c.level === "danger" && (p.level !== "danger" || now - p.lastSentAt >= DANGER_RESEND_MS)) triggered = "danger";
     else if (c.level === "warn" && p.level === "ok") triggered = "warn";
 
     if (triggered) {
       const liq = c.liqThreshold != null ? pct(c.liqThreshold) : "?";
+      const em = c.id != null ? extraMeta.get(`${c.id}:${c.token}`) : undefined;
+      const who = em ? ` (${em.label || shortAddr(em.wallet) || "tracked"})` : "";
       const body =
         triggered === "danger"
-          ? `Bail out quick before the boat sink. ${c.token}: LTV ${pct(c.ltv)} / liq ${liq}`
-          : `${c.token}: LTV ${pct(c.ltv)} > target ${c.target != null ? pct(c.target) : "?"} (liq ${liq})`;
+          ? `Bail out quick before the boat sink. ${c.token}${who}: LTV ${pct(c.ltv)} / liq ${liq}`
+          : `${c.token}${who}: LTV ${pct(c.ltv)} > target ${c.target != null ? pct(c.target) : "?"} (liq ${liq})`;
       lines.push(`${triggered === "danger" ? "Loan is Under Water !" : "LTV above target"} — ${body}`);
-      next[c.token] = { level: c.level, lastSentAt: now };
+      next[key] = { level: c.level, lastSentAt: now };
     } else {
-      next[c.token] = { level: c.level, lastSentAt: p.lastSentAt };
+      next[key] = { level: c.level, lastSentAt: p.lastSentAt };
     }
   }
 

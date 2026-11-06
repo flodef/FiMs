@@ -189,4 +189,36 @@ describe("extra positions", () => {
     ]);
     expect(r4.collaterals.find(x => x.token === "XYZ")!.level).toBe("ok");
   });
+
+  test("extra collateral liqPriceEur comes from its own entry rows", () => {
+    const r6 = withExtras([
+      {
+        id: 6,
+        origin: "jupiter",
+        token: "JLP",
+        source: "Jupiter Borrow",
+        amount: 100,
+        apy: 0.1,
+        ltv: 0.5,
+        liqThreshold: 0.9,
+        unit: "JLP",
+      },
+      {
+        id: 6,
+        origin: "jupiter",
+        token: "USDT JLP",
+        source: "Jupiter Borrow",
+        amount: 50,
+        apy: -0.05,
+        unit: "USDT",
+      },
+    ]);
+    const c6 = r6.collaterals.find(x => x.id === 6);
+    expect(c6).toBeDefined();
+    // 50 USDT × I15 / (0.9 × 100 JLP) — not the base JLP D11 value
+    expect(c6!.liqPriceEur).toBeCloseTo((50 * i15) / (0.9 * 100), 10);
+    // base JLP keeps the sheet liquidation price
+    const baseJlp = r6.collaterals.find(x => x.token === "JLP" && x.id == null);
+    expect(baseJlp!.liqPriceEur).toBeCloseTo(c.D11 as number, 10);
+  });
 });

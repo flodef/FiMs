@@ -2,24 +2,27 @@ import {
   IconArrowsExchange,
   IconChartLine,
   IconCoin,
+  IconInfoCircle,
   IconLayoutDashboard,
+  IconPlus,
   IconRefresh,
   IconSettings,
   IconWallet,
   IconX,
 } from "@tabler/icons-react";
-import { useMemo, useState } from "react";
-import { computeDashboard } from "./lib/compute";
+import { useEffect, useMemo, useState } from "react";
+import { computeDashboard, type DashboardResult, type ExtraComputation } from "./lib/compute";
 import { timeAgo } from "./lib/format";
 import { useDashboard } from "./hooks/useDashboard";
 import { Overview } from "./components/Overview";
 import { Positions } from "./components/Positions";
+import { PositionSheet } from "./components/PositionSheet";
 import { Multiply } from "./components/Multiply";
 import { Prices } from "./components/Prices";
 import { ConvertTab } from "./components/Convert";
 import { Settings } from "./components/Settings";
 import { Login } from "./components/Login";
-import { StatusBadge } from "./components/ui";
+import { Drawer, StatusBadge } from "./components/ui";
 
 type Tab = "overview" | "positions" | "multiply" | "prices" | "convert";
 
@@ -31,11 +34,54 @@ const TABS: { id: Tab; label: string; icon: typeof IconLayoutDashboard }[] = [
   { id: "convert", label: "Convert", icon: IconArrowsExchange },
 ];
 
+function InfoPopover({ r, nowMs }: { r: DashboardResult; nowMs: number }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [open]);
+  const lines = [
+    r.priceUpdatedAt ? `Prices updated ${timeAgo(r.priceUpdatedAt, nowMs)}` : "Prices: never",
+    r.positionsUpdatedAt ? `Positions updated ${timeAgo(r.positionsUpdatedAt, nowMs)}` : "Positions: never",
+    r.staleSources.length ? `Stale: ${r.staleSources.join(", ")}` : null,
+    r.failedSources.length ? `Failed: ${r.failedSources.join(", ")}` : null,
+  ].filter((l): l is string => l !== null);
+  return (
+    <div className="group relative">
+      <button
+        onClick={e => {
+          e.stopPropagation();
+          setOpen(o => !o);
+        }}
+        className="rounded-lg p-1.5 text-muted hover:bg-card2"
+        aria-label="Data info"
+      >
+        <IconInfoCircle size={16} />
+      </button>
+      <div
+        className={`absolute left-0 top-full z-50 mt-1 w-56 rounded-xl border border-line bg-card p-3 text-left text-[11px] leading-5 text-zinc-300 shadow-xl ${open ? "" : "hidden group-hover:block"}`}
+        onClick={e => e.stopPropagation()}
+      >
+        {lines.map(l => (
+          <div key={l}>{l}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const { inputs, auth, offline, sessionExpired, loading, now, refresh, setAuth } = useDashboard();
   const [tab, setTab] = useState<Tab>("overview");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [posSheet, setPosSheet] = useState<{ open: boolean; editing: ExtraComputation | null }>({
+    open: false,
+    editing: null,
+  });
+  const [drawer, setDrawer] = useState<"prices" | "convert" | null>(null);
 
   const result = useMemo(() => (inputs ? computeDashboard(inputs, now) : null), [inputs, now]);
 
@@ -84,11 +130,13 @@ export default function App() {
   const positionsProps = {
     r: result,
     positions: inputs.positions,
-    unitOptions,
     canEdit: canEditPositions,
     manageHint,
     onChanged: () => void refresh(),
+    onEdit: (entry: ExtraComputation) => setPosSheet({ open: true, editing: entry }),
   };
+
+  const headerBtn = "flex items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2";
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-bg lg:max-w-[1400px]">
@@ -96,20 +144,38 @@ export default function App() {
         <div className="flex items-center gap-2">
           <span className="text-base font-bold">FiMs</span>
           <StatusBadge status={result.status} />
+          <InfoPopover r={result} nowMs={now.getTime()} />
         </div>
         <div className="flex items-center gap-1">
-          <button
-            onClick={() => void refresh()}
-            className="rounded-lg p-2 text-muted hover:bg-card2"
-            aria-label="Refresh"
-          >
+          <button onClick={() => void refresh()} className={headerBtn} aria-label="Refresh">
             <IconRefresh size={18} />
           </button>
           <button
-            onClick={() => setSettingsOpen(true)}
-            className="rounded-lg p-2 text-muted hover:bg-card2"
-            aria-label="Settings"
+            onClick={() => setDrawer("prices")}
+            className="hidden items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2 lg:flex"
+            aria-label="Prices"
           >
+            <IconCoin size={18} />
+            <span className="text-xs font-medium">Prices</span>
+          </button>
+          <button
+            onClick={() => setDrawer("convert")}
+            className="hidden items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2 lg:flex"
+            aria-label="Convert"
+          >
+            <IconArrowsExchange size={18} />
+            <span className="text-xs font-medium">Convert</span>
+          </button>
+          <button
+            onClick={() => setPosSheet({ open: true, editing: null })}
+            disabled={!canEditPositions}
+            title={manageHint ?? "Add position"}
+            className={`${headerBtn} disabled:opacity-40`}
+            aria-label="Add position"
+          >
+            <IconPlus size={18} />
+          </button>
+          <button onClick={() => setSettingsOpen(true)} className={headerBtn} aria-label="Settings">
             <IconSettings size={18} />
           </button>
         </div>
@@ -136,7 +202,7 @@ export default function App() {
 
       <main className="flex-1 px-4 pb-24 pt-3 lg:px-6 lg:pb-10">
         <div className="lg:hidden">
-          {tab === "overview" && <Overview r={result} now={now} />}
+          {tab === "overview" && <Overview r={result} />}
           {tab === "positions" && <Positions {...positionsProps} />}
           {tab === "multiply" && <Multiply r={result} />}
           {tab === "prices" && <Prices r={result} />}
@@ -145,15 +211,13 @@ export default function App() {
 
         <div className="hidden lg:grid lg:grid-cols-3 lg:items-start lg:gap-4">
           <div className="min-w-0 space-y-3">
-            <Overview r={result} now={now} />
-            <Prices r={result} />
+            <Overview r={result} />
           </div>
           <div className="min-w-0 space-y-3">
             <Positions {...positionsProps} />
           </div>
           <div className="min-w-0 space-y-3">
             <Multiply r={result} />
-            <ConvertTab r={result} />
           </div>
         </div>
       </main>
@@ -181,6 +245,29 @@ export default function App() {
           onRefresh={() => void refresh()}
           onLogout={() => void logout()}
         />
+      )}
+
+      {posSheet.open && (
+        <PositionSheet
+          editing={posSheet.editing}
+          unitOptions={unitOptions}
+          onClose={() => setPosSheet({ open: false, editing: null })}
+          onSaved={() => {
+            setPosSheet({ open: false, editing: null });
+            void refresh();
+          }}
+        />
+      )}
+
+      {drawer === "prices" && (
+        <Drawer title="Prices" onClose={() => setDrawer(null)}>
+          <Prices r={result} />
+        </Drawer>
+      )}
+      {drawer === "convert" && (
+        <Drawer title="Convert" onClose={() => setDrawer(null)} wide>
+          <ConvertTab r={result} />
+        </Drawer>
       )}
 
       {loginOpen && (
