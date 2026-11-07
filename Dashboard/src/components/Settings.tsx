@@ -1,7 +1,6 @@
 import {
   IconBell,
   IconBellOff,
-  IconChevronRight,
   IconDeviceDesktop,
   IconLogout,
   IconMoon,
@@ -75,7 +74,6 @@ export function Settings({
           <span className="flex-1 text-sm">
             Theme · {pref === "system" ? "System" : pref === "light" ? "Light" : "Dark"}
           </span>
-          <IconChevronRight size={16} className="text-muted" />
         </button>
         <button
           onClick={toggle}

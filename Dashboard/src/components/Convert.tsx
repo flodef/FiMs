@@ -31,7 +31,7 @@ export function ConvertTab({ r }: { r: DashboardResult }) {
     <div className="space-y-3">
       <Card>
         <CardTitle>Amount</CardTitle>
-        <div className="flex flex-wrap items-start gap-2">
+        <div className="flex items-center gap-2">
           <input
             ref={inputRef}
             inputMode="decimal"
@@ -40,7 +40,19 @@ export function ConvertTab({ r }: { r: DashboardResult }) {
             onChange={e => setAmount(sanitize(e.target.value))}
             className="w-[120px] shrink-0 rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold tabular-nums outline-none focus:border-accent"
           />
-          <div className="flex min-w-0 flex-1 basis-44 flex-wrap gap-1.5">
+          <select
+            value={unit}
+            onChange={e => setUnit(e.target.value as Unit)}
+            aria-label="Unit"
+            className="min-w-0 flex-1 rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold outline-none focus:border-accent lg:hidden"
+          >
+            {UNITS.map(u => (
+              <option key={u} value={u}>
+                {u}
+              </option>
+            ))}
+          </select>
+          <div className="hidden min-w-0 flex-1 flex-wrap items-center gap-1.5 lg:flex">
             {UNITS.map(u => (
               <button
                 key={u}
