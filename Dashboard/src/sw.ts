@@ -4,6 +4,9 @@ import { NavigationRoute, registerRoute } from "workbox-routing";
 
 declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: { url: string; revision: string | null }[] };
 
+self.addEventListener("install", () => void self.skipWaiting());
+self.addEventListener("activate", event => event.waitUntil(self.clients.claim()));
+
 precacheAndRoute(self.__WB_MANIFEST);
 
 registerRoute(

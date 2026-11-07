@@ -12,6 +12,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { computeDashboard, type DashboardResult, type ExtraComputation } from "./lib/compute";
 import { timeAgo } from "./lib/format";
+import { checkForUpdate } from "./lib/pwa";
 import type { Inputs, SourceName } from "./lib/types";
 import { useDashboard } from "./hooks/useDashboard";
 import { Overview } from "./components/Overview";
@@ -264,7 +265,10 @@ export default function App() {
         <Drawer title="Settings" onClose={() => setSettingsOpen(false)}>
           <Settings
             onClose={() => setSettingsOpen(false)}
-            onRefresh={() => void refresh()}
+            onRefresh={() => {
+              checkForUpdate();
+              void refresh();
+            }}
             onLogout={() => void logout()}
           />
         </Drawer>

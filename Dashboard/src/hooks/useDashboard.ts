@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fixtureMode, loadFixtureInputs } from "../lib/fixture";
+import { checkForUpdate } from "../lib/pwa";
 import type { Inputs } from "../lib/types";
 
 const LS_KEY = "fims-dash:inputs:v1";
@@ -75,7 +76,9 @@ export function useDashboard() {
       if (document.visibilityState === "visible") void refresh();
     }, 5 * 60_000);
     const onVis = () => {
-      if (document.visibilityState === "visible") void refresh();
+      if (document.visibilityState !== "visible") return;
+      checkForUpdate();
+      void refresh();
     };
     document.addEventListener("visibilitychange", onVis);
     return () => {
