@@ -1,13 +1,21 @@
-import { IconBell, IconBellOff, IconLogout, IconRefresh } from "@tabler/icons-react";
+import {
+  IconBell,
+  IconBellOff,
+  IconDeviceDesktop,
+  IconLogout,
+  IconMoon,
+  IconRefresh,
+  IconSun,
+} from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { currentSubscription, pushSupported, subscribePush, unsubscribePush } from "../lib/push";
 import { setTheme, themePref, type ThemePref } from "../lib/theme";
 import pkg from "../../package.json";
 
-const THEMES: { id: ThemePref; label: string }[] = [
-  { id: "system", label: "System" },
-  { id: "dark", label: "Dark" },
-  { id: "light", label: "Light" },
+const THEMES: { id: ThemePref; label: string; icon: typeof IconSun }[] = [
+  { id: "light", label: "Light", icon: IconSun },
+  { id: "system", label: "System", icon: IconDeviceDesktop },
+  { id: "dark", label: "Dark", icon: IconMoon },
 ];
 
 export function Settings({
@@ -52,18 +60,23 @@ export function Settings({
       <div className="pb-3">
         <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Theme</div>
         <div className="grid grid-cols-3 gap-1 rounded-lg bg-card2 p-1">
-          {THEMES.map(t => (
-            <button
-              key={t.id}
-              onClick={() => {
-                setTheme(t.id);
-                setPref(t.id);
-              }}
-              className={`rounded-md px-2 py-1.5 text-xs font-semibold ${pref === t.id ? "bg-accent text-white" : "text-muted"}`}
-            >
-              {t.label}
-            </button>
-          ))}
+          {THEMES.map(t => {
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.id}
+                onClick={() => {
+                  setTheme(t.id);
+                  setPref(t.id);
+                }}
+                title={t.label}
+                aria-label={t.label}
+                className={`flex items-center justify-center rounded-md py-2 ${pref === t.id ? "bg-accent text-white" : "text-muted"}`}
+              >
+                <Icon size={18} />
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className="divide-y divide-line/60">

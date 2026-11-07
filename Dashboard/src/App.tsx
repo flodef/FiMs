@@ -112,11 +112,12 @@ export default function App() {
   if (!result) return null;
 
   const canEditPositions = auth === "authed" && !offline;
-  const manageHint = canEditPositions
-    ? null
-    : offline
-      ? "Offline — reconnect to manage positions."
-      : "Log in to manage positions.";
+  const manageHint =
+    auth === "unknown" || canEditPositions
+      ? null
+      : offline
+        ? "Offline — reconnect to manage positions."
+        : "Log in to manage positions.";
 
   const unitOptions = [
     "EUR",

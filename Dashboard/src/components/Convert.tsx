@@ -9,11 +9,14 @@ const DECIMALS: Record<Unit, number> = { EUR: 2, USD: 2, FIMS: 2, FSOL: 3, FLiP:
 export function ConvertTab({ r }: { r: DashboardResult }) {
   const [amount, setAmount] = useState("90");
   const [unit, setUnit] = useState<Unit>("EUR");
-  const sanitize = (v: string) =>
-    v
-      .replace(/\D/g, "")
-      .slice(0, 6)
-      .replace(/^0+(?=\d)/, "");
+  const sanitize = (v: string) => {
+    const cleaned = v.replace(/,/g, ".").replace(/[^0-9.]/g, "");
+    if (!/\d/.test(cleaned)) return "";
+    const [intPart, ...fracParts] = cleaned.split(".");
+    const int = intPart.replace(/^0+(?=\d)/, "").slice(0, 6) || "0";
+    if (!cleaned.includes(".")) return int;
+    return `${int}.${fracParts.join("").slice(0, 4)}`;
+  };
   const qty = amount === "" ? NaN : Number(amount);
   const out = useMemo(
     () => (Number.isFinite(qty) ? convert(qty, unit, priceMapFromCells(r.cells)) : null),
@@ -26,11 +29,11 @@ export function ConvertTab({ r }: { r: DashboardResult }) {
         <CardTitle>Amount</CardTitle>
         <div className="flex flex-wrap items-start gap-2">
           <input
-            inputMode="numeric"
-            pattern="[0-9]*"
+            inputMode="decimal"
+            pattern="[0-9.,]*"
             value={amount}
             onChange={e => setAmount(sanitize(e.target.value))}
-            className="w-24 shrink-0 rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold tabular-nums outline-none focus:border-accent"
+            className="w-32 shrink-0 rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold tabular-nums outline-none focus:border-accent"
           />
           <div className="flex min-w-0 flex-1 basis-44 flex-wrap gap-1.5">
             {UNITS.map(u => (
