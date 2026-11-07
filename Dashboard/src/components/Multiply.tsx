@@ -19,8 +19,6 @@ const eur = (v: number) => `${fmtEUR(v)} €`;
 const FIMS_ROWS: { label: string; get: (r: DashboardResult) => number; fmt: (v: number) => string }[] = [
   { label: "Total / Sol ratio", get: r => r.fims.totalSolRatio, fmt: v => fmtPct(v) },
   { label: "JLP Day Average", get: r => r.fims.jlpDayAverage, fmt: v => fmtNum(v, 4) },
-  { label: "FiMs SOL Diff", get: r => r.fims.fimsSolDiff, fmt: v => fmtNum(v, 2) },
-  { label: "FiMs EURC Diff", get: r => r.fims.fimsEurcDiff, fmt: eur },
   { label: "JLP Ratio", get: r => r.fims.jlpRatio, fmt: v => fmtNum(v, 2) },
   { label: "FiMs Token", get: r => r.fims.fimsToken, fmt: eur },
   { label: "Due per day", get: r => r.fims.duePerDay, fmt: eur },

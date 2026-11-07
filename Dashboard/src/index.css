@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* light theme */
+  --c-bg: 243 244 246;
+  --c-card: 255 255 255;
+  --c-card2: 238 242 247;
+  --c-line: 226 232 240;
+  --c-accent: 59 130 246;
+  --c-ok: 22 163 74;
+  --c-warn: 217 119 6;
+  --c-danger: 220 38 38;
+  --c-muted: 100 116 139;
+  --c-ink: 30 41 59;
+}
+
+.dark {
+  /* dark theme (original palette) */
+  --c-bg: 11 15 23;
+  --c-card: 17 22 31;
+  --c-card2: 22 28 40;
+  --c-line: 35 43 58;
+  --c-accent: 79 140 255;
+  --c-ok: 52 211 153;
+  --c-warn: 251 191 36;
+  --c-danger: 248 113 113;
+  --c-muted: 139 148 167;
+  --c-ink: 244 244 245;
+}
+
 html,
 body,
 #root {
@@ -9,7 +37,7 @@ body,
 }
 
 body {
-  @apply bg-bg text-zinc-100 antialiased;
+  @apply bg-bg text-ink antialiased;
   overscroll-behavior-y: none;
 }
 

@@ -59,7 +59,7 @@ export function Login({ onSuccess, compact = false }: { onSuccess: () => void; c
             type="button"
             onClick={() => setVisible(v => !v)}
             aria-label={visible ? "Hide password" : "Show password"}
-            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted hover:text-white"
+            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-muted hover:text-ink"
           >
             {visible ? <IconEyeOff size={18} /> : <IconEye size={18} />}
           </button>

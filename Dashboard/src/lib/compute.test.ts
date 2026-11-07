@@ -221,4 +221,72 @@ describe("extra positions", () => {
     const baseJlp = r6.collaterals.find(x => x.token === "JLP" && x.id == null);
     expect(baseJlp!.liqPriceEur).toBeCloseTo(c.D11 as number, 10);
   });
+
+  test("repayToTarget for base collaterals above target", () => {
+    const jlp = r.collaterals.find(x => x.token === "JLP" && x.id == null)!;
+    const jupsol = r.collaterals.find(x => x.token === "JupSOL" && x.id == null)!;
+    const debtJlp = inputs.positions.find(p => p.token === "USDT JLP")?.amount ?? 0;
+    const debtJupsol = inputs.positions.find(p => p.token === "USDT JupSOL")?.amount ?? 0;
+    expect(jlp.repayUnit).toBe("USDT");
+    expect(jlp.repayToTarget).toBeCloseTo(debtJlp * (1 - 0.82 / jlp.ltv), 6);
+    expect(jupsol.repayUnit).toBe("USDT");
+    expect(jupsol.repayToTarget).toBeCloseTo(debtJupsol * (1 - 0.7 / jupsol.ltv), 6);
+    // sanity vs the sheet amounts quoted in the spec
+    expect(debtJlp).toBeCloseTo(126292.28, 2);
+    expect(debtJupsol).toBeCloseTo(82313.79, 2);
+  });
+
+  test("repayToTarget for extras and null cases", () => {
+    // extra above target: 50 USDT debt, ltv 0.9 > target 0.82
+    const r7 = withExtras([
+      {
+        id: 7,
+        origin: "jupiter",
+        token: "JLP",
+        source: "Jupiter Borrow",
+        amount: 100,
+        apy: 0.1,
+        ltv: 0.9,
+        liqThreshold: 0.95,
+        unit: "JLP",
+      },
+      {
+        id: 7,
+        origin: "jupiter",
+        token: "USDT JLP",
+        source: "Jupiter Borrow",
+        amount: 50,
+        apy: -0.05,
+        unit: "USDT",
+      },
+    ]);
+    const c7 = r7.collaterals.find(x => x.id === 7)!;
+    expect(c7.repayUnit).toBe("USDT");
+    expect(c7.repayToTarget).toBeCloseTo(50 * (1 - 0.82 / 0.9), 10);
+
+    // extra at/below target → null
+    const r8 = withExtras([
+      {
+        id: 8,
+        origin: "jupiter",
+        token: "JLP",
+        source: "Jupiter Borrow",
+        amount: 100,
+        apy: 0.1,
+        ltv: 0.5,
+        liqThreshold: 0.9,
+        unit: "JLP",
+      },
+      {
+        id: 8,
+        origin: "jupiter",
+        token: "USDT JLP",
+        source: "Jupiter Borrow",
+        amount: 50,
+        apy: -0.05,
+        unit: "USDT",
+      },
+    ]);
+    expect(r8.collaterals.find(x => x.id === 8)!.repayToTarget).toBeNull();
+  });
 });

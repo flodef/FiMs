@@ -25,6 +25,9 @@ export interface CollateralAlert {
   currentPriceEur: number | null;
   /** tracked_positions id for extra positions; undefined for base config rows */
   id?: number;
+  /** debt amount to repay to bring LTV back to target, in repayUnit; null when at/below target */
+  repayToTarget: number | null;
+  repayUnit: string | null;
 }
 
 export interface StrategyRowView {
@@ -127,6 +130,8 @@ export interface DashboardResult {
 
 const eq = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 const starts = (a: string, prefix: string) => a.toLowerCase().startsWith(prefix.toLowerCase());
+const firstWord = (t: string) => t.trim().split(/\s+/)[0] ?? t;
+const lastWord = (t: string) => t.trim().split(/\s+/).pop() ?? t;
 
 function sheetMatch(pattern: string, value: string): boolean {
   const re = new RegExp("^" + pattern.split("*").map(escapeRe).join(".*") + "$", "i");
@@ -441,6 +446,36 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
     const crow = strat.find(r => eq(r.label, p.token) || eq(r.label, `${p.token} Jupiter`));
     const sym = p.token.trim().split(/\s+/).pop() ?? p.token;
     const eid = (p as ExtraPosition).id;
+
+    // Repay-to-target: debtAmount × (1 − target/ltv) in debt-token units.
+    let repayToTarget: number | null = null;
+    let repayUnit: string | null = null;
+    if (target != null && p.ltv > target) {
+      const colTok = p.token.trim().toLowerCase();
+      if (eid != null) {
+        let amt = 0;
+        let unit: string | null = null;
+        for (const d of extraInputs) {
+          if (d.id !== eid) continue;
+          const words = d.token.trim().split(/\s+/);
+          if (words.length < 2 || words[words.length - 1].toLowerCase() !== colTok) continue;
+          amt += d.amount;
+          unit ??= words[0];
+        }
+        if (amt > 0 && unit != null) {
+          repayToTarget = amt * (1 - target / p.ltv);
+          repayUnit = unit;
+        }
+      } else {
+        const debts = strat.filter(r => r.kind === "debt" && lastWord(r.label).toLowerCase() === colTok);
+        const amt = debts.reduce((s, r) => s + (r.amount ?? 0), 0);
+        if (debts.length > 0 && amt > 0) {
+          repayToTarget = amt * (1 - target / p.ltv);
+          repayUnit = firstWord(debts[0].label);
+        }
+      }
+    }
+
     collaterals.push({
       token: p.token,
       source: p.source,
@@ -451,6 +486,8 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
       liqPriceEur: eid != null ? extraLiqPriceEur(p as ExtraPosition) : (crow?.liqPriceEur ?? null),
       currentPriceEur: priceEurOf(sym),
       id: eid,
+      repayToTarget,
+      repayUnit,
     });
   }
 

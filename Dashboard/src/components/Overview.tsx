@@ -65,13 +65,13 @@ export function Overview({ r }: { r: DashboardResult }) {
             <span className="text-sm font-bold">TOTAL</span>
             <span className="flex items-baseline gap-2">
               <span className="text-sm font-bold tabular-nums">{fmtPct(r.borrowLend.totalGainPct)}</span>
-              <span className="whitespace-nowrap text-right text-[11px] font-medium text-zinc-200">{totalLine}</span>
+              <span className="whitespace-nowrap text-right text-[11px] font-medium text-ink">{totalLine}</span>
             </span>
           </div>
           {hasExtras && (
             <div className="flex items-baseline justify-between px-1 py-2">
               <span className="text-sm font-semibold text-muted">Other positions</span>
-              <span className="whitespace-nowrap text-right text-[11px] font-medium text-zinc-200">{extrasLine}</span>
+              <span className="whitespace-nowrap text-right text-[11px] font-medium text-ink">{extrasLine}</span>
             </div>
           )}
         </div>

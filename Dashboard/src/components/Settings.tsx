@@ -1,7 +1,14 @@
 import { IconBell, IconBellOff, IconLogout, IconRefresh } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { currentSubscription, pushSupported, subscribePush, unsubscribePush } from "../lib/push";
+import { setTheme, themePref, type ThemePref } from "../lib/theme";
 import pkg from "../../package.json";
+
+const THEMES: { id: ThemePref; label: string }[] = [
+  { id: "system", label: "System" },
+  { id: "dark", label: "Dark" },
+  { id: "light", label: "Light" },
+];
 
 export function Settings({
   onClose,
@@ -15,6 +22,7 @@ export function Settings({
   const [subscribed, setSubscribed] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [pref, setPref] = useState<ThemePref>(themePref());
   const supported = pushSupported();
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
@@ -41,6 +49,23 @@ export function Settings({
 
   return (
     <div>
+      <div className="pb-3">
+        <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Theme</div>
+        <div className="grid grid-cols-3 gap-1 rounded-lg bg-card2 p-1">
+          {THEMES.map(t => (
+            <button
+              key={t.id}
+              onClick={() => {
+                setTheme(t.id);
+                setPref(t.id);
+              }}
+              className={`rounded-md px-2 py-1.5 text-xs font-semibold ${pref === t.id ? "bg-accent text-white" : "text-muted"}`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="divide-y divide-line/60">
         <button
           onClick={toggle}

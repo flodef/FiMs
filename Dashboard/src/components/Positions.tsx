@@ -4,7 +4,7 @@ import type { CollateralAlert, DashboardResult, ExtraComputation } from "../lib/
 import { fixtureMode } from "../lib/fixture";
 import { fmtEUR, fmtNum, fmtPct } from "../lib/format";
 import type { PositionRow as Row } from "../lib/types";
-import { Card, CardTitle, KV, LtvGauge } from "./ui";
+import { Card, CardTitle, LtvGauge } from "./ui";
 
 const firstWord = (t: string) => t.trim().split(/\s+/)[0] ?? t;
 const lastWord = (t: string) => t.trim().split(/\s+/).pop() ?? t;
@@ -124,7 +124,16 @@ function BundleView({ b, alert }: { b: Bundle<Row>; alert: CollateralAlert | und
           <LtvGauge ltv={alert.ltv} target={alert.target} liq={alert.liqThreshold} />
         </div>
       )}
-      {parts.length > 0 && <div className="mt-1 text-right text-[11px] text-muted">{parts.join(" · ")}</div>}
+      {(alert?.repayToTarget != null || parts.length > 0) && (
+        <div className="mt-1 flex flex-wrap items-baseline gap-x-3 text-[11px]">
+          {alert?.repayToTarget != null && alert.repayUnit != null && (
+            <span className="font-medium text-warn">
+              repay {fmtNum(alert.repayToTarget)} {alert.repayUnit}
+            </span>
+          )}
+          {parts.length > 0 && <span className="ml-auto text-right text-muted">{parts.join(" · ")}</span>}
+        </div>
+      )}
     </div>
   );
 }
@@ -367,11 +376,21 @@ export function Positions({
       ))}
 
       <Card>
-        <CardTitle>FiMs EURC / USD</CardTitle>
-        <KV label="FiMs EURC (tokens)" value={fmtNum(r.fims.eurc.tokenAmount)} />
-        <KV label="FiMs EURC (value)" value={`${fmtEUR(r.fims.eurc.eurAmount)} €`} />
-        <KV label="FiMs USD (amount)" value={`${fmtNum(r.fims.usd.usdAmount)} $`} />
-        <KV label="FiMs USD (value)" value={`${fmtEUR(r.fims.usd.eurAmount)} €`} />
+        <CardTitle>FiMs Diff</CardTitle>
+        <div className="-mx-1 divide-y divide-line/60">
+          {(
+            [
+              ["SOL", r.fims.fimsSolDiff],
+              ["EURC", r.fims.fimsEurcDiff],
+              ["USD", r.fims.usd.usdAmount],
+            ] as const
+          ).map(([label, v]) => (
+            <div key={label} className="flex items-baseline justify-between px-1 py-2">
+              <span className="text-sm">{label}</span>
+              <span className="text-sm font-semibold tabular-nums">{fmtNum(v, 2)}</span>
+            </div>
+          ))}
+        </div>
       </Card>
 
       {confirm && (

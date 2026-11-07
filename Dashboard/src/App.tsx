@@ -5,7 +5,6 @@ import {
   IconInfoCircle,
   IconLayoutDashboard,
   IconPlus,
-  IconRefresh,
   IconSettings,
   IconWallet,
   IconX,
@@ -61,7 +60,7 @@ function InfoPopover({ r, nowMs }: { r: DashboardResult; nowMs: number }) {
         <IconInfoCircle size={16} />
       </button>
       <div
-        className={`absolute left-0 top-full z-50 mt-1 w-56 rounded-xl border border-line bg-card p-3 text-left text-[11px] leading-5 text-zinc-300 shadow-xl ${open ? "" : "hidden group-hover:block"}`}
+        className={`absolute left-0 top-full z-50 mt-1 w-56 rounded-xl border border-line bg-card p-3 text-left text-[11px] leading-5 text-muted shadow-xl ${open ? "" : "hidden group-hover:block"}`}
         onClick={e => e.stopPropagation()}
       >
         {lines.map(l => (
@@ -147,9 +146,6 @@ export default function App() {
           <InfoPopover r={result} nowMs={now.getTime()} />
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={() => void refresh()} className={headerBtn} aria-label="Refresh">
-            <IconRefresh size={18} />
-          </button>
           <button
             onClick={() => setDrawer("prices")}
             className="hidden items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2 lg:flex"

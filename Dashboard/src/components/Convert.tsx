@@ -9,7 +9,12 @@ const DECIMALS: Record<Unit, number> = { EUR: 2, USD: 2, FIMS: 2, FSOL: 3, FLiP:
 export function ConvertTab({ r }: { r: DashboardResult }) {
   const [amount, setAmount] = useState("90");
   const [unit, setUnit] = useState<Unit>("EUR");
-  const qty = Number(amount.replace(",", "."));
+  const sanitize = (v: string) =>
+    v
+      .replace(/\D/g, "")
+      .slice(0, 6)
+      .replace(/^0+(?=\d)/, "");
+  const qty = amount === "" ? NaN : Number(amount);
   const out = useMemo(
     () => (Number.isFinite(qty) ? convert(qty, unit, priceMapFromCells(r.cells)) : null),
     [qty, unit, r.cells],
@@ -19,22 +24,25 @@ export function ConvertTab({ r }: { r: DashboardResult }) {
     <div className="space-y-3">
       <Card>
         <CardTitle>Amount</CardTitle>
-        <input
-          inputMode="decimal"
-          value={amount}
-          onChange={e => setAmount(e.target.value)}
-          className="w-full rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold tabular-nums outline-none focus:border-accent"
-        />
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {UNITS.map(u => (
-            <button
-              key={u}
-              onClick={() => setUnit(u)}
-              className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold ${u === unit ? "bg-accent text-white" : "bg-card2 text-muted"}`}
-            >
-              {u}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-start gap-2">
+          <input
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={amount}
+            onChange={e => setAmount(sanitize(e.target.value))}
+            className="w-24 shrink-0 rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold tabular-nums outline-none focus:border-accent"
+          />
+          <div className="flex min-w-0 flex-1 basis-44 flex-wrap gap-1.5">
+            {UNITS.map(u => (
+              <button
+                key={u}
+                onClick={() => setUnit(u)}
+                className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold ${u === unit ? "bg-accent text-white" : "bg-card2 text-muted"}`}
+              >
+                {u}
+              </button>
+            ))}
+          </div>
         </div>
       </Card>
 
