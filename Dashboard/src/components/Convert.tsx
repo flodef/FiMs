@@ -38,7 +38,7 @@ export function ConvertTab({ r }: { r: DashboardResult }) {
             pattern="[0-9.,]*"
             value={amount}
             onChange={e => setAmount(sanitize(e.target.value))}
-            className="w-[123px] shrink-0 rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold tabular-nums outline-none focus:border-accent"
+            className="w-[120px] shrink-0 rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold tabular-nums outline-none focus:border-accent"
           />
           <div className="flex min-w-0 flex-1 basis-44 flex-wrap gap-1.5">
             {UNITS.map(u => (

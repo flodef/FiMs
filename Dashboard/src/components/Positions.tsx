@@ -387,7 +387,9 @@ export function Positions({
           ).map(([label, v]) => (
             <div key={label} className="flex items-baseline justify-between px-1 py-2">
               <span className="text-sm">{label}</span>
-              <span className="text-sm font-semibold tabular-nums">{fmtNum(v, 2)}</span>
+              <span className={`text-sm font-semibold tabular-nums ${v < 0 ? "text-danger" : v > 0 ? "text-ok" : ""}`}>
+                {fmtNum(v, 2)}
+              </span>
             </div>
           ))}
         </div>

@@ -1,6 +1,7 @@
 import {
   IconBell,
   IconBellOff,
+  IconChevronRight,
   IconDeviceDesktop,
   IconLogout,
   IconMoon,
@@ -13,10 +14,11 @@ import { setTheme, themePref, type ThemePref } from "../lib/theme";
 import pkg from "../../package.json";
 
 const THEMES: { id: ThemePref; label: string; icon: typeof IconSun }[] = [
-  { id: "light", label: "Light", icon: IconSun },
   { id: "system", label: "System", icon: IconDeviceDesktop },
+  { id: "light", label: "Light", icon: IconSun },
   { id: "dark", label: "Dark", icon: IconMoon },
 ];
+const THEME_CYCLE: ThemePref[] = ["system", "light", "dark"];
 
 export function Settings({
   onClose,
@@ -58,28 +60,23 @@ export function Settings({
   return (
     <div>
       <div className="divide-y divide-line/60">
-        <div className="flex items-center justify-between py-3">
-          <span className="text-sm">Theme</span>
-          <div className="flex gap-1 rounded-lg bg-card2 p-1">
-            {THEMES.map(t => {
-              const Icon = t.icon;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => {
-                    setTheme(t.id);
-                    setPref(t.id);
-                  }}
-                  title={t.label}
-                  aria-label={t.label}
-                  className={`rounded-md p-1.5 ${pref === t.id ? "bg-accent text-white" : "text-muted"}`}
-                >
-                  <Icon size={18} />
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <button
+          onClick={() => {
+            const next = THEME_CYCLE[(THEME_CYCLE.indexOf(pref) + 1) % THEME_CYCLE.length];
+            setTheme(next);
+            setPref(next);
+          }}
+          className="flex w-full items-center gap-3 py-3 text-left"
+        >
+          {(() => {
+            const Icon = THEMES.find(t => t.id === pref)?.icon ?? IconDeviceDesktop;
+            return <Icon size={18} className="text-muted" />;
+          })()}
+          <span className="flex-1 text-sm">
+            Theme · {pref === "system" ? "System" : pref === "light" ? "Light" : "Dark"}
+          </span>
+          <IconChevronRight size={16} className="text-muted" />
+        </button>
         <button
           onClick={toggle}
           disabled={busy || !supported}
