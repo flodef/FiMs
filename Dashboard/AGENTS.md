@@ -10,6 +10,10 @@ Mobile PWA replacing the Google Sheet "Strategy" dashboard. Bun + Vite + React 1
 - `bun run build` — vite build + service worker (`dist/sw.js`) + manifest
 - `bunx prettier --write .` — formatting (config in package.json)
 
+## Versioning
+
+V1 starts at `1.0.0` (shown in Settings from `package.json`). Every commit touching `Dashboard/` bumps the patch version (`1.0.0` → `1.0.1`…), done automatically by the local hook `.git/hooks/pre-commit` (skipped if the commit already changes `"version"` by hand — use that for minor/major bumps). The hook is not versioned: if it's missing, bump `package.json` manually in each commit.
+
 ## Fixture mode
 
 `http://localhost:<port>/?fixture` loads `src/lib/__fixtures__/sheet-2026-11-06.json` instead of `/api/dashboard`. Gated on localhost hostname — unreachable in production. Used for screenshots/tests.
