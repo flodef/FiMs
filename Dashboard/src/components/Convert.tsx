@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { convert, priceMapFromCells, UNITS, type Unit } from "../lib/convert";
 import type { DashboardResult } from "../lib/compute";
 import { fmtNum } from "../lib/format";
@@ -17,6 +17,10 @@ export function ConvertTab({ r }: { r: DashboardResult }) {
     if (!cleaned.includes(".")) return int;
     return `${int}.${fracParts.join("").slice(0, 4)}`;
   };
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
   const qty = amount === "" ? NaN : Number(amount);
   const out = useMemo(
     () => (Number.isFinite(qty) ? convert(qty, unit, priceMapFromCells(r.cells)) : null),
@@ -29,11 +33,12 @@ export function ConvertTab({ r }: { r: DashboardResult }) {
         <CardTitle>Amount</CardTitle>
         <div className="flex flex-wrap items-start gap-2">
           <input
+            ref={inputRef}
             inputMode="decimal"
             pattern="[0-9.,]*"
             value={amount}
             onChange={e => setAmount(sanitize(e.target.value))}
-            className="w-32 shrink-0 rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold tabular-nums outline-none focus:border-accent"
+            className="w-[123px] shrink-0 rounded-lg border border-line bg-card2 px-3 py-2.5 text-base font-semibold tabular-nums outline-none focus:border-accent"
           />
           <div className="flex min-w-0 flex-1 basis-44 flex-wrap gap-1.5">
             {UNITS.map(u => (

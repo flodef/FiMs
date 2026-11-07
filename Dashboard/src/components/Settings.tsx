@@ -57,29 +57,29 @@ export function Settings({
 
   return (
     <div>
-      <div className="pb-3">
-        <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Theme</div>
-        <div className="grid grid-cols-3 gap-1 rounded-lg bg-card2 p-1">
-          {THEMES.map(t => {
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                onClick={() => {
-                  setTheme(t.id);
-                  setPref(t.id);
-                }}
-                title={t.label}
-                aria-label={t.label}
-                className={`flex items-center justify-center rounded-md py-2 ${pref === t.id ? "bg-accent text-white" : "text-muted"}`}
-              >
-                <Icon size={18} />
-              </button>
-            );
-          })}
-        </div>
-      </div>
       <div className="divide-y divide-line/60">
+        <div className="flex items-center justify-between py-3">
+          <span className="text-sm">Theme</span>
+          <div className="flex gap-1 rounded-lg bg-card2 p-1">
+            {THEMES.map(t => {
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    setTheme(t.id);
+                    setPref(t.id);
+                  }}
+                  title={t.label}
+                  aria-label={t.label}
+                  className={`rounded-md p-1.5 ${pref === t.id ? "bg-accent text-white" : "text-muted"}`}
+                >
+                  <Icon size={18} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <button
           onClick={toggle}
           disabled={busy || !supported}
