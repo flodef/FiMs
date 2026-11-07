@@ -23,7 +23,7 @@ import { Prices } from "./components/Prices";
 import { ConvertTab } from "./components/Convert";
 import { Settings } from "./components/Settings";
 import { Login } from "./components/Login";
-import { Drawer, StatusBadge } from "./components/ui";
+import { Drawer, StatusBadge, Toast } from "./components/ui";
 
 type Tab = "overview" | "positions" | "multiply" | "prices" | "convert";
 
@@ -97,6 +97,13 @@ export default function App() {
     editing: null,
   });
   const [drawer, setDrawer] = useState<"prices" | "convert" | null>(null);
+  const [toast, setToast] = useState<{ kind: "ok" | "error"; msg: string } | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const result = useMemo(() => (inputs ? computeDashboard(inputs, now) : null), [inputs, now]);
 
@@ -265,9 +272,18 @@ export default function App() {
         <Drawer title="Settings" onClose={() => setSettingsOpen(false)}>
           <Settings
             onClose={() => setSettingsOpen(false)}
-            onRefresh={() => {
+            onRefresh={async () => {
               checkForUpdate();
-              void refresh();
+              const r = await refresh();
+              setToast(
+                r === "ok"
+                  ? { kind: "ok", msg: "Data refreshed" }
+                  : r === "offline"
+                    ? { kind: "error", msg: "Refresh failed — offline" }
+                    : r === "expired"
+                      ? { kind: "error", msg: "Session expired — log in again" }
+                      : { kind: "error", msg: "Refresh already in progress" },
+              );
             }}
             onLogout={() => void logout()}
           />
@@ -296,6 +312,8 @@ export default function App() {
           <ConvertTab r={result} />
         </Drawer>
       )}
+
+      {toast && <Toast kind={toast.kind} message={toast.msg} />}
 
       {loginOpen && (
         <div

@@ -1,7 +1,7 @@
 {
   "name": "fims-dashboard",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@resvg/resvg-js": "2.6.2",
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

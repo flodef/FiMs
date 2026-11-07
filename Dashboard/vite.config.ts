@@ -22,8 +22,13 @@ export default defineConfig({
         background_color: "#0b0f17",
         theme_color: "#0b0f17",
         icons: [
-          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+          ...[48, 72, 96, 128, 144, 192, 384, 512].map(s => ({
+            src: `/icons/icon-${s}.png`,
+            sizes: `${s}x${s}`,
+            type: "image/png",
+            purpose: "any",
+          })),
+          { src: "/icons/icon-maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
           { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },

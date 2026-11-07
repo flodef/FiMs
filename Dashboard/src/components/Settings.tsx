@@ -33,7 +33,6 @@ export function Settings({
   const [msg, setMsg] = useState<string | null>(null);
   const [pref, setPref] = useState<ThemePref>(themePref());
   const supported = pushSupported();
-  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   useEffect(() => {
     void currentSubscription().then(s => setSubscribed(!!s));
@@ -86,11 +85,6 @@ export function Settings({
           </span>
           <span className="text-xs text-muted">{busy ? "…" : supported ? "" : "unsupported"}</span>
         </button>
-        {ios && (
-          <p className="py-2 text-[11px] leading-4 text-muted">
-            On iOS, add the app to your Home Screen first (Share → Add to Home Screen), then enable notifications here.
-          </p>
-        )}
         {msg && <p className="py-2 text-[11px] text-danger">{msg}</p>}
 
         <button

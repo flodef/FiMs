@@ -33,8 +33,8 @@ export function useDashboard() {
   const [now, setNow] = useState(() => new Date());
   const inflight = useRef(false);
 
-  const refresh = useCallback(async () => {
-    if (inflight.current) return;
+  const refresh = useCallback(async (): Promise<"ok" | "offline" | "expired" | "busy"> => {
+    if (inflight.current) return "busy";
     inflight.current = true;
     try {
       if (fixtureMode()) {
@@ -45,24 +45,28 @@ export function useDashboard() {
           setOffline(false);
           setSessionExpired(false);
         }
-        return;
+        return "ok";
       }
       const res = await fetch("/api/dashboard", { headers: { accept: "application/json" } });
       if (res.status === 401) {
         setAuth("anon");
         setSessionExpired(true);
-      } else if (res.ok) {
+        return "expired";
+      }
+      if (res.ok) {
         const data = (await res.json()) as Inputs;
         saveCache(data);
         setInputs(data);
         setAuth("authed");
         setOffline(false);
         setSessionExpired(false);
-      } else {
-        setOffline(true);
+        return "ok";
       }
+      setOffline(true);
+      return "offline";
     } catch {
       setOffline(true);
+      return "offline";
     } finally {
       inflight.current = false;
       setLoading(false);

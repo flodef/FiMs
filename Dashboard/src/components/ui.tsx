@@ -1,4 +1,4 @@
-import { IconX } from "@tabler/icons-react";
+import { IconAlertTriangle, IconCircleCheck, IconX } from "@tabler/icons-react";
 import { useEffect, type ReactNode } from "react";
 import { fmtPct } from "../lib/format";
 import type { StatusLevel } from "../lib/compute";
@@ -58,6 +58,19 @@ export function BigStat({ label, value, sub }: { label: string; value: string; s
       <div className="mt-1 text-2xl font-bold tabular-nums">{value}</div>
       {sub && <div className="mt-0.5 text-xs text-muted">{sub}</div>}
     </Card>
+  );
+}
+
+export function Toast({ kind, message }: { kind: "ok" | "error"; message: string }) {
+  const Icon = kind === "ok" ? IconCircleCheck : IconAlertTriangle;
+  return (
+    <div
+      role="status"
+      className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-xl border border-line bg-card px-4 py-2.5 text-sm shadow-xl lg:bottom-6"
+    >
+      <Icon size={16} className={kind === "ok" ? "text-ok" : "text-danger"} />
+      {message}
+    </div>
   );
 }
 
