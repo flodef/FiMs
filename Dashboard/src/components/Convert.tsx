@@ -61,7 +61,7 @@ export function ConvertTab({ r }: { r: DashboardResult }) {
       <Card>
         <CardTitle>Amount</CardTitle>
         <div className="flex items-center gap-2">
-          <div className="relative w-[120px] shrink-0">
+          <div className="relative w-[136px] shrink-0">
             <input
               ref={inputRef}
               inputMode="decimal"
