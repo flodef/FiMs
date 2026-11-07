@@ -15,3 +15,4 @@ export const MULTIPLY_C19 = 205094.17945312502;
 export const START_DATE = { y: 2024, m: 11, d: 15 }; // A17, Europe/Paris
 
 export const FETCH_TIMEOUT_MS = 8000;
+export const DEFI_TIMEOUT_MS = 20000;

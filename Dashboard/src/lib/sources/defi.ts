@@ -1,4 +1,4 @@
-import { DEFI_SHEET_ID, FETCH_TIMEOUT_MS, SHEETS_REFERER } from "../config.js";
+import { DEFI_SHEET_ID, DEFI_TIMEOUT_MS, SHEETS_REFERER } from "../config.js";
 import { serialToParisMs } from "../time.js";
 import type { DefiData } from "../types.js";
 
@@ -7,13 +7,11 @@ const num = (v: unknown): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-/** Port of the FiMs DeFi sheet pull: Price history (reduced), Wallet, FiMsData, Dashboard, PriceCache. */
-export async function fetchDefi(apiKey: string): Promise<DefiData> {
-  if (!apiKey) throw new Error("GOOGLE_API_KEY missing");
+async function fetchDefiOnce(apiKey: string): Promise<DefiData> {
   const ranges = ["Price!A1:R", "Wallet!D5", "FiMsData!B1", "FiMsData!B2", "Dashboard!B12", "PriceCache!C2:C"];
   const qs = ranges.map(r => `ranges=${encodeURIComponent(r)}`).join("&");
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${DEFI_SHEET_ID}/values:batchGet?${qs}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER&key=${apiKey}`;
-  const res = await fetch(url, { headers: { Referer: SHEETS_REFERER }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+  const res = await fetch(url, { headers: { Referer: SHEETS_REFERER }, signal: AbortSignal.timeout(DEFI_TIMEOUT_MS) });
   if (!res.ok) throw new Error(`sheets → HTTP ${res.status}`);
   const body: any = await res.json();
   const vr = body?.valueRanges ?? [];
@@ -54,4 +52,18 @@ export async function fetchDefi(apiKey: string): Promise<DefiData> {
     total: cell(4),
     priceLastUpdated,
   };
+}
+
+/** Port of the FiMs DeFi sheet pull: Price history (reduced), Wallet, FiMsData, Dashboard, PriceCache.
+ *  The Price!A1:R range is ~530 KB and can take several seconds — retries once on timeout/5xx. */
+export async function fetchDefi(apiKey: string): Promise<DefiData> {
+  if (!apiKey) throw new Error("GOOGLE_API_KEY missing");
+  const started = Date.now();
+  try {
+    return await fetchDefiOnce(apiKey);
+  } catch (e) {
+    const retryable = /timeout|abort|HTTP 5\d\d/i.test(String(e));
+    if (retryable && Date.now() - started < 10000) return fetchDefiOnce(apiKey);
+    throw e;
+  }
 }

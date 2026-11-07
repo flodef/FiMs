@@ -1,4 +1,4 @@
-import { FETCH_TIMEOUT_MS } from "./config.js";
+import { DEFI_TIMEOUT_MS, FETCH_TIMEOUT_MS } from "./config.js";
 import { computeDashboard } from "./compute.js";
 import type { DashboardResult } from "./compute.js";
 import { fetchDefi } from "./sources/defi.js";
@@ -37,11 +37,8 @@ const validDefi = (d: DefiData) =>
   d.priceRows.length >= 3 &&
   d.priceHeaders.length > 0;
 
-async function timed<T>(p: Promise<T>): Promise<T> {
-  return Promise.race([
-    p,
-    new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), FETCH_TIMEOUT_MS + 2000)),
-  ]);
+async function timed<T>(p: Promise<T>, timeoutMs: number): Promise<T> {
+  return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), timeoutMs + 2000))]);
 }
 
 interface SourceOutcome<T> {
@@ -56,10 +53,11 @@ async function withLastGood<T>(
   source: SourceName | string,
   fetcher: () => Promise<T>,
   validate: (d: T) => boolean,
+  timeoutMs = FETCH_TIMEOUT_MS,
 ): Promise<SourceOutcome<T>> {
   const now = Date.now();
   try {
-    const data = await timed(fetcher());
+    const data = await timed(fetcher(), timeoutMs);
     if (!validate(data)) throw new Error("validation failed");
     await setLastGood(source, data);
     return { data, ok: true, stale: false, at: now };
@@ -152,7 +150,7 @@ export async function fetchInputs(): Promise<Inputs> {
     withLastGood<PositionRow[]>("jupiter", () => fetchJupiter(env("JUPITER_API_KEY")).then(sanitizeRows), validRows),
     withLastGood<PositionRow[]>("kamino", () => fetchKamino().then(sanitizeRows), validRows),
     withLastGood<SanctumRaw>("sanctum", () => fetchSanctum(), validSanctum),
-    withLastGood<DefiData>("defi", () => fetchDefi(env("GOOGLE_API_KEY")), validDefi),
+    withLastGood<DefiData>("defi", () => fetchDefi(env("GOOGLE_API_KEY")), validDefi, DEFI_TIMEOUT_MS),
     fetchExtras(tracked),
   ]);
 

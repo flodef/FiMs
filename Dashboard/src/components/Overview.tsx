@@ -1,6 +1,6 @@
-import type { DashboardResult } from "../lib/compute";
+import type { CollateralAlert, DashboardResult } from "../lib/compute";
 import { fmtEUR, fmtNum, fmtPct } from "../lib/format";
-import { Card, CardTitle, KV } from "./ui";
+import { Card, CardTitle } from "./ui";
 
 function Half({ label, value, unit, big = true }: { label?: string; value: string; unit: string; big?: boolean }) {
   return (
@@ -14,12 +14,53 @@ function Half({ label, value, unit, big = true }: { label?: string; value: strin
   );
 }
 
+function KeyFig({ label, value, unit }: { label: string; value: string; unit?: string }) {
+  return (
+    <div className="flex min-w-0 flex-col items-center px-1 py-1 text-center">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted">{label}</div>
+      <div className="flex items-baseline justify-center gap-1 whitespace-nowrap">
+        <span className="text-base font-bold tabular-nums sm:text-lg">{value}</span>
+        {unit && <span className="text-[11px] text-muted">{unit}</span>}
+      </div>
+    </div>
+  );
+}
+
+function LtvFig({ label, alert }: { label: string; alert: CollateralAlert | undefined }) {
+  const color =
+    alert?.level === "warn" ? "text-warn" : alert?.level === "danger" ? "text-danger" : alert ? "text-ok" : "";
+  return (
+    <div className="flex min-w-0 flex-col items-center px-1 py-1 text-center">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted">{label}</div>
+      {!alert ? (
+        <div className="text-sm font-bold text-muted">—</div>
+      ) : (
+        <div className="whitespace-nowrap text-[13px] font-bold tabular-nums sm:text-sm">
+          <span className={color}>{fmtPct(alert.ltv)}</span>
+          <span className="font-medium text-muted"> / {alert.target != null ? fmtPct(alert.target, 0) : "—"}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Overview({ r }: { r: DashboardResult }) {
   const hasExtras = r.extras.rows.length > 0;
   const totalLine = `${fmtEUR(r.borrowLend.totalValueDay)} € / day · ${fmtEUR(r.borrowLend.totalValueMonth, 0)} € / month`;
   const extrasLine = `${fmtEUR(r.extras.perDay)} € / day · ${fmtEUR(r.extras.perMonth, 0)} € / month`;
+  const baseAlert = (token: string) =>
+    r.collaterals.find(c => c.id === undefined && c.token.trim().toLowerCase() === token);
   return (
     <div className="space-y-3">
+      <Card>
+        <CardTitle>Key figures</CardTitle>
+        <div className="grid grid-cols-3 divide-x divide-line/60">
+          <KeyFig label="Total" value={fmtEUR(r.fims.total, 0)} unit="€" />
+          <LtvFig label="JLP LTV" alert={baseAlert("jlp")} />
+          <LtvFig label="JupSOL LTV" alert={baseAlert("jupsol")} />
+        </div>
+      </Card>
+
       <Card>
         <CardTitle>Gains</CardTitle>
         <div className="grid grid-cols-2 divide-x divide-line/60">
@@ -75,13 +116,6 @@ export function Overview({ r }: { r: DashboardResult }) {
             </div>
           )}
         </div>
-      </Card>
-
-      <Card>
-        <CardTitle>JupSOL</CardTitle>
-        <KV label="Value" value={`${fmtEUR(r.jupsol.value)} €`} />
-        <KV label="Ratio (SOL/JupSOL)" value={fmtNum(r.jupsol.ratio, 6)} mono />
-        <KV label={`Perf${r.jupsol.apySource === "jupiter" ? " (jupiter)" : ""}`} value={fmtPct(r.jupsol.apy)} />
       </Card>
     </div>
   );

@@ -12,6 +12,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { computeDashboard, type DashboardResult, type ExtraComputation } from "./lib/compute";
 import { timeAgo } from "./lib/format";
+import type { Inputs, SourceName } from "./lib/types";
 import { useDashboard } from "./hooks/useDashboard";
 import { Overview } from "./components/Overview";
 import { Positions } from "./components/Positions";
@@ -25,6 +26,13 @@ import { Drawer, StatusBadge } from "./components/ui";
 
 type Tab = "overview" | "positions" | "multiply" | "prices" | "convert";
 
+const SOURCE_LABELS: Record<SourceName, string> = {
+  jupiter: "Jupiter",
+  kamino: "Kamino",
+  sanctum: "Sanctum",
+  defi: "DeFi sheet",
+};
+
 const TABS: { id: Tab; label: string; icon: typeof IconLayoutDashboard }[] = [
   { id: "overview", label: "Overview", icon: IconLayoutDashboard },
   { id: "positions", label: "Positions", icon: IconWallet },
@@ -33,7 +41,7 @@ const TABS: { id: Tab; label: string; icon: typeof IconLayoutDashboard }[] = [
   { id: "convert", label: "Convert", icon: IconArrowsExchange },
 ];
 
-function InfoPopover({ r, nowMs }: { r: DashboardResult; nowMs: number }) {
+function InfoPopover({ r, sources, nowMs }: { r: DashboardResult; sources: Inputs["sources"]; nowMs: number }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (!open) return;
@@ -44,7 +52,14 @@ function InfoPopover({ r, nowMs }: { r: DashboardResult; nowMs: number }) {
   const lines = [
     r.priceUpdatedAt ? `Prices updated ${timeAgo(r.priceUpdatedAt, nowMs)}` : "Prices: never",
     r.positionsUpdatedAt ? `Positions updated ${timeAgo(r.positionsUpdatedAt, nowMs)}` : "Positions: never",
-    r.staleSources.length ? `Stale: ${r.staleSources.join(", ")}` : null,
+    r.staleSources.length
+      ? `Stale: ${r.staleSources
+          .map(s => {
+            const err = sources[s]?.error;
+            return `${SOURCE_LABELS[s] ?? s}${err ? ` (${err})` : ""}`;
+          })
+          .join(", ")}`
+      : null,
     r.failedSources.length ? `Failed: ${r.failedSources.join(", ")}` : null,
   ].filter((l): l is string => l !== null);
   return (
@@ -140,11 +155,13 @@ export default function App() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-bg lg:max-w-[1400px]">
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-line bg-bg/90 px-4 py-3 backdrop-blur lg:px-6">
+      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-bg/90 px-4 backdrop-blur lg:px-6">
         <div className="flex items-center gap-2">
           <span className="text-base font-bold">FiMs</span>
-          <StatusBadge status={result.status} />
-          <InfoPopover r={result} nowMs={now.getTime()} />
+          <button onClick={() => setTab("positions")} aria-label="Show positions" className="rounded-md">
+            <StatusBadge status={result.status} />
+          </button>
+          <InfoPopover r={result} sources={inputs.sources} nowMs={now.getTime()} />
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -193,11 +210,18 @@ export default function App() {
       )}
       {result.stale && !offline && (
         <div className="bg-warn/15 px-4 py-2 text-center text-xs text-warn lg:px-6">
-          Some sources are stale: {result.staleSources.join(", ")}
+          Using cached data for{" "}
+          {result.staleSources
+            .map(s => {
+              const st = inputs.sources[s];
+              const ago = st?.at ? timeAgo(st.at, now.getTime()) : null;
+              return `${SOURCE_LABELS[s] ?? s}${ago ? ` (${ago})` : ""}`;
+            })
+            .join(", ")}
         </div>
       )}
 
-      <main className="flex-1 px-4 pb-24 pt-3 lg:px-6 lg:pb-10">
+      <main className="flex-1 px-4 pb-[calc(3.5rem+env(safe-area-inset-bottom)+0.75rem)] pt-3 lg:px-6 lg:pb-10">
         <div className="lg:hidden">
           {tab === "overview" && <Overview r={result} />}
           {tab === "positions" && <Positions {...positionsProps} />}
@@ -227,7 +251,7 @@ export default function App() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium ${active ? "text-accent" : "text-muted"}`}
+              className={`flex h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium ${active ? "text-accent" : "text-muted"}`}
             >
               <Icon size={20} stroke={active ? 2.2 : 1.8} />
               {t.label}
