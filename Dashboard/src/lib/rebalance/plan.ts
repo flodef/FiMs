@@ -1,0 +1,183 @@
+export type RebalanceKey = "JLP" | "JupSOL";
+
+export interface PlanPositionInput {
+  key: RebalanceKey;
+  vaultId: number;
+  positionId: number;
+  /** supply value in USD */
+  collateralUsd: number;
+  /** borrow amount in debt-token units (USDT) */
+  debt: number;
+  /** debt token price in USD */
+  debtPriceUsd: number;
+  target: number;
+}
+
+export interface PositionDelta {
+  key: RebalanceKey;
+  vaultId: number;
+  positionId: number;
+  ltvBefore: number;
+  /** expected LTV after the plan executes — exactly target when acted on */
+  ltvAfter: number;
+  /** USDT to repay (>0) or borrow (>0); exactly one is non-zero */
+  repayUsdt: number;
+  borrowUsdt: number;
+  /** current borrow in USDT units (repay cap) */
+  debt: number;
+  target: number;
+}
+
+export interface LendOp {
+  key: RebalanceKey;
+  vaultId: number;
+  positionId: number;
+  /** signed USDT delta: positive = borrow, negative = repay */
+  deltaUsdt: number;
+}
+
+export type PlanStage =
+  | { type: "lend"; ops: LendOp[] }
+  | {
+      type: "kamino-withdraw";
+      /** estimated USDG to withdraw (build refines via ExactOut quote) */
+      amountUsdg: number;
+      /** USDT the withdraw must cover — sizes the ExactOut quote at build time */
+      usdtOut: number;
+    }
+  | { type: "swap"; pair: "usdg-usdt" | "usdt-usdg"; mode: "ExactIn"; amount: number }
+  | { type: "kamino-deposit"; amountUsdg: number };
+
+export interface RebalancePlan {
+  positions: PositionDelta[];
+  stages: PlanStage[];
+  kaminoUsdg: number;
+  /** set when the plan cannot proceed (e.g. insufficient Kamino balance) */
+  error: string | null;
+}
+
+const MIN_DELTA_USDT = 1;
+
+function positionDelta(p: PlanPositionInput): PositionDelta {
+  const ltv = p.collateralUsd > 0 && p.debtPriceUsd > 0 ? (p.debt * p.debtPriceUsd) / p.collateralUsd : 0;
+  let repayUsdt = 0;
+  let borrowUsdt = 0;
+  if (p.collateralUsd > 0 && p.debtPriceUsd > 0) {
+    if (ltv > p.target) {
+      repayUsdt = p.debt * (1 - p.target / ltv);
+    } else {
+      borrowUsdt = (p.collateralUsd * p.target) / p.debtPriceUsd - p.debt;
+    }
+  }
+  const acted = repayUsdt >= MIN_DELTA_USDT || borrowUsdt >= MIN_DELTA_USDT;
+  if (!acted) {
+    repayUsdt = 0;
+    borrowUsdt = 0;
+  }
+  return {
+    key: p.key,
+    vaultId: p.vaultId,
+    positionId: p.positionId,
+    ltvBefore: ltv,
+    ltvAfter: acted ? p.target : ltv,
+    repayUsdt,
+    borrowUsdt,
+    debt: p.debt,
+    target: p.target,
+  };
+}
+
+export interface RepayShare {
+  /** |client-sent delta| in USDT — proportional weight */
+  planned: number;
+  /** current debt — hard cap per position */
+  debt: number;
+  /** fresh plan repayUsdt — ×1.001 cap per position */
+  freshRepay: number;
+}
+
+/**
+ * Distribute available USDT across repay ops proportionally to planned amounts.
+ * want_i = min(debt_i, available × planned_i / Σplanned, freshRepay_i × 1.001)
+ * — repays (almost) everything received, leaving only sub-dust rounding.
+ */
+export function distributeRepay(available: number, ops: RepayShare[]): number[] {
+  const totalPlanned = ops.reduce((s, o) => s + o.planned, 0);
+  if (totalPlanned <= 0 || available <= 0) return ops.map(() => 0);
+  return ops.map(o => Math.max(0, Math.min(o.debt, (available * o.planned) / totalPlanned, o.freshRepay * 1.001)));
+}
+
+const lendOp = (d: PositionDelta, deltaUsdt: number): LendOp => ({
+  key: d.key,
+  vaultId: d.vaultId,
+  positionId: d.positionId,
+  deltaUsdt,
+});
+
+export function buildPlan(positions: PlanPositionInput[], kaminoUsdg: number): RebalancePlan {
+  const deltas = positions.map(positionDelta);
+  const acting = deltas.filter(d => d.repayUsdt > 0 || d.borrowUsdt > 0);
+  const repays = acting.filter(d => d.repayUsdt > 0);
+  const borrows = acting.filter(d => d.borrowUsdt > 0);
+
+  const plan: RebalancePlan = { positions: deltas, stages: [], kaminoUsdg, error: null };
+  if (acting.length === 0) return plan;
+
+  const kaminoShort = (need: number) => {
+    if (kaminoUsdg + 1e-9 < need) {
+      plan.error = `Insufficient Kamino USDG: need ~${need.toFixed(2)}, have ${kaminoUsdg.toFixed(2)}`;
+    }
+  };
+
+  if (repays.length > 0 && borrows.length === 0) {
+    // Both deficit: withdraw USDG (sized by an ExactOut quote at build) → swap ALL of it ExactIn → repay both
+    const total = repays.reduce((s, d) => s + d.repayUsdt, 0);
+    kaminoShort(total);
+    plan.stages = [
+      { type: "kamino-withdraw", amountUsdg: total, usdtOut: total },
+      { type: "swap", pair: "usdg-usdt", mode: "ExactIn", amount: total },
+      { type: "lend", ops: repays.map(d => lendOp(d, -d.repayUsdt)) },
+    ];
+    return plan;
+  }
+
+  if (borrows.length > 0 && repays.length === 0) {
+    // Both margin: borrow both → swap ExactIn USDT→USDG → deposit to Kamino
+    const total = borrows.reduce((s, d) => s + d.borrowUsdt, 0);
+    plan.stages = [
+      { type: "lend", ops: borrows.map(d => lendOp(d, d.borrowUsdt)) },
+      { type: "swap", pair: "usdt-usdg", mode: "ExactIn", amount: total },
+      { type: "kamino-deposit", amountUsdg: total },
+    ];
+    return plan;
+  }
+
+  // Mixed: one deficit D, one margin M (the only multi-position case in practice)
+  const d = repays[0];
+  const m = borrows[0];
+  const D = d.repayUsdt;
+  const M = m.borrowUsdt;
+  const covered = Math.min(D, M);
+  const firstLend: LendOp[] = [lendOp(m, M), lendOp(d, -covered)];
+
+  if (D > M) {
+    const rest = D - M;
+    kaminoShort(rest);
+    plan.stages = [
+      { type: "lend", ops: firstLend },
+      { type: "kamino-withdraw", amountUsdg: rest, usdtOut: rest },
+      { type: "swap", pair: "usdg-usdt", mode: "ExactIn", amount: rest },
+      { type: "lend", ops: [lendOp(d, -rest)] },
+    ];
+  } else if (M > D) {
+    const rest = M - D;
+    plan.stages = [
+      { type: "lend", ops: firstLend },
+      { type: "swap", pair: "usdt-usdg", mode: "ExactIn", amount: rest },
+      { type: "kamino-deposit", amountUsdg: rest },
+    ];
+  } else {
+    plan.stages = [{ type: "lend", ops: firstLend }];
+  }
+  return plan;
+}

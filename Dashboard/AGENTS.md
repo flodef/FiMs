@@ -22,7 +22,7 @@ V1 starts at `1.0.0` (shown in Settings from `package.json`). Every commit touch
 
 ## Environment variables (names only — see `.env.example`)
 
-`GOOGLE_API_KEY`, `JUPITER_API_KEY`, `DASHBOARD_PASSWORD`, `AUTH_SECRET`, `CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `DATABASE_URL` (Neon Postgres — optional locally; app degrades to no persistence). Schema: `db/schema.sql` (`kv` + `push_subscriptions` + `tracked_positions` tables). `tracked_positions` holds user-added positions (manual / jupiter wallet / kamino wallet) managed via `api/positions.ts` (auth required); they feed `Inputs.extraPositions` — displayed and added to €/day totals but never injected into the sheet formula rows.
+`GOOGLE_API_KEY`, `JUPITER_API_KEY`, `DASHBOARD_PASSWORD`, `AUTH_SECRET`, `CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `DATABASE_URL` (Neon Postgres — optional locally; app degrades to no persistence), `HELIUS_API_KEY` (Solana RPC for the Rebalance feature — server-side only). Schema: `db/schema.sql` (`kv` + `push_subscriptions` + `tracked_positions` tables). `tracked_positions` holds user-added positions (manual / jupiter wallet / kamino wallet) managed via `api/positions.ts` (auth required); they feed `Inputs.extraPositions` — displayed and added to €/day totals but never injected into the sheet formula rows.
 
 Auth fails closed: without `DASHBOARD_PASSWORD` + `AUTH_SECRET`, `/api/login` returns 500 and all authed routes return 401.
 

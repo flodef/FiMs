@@ -5,11 +5,12 @@ import {
   IconInfoCircle,
   IconLayoutDashboard,
   IconPlus,
+  IconScale,
   IconSettings,
   IconWallet,
   IconX,
 } from "@tabler/icons-react";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { computeDashboard, type DashboardResult, type ExtraComputation } from "./lib/compute";
 import { timeAgo } from "./lib/format";
 import { checkForUpdate } from "./lib/pwa";
@@ -24,6 +25,8 @@ import { ConvertTab } from "./components/Convert";
 import { Settings } from "./components/Settings";
 import { Login } from "./components/Login";
 import { Drawer, StatusBadge, Toast } from "./components/ui";
+
+const Rebalance = lazy(() => import("./components/Rebalance"));
 
 type Tab = "overview" | "positions" | "multiply" | "prices" | "convert";
 
@@ -96,7 +99,7 @@ export default function App() {
     open: false,
     editing: null,
   });
-  const [drawer, setDrawer] = useState<"prices" | "convert" | null>(null);
+  const [drawer, setDrawer] = useState<"prices" | "convert" | "rebalance" | null>(null);
   const [toast, setToast] = useState<{ kind: "ok" | "error"; msg: string } | null>(null);
 
   useEffect(() => {
@@ -196,6 +199,15 @@ export default function App() {
             aria-label="Add position"
           >
             <IconPlus size={18} />
+          </button>
+          <button
+            onClick={() => setDrawer("rebalance")}
+            disabled={!canEditPositions}
+            title={manageHint ?? "Rebalance"}
+            className={`${headerBtn} disabled:opacity-40`}
+            aria-label="Rebalance"
+          >
+            <IconScale size={18} />
           </button>
           <button onClick={() => setSettingsOpen(true)} className={headerBtn} aria-label="Settings">
             <IconSettings size={18} />
@@ -310,6 +322,19 @@ export default function App() {
       {drawer === "convert" && (
         <Drawer title="Convert" onClose={() => setDrawer(null)} wide>
           <ConvertTab r={result} />
+        </Drawer>
+      )}
+      {drawer === "rebalance" && (
+        <Drawer title="Rebalance" onClose={() => setDrawer(null)} wide>
+          <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
+            <Rebalance
+              onDone={() => {
+                setDrawer(null);
+                void refresh();
+                setToast({ kind: "ok", msg: "Rebalance done" });
+              }}
+            />
+          </Suspense>
         </Drawer>
       )}
 
