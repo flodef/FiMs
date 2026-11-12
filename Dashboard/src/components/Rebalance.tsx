@@ -454,7 +454,7 @@ function Inner({ onDone }: { onDone: () => void }) {
 export default function Rebalance({ onDone }: { onDone: () => void }) {
   const adapters = useStandardWalletAdapters([]);
   return (
-    <WalletProvider wallets={adapters} autoConnect={false}>
+    <WalletProvider wallets={adapters} autoConnect>
       <Inner onDone={onDone} />
     </WalletProvider>
   );
