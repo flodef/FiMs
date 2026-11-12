@@ -30,12 +30,6 @@ export async function planAction(): Promise<RebalancePlan> {
   return getPlan();
 }
 
-const checkCap = (label: string, requested: number, planned: number) => {
-  if (requested > planned * CAP + 1e-9) {
-    throw new HttpError(422, `${label} ${requested.toFixed(2)} exceeds plan cap ${planned.toFixed(2)}`);
-  }
-};
-
 interface BuiltTx {
   tx: string;
   size: number;
@@ -90,7 +84,7 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
       repayIdx.map(i => ({
         planned: Math.abs(staged[i].delta),
         debt: staged[i].pos.debt,
-        freshRepay: staged[i].pos.repayUsdt,
+        freshRepay: Math.max(staged[i].pos.repayUsdt, Math.abs(staged[i].delta)),
       })),
     );
 
@@ -115,11 +109,13 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
   }
 
   if (stage.type === "kamino-withdraw") {
-    checkCap("withdraw usdtOut", stage.usdtOut, totalFreshRepay);
+    // prices move between plan and build: clamp to the fresh need instead of rejecting
+    const usdtOut = Math.min(stage.usdtOut, totalFreshRepay);
+    if (usdtOut < 1) throw new HttpError(422, "nothing to withdraw — positions already at target");
     const kamino = await fetchKaminoUsdg();
     if (!kamino.reserve) throw new HttpError(422, "no Kamino USDG deposit found");
     // size USDG needed via an ExactIn probe (Jupiter has no ExactOut routes for USDG↔USDT)
-    const sized = await sizeUsdgForUsdt(stage.usdtOut);
+    const sized = await sizeUsdgForUsdt(usdtOut);
     const withdrawUnits = sized.usdg;
     const kaminoRaw = kamino.amount * 1e6;
     if (withdrawUnits * 1e6 > kaminoRaw) {
@@ -133,7 +129,7 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
     return {
       tx: built.txB64,
       size: built.size,
-      quote: { usdgIn: withdrawUnits, usdtOut: stage.usdtOut, rate: sized.rate },
+      quote: { usdgIn: withdrawUnits, usdtOut, rate: sized.rate },
       simulation,
     };
   }
@@ -146,7 +142,6 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
     let amountRaw: number;
     if (stage.pair === "usdg-usdt") {
       // repay path: withdrawn USDG ≈ plan + ~0.5% (rate + buffer) — swap ALL of it
-      checkCap("swap usdg-in", stage.amount, totalFreshRepay);
       inputMint = USDG_MINT;
       outputMint = USDT_MINT;
       amountRaw = Math.min(Math.round(stage.amount * 1.005 * 1e6), Math.floor(usdgBal * 1e6));

@@ -210,7 +210,9 @@ function Inner({ onDone }: { onDone: () => void }) {
 
   const execute = async () => {
     if (!plan || !connected || wrongWallet || running || unfinished) return;
-    await executeWith(plan);
+    // re-plan right before executing so amounts match current prices
+    const fresh = await loadPlan();
+    if (fresh && fresh.stages.length > 0 && !fresh.error) await executeWith(fresh);
   };
 
   // resume = keep the saved plan, rebuild each remaining stage fresh server-side
