@@ -234,9 +234,13 @@ function Inner({ onDone }: { onDone: () => void }) {
         .filter(o => o.deltaUsdt !== 0)
         .map(o => `${o.key} ${o.deltaUsdt > 0 ? "+" : "−"}${Math.abs(o.deltaUsdt).toFixed(2)} USDT`)
         .join(", ");
-    if (s.type === "kamino-withdraw") return `~${s.amountUsdg.toFixed(2)} USDG → ~${s.usdtOut.toFixed(2)} USDT`;
-    if (s.type === "swap") return `${s.amount.toFixed(2)} ${s.pair === "usdg-usdt" ? "USDG→USDT" : "USDT→USDG"}`;
-    return `~${s.amountUsdg.toFixed(2)} USDG`;
+    if (s.type === "kamino-withdraw") return `≈ ${s.amountUsdg.toFixed(2)} USDG`;
+    if (s.type === "swap") {
+      const [inU, outU] = s.pair === "usdg-usdt" ? ["USDG", "USDT"] : ["USDT", "USDG"];
+      const inAmt = (s.estIn ?? s.amount).toFixed(2);
+      return s.estOut != null ? `≈ ${inAmt} ${inU} → ≈ ${s.estOut.toFixed(2)} ${outU}` : `${inAmt} ${inU} → ${outU}`;
+    }
+    return `≈ ${(s.estUsdg ?? s.amountUsdg).toFixed(2)} USDG`;
   };
 
   const statusIcon = (st: StageStatus) => {

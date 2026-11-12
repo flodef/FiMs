@@ -45,8 +45,16 @@ export type PlanStage =
       /** USDT the withdraw must cover — sizes the ExactOut quote at build time */
       usdtOut: number;
     }
-  | { type: "swap"; pair: "usdg-usdt" | "usdt-usdg"; mode: "ExactIn"; amount: number }
-  | { type: "kamino-deposit"; amountUsdg: number };
+  | {
+      type: "swap";
+      pair: "usdg-usdt" | "usdt-usdg";
+      mode: "ExactIn";
+      amount: number;
+      /** display only — live-quote estimates of the swap input/output */
+      estIn?: number;
+      estOut?: number;
+    }
+  | { type: "kamino-deposit"; amountUsdg: number; /** display only — quoted USDG from the swap */ estUsdg?: number };
 
 export interface RebalancePlan {
   positions: PositionDelta[];

@@ -137,7 +137,31 @@ export async function fetchKaminoUsdg(): Promise<KaminoUsdg> {
 
 export async function getPlan(): Promise<RebalancePlan> {
   const [positions, kamino] = await Promise.all([fetchLendPositions(), fetchKaminoUsdg()]);
-  return buildPlan(positions, kamino.amount);
+  const plan = buildPlan(positions, kamino.amount);
+  await annotateWithQuotes(plan).catch(() => {});
+  return plan;
+}
+
+/** Fill display-only USDG/USDT estimates from live Jupiter quotes (validated amounts stay untouched). */
+async function annotateWithQuotes(plan: RebalancePlan): Promise<void> {
+  const withdraw = plan.stages.find(s => s.type === "kamino-withdraw");
+  if (withdraw?.type === "kamino-withdraw") {
+    const sized = await sizeUsdgForUsdt(withdraw.usdtOut);
+    withdraw.amountUsdg = sized.usdg;
+    for (const s of plan.stages) {
+      if (s.type === "swap" && s.pair === "usdg-usdt") {
+        s.estIn = sized.usdg;
+        s.estOut = sized.usdg * sized.rate;
+      }
+    }
+  }
+  const toUsdg = plan.stages.find(s => s.type === "swap" && s.pair === "usdt-usdg");
+  if (toUsdg?.type === "swap") {
+    const q = await jupQuote(USDT_MINT, USDG_MINT, Math.round(toUsdg.amount * 1e6), "ExactIn");
+    toUsdg.estIn = toUsdg.amount;
+    toUsdg.estOut = q.outAmount / 1e6;
+    for (const s of plan.stages) if (s.type === "kamino-deposit") s.estUsdg = toUsdg.estOut;
+  }
 }
 
 // ---------- RPC token balances ----------
