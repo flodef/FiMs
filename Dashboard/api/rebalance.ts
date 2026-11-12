@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return sendJson(res, 400, { error: "bad stage" });
       }
       const out = await buildAction(body.stage);
-      return sendJson(res, 200, Array.isArray(out) ? { txs: out } : { tx: out });
+      return sendJson(res, 200, { txs: Array.isArray(out) ? out : [out] });
     }
     if (action === "send") {
       const tx = body.tx;

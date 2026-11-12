@@ -176,11 +176,11 @@ function Inner({ onDone }: { onDone: () => void }) {
           setStage(i, { status: "failed", error: String(e?.message ?? e) });
           return;
         }
-        const txs: { tx: string; size: number; split?: boolean; quote?: unknown; simulation: any }[] = Array.isArray(
-          built?.txs,
-        )
-          ? built.txs
-          : [built];
+        const txs: { tx: string; size: number; split?: boolean; quote?: unknown; simulation: any }[] = built?.txs ?? [];
+        if (!txs.length || txs.some(t => typeof t?.tx !== "string")) {
+          setStage(i, { status: "failed", error: "server returned no transaction" });
+          return;
+        }
         let lastSig = "";
         for (const t of txs) {
           setStage(i, { status: "awaiting signature" });
