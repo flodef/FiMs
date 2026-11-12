@@ -409,6 +409,15 @@ function Inner({ onDone }: { onDone: () => void }) {
             })}
           </ol>
         )}
+        {plan?.feeEstimate && plan.stages.length > 0 && (
+          <p className="mt-2 text-[11px] text-muted">
+            Network fees ≈ {(plan.feeEstimate.lamports / 1e9).toFixed(6)} SOL
+            {plan.feeEstimate.rentLamports > 0 &&
+              ` + ${(plan.feeEstimate.rentLamports / 1e9).toFixed(5)} SOL account rent (${
+                plan.feeEstimate.rentRefunded ? "refunded at the end" : "kept for the USDG account"
+              })`}
+          </p>
+        )}
       </Card>
 
       {/* actions */}

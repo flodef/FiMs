@@ -56,12 +56,23 @@ export type PlanStage =
     }
   | { type: "kamino-deposit"; amountUsdg: number; /** display only — quoted USDG from the swap */ estUsdg?: number };
 
+export interface FeeEstimate {
+  /** base 5000/tx + estimated priority fees (excludes account rent) */
+  lamports: number;
+  /** USDG ATA rent if the account doesn't exist yet (0 otherwise) */
+  rentLamports: number;
+  /** true when the deficit path closes the emptied ATA at the end → rent refunded */
+  rentRefunded: boolean;
+}
+
 export interface RebalancePlan {
   positions: PositionDelta[];
   stages: PlanStage[];
   kaminoUsdg: number;
   /** set when the plan cannot proceed (e.g. insufficient Kamino balance) */
   error: string | null;
+  /** best-effort network fee estimate, filled by getPlan */
+  feeEstimate?: FeeEstimate;
 }
 
 const MIN_DELTA_USDT = 1;

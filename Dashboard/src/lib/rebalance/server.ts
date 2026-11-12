@@ -10,6 +10,7 @@ import {
   sendTxAndConfirm,
   simulateTx,
   sizeUsdgForUsdt,
+  usdgAtaCloseIx,
   walletTokenBalance,
   USDG_MINT,
   USDT_MINT,
@@ -97,8 +98,15 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
     }
     if (ops.length === 0) throw new HttpError(422, "nothing to do — positions already at target");
 
+    // deficit/mixed path: the final all-repay lend tx also closes the emptied USDG ATA
+    // (recovers the ~0.002 SOL rent the Kamino withdraw paid to create it)
+    const allRepay = ops.every(o => o.deltaUsdt < 0);
+    const hasUsdgSwap = plan.stages.some(s => s.type === "swap" && s.pair === "usdg-usdt");
+    const closeIx = allRepay && hasUsdgSwap ? await usdgAtaCloseIx() : null;
+
     const results = await buildLendTx(
       ops.map(o => ({ vaultId: o.vaultId, positionId: o.positionId, deltaUsdt: o.deltaUsdt })),
+      { extraIxs: closeIx ? [closeIx] : [] },
     );
     const out: BuiltTx[] = [];
     for (const r of results) {

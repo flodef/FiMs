@@ -1,7 +1,7 @@
 {
   "name": "fims-dashboard",
   "private": true,
-  "version": "1.0.6",
+  "version": "1.0.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,6 +16,7 @@
     "@jup-ag/lend": "0.4.0",
     "@neondatabase/serverless": "1.2.0",
     "@solana-mobile/wallet-standard-mobile": "0.7.0",
+    "@solana/spl-token": "0.4.15",
     "@solana/wallet-adapter-react": "0.15.40",
     "@solana/wallet-standard-wallet-adapter-react": "1.1.8",
     "@solana/web3.js": "1.99.0",

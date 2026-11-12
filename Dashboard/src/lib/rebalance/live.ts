@@ -1,4 +1,5 @@
 import { getOperateIx } from "@jup-ag/lend/borrow";
+import { createCloseAccountInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import BN from "bn.js";
 import {
   ComputeBudgetProgram,
@@ -139,7 +140,85 @@ export async function getPlan(): Promise<RebalancePlan> {
   const [positions, kamino] = await Promise.all([fetchLendPositions(), fetchKaminoUsdg()]);
   const plan = buildPlan(positions, kamino.amount);
   await annotateWithQuotes(plan).catch(() => {});
+  plan.feeEstimate = await computeFeeEstimate(plan).catch(() => undefined);
   return plan;
+}
+
+// ---------- fee estimation ----------
+
+const ATA_RENT_LAMPORTS = 2_039_280;
+const BASE_FEE_LAMPORTS = 5_000;
+const EST_CU_PER_TX = 150_000;
+
+let mediumMicroCache: { at: number; micro: number } | null = null;
+
+/** Helius getPriorityFeeEstimate at "medium" level → µL/CU, clamped [1,1000], fallback 5. */
+export async function priorityMicroLamports(txB64: string): Promise<number> {
+  try {
+    const res = await fetch(heliusUrl(), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "getPriorityFeeEstimate",
+        params: [{ transaction: txB64, options: { transactionEncoding: "base64", priorityLevel: "Medium" } }],
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    const json: any = await res.json();
+    const v = Number(json?.result?.priorityFeeEstimate ?? json?.result?.priorityFeeLevels?.medium);
+    if (Number.isFinite(v) && v > 0) return Math.min(1000, Math.max(1, Math.round(v)));
+  } catch {
+    /* fall through */
+  }
+  return 5;
+}
+
+/** Medium priority fee estimate, cached 60 s (needs a probe tx — built once). */
+async function estimateMediumMicro(): Promise<number> {
+  if (mediumMicroCache && Date.now() - mediumMicroCache.at < 60_000) return mediumMicroCache.micro;
+  const connection = rpc();
+  const { blockhash } = await connection.getLatestBlockhash("confirmed");
+  const msg = new TransactionMessage({
+    payerKey: WALLET_PUB,
+    recentBlockhash: blockhash,
+    instructions: [ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1 })],
+  }).compileToV0Message([]);
+  const probeB64 = Buffer.from(new VersionedTransaction(msg).serialize()).toString("base64");
+  const micro = await priorityMicroLamports(probeB64);
+  mediumMicroCache = { at: Date.now(), micro };
+  return micro;
+}
+
+async function computeFeeEstimate(plan: RebalancePlan) {
+  const txCount = plan.stages.length;
+  const lendSwapCount = plan.stages.filter(s => s.type === "lend" || s.type === "swap").length;
+  let micro = 5;
+  try {
+    micro = await estimateMediumMicro();
+  } catch {
+    /* keep 5 */
+  }
+  const priorityLamports = lendSwapCount * Math.ceil((micro * EST_CU_PER_TX) / 1e6);
+  let rentLamports = 0;
+  let rentRefunded = false;
+  try {
+    const ata = getAssociatedTokenAddressSync(new PublicKey(USDG_MINT), WALLET_PUB);
+    const info = await rpc().getAccountInfo(ata);
+    if (!info) {
+      rentLamports = ATA_RENT_LAMPORTS;
+      // deficit/mixed path closes the emptied USDG ATA in the final lend tx → rent comes back
+      rentRefunded = plan.stages.some(s => s.type === "swap" && s.pair === "usdg-usdt");
+    }
+  } catch {
+    /* keep 0 */
+  }
+  return {
+    lamports: BASE_FEE_LAMPORTS * txCount + priorityLamports,
+    rentLamports,
+    rentRefunded,
+  };
 }
 
 /** Fill display-only USDG/USDT estimates from live Jupiter quotes (validated amounts stay untouched). */
@@ -182,6 +261,8 @@ export interface LendTxResult {
   txB64: string;
   size: number;
   split: boolean;
+  units?: number;
+  microLamports?: number;
 }
 
 async function lendTxForOps(
@@ -214,39 +295,86 @@ async function assembleTx(
   connection: Connection,
   ixs: TransactionInstruction[],
   alts: AddressLookupTableAccount[],
+  units: number,
+  microLamports: number,
 ): Promise<VersionedTransaction> {
   const { blockhash } = await connection.getLatestBlockhash("confirmed");
   const msg = new TransactionMessage({
     payerKey: WALLET_PUB,
     recentBlockhash: blockhash,
     instructions: [
-      ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }),
-      ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1_000 }),
+      ComputeBudgetProgram.setComputeUnitLimit({ units }),
+      ComputeBudgetProgram.setComputeUnitPrice({ microLamports }),
       ...ixs,
     ],
   }).compileToV0Message(alts);
   return new VersionedTransaction(msg);
 }
 
+/**
+ * Build → probe-simulate (generous CU limit) → rebuild with CU = units×1.15 and
+ * the Helius "medium" priority price. Keeps gas minimal without risking CU exhaustion.
+ */
+async function finalizeLendTx(
+  connection: Connection,
+  ixs: TransactionInstruction[],
+  alts: AddressLookupTableAccount[],
+  extraIxs: TransactionInstruction[] = [],
+): Promise<LendTxResult> {
+  const all = [...ixs, ...extraIxs];
+  const probe = await assembleTx(connection, all, alts, 1_400_000, 0);
+  const probeB64 = Buffer.from(probe.serialize()).toString("base64");
+  let units = 400_000;
+  try {
+    const sim = await connection.simulateTransaction(probe, { sigVerify: false, replaceRecentBlockhash: true });
+    if (sim.value.unitsConsumed && sim.value.unitsConsumed > 0) {
+      units = Math.ceil(sim.value.unitsConsumed * 1.15);
+    }
+  } catch {
+    /* keep 400k */
+  }
+  const microLamports = await priorityMicroLamports(probeB64);
+  const tx = await assembleTx(connection, all, alts, units, microLamports);
+  const raw = tx.serialize();
+  return { txB64: Buffer.from(raw).toString("base64"), size: raw.length, split: false, units, microLamports };
+}
+
+/** Close ix for the wallet's USDG ATA — only when it exists and holds exactly 0. */
+export async function usdgAtaCloseIx(): Promise<TransactionInstruction | null> {
+  try {
+    const connection = rpc();
+    const ata = getAssociatedTokenAddressSync(new PublicKey(USDG_MINT), WALLET_PUB);
+    const info = await connection.getAccountInfo(ata);
+    if (!info) return null;
+    const bal = await connection.getTokenAccountBalance(ata);
+    if (Number(bal.value.uiAmount ?? 1) !== 0) return null;
+    return createCloseAccountInstruction(ata, WALLET_PUB, WALLET_PUB);
+  } catch {
+    return null;
+  }
+}
+
 export async function buildLendTx(
   ops: { vaultId: number; positionId: number; deltaUsdt: number }[],
+  opts: { extraIxs?: TransactionInstruction[] } = {},
 ): Promise<LendTxResult[]> {
   const connection = rpc();
   const { ixs, alts } = await lendTxForOps(connection, ops);
   if (!ixs.length) throw new Error("lend: no instructions");
-  const combined = await assembleTx(connection, ixs, alts);
-  const combinedB64 = Buffer.from(combined.serialize()).toString("base64");
-  if (combined.serialize().length <= MAX_TX_BYTES) {
-    return [{ txB64: combinedB64, size: combined.serialize().length, split: false }];
+  const extra = opts.extraIxs ?? [];
+  const combined = await finalizeLendTx(connection, ixs, alts, extra);
+  if (combined.size <= MAX_TX_BYTES) {
+    return [{ ...combined, split: false }];
   }
-  // too big — split per position
+  // too big — split per position; extra ixs ride on the last tx
+  const activeOps = ops.filter(o => Math.trunc(o.deltaUsdt * 10 ** DECIMALS) !== 0);
   const results: LendTxResult[] = [];
-  for (const op of ops) {
-    const one = await lendTxForOps(connection, [op]);
-    const tx = await assembleTx(connection, one.ixs, one.alts);
-    results.push({ txB64: Buffer.from(tx.serialize()).toString("base64"), size: tx.serialize().length, split: true });
+  for (let i = 0; i < activeOps.length; i++) {
+    const one = await lendTxForOps(connection, [activeOps[i]]);
+    const last = i === activeOps.length - 1;
+    results.push(await finalizeLendTx(connection, one.ixs, one.alts, last ? extra : []));
   }
-  return results;
+  return results.map(r => ({ ...r, split: true }));
 }
 
 // ---------- Jupiter swap ----------
@@ -310,17 +438,27 @@ export async function buildSwapTx(
   swapMode: "ExactIn" | "ExactOut" = "ExactIn",
 ): Promise<{ txB64: string; size: number; quote: SwapQuote }> {
   const quote = await jupQuote(inputMint, outputMint, amountRaw, swapMode);
-  const res = await fetch(`${JUP_SWAP_API}/swap`, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": jupKey() },
-    body: JSON.stringify({
-      quoteResponse: quote.raw,
-      userPublicKey: WALLET,
-      dynamicComputeUnitLimit: true,
-      prioritizationFeeLamports: "auto",
-    }),
-    signal: AbortSignal.timeout(FETCH_MS),
-  });
+  const post = (feeField: Record<string, unknown>) =>
+    fetch(`${JUP_SWAP_API}/swap`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": jupKey() },
+      body: JSON.stringify({
+        quoteResponse: quote.raw,
+        userPublicKey: WALLET,
+        dynamicComputeUnitLimit: true,
+        ...feeField,
+      }),
+      signal: AbortSignal.timeout(FETCH_MS),
+    });
+  // explicit Helius "medium" µL/CU price — cheapest reliable option (user is never in a rush)
+  const micro = await estimateMediumMicro().catch(() => 5);
+  let res = await post({ computeUnitPriceMicroLamports: micro });
+  if (!res.ok) {
+    // fallback: Jupiter's capped medium priority level
+    res = await post({
+      prioritizationFeeLamports: { priorityLevelWithMaxLamports: { priorityLevel: "medium", maxLamports: 5000 } },
+    });
+  }
   if (!res.ok) throw new Error(`jup swap → HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const body: any = await res.json();
   const b64 = body.swapTransaction;
