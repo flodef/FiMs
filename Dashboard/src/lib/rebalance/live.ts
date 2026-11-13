@@ -254,7 +254,7 @@ async function assembleTx(
 
 /**
  * Build → probe-simulate (generous CU limit) → rebuild with CU = units×1.15 and
- * the fixed 1000-lamport priority fee (µL/CU derived from the CU limit).
+ * the fixed 1-lamport priority fee (µL/CU derived from the CU limit).
  */
 async function finalizeTx(
   connection: Connection,
@@ -392,7 +392,7 @@ function computeBudgetIxs(tx: VersionedTransaction) {
 /**
  * Jupiter builds the swap tx with whatever CU limit it wants — we can't know it
  * upfront, so request price=1, then rewrite the SetComputeUnitPrice instruction
- * in place to floor(1000 lamports / cuLimit). Same ix, same byte length.
+ * in place to floor(1 lamport / cuLimit). Same ix, same byte length.
  */
 async function rewriteSwapPriority(txB64: string): Promise<string> {
   const tx = deserializeTx(txB64);
@@ -448,7 +448,7 @@ export async function buildSwapTx(
       }),
       signal: AbortSignal.timeout(FETCH_MS),
     });
-  // price=1 placeholder — rewritten to the fixed 1000-lamport fee after build
+  // price=1 placeholder — rewritten to the fixed 1-lamport fee after build
   let res = await post({ computeUnitPriceMicroLamports: 1 });
   let b64: string | undefined;
   if (res.ok) {
@@ -457,7 +457,7 @@ export async function buildSwapTx(
   if (!b64) {
     // fallback: Jupiter's capped medium priority level
     res = await post({
-      prioritizationFeeLamports: { priorityLevelWithMaxLamports: { priorityLevel: "medium", maxLamports: 1000 } },
+      prioritizationFeeLamports: { priorityLevelWithMaxLamports: { priorityLevel: "medium", maxLamports: 1 } },
     });
     if (!res.ok) throw new Error(`jup swap → HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
     b64 = ((await res.json()) as any)?.swapTransaction;
@@ -538,7 +538,6 @@ async function confirmLoop(
   connection: Connection,
   signature: string,
   recentBlockhash: string,
-  raw?: Uint8Array,
 ): Promise<{ signature: string; status: string }> {
   const deadline = Date.now() + 40_000;
   while (Date.now() < deadline) {
@@ -548,14 +547,6 @@ async function confirmLoop(
       return { signature, status: s.err ? `failed: ${JSON.stringify(s.err)}` : s.confirmationStatus };
     }
     if (s?.err) return { signature, status: `failed: ${JSON.stringify(s.err)}` };
-    // rebroadcast — a single send often doesn't land; "already processed" is fine
-    if (raw) {
-      try {
-        await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 0 });
-      } catch {
-        /* already processed / blockhash not found — keep polling */
-      }
-    }
     try {
       const valid = await connection.isBlockhashValid(recentBlockhash, { commitment: "processed" });
       if (valid.value === false) {
@@ -582,13 +573,9 @@ export async function sendTxAndConfirm(txB64: string): Promise<{ signature: stri
   const tx = deserializeTx(txB64);
   const raw = tx.serialize();
   const signature = txSignature(txB64);
-  try {
-    await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 0 });
-  } catch {
-    // send rejected (stale blockhash, already processed, node behind…) — the
-    // confirm loop still resolves truth via status + blockhash validity
-  }
-  return confirmLoop(connection, signature, tx.message.recentBlockhash, raw);
+  // sent once; the app never resends — the RPC node forwards it until it lands or expires
+  await connection.sendRawTransaction(raw, { skipPreflight: true });
+  return confirmLoop(connection, signature, tx.message.recentBlockhash);
 }
 
 /** Signature of a signed tx without sending (first signature = txid). */
@@ -600,12 +587,12 @@ export function txSignature(txB64: string): string {
 }
 
 /**
- * Re-check a previously sent signed tx: rebroadcast + poll until terminal.
+ * Re-check a previously sent signed tx (no resend): poll until terminal.
  * Used by the client when `send` returned "pending" or on Resume.
  */
 export async function statusTxAndConfirm(txB64: string): Promise<{ signature: string; status: string }> {
   const connection = rpc();
   const tx = deserializeTx(txB64);
   const signature = txSignature(txB64);
-  return confirmLoop(connection, signature, tx.message.recentBlockhash, tx.serialize());
+  return confirmLoop(connection, signature, tx.message.recentBlockhash);
 }

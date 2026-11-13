@@ -242,10 +242,10 @@ describe("top-up plan", () => {
 });
 
 describe("priorityMicroLamports", () => {
-  test("fixed 1000-lamport fee spread over the CU limit", () => {
-    expect(priorityMicroLamports(100_000)).toBe(10_000); // 10k µL × 100k CU = 1000 lamports
-    expect(priorityMicroLamports(1_400_000)).toBe(714); // ≈1000 lamports
-    expect(priorityMicroLamports(94_303)).toBe(10_604); // floor(1e9/94303)
+  test("fixed 1-lamport fee spread over the CU limit", () => {
+    expect(priorityMicroLamports(100_000)).toBe(10); // 10 µL × 100k CU = 1 lamport
+    expect(priorityMicroLamports(107_399)).toBe(9); // 0.97 → charged 1 lamport
+    expect(priorityMicroLamports(1_400_000)).toBe(1); // min 1 µL/CU
   });
 
   test("huge CU limit floors to 1 µL/CU; degenerate input → 1", () => {

@@ -235,11 +235,11 @@ export function buildTopupPlan(usdt: number, kaminoUsdg: number): RebalancePlan 
 }
 
 /**
- * Fixed priority fee = 1000 lamports (0.000001 SOL) per tx — the user's known-good
- * Jupiter setting. Priority fee = microLamports × cuLimit / 1e6 → µL/CU derived
- * from the CU limit so the total stays ~1000 lamports.
+ * Fixed priority fee = 1 lamport per tx (total 0.000005001 SOL with the base fee) —
+ * the user's known-good setting. Priority fee = ceil(microLamports × cuLimit / 1e6)
+ * → µL/CU = floor(1e6 / cuLimit), min 1, so the charged priority is 1 lamport.
  */
 export function priorityMicroLamports(cuLimit: number): number {
   if (!Number.isFinite(cuLimit) || cuLimit <= 0) return 1;
-  return Math.max(1, Math.floor((1_000 * 1e6) / cuLimit));
+  return Math.max(1, Math.floor(1e6 / cuLimit));
 }
