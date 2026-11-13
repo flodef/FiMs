@@ -60,6 +60,8 @@ async function simulateOrFail(tx: string) {
  * type + per-position deltas — never by stage index, so mid-run re-plans can't
  * strand funds or repeat completed work.
  */
+const REPAY_ROUNDING_RESERVE = 0.000002;
+
 export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]> {
   if (stage.purpose === "topup" || stage.type === "spend-transfer") {
     return buildTopupStage(stage);
@@ -89,8 +91,10 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
 
     // pass 2: distribute available USDT (wallet + same-tx borrows) proportionally,
     // capped per position at debt and freshRepay×1.001 — no dust left behind
-    const available = usdtBal + borrowIn;
+    // Jupiter Lend rounds each repay up by ~1 raw unit: repaying the exact wallet
+    // balance across two positions fails with "insufficient funds" → keep 2 raw/op
     const repayIdx = staged.map((s, i) => (s.delta < 0 ? i : -1)).filter(i => i >= 0);
+    const available = Math.max(0, usdtBal - REPAY_ROUNDING_RESERVE * repayIdx.length) + borrowIn;
     const wants = distributeRepay(
       available,
       repayIdx.map(i => ({
