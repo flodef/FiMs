@@ -9,12 +9,18 @@ export const STAGE_LABEL: Record<PlanStage["type"], string> = {
 };
 
 export type StageStatus =
-  "pending" | "building" | "simulated" | "awaiting signature" | "sending" | "confirmed" | "failed";
+  "pending" | "building" | "simulated" | "awaiting signature" | "sending" | "confirming" | "confirmed" | "failed";
 
 export interface StageState {
   status: StageStatus;
   sig?: string;
   error?: string;
+  /** signed tx still awaiting confirmation — checked via `status` on Resume */
+  pendingTx?: string;
+  /** index of pendingTx within the stage's tx list */
+  pendingIdx?: number;
+  /** total txs in the stage when pendingTx was sent */
+  pendingCount?: number;
 }
 
 export interface SavedRun {

@@ -1,10 +1,9 @@
-import { IconAlertTriangle, IconCircleCheck, IconClock, IconLink, IconLoader2, IconWallet } from "@tabler/icons-react";
+import { IconAlertTriangle, IconCircleCheck, IconClock, IconLink, IconLoader2 } from "@tabler/icons-react";
 import type { PlanStage } from "../lib/rebalance/plan";
 import { STAGE_LABEL, type StageState, type StageStatus } from "./wallet/shared";
 
 export function RunActions({
   running,
-  busyLabel,
   unfinished,
   walletReady,
   canExecute,
@@ -13,7 +12,6 @@ export function RunActions({
   onDiscard,
 }: {
   running: boolean;
-  busyLabel: string;
   unfinished: boolean;
   /** connected + right wallet + can sign */
   walletReady: boolean;
@@ -24,11 +22,6 @@ export function RunActions({
 }) {
   return (
     <>
-      {running && (
-        <p className="flex items-center gap-2 text-center text-xs text-muted">
-          <IconLoader2 size={14} className="animate-spin" /> {busyLabel}…
-        </p>
-      )}
       {unfinished && !running && (
         <div className="flex gap-2">
           <button
@@ -70,10 +63,10 @@ const statusIcon = (st: StageStatus) => {
     case "failed":
       return <IconAlertTriangle size={14} className="text-danger" />;
     case "building":
-    case "sending":
-      return <IconLoader2 size={14} className="animate-spin text-accent" />;
     case "awaiting signature":
-      return <IconWallet size={14} className="text-warn" />;
+    case "sending":
+    case "confirming":
+      return <IconLoader2 size={14} className="animate-spin text-accent" />;
     default:
       return <IconClock size={14} className="text-muted" />;
   }

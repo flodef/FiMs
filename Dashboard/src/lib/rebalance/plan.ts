@@ -74,21 +74,12 @@ export type PlanStage =
       purpose?: StagePurpose;
     };
 
-export interface FeeEstimate {
-  /** base 5000/tx + estimated priority fees (priority capped at 1000 lamports/tx) */
-  lamports: number;
-  /** worst case: 6000 lamports per transaction */
-  maxLamports: number;
-}
-
 export interface RebalancePlan {
   positions: PositionDelta[];
   stages: PlanStage[];
   kaminoUsdg: number;
   /** set when the plan cannot proceed (e.g. insufficient Kamino balance) */
   error: string | null;
-  /** best-effort network fee estimate, filled by getPlan */
-  feeEstimate?: FeeEstimate;
 }
 
 const MIN_DELTA_USDT = 1;
@@ -244,10 +235,11 @@ export function buildTopupPlan(usdt: number, kaminoUsdg: number): RebalancePlan 
 }
 
 /**
- * Priority price cap: total priority fee = microLamports × cuLimit / 1e6 must stay
- * ≤ 1000 lamports → microLamports ≤ floor(1000 × 1e6 / cuLimit). Floor of 1 µL/CU.
+ * Fixed priority fee = 1000 lamports (0.000001 SOL) per tx — the user's known-good
+ * Jupiter setting. Priority fee = microLamports × cuLimit / 1e6 → µL/CU derived
+ * from the CU limit so the total stays ~1000 lamports.
  */
-export function capMicroLamports(heliusMicro: number, cuLimit: number): number {
-  if (!(cuLimit > 0)) return Math.max(1, heliusMicro);
-  return Math.max(1, Math.min(heliusMicro, Math.floor((1_000 * 1e6) / cuLimit)));
+export function priorityMicroLamports(cuLimit: number): number {
+  if (!Number.isFinite(cuLimit) || cuLimit <= 0) return 1;
+  return Math.max(1, Math.floor((1_000 * 1e6) / cuLimit));
 }

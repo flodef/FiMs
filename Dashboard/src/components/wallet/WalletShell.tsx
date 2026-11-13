@@ -4,22 +4,12 @@ import { registerMwa } from "@solana-mobile/wallet-standard-mobile";
 import { IconPlugConnected } from "@tabler/icons-react";
 import type { ReactNode } from "react";
 import { WALLET } from "../../lib/config";
-import type { FeeEstimate } from "../../lib/rebalance/plan";
 import { short } from "./shared";
 
 registerMwa({
   appIdentity: { name: "FiMs Dashboard", uri: "https://dashboard.fims.fi", icon: "/icons/icon-192.png" },
   chains: ["solana:mainnet"],
 });
-
-export function FeeEstimateLine({ fee }: { fee?: FeeEstimate }) {
-  if (!fee || fee.maxLamports === 0) return null;
-  return (
-    <p className="mt-2 text-[11px] text-muted">
-      Network fees ≈ {(fee.lamports / 1e9).toFixed(6)} SOL (max {(fee.maxLamports / 1e9).toFixed(6)} SOL)
-    </p>
-  );
-}
 
 export function WalletCard() {
   const { wallets, wallet, publicKey, connected, connecting, select, connect, disconnect } = useWallet();

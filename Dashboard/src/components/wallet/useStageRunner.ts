@@ -3,12 +3,25 @@ import { VersionedTransaction } from "@solana/web3.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { WALLET } from "../../lib/config";
 import type { PlanStage, RebalancePlan } from "../../lib/rebalance/plan";
-import { api, b64ToBytes, bytesToB64, STAGE_LABEL, type SavedRun, type StageState, type StageStatus } from "./shared";
+import { api, b64ToBytes, bytesToB64, type SavedRun, type StageState, type StageStatus } from "./shared";
+
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+interface TxResult {
+  signature: string;
+  status: string;
+}
+
+const isConfirmed = (s: string) => s === "confirmed" || s === "finalized";
 
 /**
  * Shared stage runner for wallet-signed flows (rebalance, top-up): plan fetch,
  * localStorage persistence/resume, sequential build → sign → send → confirm.
  * Each build is re-validated server-side against fresh on-chain state.
+ *
+ * A sent-but-unconfirmed tx is persisted (pendingTx) so a Resume first checks its
+ * signature via `status` instead of blindly rebuilding — a tx that actually
+ * landed is never executed twice.
  */
 export function useStageRunner(opts: {
   lsKey: string;
@@ -30,7 +43,6 @@ export function useStageRunner(opts: {
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [states, setStates] = useState<StageState[]>([]);
   const [running, setRunning] = useState(false);
-  const [busyLabel, setBusyLabel] = useState("");
   const [runStart, setRunStart] = useState<number | null>(null);
 
   const loadPlan = useCallback(async (): Promise<RebalancePlan | null> => {
@@ -69,7 +81,20 @@ export function useStageRunner(opts: {
             saved.states.some(s => s.status !== "confirmed");
           if (unfinished) {
             setPlan(saved.plan);
-            setStates(saved.states.map(s => (s.status === "confirmed" ? s : { status: "pending" as StageStatus })));
+            // confirmed stages stay confirmed; everything else retries fresh —
+            // but keep pendingTx so Resume can check whether it already landed
+            setStates(
+              saved.states.map(s =>
+                s.status === "confirmed"
+                  ? s
+                  : {
+                      status: "pending" as StageStatus,
+                      pendingTx: s.pendingTx,
+                      pendingIdx: s.pendingIdx,
+                      pendingCount: s.pendingCount,
+                    },
+              ),
+            );
             setRunStart(saved.startedAt ?? Date.now());
             return;
           }
@@ -106,11 +131,73 @@ export function useStageRunner(opts: {
   const unfinished = runStart != null && states.some(s => s.status !== "confirmed");
   const wrongWallet = connected && publicKey && publicKey.toBase58() !== WALLET;
 
-  const signAndSend = async (txB64: string) => {
+  /** Poll `status` until the tx reaches a terminal state (never returns "pending"). */
+  const awaitTerminal = async (signedB64: string): Promise<TxResult> => {
+    for (;;) {
+      const res = (await api({ action: "status", tx: signedB64 })) as TxResult;
+      if (res.status !== "pending") return res;
+      await sleep(2000);
+    }
+  };
+
+  /**
+   * Check a persisted pending tx before rebuilding its stage.
+   * Returns "confirmed" (stage done) or "rebuild" (safe to rebuild the stage).
+   */
+  const resolvePending = async (i: number): Promise<"confirmed" | "rebuild"> => {
+    const st = states[i];
+    if (!st?.pendingTx) return "rebuild";
+    setStage(i, { status: "confirming", error: undefined });
+    const res = await awaitTerminal(st.pendingTx);
+    if (isConfirmed(res.status)) {
+      const last = (st.pendingIdx ?? 0) === (st.pendingCount ?? 1) - 1;
+      if (last) {
+        setStage(i, { status: "confirmed", sig: res.signature, pendingTx: undefined });
+        return "confirmed";
+      }
+      // an earlier tx of a split stage confirmed — rebuild the stage; the server
+      // re-validates against fresh state so completed work isn't repeated
+    }
+    setStage(i, { status: "pending", pendingTx: undefined, sig: undefined, error: undefined });
+    return "rebuild";
+  };
+
+  /** Sign a built tx, send it, and poll to a terminal state. */
+  const signSendConfirm = async (
+    i: number,
+    j: number,
+    count: number,
+    txB64: string,
+  ): Promise<{ ok: true; sig: string } | { ok: false; error: string; sig?: string }> => {
+    setStage(i, { status: "awaiting signature", error: undefined });
     const tx = VersionedTransaction.deserialize(b64ToBytes(txB64));
     const signed = await signTransaction!(tx);
-    const out = await api({ action: "send", tx: bytesToB64(signed.serialize()) });
-    return out as { signature: string; status: string };
+    const signedB64 = bytesToB64(signed.serialize());
+    // persist the signed tx so a crash/resume can check it via `status`
+    setStage(i, { status: "sending", pendingTx: signedB64, pendingIdx: j, pendingCount: count });
+    let res: TxResult;
+    try {
+      res = (await api({ action: "send", tx: signedB64 })) as TxResult;
+    } catch (e: any) {
+      return { ok: false, error: `send: ${String(e?.message ?? e)}` };
+    }
+    if (res.status === "pending") {
+      setStage(i, { status: "confirming" });
+      try {
+        res = await awaitTerminal(signedB64);
+      } catch (e: any) {
+        return { ok: false, error: `confirm: ${String(e?.message ?? e)}` };
+      }
+    }
+    if (!isConfirmed(res.status)) {
+      const msg =
+        res.status === "expired"
+          ? "Transaction expired without landing — nothing was debited. Tap Resume to rebuild it."
+          : `tx ${res.signature}: ${res.status}`;
+      return { ok: false, error: msg, sig: res.signature };
+    }
+    setStage(i, { status: "sending", pendingTx: undefined });
+    return { ok: true, sig: res.signature };
   };
 
   const executeWith = async (p: RebalancePlan) => {
@@ -123,7 +210,16 @@ export function useStageRunner(opts: {
       const indices = p.stages.map((_, i) => i).filter(i => states[i]?.status !== "confirmed");
       for (const i of indices) {
         const stage: PlanStage = p.stages[i];
-        setBusyLabel(STAGE_LABEL[stage.type]);
+        // a previously sent tx may have landed — check before rebuilding
+        let resolved: "confirmed" | "rebuild";
+        try {
+          resolved = await resolvePending(i);
+        } catch (e: any) {
+          setStage(i, { status: "failed", error: `status check: ${String(e?.message ?? e)}` });
+          return;
+        }
+        if (resolved === "confirmed") continue;
+
         setStage(i, { status: "building", error: undefined });
         let built: any;
         try {
@@ -138,29 +234,28 @@ export function useStageRunner(opts: {
           return;
         }
         let lastSig = "";
-        for (const t of txs) {
-          setStage(i, { status: "awaiting signature" });
-          let res: { signature: string; status: string };
+        for (let j = 0; j < txs.length; j++) {
+          let r: Awaited<ReturnType<typeof signSendConfirm>>;
           try {
-            res = await signAndSend(t.tx);
+            r = await signSendConfirm(i, j, txs.length, txs[j].tx);
           } catch (e: any) {
-            setStage(i, { status: "failed", error: `signature/send: ${String(e?.message ?? e)}` });
+            // wallet signature rejected/cancelled
+            setStage(i, { status: "failed", error: `signature: ${String(e?.message ?? e)}` });
             return;
           }
-          if (res.status !== "confirmed" && res.status !== "finalized") {
-            setStage(i, { status: "failed", error: `tx ${res.signature}: ${res.status}`, sig: res.signature });
+          if (!r.ok) {
+            setStage(i, { status: "failed", error: r.error, sig: r.sig });
             return;
           }
-          lastSig = res.signature;
+          lastSig = r.sig;
         }
-        setStage(i, { status: "confirmed", sig: lastSig });
+        setStage(i, { status: "confirmed", sig: lastSig, pendingTx: undefined });
       }
       localStorage.removeItem(lsKeyRef.current);
       setRunStart(null);
       doneRef.current();
     } finally {
       setRunning(false);
-      setBusyLabel("");
     }
   };
 
@@ -190,7 +285,6 @@ export function useStageRunner(opts: {
     loadingPlan,
     states,
     running,
-    busyLabel,
     unfinished,
     wrongWallet,
     connected,

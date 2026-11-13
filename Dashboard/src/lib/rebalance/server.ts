@@ -12,6 +12,7 @@ import {
   sendTxAndConfirm,
   simulateTx,
   sizeUsdgForUsdt,
+  statusTxAndConfirm,
   walletTokenBalance,
   USDG_MINT,
   USDT_MINT,
@@ -243,12 +244,21 @@ async function buildTopupStage(stage: PlanStage): Promise<BuiltTx> {
   throw new HttpError(422, "unsupported top-up stage");
 }
 
-export async function sendAction(txB64: string): Promise<{ signature: string; status: string }> {
-  if (!txB64 || typeof txB64 !== "string" || txB64.length > 3000) throw new HttpError(400, "bad tx");
+function validatedSignedTx(txB64: unknown): string {
+  if (typeof txB64 !== "string" || !txB64 || txB64.length > 3000) throw new HttpError(400, "bad tx");
   const tx = deserializeTx(txB64);
   const signedBy = tx.signatures
     .map((s, i) => (s.every(b => b === 0) ? null : tx.message.staticAccountKeys[i]?.toBase58()))
     .filter(Boolean);
   if (!signedBy?.includes(WALLET)) throw new HttpError(422, "transaction not signed by expected wallet");
-  return sendTxAndConfirm(txB64);
+  return txB64;
+}
+
+export async function sendAction(txB64: unknown): Promise<{ signature: string; status: string }> {
+  return sendTxAndConfirm(validatedSignedTx(txB64));
+}
+
+/** Re-check a previously sent signed tx (rebroadcast + poll, no initial send). */
+export async function statusAction(txB64: unknown): Promise<{ signature: string; status: string }> {
+  return statusTxAndConfirm(validatedSignedTx(txB64));
 }

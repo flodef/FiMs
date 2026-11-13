@@ -6,7 +6,7 @@ import type { PlanStage } from "../lib/rebalance/plan";
 import { Card, CardTitle } from "./ui";
 import { RunActions, StageList } from "./plan-ui";
 import { api, short } from "./wallet/shared";
-import { FeeEstimateLine, WalletCard, WalletShell } from "./wallet/WalletShell";
+import { WalletCard, WalletShell } from "./wallet/WalletShell";
 import { useStageRunner } from "./wallet/useStageRunner";
 
 const LS_KEY = "fims-topup";
@@ -141,12 +141,10 @@ function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: () => void }) {
           <p className="mt-2 text-xs text-muted">Nothing to do</p>
         )}
         {plan && plan.stages.length > 0 && <StageList stages={plan.stages} states={states} detail={stageDetail} />}
-        <FeeEstimateLine fee={plan?.feeEstimate} />
       </Card>
 
       <RunActions
         running={r.running}
-        busyLabel={r.busyLabel}
         unfinished={unfinished}
         walletReady={walletReady}
         canExecute={canExecute}

@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import {
   buildPlan,
   buildTopupPlan,
-  capMicroLamports,
   distributeRepay,
+  priorityMicroLamports,
   TOPUP_MAX_USDT,
   type PlanPositionInput,
 } from "./plan";
@@ -241,21 +241,17 @@ describe("top-up plan", () => {
   });
 });
 
-describe("capMicroLamports", () => {
-  test("helius estimate below cap passes through", () => {
-    // 500 µL/CU × 94,303 CU = 47 lamports ≤ 1000
-    expect(capMicroLamports(500, 94_303)).toBe(500);
+describe("priorityMicroLamports", () => {
+  test("fixed 1000-lamport fee spread over the CU limit", () => {
+    expect(priorityMicroLamports(100_000)).toBe(10_000); // 10k µL × 100k CU = 1000 lamports
+    expect(priorityMicroLamports(1_400_000)).toBe(714); // ≈1000 lamports
+    expect(priorityMicroLamports(94_303)).toBe(10_604); // floor(1e9/94303)
   });
 
-  test("caps price so fee stays ≤ 1000 lamports at 1.4M CU", () => {
-    // floor(1e9 / 1_400_000) = 714 µL/CU → 714 × 1.4M / 1e6 ≈ 1000 lamports
-    expect(capMicroLamports(5000, 1_400_000)).toBe(714);
-    expect(capMicroLamports(800, 1_400_000)).toBe(714);
-  });
-
-  test("small CU limit doesn't bind; floor of 1 µL/CU", () => {
-    expect(capMicroLamports(500, 150_000)).toBe(500);
-    expect(capMicroLamports(500, 0)).toBe(500);
-    expect(capMicroLamports(500, Number.POSITIVE_INFINITY)).toBe(1);
+  test("huge CU limit floors to 1 µL/CU; degenerate input → 1", () => {
+    expect(priorityMicroLamports(2e9)).toBe(1);
+    expect(priorityMicroLamports(0)).toBe(1);
+    expect(priorityMicroLamports(Number.NaN)).toBe(1);
+    expect(priorityMicroLamports(-5)).toBe(1);
   });
 });

@@ -1,5 +1,5 @@
 import { readBody, requireAuth, sendJson, type VercelRequest, type VercelResponse } from "./_lib.js";
-import { buildAction, planAction, sendAction, topupPlanAction } from "../src/lib/rebalance/server.js";
+import { buildAction, planAction, sendAction, statusAction, topupPlanAction } from "../src/lib/rebalance/server.js";
 import type { PlanStage } from "../src/lib/rebalance/plan.js";
 
 export const config = { maxDuration: 60 };
@@ -32,9 +32,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return sendJson(res, 200, { txs: Array.isArray(out) ? out : [out] });
     }
     if (action === "send") {
-      const tx = body.tx;
-      if (typeof tx !== "string") return sendJson(res, 400, { error: "bad tx" });
-      return sendJson(res, 200, await sendAction(tx));
+      return sendJson(res, 200, await sendAction(body.tx));
+    }
+    if (action === "status") {
+      return sendJson(res, 200, await statusAction(body.tx));
     }
     return sendJson(res, 400, { error: "unknown action" });
   } catch (e: any) {

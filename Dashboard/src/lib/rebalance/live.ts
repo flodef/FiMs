@@ -15,14 +15,13 @@ import {
   type AddressLookupTableAccount,
   type TransactionInstruction,
 } from "@solana/web3.js";
+import bs58 from "bs58";
 import { KAMINO_MARKET, LTV_TARGETS, SPEND_ADDRESS, WALLET } from "../config.js";
 import {
   buildPlan,
   buildTopupPlan,
-  capMicroLamports,
-  type FeeEstimate,
+  priorityMicroLamports,
   type PlanPositionInput,
-  type PlanStage,
   type RebalancePlan,
 } from "./plan.js";
 
@@ -153,7 +152,6 @@ export async function getPlan(): Promise<RebalancePlan> {
   const [positions, kamino] = await Promise.all([fetchLendPositions(), fetchKaminoUsdg()]);
   const plan = buildPlan(positions, kamino.amount);
   await annotateWithQuotes(plan).catch(() => {});
-  plan.feeEstimate = await computeFeeEstimate(plan.stages).catch(() => undefined);
   return plan;
 }
 
@@ -161,74 +159,7 @@ export async function getTopupPlan(usdt: number): Promise<RebalancePlan> {
   const kamino = await fetchKaminoUsdg();
   const plan = buildTopupPlan(usdt, kamino.amount);
   await annotateWithQuotes(plan).catch(() => {});
-  plan.feeEstimate = await computeFeeEstimate(plan.stages).catch(() => undefined);
   return plan;
-}
-
-// ---------- fee estimation ----------
-
-const BASE_FEE_LAMPORTS = 5_000;
-const MAX_PRIORITY_LAMPORTS = 1_000;
-const EST_CU_PER_TX = 150_000;
-
-let mediumMicroCache: { at: number; micro: number } | null = null;
-
-/** Helius getPriorityFeeEstimate at "medium" level → µL/CU, clamped [1,1000], fallback 5. */
-export async function priorityMicroLamports(txB64: string): Promise<number> {
-  try {
-    const res = await fetch(heliusUrl(), {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "getPriorityFeeEstimate",
-        params: [{ transaction: txB64, options: { transactionEncoding: "base64", priorityLevel: "Medium" } }],
-      }),
-      signal: AbortSignal.timeout(10_000),
-    });
-    const json: any = await res.json();
-    const v = Number(json?.result?.priorityFeeEstimate ?? json?.result?.priorityFeeLevels?.medium);
-    if (Number.isFinite(v) && v > 0) return Math.min(1000, Math.max(1, Math.round(v)));
-  } catch {
-    /* fall through */
-  }
-  return 5;
-}
-
-/** Medium priority fee estimate, cached 60 s (needs a probe tx — built once). */
-async function estimateMediumMicro(): Promise<number> {
-  if (mediumMicroCache && Date.now() - mediumMicroCache.at < 60_000) return mediumMicroCache.micro;
-  const connection = rpc();
-  const { blockhash } = await connection.getLatestBlockhash("confirmed");
-  const msg = new TransactionMessage({
-    payerKey: WALLET_PUB,
-    recentBlockhash: blockhash,
-    instructions: [ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1 })],
-  }).compileToV0Message([]);
-  const probeB64 = Buffer.from(new VersionedTransaction(msg).serialize()).toString("base64");
-  const micro = await priorityMicroLamports(probeB64);
-  mediumMicroCache = { at: Date.now(), micro };
-  return micro;
-}
-
-async function computeFeeEstimate(stages: PlanStage[]): Promise<FeeEstimate> {
-  const txCount = stages.length;
-  const prioCount = stages.filter(s => s.type === "lend" || s.type === "swap" || s.type === "spend-transfer").length;
-  let micro = 5;
-  try {
-    micro = await estimateMediumMicro();
-  } catch {
-    /* keep 5 */
-  }
-  const perTx = Math.min(
-    MAX_PRIORITY_LAMPORTS,
-    Math.ceil((capMicroLamports(micro, EST_CU_PER_TX) * EST_CU_PER_TX) / 1e6),
-  );
-  return {
-    lamports: BASE_FEE_LAMPORTS * txCount + prioCount * perTx,
-    maxLamports: (BASE_FEE_LAMPORTS + MAX_PRIORITY_LAMPORTS) * txCount,
-  };
 }
 
 /** Fill display-only USDG/USDT estimates from live Jupiter quotes (validated amounts stay untouched). */
@@ -323,7 +254,7 @@ async function assembleTx(
 
 /**
  * Build → probe-simulate (generous CU limit) → rebuild with CU = units×1.15 and
- * the Helius "medium" priority price capped so the fee stays ≤ 1000 lamports.
+ * the fixed 1000-lamport priority fee (µL/CU derived from the CU limit).
  */
 async function finalizeTx(
   connection: Connection,
@@ -331,7 +262,6 @@ async function finalizeTx(
   alts: AddressLookupTableAccount[] = [],
 ): Promise<LendTxResult> {
   const probe = await assembleTx(connection, ixs, alts, 1_400_000, 0);
-  const probeB64 = Buffer.from(probe.serialize()).toString("base64");
   let units = 400_000;
   try {
     const sim = await connection.simulateTransaction(probe, { sigVerify: false, replaceRecentBlockhash: true });
@@ -341,7 +271,7 @@ async function finalizeTx(
   } catch {
     /* keep 400k */
   }
-  const microLamports = capMicroLamports(await priorityMicroLamports(probeB64), units);
+  const microLamports = priorityMicroLamports(units);
   const tx = await assembleTx(connection, ixs, alts, units, microLamports);
   const raw = tx.serialize();
   return { txB64: Buffer.from(raw).toString("base64"), size: raw.length, split: false, units, microLamports };
@@ -440,6 +370,65 @@ export async function sizeUsdgForUsdt(usdtOut: number): Promise<{ usdg: number; 
   return { usdg: usdgRaw / 1e6, rate };
 }
 
+const CB_PROGRAM = ComputeBudgetProgram.programId.toBase58();
+
+/** Read CU limit + SetComputeUnitPrice index from a compiled tx message. */
+function computeBudgetIxs(tx: VersionedTransaction) {
+  const msg: any = tx.message;
+  const keys = msg.staticAccountKeys ?? msg.accountKeys;
+  const ixs = msg.compiledInstructions ?? msg.instructions ?? [];
+  let limit = 0;
+  let priceIdx = -1;
+  ixs.forEach((ix: any, i: number) => {
+    const prog = keys[ix.programIdIndex]?.toBase58?.() ?? keys[ix.programIdIndex];
+    if (prog !== CB_PROGRAM) return;
+    const d = Buffer.isBuffer(ix.data) ? ix.data : Buffer.from(ix.data ?? []);
+    if (d[0] === 2) limit = d.readUInt32LE(1);
+    if (d[0] === 3) priceIdx = i;
+  });
+  return { ixs, keys, limit, priceIdx };
+}
+
+/**
+ * Jupiter builds the swap tx with whatever CU limit it wants — we can't know it
+ * upfront, so request price=1, then rewrite the SetComputeUnitPrice instruction
+ * in place to floor(1000 lamports / cuLimit). Same ix, same byte length.
+ */
+async function rewriteSwapPriority(txB64: string): Promise<string> {
+  const tx = deserializeTx(txB64);
+  const { ixs, limit, priceIdx } = computeBudgetIxs(tx);
+  if (limit > 0 && priceIdx >= 0) {
+    const micro = priorityMicroLamports(limit);
+    const d = Buffer.alloc(9);
+    d[0] = 3; // SetComputeUnitPrice
+    d.writeBigUInt64LE(BigInt(micro), 1);
+    ixs[priceIdx].data = new Uint8Array(d);
+    return Buffer.from(tx.serialize()).toString("base64");
+  }
+  // no usable budget ixs — rebuild via decompile with our own probe-sim budget
+  const { instructions, alts } = await decompileTx(tx);
+  const rebuilt = await finalizeTx(rpc(), instructions, alts);
+  return rebuilt.txB64;
+}
+
+/** Decompile a (possibly v0+ALT) tx into instructions + lookup tables for rebuilding. */
+async function decompileTx(tx: VersionedTransaction): Promise<{
+  instructions: TransactionInstruction[];
+  alts: AddressLookupTableAccount[];
+}> {
+  const connection = rpc();
+  const msg: any = tx.message;
+  const alts: AddressLookupTableAccount[] = [];
+  for (const l of msg.addressTableLookups ?? []) {
+    const addr = l.accountKey?.toBase58?.() ?? l.accountKey;
+    const res = await connection.getAddressLookupTable(new PublicKey(addr));
+    if (!res.value) throw new Error(`address lookup table ${addr} not found`);
+    alts.push(res.value);
+  }
+  const decompiled = TransactionMessage.decompile(msg, { addressLookupTableAccounts: alts });
+  return { instructions: decompiled.instructions, alts };
+}
+
 export async function buildSwapTx(
   inputMint: string,
   outputMint: string,
@@ -459,21 +448,24 @@ export async function buildSwapTx(
       }),
       signal: AbortSignal.timeout(FETCH_MS),
     });
-  // explicit Helius "medium" µL/CU price capped at 1000 lamports (Jupiter's dynamic
-  // CU limit can reach ~1.4M → price ≤ 714 µL/CU) — cheapest reliable option
-  const micro = capMicroLamports(await estimateMediumMicro().catch(() => 5), 1_400_000);
-  let res = await post({ computeUnitPriceMicroLamports: micro });
-  if (!res.ok) {
+  // price=1 placeholder — rewritten to the fixed 1000-lamport fee after build
+  let res = await post({ computeUnitPriceMicroLamports: 1 });
+  let b64: string | undefined;
+  if (res.ok) {
+    b64 = ((await res.json()) as any)?.swapTransaction;
+  }
+  if (!b64) {
     // fallback: Jupiter's capped medium priority level
     res = await post({
       prioritizationFeeLamports: { priorityLevelWithMaxLamports: { priorityLevel: "medium", maxLamports: 1000 } },
     });
+    if (!res.ok) throw new Error(`jup swap → HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    b64 = ((await res.json()) as any)?.swapTransaction;
+    if (!b64) throw new Error("jup swap: no swapTransaction");
+    return { txB64: b64, size: Buffer.from(b64, "base64").length, quote };
   }
-  if (!res.ok) throw new Error(`jup swap → HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const body: any = await res.json();
-  const b64 = body.swapTransaction;
-  if (!b64) throw new Error("jup swap: no swapTransaction");
-  return { txB64: b64, size: Buffer.from(b64, "base64").length, quote };
+  const txB64 = await rewriteSwapPriority(b64);
+  return { txB64, size: Buffer.from(txB64, "base64").length, quote };
 }
 
 // ---------- Kamino KTX ----------
@@ -498,7 +490,17 @@ export async function buildKaminoTx(
   const body: any = await res.json();
   const b64 = body.transaction ?? body.tx ?? body.swapTransaction;
   if (!b64) throw new Error(`kamino ${action}: no transaction in response (${JSON.stringify(Object.keys(body))})`);
-  return { txB64: b64, size: Buffer.from(b64, "base64").length };
+
+  // KTX txs carry SetComputeUnitLimit 1M and NO price → zero priority fee, never
+  // lands. Decompile, strip ComputeBudget ixs, rebuild with our probe-sim budget.
+  const connection = rpc();
+  const tx = deserializeTx(b64);
+  const { instructions, alts } = await decompileTx(tx);
+  const ixs = instructions.filter(ix => ix.programId.toBase58() !== CB_PROGRAM);
+  if (!ixs.length) throw new Error(`kamino ${action}: no instructions after stripping compute budget`);
+  const built = await finalizeTx(connection, ixs, alts);
+  if (built.size > MAX_TX_BYTES) throw new Error(`kamino ${action}: tx too large (${built.size} B)`);
+  return { txB64: built.txB64, size: built.size };
 }
 
 // ---------- simulate / send ----------
@@ -526,22 +528,84 @@ export async function simulateTx(txB64: string) {
   };
 }
 
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+/**
+ * Poll a signature for up to ~40 s, rebroadcasting the raw tx each round and
+ * checking blockhash expiry. Never throws on timeout — returns "pending"/"expired".
+ */
+async function confirmLoop(
+  connection: Connection,
+  signature: string,
+  recentBlockhash: string,
+  raw?: Uint8Array,
+): Promise<{ signature: string; status: string }> {
+  const deadline = Date.now() + 40_000;
+  while (Date.now() < deadline) {
+    const st = await connection.getSignatureStatuses([signature], { searchTransactionHistory: false });
+    const s = st.value[0];
+    if (s?.confirmationStatus === "confirmed" || s?.confirmationStatus === "finalized") {
+      return { signature, status: s.err ? `failed: ${JSON.stringify(s.err)}` : s.confirmationStatus };
+    }
+    if (s?.err) return { signature, status: `failed: ${JSON.stringify(s.err)}` };
+    // rebroadcast — a single send often doesn't land; "already processed" is fine
+    if (raw) {
+      try {
+        await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 0 });
+      } catch {
+        /* already processed / blockhash not found — keep polling */
+      }
+    }
+    try {
+      const valid = await connection.isBlockhashValid(recentBlockhash, { commitment: "processed" });
+      if (valid.value === false) {
+        // one last status check before declaring expiry
+        const st2 = await connection.getSignatureStatuses([signature], { searchTransactionHistory: false });
+        const s2 = st2.value[0];
+        if (s2?.confirmationStatus === "confirmed" || s2?.confirmationStatus === "finalized") {
+          return { signature, status: s2.err ? `failed: ${JSON.stringify(s2.err)}` : s2.confirmationStatus };
+        }
+        if (s2?.err) return { signature, status: `failed: ${JSON.stringify(s2.err)}` };
+        // processed but not yet confirmed — it may still confirm, keep polling
+        if (!s2) return { signature, status: "expired" };
+      }
+    } catch {
+      /* RPC hiccup — keep polling */
+    }
+    await sleep(2000);
+  }
+  return { signature, status: "pending" };
+}
+
 export async function sendTxAndConfirm(txB64: string): Promise<{ signature: string; status: string }> {
   const connection = rpc();
   const tx = deserializeTx(txB64);
   const raw = tx.serialize();
-  const signature = await connection.sendRawTransaction(raw, { skipPreflight: false, maxRetries: 3 });
-  const deadline = Date.now() + 45_000;
-  let status = "pending";
-  while (Date.now() < deadline) {
-    const st = await connection.getSignatureStatuses([signature]);
-    const s = st.value[0];
-    if (s?.confirmationStatus === "confirmed" || s?.confirmationStatus === "finalized") {
-      status = s.err ? `failed: ${JSON.stringify(s.err)}` : s.confirmationStatus;
-      return { signature, status };
-    }
-    if (s?.err) return { signature, status: `failed: ${JSON.stringify(s.err)}` };
-    await new Promise(r => setTimeout(r, 2000));
+  const signature = txSignature(txB64);
+  try {
+    await connection.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 0 });
+  } catch {
+    // send rejected (stale blockhash, already processed, node behind…) — the
+    // confirm loop still resolves truth via status + blockhash validity
   }
-  return { signature, status };
+  return confirmLoop(connection, signature, tx.message.recentBlockhash, raw);
+}
+
+/** Signature of a signed tx without sending (first signature = txid). */
+export function txSignature(txB64: string): string {
+  const tx = deserializeTx(txB64);
+  const sig = tx.signatures[0];
+  if (!sig || sig.every(b => b === 0)) throw new Error("tx has no signature");
+  return bs58.encode(sig);
+}
+
+/**
+ * Re-check a previously sent signed tx: rebroadcast + poll until terminal.
+ * Used by the client when `send` returned "pending" or on Resume.
+ */
+export async function statusTxAndConfirm(txB64: string): Promise<{ signature: string; status: string }> {
+  const connection = rpc();
+  const tx = deserializeTx(txB64);
+  const signature = txSignature(txB64);
+  return confirmLoop(connection, signature, tx.message.recentBlockhash, tx.serialize());
 }
