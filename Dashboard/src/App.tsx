@@ -2,6 +2,7 @@ import {
   IconArrowsExchange,
   IconChartLine,
   IconCoin,
+  IconCreditCard,
   IconInfoCircle,
   IconLayoutDashboard,
   IconPlus,
@@ -27,6 +28,7 @@ import { Login } from "./components/Login";
 import { Drawer, StatusBadge, Toast } from "./components/ui";
 
 const Rebalance = lazy(() => import("./components/Rebalance"));
+const Topup = lazy(() => import("./components/Topup"));
 
 type Tab = "overview" | "positions" | "multiply" | "prices" | "convert";
 
@@ -99,7 +101,7 @@ export default function App() {
     open: false,
     editing: null,
   });
-  const [drawer, setDrawer] = useState<"prices" | "convert" | "rebalance" | null>(null);
+  const [drawer, setDrawer] = useState<"prices" | "convert" | "rebalance" | "topup" | null>(null);
   const [toast, setToast] = useState<{ kind: "ok" | "error"; msg: string } | null>(null);
 
   useEffect(() => {
@@ -208,6 +210,15 @@ export default function App() {
             aria-label="Rebalance"
           >
             <IconScale size={18} />
+          </button>
+          <button
+            onClick={() => setDrawer("topup")}
+            disabled={!canEditPositions}
+            title={manageHint ?? "Top up card"}
+            className={`${headerBtn} disabled:opacity-40`}
+            aria-label="Top up card"
+          >
+            <IconCreditCard size={18} />
           </button>
           <button onClick={() => setSettingsOpen(true)} className={headerBtn} aria-label="Settings">
             <IconSettings size={18} />
@@ -332,6 +343,20 @@ export default function App() {
                 setDrawer(null);
                 void refresh();
                 setToast({ kind: "ok", msg: "Rebalance done" });
+              }}
+            />
+          </Suspense>
+        </Drawer>
+      )}
+      {drawer === "topup" && (
+        <Drawer title="Top up card" onClose={() => setDrawer(null)} wide>
+          <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
+            <Topup
+              eurToUsd={result.cells["I13"] ?? 0}
+              onDone={() => {
+                setDrawer(null);
+                void refresh();
+                setToast({ kind: "ok", msg: "Card topped up" });
               }}
             />
           </Suspense>

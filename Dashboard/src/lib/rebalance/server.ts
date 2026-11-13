@@ -2,22 +2,25 @@ import { WALLET } from "../config.js";
 import {
   buildKaminoTx,
   buildLendTx,
+  buildSpendTransferTx,
   buildSwapTx,
   deserializeTx,
   fetchKaminoUsdg,
   getPlan,
+  getTopupPlan,
   rpc,
   sendTxAndConfirm,
   simulateTx,
   sizeUsdgForUsdt,
-  usdgAtaCloseIx,
   walletTokenBalance,
   USDG_MINT,
   USDT_MINT,
 } from "./live.js";
-import { distributeRepay, type LendOp, type PlanStage, type RebalancePlan } from "./plan.js";
+import { distributeRepay, TOPUP_MAX_USDT, type LendOp, type PlanStage, type RebalancePlan } from "./plan.js";
 
 const CAP = 1.01;
+const TOPUP_SWAP_CAP = 1.005;
+const TOPUP_TRANSFER_CAP = 1.005;
 
 class HttpError extends Error {
   status: number;
@@ -29,6 +32,10 @@ class HttpError extends Error {
 
 export async function planAction(): Promise<RebalancePlan> {
   return getPlan();
+}
+
+export async function topupPlanAction(usdt: number): Promise<RebalancePlan> {
+  return getTopupPlan(usdt);
 }
 
 interface BuiltTx {
@@ -53,6 +60,9 @@ async function simulateOrFail(tx: string) {
  * strand funds or repeat completed work.
  */
 export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]> {
+  if (stage.purpose === "topup" || stage.type === "spend-transfer") {
+    return buildTopupStage(stage);
+  }
   const plan = await getPlan();
   const connection = rpc();
   const totalFreshRepay = plan.positions.reduce((s, p) => s + p.repayUsdt, 0);
@@ -98,15 +108,8 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
     }
     if (ops.length === 0) throw new HttpError(422, "nothing to do — positions already at target");
 
-    // deficit/mixed path: the final all-repay lend tx also closes the emptied USDG ATA
-    // (recovers the ~0.002 SOL rent the Kamino withdraw paid to create it)
-    const allRepay = ops.every(o => o.deltaUsdt < 0);
-    const hasUsdgSwap = plan.stages.some(s => s.type === "swap" && s.pair === "usdg-usdt");
-    const closeIx = allRepay && hasUsdgSwap ? await usdgAtaCloseIx() : null;
-
     const results = await buildLendTx(
       ops.map(o => ({ vaultId: o.vaultId, positionId: o.positionId, deltaUsdt: o.deltaUsdt })),
-      { extraIxs: closeIx ? [closeIx] : [] },
     );
     const out: BuiltTx[] = [];
     for (const r of results) {
@@ -182,6 +185,62 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
   }
 
   throw new HttpError(422, "unsupported stage");
+}
+
+/**
+ * Top-up stages (purpose "topup" / spend-transfer): same builders as rebalance but
+ * validated against the client-sent amounts + hard 10k cap — no lend-position plan.
+ */
+async function buildTopupStage(stage: PlanStage): Promise<BuiltTx> {
+  const connection = rpc();
+
+  if (stage.type === "kamino-withdraw") {
+    const usdtOut = Math.min(stage.usdtOut, TOPUP_MAX_USDT);
+    if (usdtOut < 1) throw new HttpError(422, "top-up amount must be ≥ 1 USDT");
+    const kamino = await fetchKaminoUsdg();
+    if (!kamino.reserve) throw new HttpError(422, "no Kamino USDG deposit found");
+    const sized = await sizeUsdgForUsdt(usdtOut);
+    const withdrawUnits = sized.usdg;
+    if (withdrawUnits * 1e6 > kamino.amount * 1e6) {
+      throw new HttpError(
+        422,
+        `Kamino USDG insufficient: need ~${withdrawUnits.toFixed(2)}, have ${kamino.amount.toFixed(2)}`,
+      );
+    }
+    const built = await buildKaminoTx("withdraw", withdrawUnits, kamino.reserve);
+    const simulation = await simulateOrFail(built.txB64);
+    return {
+      tx: built.txB64,
+      size: built.size,
+      quote: { usdgIn: withdrawUnits, usdtOut, rate: sized.rate },
+      simulation,
+    };
+  }
+
+  if (stage.type === "swap" && stage.pair === "usdg-usdt") {
+    const usdgBal = await walletTokenBalance(connection, USDG_MINT);
+    const amountRaw = Math.min(Math.round(stage.amount * TOPUP_SWAP_CAP * 1e6), Math.floor(usdgBal * 1e6));
+    if (amountRaw <= 0) throw new HttpError(422, "wallet USDG balance too low for swap");
+    const built = await buildSwapTx(USDG_MINT, USDT_MINT, amountRaw, "ExactIn");
+    const simulation = await simulateOrFail(built.txB64);
+    return {
+      tx: built.txB64,
+      size: built.size,
+      quote: { inAmount: built.quote.inAmount / 1e6, outAmount: built.quote.outAmount / 1e6 },
+      simulation,
+    };
+  }
+
+  if (stage.type === "spend-transfer") {
+    const usdtBal = await walletTokenBalance(connection, USDT_MINT);
+    const amount = Math.min(Math.min(stage.usdt, TOPUP_MAX_USDT) * TOPUP_TRANSFER_CAP, usdtBal);
+    if (amount <= 0) throw new HttpError(422, "wallet USDT balance too low for transfer");
+    const built = await buildSpendTransferTx(amount);
+    const simulation = await simulateOrFail(built.txB64);
+    return { tx: built.txB64, size: built.size, quote: { usdt: amount }, simulation };
+  }
+
+  throw new HttpError(422, "unsupported top-up stage");
 }
 
 export async function sendAction(txB64: string): Promise<{ signature: string; status: string }> {

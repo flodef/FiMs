@@ -36,14 +36,18 @@ export interface LendOp {
   deltaUsdt: number;
 }
 
+export type StagePurpose = "rebalance" | "topup";
+
 export type PlanStage =
-  | { type: "lend"; ops: LendOp[] }
+  | { type: "lend"; ops: LendOp[]; purpose?: StagePurpose }
   | {
       type: "kamino-withdraw";
       /** estimated USDG to withdraw (build refines via ExactOut quote) */
       amountUsdg: number;
       /** USDT the withdraw must cover — sizes the ExactOut quote at build time */
       usdtOut: number;
+      /** absent = rebalance */
+      purpose?: StagePurpose;
     }
   | {
       type: "swap";
@@ -53,16 +57,28 @@ export type PlanStage =
       /** display only — live-quote estimates of the swap input/output */
       estIn?: number;
       estOut?: number;
+      /** absent = rebalance */
+      purpose?: StagePurpose;
     }
-  | { type: "kamino-deposit"; amountUsdg: number; /** display only — quoted USDG from the swap */ estUsdg?: number };
+  | {
+      type: "kamino-deposit";
+      amountUsdg: number;
+      /** display only — quoted USDG from the swap */
+      estUsdg?: number;
+      purpose?: StagePurpose;
+    }
+  | {
+      type: "spend-transfer";
+      /** USDT to send to the Jupiter Spend address */
+      usdt: number;
+      purpose?: StagePurpose;
+    };
 
 export interface FeeEstimate {
-  /** base 5000/tx + estimated priority fees (excludes account rent) */
+  /** base 5000/tx + estimated priority fees (priority capped at 1000 lamports/tx) */
   lamports: number;
-  /** USDG ATA rent if the account doesn't exist yet (0 otherwise) */
-  rentLamports: number;
-  /** true when the deficit path closes the emptied ATA at the end → rent refunded */
-  rentRefunded: boolean;
+  /** worst case: 6000 lamports per transaction */
+  maxLamports: number;
 }
 
 export interface RebalancePlan {
@@ -199,4 +215,39 @@ export function buildPlan(positions: PlanPositionInput[], kaminoUsdg: number): R
     plan.stages = [{ type: "lend", ops: firstLend }];
   }
   return plan;
+}
+
+// ---------- top up card (Jupiter Spend) ----------
+
+export const TOPUP_MAX_USDT = 10_000;
+
+/**
+ * Pure top-up plan: withdraw USDG from Kamino → swap all to USDT → send to the
+ * Jupiter Spend address. USDG≈USDT≈USD so the requested USDT amount sizes all stages.
+ */
+export function buildTopupPlan(usdt: number, kaminoUsdg: number): RebalancePlan {
+  const plan: RebalancePlan = { positions: [], stages: [], kaminoUsdg, error: null };
+  if (!Number.isFinite(usdt) || usdt < 1 || usdt > TOPUP_MAX_USDT) {
+    plan.error = `Amount must be between 1 and ${TOPUP_MAX_USDT.toLocaleString("en-US")} USDT`;
+    return plan;
+  }
+  if (kaminoUsdg + 1e-9 < usdt) {
+    plan.error = `Insufficient Kamino USDG: need ~${usdt.toFixed(2)}, have ${kaminoUsdg.toFixed(2)}`;
+    return plan;
+  }
+  plan.stages = [
+    { type: "kamino-withdraw", amountUsdg: usdt, usdtOut: usdt, purpose: "topup" },
+    { type: "swap", pair: "usdg-usdt", mode: "ExactIn", amount: usdt, purpose: "topup" },
+    { type: "spend-transfer", usdt, purpose: "topup" },
+  ];
+  return plan;
+}
+
+/**
+ * Priority price cap: total priority fee = microLamports × cuLimit / 1e6 must stay
+ * ≤ 1000 lamports → microLamports ≤ floor(1000 × 1e6 / cuLimit). Floor of 1 µL/CU.
+ */
+export function capMicroLamports(heliusMicro: number, cuLimit: number): number {
+  if (!(cuLimit > 0)) return Math.max(1, heliusMicro);
+  return Math.max(1, Math.min(heliusMicro, Math.floor((1_000 * 1e6) / cuLimit)));
 }

@@ -1,5 +1,7 @@
 export const WALLET = "58kZBjjtHShTtXFmygr3ZT8VSU4dH28PanRAdouHbToh";
 export const KAMINO_MARKET = "47tfyEG9SsdEnUm9cw5kY9BXngQGqu3LBoop9j5uTAv8";
+/** Jupiter Spend card address — server-side only, never client-supplied */
+export const SPEND_ADDRESS = "9eu9NmhU3VRi57oGTyEp1zKZD8ecYrr3jSxA3VxZNvwT";
 export const DEFI_SHEET_ID = "1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI";
 export const SHEETS_REFERER = "https://www.fims.fi";
 

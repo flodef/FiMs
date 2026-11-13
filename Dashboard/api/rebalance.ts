@@ -1,5 +1,5 @@
 import { readBody, requireAuth, sendJson, type VercelRequest, type VercelResponse } from "./_lib.js";
-import { buildAction, planAction, sendAction } from "../src/lib/rebalance/server.js";
+import { buildAction, planAction, sendAction, topupPlanAction } from "../src/lib/rebalance/server.js";
 import type { PlanStage } from "../src/lib/rebalance/plan.js";
 
 export const config = { maxDuration: 60 };
@@ -7,7 +7,7 @@ export const config = { maxDuration: 60 };
 const isStage = (s: unknown): s is PlanStage => {
   if (!s || typeof s !== "object") return false;
   const t = (s as { type?: string }).type;
-  return t === "lend" || t === "kamino-withdraw" || t === "swap" || t === "kamino-deposit";
+  return t === "lend" || t === "kamino-withdraw" || t === "swap" || t === "kamino-deposit" || t === "spend-transfer";
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -18,6 +18,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (action === "plan") {
       return sendJson(res, 200, await planAction());
+    }
+    if (action === "topup-plan") {
+      const usdt = Number(body.usdt);
+      if (!Number.isFinite(usdt)) return sendJson(res, 400, { error: "bad usdt" });
+      return sendJson(res, 200, await topupPlanAction(usdt));
     }
     if (action === "build") {
       if (!isStage(body.stage)) {

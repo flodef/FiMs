@@ -1,5 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { buildPlan, distributeRepay, type PlanPositionInput } from "./plan";
+import {
+  buildPlan,
+  buildTopupPlan,
+  capMicroLamports,
+  distributeRepay,
+  TOPUP_MAX_USDT,
+  type PlanPositionInput,
+} from "./plan";
 
 const pos = (over: Partial<PlanPositionInput>): PlanPositionInput => ({
   key: "JLP",
@@ -202,5 +209,53 @@ describe("distributeRepay", () => {
     expect(distributeRepay(0, [share(100)])).toEqual([0]);
     expect(distributeRepay(100, [])).toEqual([]);
     expect(distributeRepay(-5, [share(100)])).toEqual([0]);
+  });
+});
+
+describe("top-up plan", () => {
+  test("valid amount → withdraw → swap → spend-transfer, all purpose topup", () => {
+    const plan = buildTopupPlan(50, 200_000);
+    expect(plan.error).toBeNull();
+    expect(plan.stages.map(s => s.type)).toEqual(["kamino-withdraw", "swap", "spend-transfer"]);
+    expect(plan.stages.every(s => s.purpose === "topup")).toBe(true);
+    const [wd, sw, tr] = plan.stages;
+    expect(wd).toMatchObject({ type: "kamino-withdraw", usdtOut: 50, amountUsdg: 50 });
+    expect(sw).toMatchObject({ type: "swap", pair: "usdg-usdt", amount: 50 });
+    expect(tr).toMatchObject({ type: "spend-transfer", usdt: 50 });
+  });
+
+  test("bounds: below 1, above 10k, NaN → error, no stages", () => {
+    for (const bad of [0, 0.5, TOPUP_MAX_USDT + 1, Number.NaN, Infinity]) {
+      const plan = buildTopupPlan(bad, 200_000);
+      expect(plan.error).not.toBeNull();
+      expect(plan.stages).toHaveLength(0);
+    }
+    expect(buildTopupPlan(1, 200_000).error).toBeNull();
+    expect(buildTopupPlan(TOPUP_MAX_USDT, 200_000).error).toBeNull();
+  });
+
+  test("insufficient Kamino USDG → error", () => {
+    const plan = buildTopupPlan(500, 100);
+    expect(plan.error).toContain("Insufficient Kamino USDG");
+    expect(plan.stages).toHaveLength(0);
+  });
+});
+
+describe("capMicroLamports", () => {
+  test("helius estimate below cap passes through", () => {
+    // 500 µL/CU × 94,303 CU = 47 lamports ≤ 1000
+    expect(capMicroLamports(500, 94_303)).toBe(500);
+  });
+
+  test("caps price so fee stays ≤ 1000 lamports at 1.4M CU", () => {
+    // floor(1e9 / 1_400_000) = 714 µL/CU → 714 × 1.4M / 1e6 ≈ 1000 lamports
+    expect(capMicroLamports(5000, 1_400_000)).toBe(714);
+    expect(capMicroLamports(800, 1_400_000)).toBe(714);
+  });
+
+  test("small CU limit doesn't bind; floor of 1 µL/CU", () => {
+    expect(capMicroLamports(500, 150_000)).toBe(500);
+    expect(capMicroLamports(500, 0)).toBe(500);
+    expect(capMicroLamports(500, Number.POSITIVE_INFINITY)).toBe(1);
   });
 });
