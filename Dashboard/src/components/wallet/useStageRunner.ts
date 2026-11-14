@@ -18,6 +18,7 @@ const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 interface TxResult {
   signature: string;
   status: string;
+  feeLamports?: number;
 }
 
 const isConfirmed = (s: string) => s === "confirmed" || s === "finalized";
@@ -44,7 +45,8 @@ interface SignRequest {
 export function useStageRunner(opts: {
   lsKey: string;
   fetchPlan: () => Promise<RebalancePlan | null>;
-  onDone: () => void;
+  /** total network fees paid by the run (lamports), or null if unknown */
+  onDone: (totalLamports: number | null) => void;
 }) {
   const { connected, publicKey, signTransaction } = useWallet();
   const fetchRef = useRef(opts.fetchPlan);
@@ -65,6 +67,8 @@ export function useStageRunner(opts: {
   const [signReady, setSignReady] = useState<SignReadyState | null>(null);
   const signReqRef = useRef<SignRequest | null>(null);
   const lastTapAt = useRef(0);
+  // per-stage fee totals — ref mirror so the run total is readable synchronously
+  const feesRef = useRef<number[]>([]);
 
   const loadPlan = useCallback(async (): Promise<RebalancePlan | null> => {
     setLoadingPlan(true);
@@ -74,10 +78,12 @@ export function useStageRunner(opts: {
       if (!p) {
         setPlan(null);
         setStates([]);
+        feesRef.current = [];
         return null;
       }
       setPlan(p);
       setStates(p.stages.map(() => ({ status: "pending" })));
+      feesRef.current = [];
       if (p.error) setPlanErr(p.error);
       return p;
     } catch (e: any) {
@@ -113,9 +119,11 @@ export function useStageRunner(opts: {
                       pendingTx: s.pendingTx,
                       pendingIdx: s.pendingIdx,
                       pendingCount: s.pendingCount,
+                      feeLamports: s.feeLamports,
                     },
               ),
             );
+            feesRef.current = saved.states.map(s => s.feeLamports ?? 0);
             setRunStart(saved.startedAt ?? Date.now());
             return;
           }
@@ -131,6 +139,13 @@ export function useStageRunner(opts: {
 
   const setStage = (i: number, s: Partial<StageState>) =>
     setStates(prev => prev.map((x, j) => (j === i ? { ...x, ...s } : x)));
+
+  /** Accumulate a landed tx's network fee onto its stage (state + ref mirror). */
+  const addStageFee = (i: number, fee?: number) => {
+    if (typeof fee !== "number" || !Number.isFinite(fee) || fee <= 0) return;
+    feesRef.current[i] = (feesRef.current[i] ?? 0) + fee;
+    setStates(prev => prev.map((x, j) => (j === i ? { ...x, feeLamports: (x.feeLamports ?? 0) + fee } : x)));
+  };
 
   // persist the run after each stage update; clear once everything is confirmed
   useEffect(() => {
@@ -170,6 +185,7 @@ export function useStageRunner(opts: {
     if (!st?.pendingTx) return "rebuild";
     setStage(i, { status: "confirming", error: undefined });
     const res = await awaitTerminal(st.pendingTx);
+    addStageFee(i, res.feeLamports);
     if (isConfirmed(res.status)) {
       const last = (st.pendingIdx ?? 0) === (st.pendingCount ?? 1) - 1;
       if (last) {
@@ -230,7 +246,11 @@ export function useStageRunner(opts: {
         return { ok: false, error: `confirm: ${String(e?.message ?? e)}` };
       }
     }
+    addStageFee(i, res.feeLamports);
     if (!isConfirmed(res.status)) {
+      // terminal but not confirmed — the tx can never land now, so drop pendingTx:
+      // Resume rebuilds directly instead of re-checking (and re-counting) it
+      setStage(i, { pendingTx: undefined });
       const msg =
         res.status === "expired"
           ? "Transaction expired without landing — nothing was debited. Tap Resume to rebuild it."
@@ -292,9 +312,10 @@ export function useStageRunner(opts: {
         }
         setStage(i, { status: "confirmed", sig: lastSig, pendingTx: undefined });
       }
+      const totalFees = feesRef.current.reduce((s, f) => s + (f ?? 0), 0);
       localStorage.removeItem(lsKeyRef.current);
       setRunStart(null);
-      doneRef.current();
+      doneRef.current(totalFees > 0 ? totalFees : null);
     } finally {
       setRunning(false);
     }

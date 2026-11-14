@@ -29,6 +29,8 @@ export interface StageState {
   pendingIdx?: number;
   /** total txs in the stage when pendingTx was sent */
   pendingCount?: number;
+  /** total network fees paid by this stage's landed txs, in lamports */
+  feeLamports?: number;
 }
 
 export interface SavedRun {

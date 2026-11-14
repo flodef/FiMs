@@ -30,7 +30,7 @@ const stageDetail = (s: PlanStage) => {
   return "";
 };
 
-function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: () => void }) {
+function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: (totalLamports: number | null) => void }) {
   const [amount, setAmount] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -158,7 +158,13 @@ function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: () => void }) {
   );
 }
 
-export default function Topup({ eurToUsd, onDone }: { eurToUsd: number; onDone: () => void }) {
+export default function Topup({
+  eurToUsd,
+  onDone,
+}: {
+  eurToUsd: number;
+  onDone: (totalLamports: number | null) => void;
+}) {
   return (
     <WalletShell>
       <Inner eurToUsd={eurToUsd} onDone={onDone} />

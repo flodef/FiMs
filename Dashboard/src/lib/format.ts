@@ -24,6 +24,10 @@ export function fmtSignedEUR(v: number | null | undefined): string {
   return v < 0 ? `−${s}` : `+${s}`;
 }
 
+export function fmtSOL(lamports: number): string {
+  return (lamports / 1e9).toFixed(6);
+}
+
 export function timeAgo(ms: number | null | undefined, now: number): string {
   if (ms == null || !Number.isFinite(ms)) return "never";
   const mins = Math.max(0, Math.round((now - ms) / 60000));

@@ -17,6 +17,7 @@ import {
   walletTokenBalanceRaw,
   USDG_MINT,
   USDT_MINT,
+  type TxOutcome,
 } from "./live.js";
 import { distributeRepayRaw, TOPUP_MAX_USDT, type LendOp, type PlanStage, type RebalancePlan } from "./plan.js";
 
@@ -288,11 +289,11 @@ function validatedSignedTx(txB64: unknown): string {
   return txB64;
 }
 
-export async function sendAction(txB64: unknown): Promise<{ signature: string; status: string }> {
+export async function sendAction(txB64: unknown): Promise<TxOutcome> {
   return sendTxAndConfirm(validatedSignedTx(txB64));
 }
 
 /** Re-check a previously sent signed tx (rebroadcast + poll, no initial send). */
-export async function statusAction(txB64: unknown): Promise<{ signature: string; status: string }> {
+export async function statusAction(txB64: unknown): Promise<TxOutcome> {
   return statusTxAndConfirm(validatedSignedTx(txB64));
 }

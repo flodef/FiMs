@@ -25,7 +25,7 @@ const stageDetail = (s: PlanStage) => {
   return `≈ ${(s.estUsdg ?? s.amountUsdg).toFixed(2)} USDG`;
 };
 
-function Inner({ onDone }: { onDone: () => void }) {
+function Inner({ onDone }: { onDone: (totalLamports: number | null) => void }) {
   const r = useStageRunner({ lsKey: LS_KEY, fetchPlan: () => api({ action: "plan" }), onDone });
   const { plan, states, unfinished } = r;
 
@@ -108,7 +108,7 @@ function Inner({ onDone }: { onDone: () => void }) {
   );
 }
 
-export default function Rebalance({ onDone }: { onDone: () => void }) {
+export default function Rebalance({ onDone }: { onDone: (totalLamports: number | null) => void }) {
   return (
     <WalletShell>
       <Inner onDone={onDone} />

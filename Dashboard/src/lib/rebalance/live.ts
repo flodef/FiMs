@@ -639,23 +639,50 @@ export async function simulateTx(txB64: string) {
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
+export interface TxOutcome {
+  signature: string;
+  status: string;
+  /** network fee paid in lamports — present once the tx is known to have landed (incl. failed txs) */
+  feeLamports?: number;
+}
+
+/** Fee of a landed tx via getTransaction; a couple of retries while it indexes. Never throws. */
+export async function fetchTxFee(connection: Connection, signature: string): Promise<number | undefined> {
+  for (let i = 0; i < 3; i++) {
+    try {
+      const tx = await connection.getTransaction(signature, {
+        commitment: "confirmed",
+        maxSupportedTransactionVersion: 0,
+      });
+      const fee = tx?.meta?.fee;
+      if (typeof fee === "number" && Number.isFinite(fee)) return fee;
+    } catch {
+      /* not indexed yet or RPC hiccup — retry */
+    }
+    if (i < 2) await sleep(1000);
+  }
+  return undefined;
+}
+
 /**
  * Poll a signature for up to ~40 s, rebroadcasting the raw tx each round and
  * checking blockhash expiry. Never throws on timeout — returns "pending"/"expired".
  */
-async function confirmLoop(
-  connection: Connection,
-  signature: string,
-  recentBlockhash: string,
-): Promise<{ signature: string; status: string }> {
+async function confirmLoop(connection: Connection, signature: string, recentBlockhash: string): Promise<TxOutcome> {
+  // a landed tx (confirmed/finalized/failed) always pays a fee — look it up,
+  // but never let a missing tx record fail the send
+  const landed = async (status: string): Promise<TxOutcome> => {
+    const feeLamports = await fetchTxFee(connection, signature);
+    return feeLamports == null ? { signature, status } : { signature, status, feeLamports };
+  };
   const deadline = Date.now() + 40_000;
   while (Date.now() < deadline) {
     const st = await connection.getSignatureStatuses([signature], { searchTransactionHistory: false });
     const s = st.value[0];
     if (s?.confirmationStatus === "confirmed" || s?.confirmationStatus === "finalized") {
-      return { signature, status: s.err ? `failed: ${JSON.stringify(s.err)}` : s.confirmationStatus };
+      return landed(s.err ? `failed: ${JSON.stringify(s.err)}` : s.confirmationStatus);
     }
-    if (s?.err) return { signature, status: `failed: ${JSON.stringify(s.err)}` };
+    if (s?.err) return landed(`failed: ${JSON.stringify(s.err)}`);
     try {
       const valid = await connection.isBlockhashValid(recentBlockhash, { commitment: "processed" });
       if (valid.value === false) {
@@ -663,9 +690,9 @@ async function confirmLoop(
         const st2 = await connection.getSignatureStatuses([signature], { searchTransactionHistory: false });
         const s2 = st2.value[0];
         if (s2?.confirmationStatus === "confirmed" || s2?.confirmationStatus === "finalized") {
-          return { signature, status: s2.err ? `failed: ${JSON.stringify(s2.err)}` : s2.confirmationStatus };
+          return landed(s2.err ? `failed: ${JSON.stringify(s2.err)}` : s2.confirmationStatus);
         }
-        if (s2?.err) return { signature, status: `failed: ${JSON.stringify(s2.err)}` };
+        if (s2?.err) return landed(`failed: ${JSON.stringify(s2.err)}`);
         // processed but not yet confirmed — it may still confirm, keep polling
         if (!s2) return { signature, status: "expired" };
       }
@@ -677,7 +704,7 @@ async function confirmLoop(
   return { signature, status: "pending" };
 }
 
-export async function sendTxAndConfirm(txB64: string): Promise<{ signature: string; status: string }> {
+export async function sendTxAndConfirm(txB64: string): Promise<TxOutcome> {
   const connection = rpc();
   const tx = deserializeTx(txB64);
   const raw = tx.serialize();
@@ -699,7 +726,7 @@ export function txSignature(txB64: string): string {
  * Re-check a previously sent signed tx (no resend): poll until terminal.
  * Used by the client when `send` returned "pending" or on Resume.
  */
-export async function statusTxAndConfirm(txB64: string): Promise<{ signature: string; status: string }> {
+export async function statusTxAndConfirm(txB64: string): Promise<TxOutcome> {
   const connection = rpc();
   const tx = deserializeTx(txB64);
   const signature = txSignature(txB64);

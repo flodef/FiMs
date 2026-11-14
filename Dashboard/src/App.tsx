@@ -12,8 +12,9 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import pkg from "../package.json";
 import { computeDashboard, type DashboardResult, type ExtraComputation } from "./lib/compute";
-import { timeAgo } from "./lib/format";
+import { fmtSOL, timeAgo } from "./lib/format";
 import { checkForUpdate } from "./lib/pwa";
 import type { Inputs, SourceName } from "./lib/types";
 import { useDashboard } from "./hooks/useDashboard";
@@ -102,13 +103,30 @@ export default function App() {
     editing: null,
   });
   const [drawer, setDrawer] = useState<"prices" | "convert" | "rebalance" | "topup" | null>(null);
-  const [toast, setToast] = useState<{ kind: "ok" | "error"; msg: string } | null>(null);
+  const [toast, setToast] = useState<{ kind: "ok" | "error"; msg: string; duration?: number } | null>(null);
 
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(null), 2500);
+    const t = setTimeout(() => setToast(null), toast.duration ?? 2500);
     return () => clearTimeout(t);
   }, [toast]);
+
+  // after a PWA update reload, tell the user which version they're now on
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const KEY = "fims-last-version";
+      try {
+        const prev = localStorage.getItem(KEY);
+        if (prev && prev !== pkg.version) {
+          setToast({ kind: "ok", msg: `Updated to v${pkg.version}`, duration: 4000 });
+        }
+        localStorage.setItem(KEY, pkg.version);
+      } catch {
+        /* storage blocked — skip */
+      }
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
 
   const result = useMemo(() => (inputs ? computeDashboard(inputs, now) : null), [inputs, now]);
 
@@ -339,10 +357,14 @@ export default function App() {
         <Drawer title="Rebalance" onClose={() => setDrawer(null)} wide>
           <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
             <Rebalance
-              onDone={() => {
+              onDone={lamports => {
                 setDrawer(null);
                 void refresh();
-                setToast({ kind: "ok", msg: "Rebalance done" });
+                setToast({
+                  kind: "ok",
+                  msg: lamports ? `Rebalance done · fees ${fmtSOL(lamports)} SOL` : "Rebalance done",
+                  duration: 6000,
+                });
               }}
             />
           </Suspense>
@@ -353,10 +375,14 @@ export default function App() {
           <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
             <Topup
               eurToUsd={result.cells["I13"] ?? 0}
-              onDone={() => {
+              onDone={lamports => {
                 setDrawer(null);
                 void refresh();
-                setToast({ kind: "ok", msg: "Card topped up" });
+                setToast({
+                  kind: "ok",
+                  msg: lamports ? `Card topped up · fees ${fmtSOL(lamports)} SOL` : "Card topped up",
+                  duration: 6000,
+                });
               }}
             />
           </Suspense>

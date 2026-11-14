@@ -6,6 +6,7 @@ import {
   IconLoader2,
   IconSignature,
 } from "@tabler/icons-react";
+import { fmtSOL } from "../lib/format";
 import type { PlanStage } from "../lib/rebalance/plan";
 import { STAGE_LABEL, type SignReadyState, type StageState, type StageStatus } from "./wallet/shared";
 
@@ -106,36 +107,40 @@ export function StageList({
   states: StageState[];
   detail: (s: PlanStage) => string;
 }) {
+  const fees = states.reduce((s, x) => s + (x.feeLamports ?? 0), 0);
   return (
-    <ol className="mt-3 space-y-1.5">
-      {stages.map((s, i) => {
-        const st = states[i] ?? { status: "pending" as StageStatus };
-        return (
-          <li key={i} className="flex items-start gap-2 rounded-lg border border-line px-2.5 py-1.5 text-xs">
-            <span className="mt-0.5 shrink-0">{statusIcon(st.status)}</span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="font-semibold">
-                  {i + 1}. {STAGE_LABEL[s.type]}
-                </span>
-                <span className="shrink-0 text-muted">{st.status}</span>
+    <>
+      <ol className="mt-3 space-y-1.5">
+        {stages.map((s, i) => {
+          const st = states[i] ?? { status: "pending" as StageStatus };
+          return (
+            <li key={i} className="flex items-start gap-2 rounded-lg border border-line px-2.5 py-1.5 text-xs">
+              <span className="mt-0.5 shrink-0">{statusIcon(st.status)}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-semibold">
+                    {i + 1}. {STAGE_LABEL[s.type]}
+                  </span>
+                  <span className="shrink-0 text-muted">{st.status}</span>
+                </div>
+                <div className="truncate text-muted">{detail(s)}</div>
+                {st.error && <div className="mt-0.5 break-words text-danger">{st.error}</div>}
+                {st.sig && st.status === "confirmed" && (
+                  <a
+                    href={`https://solscan.io/tx/${st.sig}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-0.5 inline-flex items-center gap-1 text-accent"
+                  >
+                    <IconLink size={11} /> Solscan
+                  </a>
+                )}
               </div>
-              <div className="truncate text-muted">{detail(s)}</div>
-              {st.error && <div className="mt-0.5 break-words text-danger">{st.error}</div>}
-              {st.sig && st.status === "confirmed" && (
-                <a
-                  href={`https://solscan.io/tx/${st.sig}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-0.5 inline-flex items-center gap-1 text-accent"
-                >
-                  <IconLink size={11} /> Solscan
-                </a>
-              )}
-            </div>
-          </li>
-        );
-      })}
-    </ol>
+            </li>
+          );
+        })}
+      </ol>
+      {fees > 0 && <p className="mt-2 text-[11px] text-muted">Network fees paid: {fmtSOL(fees)} SOL</p>}
+    </>
   );
 }
