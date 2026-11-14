@@ -290,3 +290,50 @@ describe("extra positions", () => {
     expect(r8.collaterals.find(x => x.id === 8)!.repayToTarget).toBeNull();
   });
 });
+
+describe("sheet sync correction", () => {
+  const baseInputs = fixture as unknown as Inputs;
+  const base = computeDashboard(baseInputs, now);
+  const posAmt = (token: string) =>
+    baseInputs.positions.find(p => p.token.toLowerCase() === token.toLowerCase())?.amount ?? 0;
+  const live = {
+    jupsol: posAmt("JupSOL"), // Strategy B13
+    jlp: posAmt("JLP"), // Strategy B10
+    fimsEurc: base.cells.B15 as number, // Strategy B15
+    fimsUsd: base.cells.B16 as number, // Strategy B16
+  };
+  const walletPrices = { jupsol: 85.93, eurc: 1.101, jlp: 3.5059 };
+  const eurUsd = 1.101;
+  const withSync = (imported: typeof live) =>
+    computeDashboard({ ...baseInputs, defi: { ...baseInputs.defi, imported, walletPrices, eurUsd } }, now);
+
+  test("live == imported → zero correction, in sync", () => {
+    const r2 = withSync({ ...live });
+    expect(r2.fims.totalCorrection).toBe(0);
+    expect(r2.sheetSync.inSync).toBe(true);
+    expect(r2.fims.sheetTotal).toBe(base.fims.total); // fixture: no correction applied
+    expect(r2.fims.total).toBe(base.fims.total);
+    expect(r2.cells.F14).toBe(r2.fims.total);
+  });
+
+  test("stale FiMs USD import → +9626/eurUsd correction, out of sync", () => {
+    const r3 = withSync({ ...live, fimsUsd: live.fimsUsd - 9626 });
+    const expected = 9626 / eurUsd;
+    expect(r3.fims.totalCorrection).toBeCloseTo(expected, 6);
+    expect(r3.sheetSync.inSync).toBe(false);
+    expect(r3.fims.total).toBeCloseTo((base.fims.sheetTotal as number) + expected, 6);
+    expect(r3.cells.F14).toBeCloseTo(r3.fims.total, 6);
+    const usd = r3.sheetSync.items.find(i => i.label === "FiMs USD")!;
+    expect(usd.sheet).toBeCloseTo(live.fimsUsd - 9626, 6);
+    expect(usd.live).toBeCloseTo(live.fimsUsd, 6);
+    expect(usd.impactEur).toBeCloseTo(expected, 6);
+    // the other three items stayed in sync
+    expect(r3.sheetSync.items.filter(i => i.label !== "FiMs USD").every(i => i.impactEur === 0)).toBe(true);
+  });
+
+  test("missing sync fields → no correction, in sync (old cache/fixtures)", () => {
+    expect(base.sheetSync.inSync).toBe(true);
+    expect(base.sheetSync.items).toEqual([]);
+    expect(base.fims.totalCorrection).toBe(0);
+  });
+});

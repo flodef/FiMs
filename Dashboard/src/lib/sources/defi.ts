@@ -8,7 +8,18 @@ const num = (v: unknown): number => {
 };
 
 async function fetchDefiOnce(apiKey: string): Promise<DefiData> {
-  const ranges = ["Price!A1:R", "Wallet!D5", "FiMsData!B1", "FiMsData!B2", "Dashboard!B12", "PriceCache!C2:C"];
+  // NB: append new ranges at the END — vr indices above are positional
+  const ranges = [
+    "Price!A1:R",
+    "Wallet!D5",
+    "FiMsData!B1",
+    "FiMsData!B2",
+    "Dashboard!B12",
+    "PriceCache!C2:C",
+    "FiMsData!B14:B17",
+    "Wallet!C3:C5",
+    "PriceCache!B2",
+  ];
   const qs = ranges.map(r => `ranges=${encodeURIComponent(r)}`).join("&");
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${DEFI_SHEET_ID}/values:batchGet?${qs}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER&key=${apiKey}`;
   const res = await fetch(url, { headers: { Referer: SHEETS_REFERER }, signal: AbortSignal.timeout(DEFI_TIMEOUT_MS) });
@@ -42,6 +53,15 @@ async function fetchDefiOnce(apiKey: string): Promise<DefiData> {
   const cacheSerials = ((vr[5]?.values ?? []) as unknown[][]).map(r => num(r?.[0])).filter(v => v > 0);
   const priceLastUpdated = cacheSerials.length ? serialToParisMs(Math.min(...cacheSerials)) : 0;
 
+  // raw column read — NaN marks missing/non-numeric cells so partial data is rejected
+  const colNums = (rangeIdx: number): number[] =>
+    ((vr[rangeIdx]?.values ?? []) as unknown[][]).map(r =>
+      typeof r?.[0] === "number" && Number.isFinite(r[0]) ? r[0] : NaN,
+    );
+  const importedCol = colNums(6); // FiMsData!B14:B17 = fimsUsd, jupsol, fimsEurc, jlp
+  const walletCol = colNums(7); // Wallet!C3:C5 = jupsol, eurc, jlp prices
+  const eurUsd = num(vr[8]?.values?.[0]?.[0]); // PriceCache!B2
+
   return {
     priceHeaders,
     priceRows,
@@ -51,6 +71,15 @@ async function fetchDefiOnce(apiKey: string): Promise<DefiData> {
     fimsToken: cell(3),
     total: cell(4),
     priceLastUpdated,
+    imported:
+      importedCol.length >= 4 && importedCol.every(Number.isFinite)
+        ? { fimsUsd: importedCol[0], jupsol: importedCol[1], fimsEurc: importedCol[2], jlp: importedCol[3] }
+        : undefined,
+    walletPrices:
+      walletCol.length >= 3 && walletCol.every(Number.isFinite)
+        ? { jupsol: walletCol[0], eurc: walletCol[1], jlp: walletCol[2] }
+        : undefined,
+    eurUsd: Number.isFinite(eurUsd) ? eurUsd : undefined,
   };
 }
 

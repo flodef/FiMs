@@ -18,3 +18,5 @@ export const START_DATE = { y: 2024, m: 11, d: 15 }; // A17, Europe/Paris
 
 export const FETCH_TIMEOUT_MS = 8000;
 export const DEFI_TIMEOUT_MS = 20000;
+/** |impact| per imported item / total correction below this is normal drift — corrected silently */
+export const SHEET_SYNC_TOLERANCE_EUR = 50;

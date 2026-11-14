@@ -25,6 +25,12 @@ export interface DefiData {
   fimsToken: number; // FiMsData!B2
   total: number; // Dashboard!B12
   priceLastUpdated: number; // ms epoch
+  /** FiMsData!B14:B17 — IMPORTRANGE'd Strategy values the Wallet total is built from */
+  imported?: { fimsUsd: number; jupsol: number; fimsEurc: number; jlp: number };
+  /** Wallet!C3:C5 — prices used by the sheet's own total */
+  walletPrices?: { jupsol: number; eurc: number; jlp: number };
+  /** PriceCache!B2 — sheet's EUR→USD rate */
+  eurUsd?: number;
 }
 
 export interface SanctumData {

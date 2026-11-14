@@ -1,4 +1,5 @@
 import {
+  IconAlertTriangle,
   IconArrowsExchange,
   IconChartLine,
   IconCoin,
@@ -13,8 +14,9 @@ import {
 } from "@tabler/icons-react";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import pkg from "../package.json";
+import { SHEET_SYNC_TOLERANCE_EUR } from "./lib/config";
 import { computeDashboard, type DashboardResult, type ExtraComputation } from "./lib/compute";
-import { fmtSOL, timeAgo } from "./lib/format";
+import { fmtNum, fmtSOL, timeAgo } from "./lib/format";
 import { checkForUpdate } from "./lib/pwa";
 import type { Inputs, SourceName } from "./lib/types";
 import { useDashboard } from "./hooks/useDashboard";
@@ -89,6 +91,32 @@ function InfoPopover({ r, sources, nowMs }: { r: DashboardResult; sources: Input
           <div key={l}>{l}</div>
         ))}
       </div>
+    </div>
+  );
+}
+
+const signedNum = (v: number) => `${v < 0 ? "−" : "+"}${fmtNum(Math.abs(v), 0)}`;
+
+/** Warns that the DeFi sheet's IMPORTRANGE'd values lagged — total uses live data instead. Tap for details. */
+function SheetSyncNotice({ sync, correction }: { sync: DashboardResult["sheetSync"]; correction: number }) {
+  const [open, setOpen] = useState(false);
+  const bad = sync.items.filter(i => Math.abs(i.impactEur) > SHEET_SYNC_TOLERANCE_EUR);
+  const shown = bad.length ? bad : sync.items;
+  return (
+    <div className="bg-warn/15 px-4 py-2 text-xs text-warn lg:px-6">
+      <button onClick={() => setOpen(o => !o)} className="mx-auto flex items-center gap-1.5" aria-expanded={open}>
+        <IconAlertTriangle size={13} className="shrink-0" />
+        <span>DeFi sheet out of sync — total corrected with live data ({signedNum(correction)} €)</span>
+      </button>
+      {open && shown.length > 0 && (
+        <div className="mt-1 space-y-0.5 text-center">
+          {shown.map(i => (
+            <div key={i.label}>
+              {i.label}: sheet {signedNum(i.sheet)} · live {signedNum(i.live)}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -269,6 +297,7 @@ export default function App() {
             .join(", ")}
         </div>
       )}
+      {!result.sheetSync.inSync && <SheetSyncNotice sync={result.sheetSync} correction={result.fims.totalCorrection} />}
 
       <main className="flex-1 px-4 pb-[calc(3.5rem+env(safe-area-inset-bottom)+0.75rem)] pt-3 lg:px-6 lg:pb-10">
         <div className="lg:hidden">
