@@ -1,0 +1,66 @@
+diff --git a/lib/esm/index.browser.js b/lib/esm/index.browser.js
+index 58147ba3fade7628c731c69e69b1a5c88e489f17..5ebaafb4cf25fb707298ac648e1df77f6b0eafd0 100644
+--- a/lib/esm/index.browser.js
++++ b/lib/esm/index.browser.js
+@@ -1414,7 +1414,7 @@ var LocalSolanaMobileWalletAdapterWallet = class {
+ 		this.#emit("change", { accounts: this.accounts });
+ 	};
+ 	#transact = async (callback) => {
+-		const walletUriBase = this.#authorization?.wallet_uri_base;
++		const walletUriBase = void 0; // FiMs patch: never use wallet_uri_base (Jupiter Mobile https App Link opens a 404 page) — always the solana-wallet: intent
+ 		const config = walletUriBase ? { baseUri: walletUriBase } : void 0;
+ 		const currentConnectionGeneration = this.#connectionGeneration;
+ 		const loadingSpinner = new EmbeddedLoadingSpinner();
+@@ -1784,7 +1784,7 @@ var RemoteSolanaMobileWalletAdapterWallet = class {
+ 		this.#emit("change", { accounts: this.accounts });
+ 	};
+ 	#transact = async (callback) => {
+-		const walletUriBase = this.#authorization?.wallet_uri_base;
++		const walletUriBase = void 0; // FiMs patch: never use wallet_uri_base (Jupiter Mobile https App Link opens a 404 page) — always the solana-wallet: intent
+ 		const baseConfig = walletUriBase ? { baseUri: walletUriBase } : void 0;
+ 		const currentConnectionGeneration = this.#connectionGeneration;
+ 		const modal = new RemoteConnectionModal();
+diff --git a/lib/esm/index.js b/lib/esm/index.js
+index 87d35a41bca5a39d05e89ab35110d946d7d09a5b..823d2298714c5acc829b49a8766cfeac6b8742dc 100644
+--- a/lib/esm/index.js
++++ b/lib/esm/index.js
+@@ -1414,7 +1414,7 @@ var LocalSolanaMobileWalletAdapterWallet = class {
+ 		this.#emit("change", { accounts: this.accounts });
+ 	};
+ 	#transact = async (callback) => {
+-		const walletUriBase = this.#authorization?.wallet_uri_base;
++		const walletUriBase = void 0; // FiMs patch: never use wallet_uri_base (Jupiter Mobile https App Link opens a 404 page) — always the solana-wallet: intent
+ 		const config = walletUriBase ? { baseUri: walletUriBase } : void 0;
+ 		const currentConnectionGeneration = this.#connectionGeneration;
+ 		const loadingSpinner = new EmbeddedLoadingSpinner();
+@@ -1784,7 +1784,7 @@ var RemoteSolanaMobileWalletAdapterWallet = class {
+ 		this.#emit("change", { accounts: this.accounts });
+ 	};
+ 	#transact = async (callback) => {
+-		const walletUriBase = this.#authorization?.wallet_uri_base;
++		const walletUriBase = void 0; // FiMs patch: never use wallet_uri_base (Jupiter Mobile https App Link opens a 404 page) — always the solana-wallet: intent
+ 		const baseConfig = walletUriBase ? { baseUri: walletUriBase } : void 0;
+ 		const currentConnectionGeneration = this.#connectionGeneration;
+ 		const modal = new RemoteConnectionModal();
+diff --git a/lib/esm/index.native.js b/lib/esm/index.native.js
+index ad7b0eeb10484b6e01dc3e2369740ed4f265bf6d..be3d245b371537b0f481baff55a2da30c469de11 100644
+--- a/lib/esm/index.native.js
++++ b/lib/esm/index.native.js
+@@ -1463,7 +1463,7 @@ var LocalSolanaMobileWalletAdapterWallet = class {
+ 		this.#emit("change", { accounts: this.accounts });
+ 	};
+ 	#transact = async (callback) => {
+-		const walletUriBase = this.#authorization?.wallet_uri_base;
++		const walletUriBase = void 0; // FiMs patch: never use wallet_uri_base (Jupiter Mobile https App Link opens a 404 page) — always the solana-wallet: intent
+ 		const config = walletUriBase ? { baseUri: walletUriBase } : void 0;
+ 		const currentConnectionGeneration = this.#connectionGeneration;
+ 		const loadingSpinner = new EmbeddedLoadingSpinner();
+@@ -1833,7 +1833,7 @@ var RemoteSolanaMobileWalletAdapterWallet = class {
+ 		this.#emit("change", { accounts: this.accounts });
+ 	};
+ 	#transact = async (callback) => {
+-		const walletUriBase = this.#authorization?.wallet_uri_base;
++		const walletUriBase = void 0; // FiMs patch: never use wallet_uri_base (Jupiter Mobile https App Link opens a 404 page) — always the solana-wallet: intent
+ 		const baseConfig = walletUriBase ? { baseUri: walletUriBase } : void 0;
+ 		const currentConnectionGeneration = this.#connectionGeneration;
+ 		const modal = new RemoteConnectionModal();

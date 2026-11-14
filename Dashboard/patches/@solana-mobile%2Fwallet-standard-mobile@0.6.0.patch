@@ -1,0 +1,44 @@
+diff --git a/lib/esm/index.browser.js b/lib/esm/index.browser.js
+index 13cb4efb579df5e3ea5fa3377c5a8d4ae3319ccc..3706aa10a2c1f7183ebde9f43e5af3914dd586d0 100644
+--- a/lib/esm/index.browser.js
++++ b/lib/esm/index.browser.js
+@@ -1379,7 +1379,7 @@ var LocalSolanaMobileWalletAdapterWallet = class {
+ 		this.#emit("change", { accounts: this.accounts });
+ 	};
+ 	#transact = async (callback) => {
+-		const walletUriBase = this.#authorization?.wallet_uri_base;
++		const walletUriBase = void 0; // FiMs patch: never use wallet_uri_base (Jupiter Mobile https App Link opens a 404 page) — always the solana-wallet: intent
+ 		const config = walletUriBase ? { baseUri: walletUriBase } : void 0;
+ 		const currentConnectionGeneration = this.#connectionGeneration;
+ 		const loadingSpinner = new EmbeddedLoadingSpinner();
+@@ -1748,7 +1748,7 @@ var RemoteSolanaMobileWalletAdapterWallet = class {
+ 		this.#emit("change", { accounts: this.accounts });
+ 	};
+ 	#transact = async (callback) => {
+-		const walletUriBase = this.#authorization?.wallet_uri_base;
++		const walletUriBase = void 0; // FiMs patch: never use wallet_uri_base (Jupiter Mobile https App Link opens a 404 page) — always the solana-wallet: intent
+ 		const baseConfig = walletUriBase ? { baseUri: walletUriBase } : void 0;
+ 		const currentConnectionGeneration = this.#connectionGeneration;
+ 		const modal = new RemoteConnectionModal();
+diff --git a/lib/esm/index.js b/lib/esm/index.js
+index 6055daeb868e7def09b6983c7c163bcf7ec5caeb..0b93a7248e6e4bd4d4d0cff6efca8e78ce72521c 100644
+--- a/lib/esm/index.js
++++ b/lib/esm/index.js
+@@ -1379,7 +1379,7 @@ var LocalSolanaMobileWalletAdapterWallet = class {
+ 		this.#emit("change", { accounts: this.accounts });
+ 	};
+ 	#transact = async (callback) => {
+-		const walletUriBase = this.#authorization?.wallet_uri_base;
++		const walletUriBase = void 0; // FiMs patch: never use wallet_uri_base (Jupiter Mobile https App Link opens a 404 page) — always the solana-wallet: intent
+ 		const config = walletUriBase ? { baseUri: walletUriBase } : void 0;
+ 		const currentConnectionGeneration = this.#connectionGeneration;
+ 		const loadingSpinner = new EmbeddedLoadingSpinner();
+@@ -1748,7 +1748,7 @@ var RemoteSolanaMobileWalletAdapterWallet = class {
+ 		this.#emit("change", { accounts: this.accounts });
+ 	};
+ 	#transact = async (callback) => {
+-		const walletUriBase = this.#authorization?.wallet_uri_base;
++		const walletUriBase = void 0; // FiMs patch: never use wallet_uri_base (Jupiter Mobile https App Link opens a 404 page) — always the solana-wallet: intent
+ 		const baseConfig = walletUriBase ? { baseUri: walletUriBase } : void 0;
+ 		const currentConnectionGeneration = this.#connectionGeneration;
+ 		const modal = new RemoteConnectionModal();
