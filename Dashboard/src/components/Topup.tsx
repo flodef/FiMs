@@ -148,6 +148,8 @@ function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: () => void }) {
         unfinished={unfinished}
         walletReady={walletReady}
         canExecute={canExecute}
+        signReady={r.signReady}
+        onSign={r.signNow}
         onExecute={() => void r.execute()}
         onResume={() => void r.resume()}
         onDiscard={r.discard}

@@ -1,12 +1,21 @@
-import { IconAlertTriangle, IconCircleCheck, IconClock, IconLink, IconLoader2 } from "@tabler/icons-react";
+import {
+  IconAlertTriangle,
+  IconCircleCheck,
+  IconClock,
+  IconLink,
+  IconLoader2,
+  IconSignature,
+} from "@tabler/icons-react";
 import type { PlanStage } from "../lib/rebalance/plan";
-import { STAGE_LABEL, type StageState, type StageStatus } from "./wallet/shared";
+import { STAGE_LABEL, type SignReadyState, type StageState, type StageStatus } from "./wallet/shared";
 
 export function RunActions({
   running,
   unfinished,
   walletReady,
   canExecute,
+  signReady,
+  onSign,
   onExecute,
   onResume,
   onDiscard,
@@ -16,37 +25,51 @@ export function RunActions({
   /** connected + right wallet + can sign */
   walletReady: boolean;
   canExecute: boolean;
+  /** a built tx is waiting for a wallet signature tap */
+  signReady: SignReadyState | null;
+  onSign: () => void;
   onExecute: () => void;
   onResume: () => void;
   onDiscard: () => void;
 }) {
   return (
     <>
-      {unfinished && !running && (
-        <div className="flex gap-2">
-          <button
-            onClick={onResume}
-            disabled={!walletReady}
-            className="flex-1 rounded-xl bg-accent py-2.5 text-sm font-bold text-white disabled:opacity-40"
-          >
-            Resume
-          </button>
-          <button
-            onClick={onDiscard}
-            className="rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-muted hover:bg-card2"
-          >
-            Discard
-          </button>
-        </div>
-      )}
-      {!unfinished && (
+      {signReady ? (
         <button
-          onClick={onExecute}
-          disabled={!canExecute}
-          className="w-full rounded-xl bg-accent py-2.5 text-sm font-bold text-white disabled:opacity-40"
+          onClick={onSign}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-sm font-bold text-white"
         >
-          Execute
+          <IconSignature size={16} /> Sign step {signReady.stageIndex + 1} in wallet
         </button>
+      ) : (
+        <>
+          {unfinished && !running && (
+            <div className="flex gap-2">
+              <button
+                onClick={onResume}
+                disabled={!walletReady}
+                className="flex-1 rounded-xl bg-accent py-2.5 text-sm font-bold text-white disabled:opacity-40"
+              >
+                Resume
+              </button>
+              <button
+                onClick={onDiscard}
+                className="rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-muted hover:bg-card2"
+              >
+                Discard
+              </button>
+            </div>
+          )}
+          {!unfinished && (
+            <button
+              onClick={onExecute}
+              disabled={!canExecute}
+              className="w-full rounded-xl bg-accent py-2.5 text-sm font-bold text-white disabled:opacity-40"
+            >
+              Execute
+            </button>
+          )}
+        </>
       )}
       <p className="text-center text-[10px] text-muted">
         Transactions are built and simulated server-side; your wallet signs each one. Nothing is sent without your
@@ -62,6 +85,8 @@ const statusIcon = (st: StageStatus) => {
       return <IconCircleCheck size={14} className="text-ok" />;
     case "failed":
       return <IconAlertTriangle size={14} className="text-danger" />;
+    case "ready to sign":
+      return <IconSignature size={14} className="text-accent" />;
     case "building":
     case "awaiting signature":
     case "sending":

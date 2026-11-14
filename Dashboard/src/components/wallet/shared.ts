@@ -9,7 +9,15 @@ export const STAGE_LABEL: Record<PlanStage["type"], string> = {
 };
 
 export type StageStatus =
-  "pending" | "building" | "simulated" | "awaiting signature" | "sending" | "confirming" | "confirmed" | "failed";
+  | "pending"
+  | "building"
+  | "simulated"
+  | "ready to sign"
+  | "awaiting signature"
+  | "sending"
+  | "confirming"
+  | "confirmed"
+  | "failed";
 
 export interface StageState {
   status: StageStatus;
@@ -27,6 +35,13 @@ export interface SavedRun {
   plan: RebalancePlan;
   states: StageState[];
   startedAt: number;
+}
+
+/** a built tx waiting for an explicit wallet-signature tap */
+export interface SignReadyState {
+  stageIndex: number;
+  txIndex: number;
+  txCount: number;
 }
 
 export const b64ToBytes = (b64: string): Uint8Array => {

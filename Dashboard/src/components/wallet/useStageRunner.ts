@@ -3,7 +3,15 @@ import { VersionedTransaction } from "@solana/web3.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { WALLET } from "../../lib/config";
 import type { PlanStage, RebalancePlan } from "../../lib/rebalance/plan";
-import { api, b64ToBytes, bytesToB64, type SavedRun, type StageState, type StageStatus } from "./shared";
+import {
+  api,
+  b64ToBytes,
+  bytesToB64,
+  type SavedRun,
+  type SignReadyState,
+  type StageState,
+  type StageStatus,
+} from "./shared";
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -13,6 +21,16 @@ interface TxResult {
 }
 
 const isConfirmed = (s: string) => s === "confirmed" || s === "finalized";
+
+/** Transient user activation survives ~5 s — sign calls must happen within it. */
+const ACTIVATION_MS = 3_000;
+
+interface SignRequest {
+  tx: VersionedTransaction;
+  stageIndex: number;
+  resolve: (signed: VersionedTransaction | PromiseLike<VersionedTransaction>) => void;
+  reject: (e: unknown) => void;
+}
 
 /**
  * Shared stage runner for wallet-signed flows (rebalance, top-up): plan fetch,
@@ -44,6 +62,9 @@ export function useStageRunner(opts: {
   const [states, setStates] = useState<StageState[]>([]);
   const [running, setRunning] = useState(false);
   const [runStart, setRunStart] = useState<number | null>(null);
+  const [signReady, setSignReady] = useState<SignReadyState | null>(null);
+  const signReqRef = useRef<SignRequest | null>(null);
+  const lastTapAt = useRef(0);
 
   const loadPlan = useCallback(async (): Promise<RebalancePlan | null> => {
     setLoadingPlan(true);
@@ -162,16 +183,36 @@ export function useStageRunner(opts: {
     return "rebuild";
   };
 
-  /** Sign a built tx, send it, and poll to a terminal state. */
+  /**
+   * Sign a built tx, send it, and poll to a terminal state.
+   * The MWA hand-off needs transient user activation (~5 s): if the build took
+   * longer than that since the last tap, wait for an explicit Sign tap instead
+   * of calling signTransaction into an expired activation.
+   */
   const signSendConfirm = async (
     i: number,
     j: number,
     count: number,
     txB64: string,
   ): Promise<{ ok: true; sig: string } | { ok: false; error: string; sig?: string }> => {
-    setStage(i, { status: "awaiting signature", error: undefined });
     const tx = VersionedTransaction.deserialize(b64ToBytes(txB64));
-    const signed = await signTransaction!(tx);
+    let signed: VersionedTransaction;
+    if (!signTransaction || Date.now() - lastTapAt.current < ACTIVATION_MS) {
+      // fresh activation (or no signer → fails fast upstream) — sign right away
+      setStage(i, { status: "awaiting signature", error: undefined });
+      signed = await signTransaction!(tx);
+    } else {
+      setStage(i, { status: "ready to sign", error: undefined });
+      setSignReady({ stageIndex: i, txIndex: j, txCount: count });
+      try {
+        signed = await new Promise<VersionedTransaction>((resolve, reject) => {
+          signReqRef.current = { tx, stageIndex: i, resolve, reject };
+        });
+      } finally {
+        signReqRef.current = null;
+        setSignReady(null);
+      }
+    }
     const signedB64 = bytesToB64(signed.serialize());
     // persist the signed tx so a crash/resume can check it via `status`
     setStage(i, { status: "sending", pendingTx: signedB64, pendingIdx: j, pendingCount: count });
@@ -259,7 +300,26 @@ export function useStageRunner(opts: {
     }
   };
 
+  /**
+   * Tap handler for the "ready to sign" state — MUST call signTransaction
+   * synchronously (no awaits) so the MWA navigation still has user activation.
+   */
+  const signNow = () => {
+    const req = signReqRef.current;
+    if (!req || !signTransaction) return;
+    lastTapAt.current = Date.now();
+    signReqRef.current = null;
+    setSignReady(null);
+    setStage(req.stageIndex, { status: "awaiting signature", error: undefined });
+    try {
+      req.resolve(signTransaction(req.tx));
+    } catch (e) {
+      req.reject(e);
+    }
+  };
+
   const execute = async () => {
+    lastTapAt.current = Date.now();
     if (!plan || !connected || wrongWallet || running || unfinished) return;
     // re-plan right before executing so amounts match current prices
     const fresh = await loadPlan();
@@ -268,6 +328,7 @@ export function useStageRunner(opts: {
 
   // resume = keep the saved plan, rebuild each remaining stage fresh server-side
   const resume = async () => {
+    lastTapAt.current = Date.now();
     if (!plan || running) return;
     await executeWith(plan);
   };
@@ -293,5 +354,7 @@ export function useStageRunner(opts: {
     execute,
     resume,
     discard,
+    signReady,
+    signNow,
   };
 }
