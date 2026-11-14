@@ -1,7 +1,7 @@
 import { WALLET } from "../config.js";
 import {
   buildKaminoTx,
-  buildLendTx,
+  buildLendTxFitted,
   buildSpendTransferTx,
   buildSwapTx,
   deserializeTx,
@@ -14,10 +14,11 @@ import {
   sizeUsdgForUsdt,
   statusTxAndConfirm,
   walletTokenBalance,
+  walletTokenBalanceRaw,
   USDG_MINT,
   USDT_MINT,
 } from "./live.js";
-import { distributeRepay, TOPUP_MAX_USDT, type LendOp, type PlanStage, type RebalancePlan } from "./plan.js";
+import { distributeRepayRaw, TOPUP_MAX_USDT, type LendOp, type PlanStage, type RebalancePlan } from "./plan.js";
 
 const CAP = 1.01;
 const TOPUP_SWAP_CAP = 1.005;
@@ -60,8 +61,6 @@ async function simulateOrFail(tx: string) {
  * type + per-position deltas — never by stage index, so mid-run re-plans can't
  * strand funds or repeat completed work.
  */
-const REPAY_ROUNDING_RESERVE = 0.000002;
-
 export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]> {
   if (stage.purpose === "topup" || stage.type === "spend-transfer") {
     return buildTopupStage(stage);
@@ -71,9 +70,9 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
   const totalFreshRepay = plan.positions.reduce((s, p) => s + p.repayUsdt, 0);
 
   if (stage.type === "lend") {
-    const usdtBal = await walletTokenBalance(connection, USDT_MINT);
+    const usdtBalRaw = await walletTokenBalanceRaw(connection, USDT_MINT);
     // pass 1: borrows clamped to fresh borrowUsdt×1.01; repays kept as candidates
-    let borrowIn = 0;
+    let borrowInRaw = 0;
     const staged = stage.ops
       .map(op => {
         const pos = plan.positions.find(p => p.key === op.key);
@@ -81,7 +80,7 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
         if (op.deltaUsdt > 0) {
           if (pos.borrowUsdt <= 0) return null; // borrow already done — skip
           const delta = Math.min(op.deltaUsdt, pos.borrowUsdt * CAP);
-          borrowIn += delta;
+          borrowInRaw += Math.trunc(delta * 1e6); // exact raw the tx will request
           return { pos, delta };
         }
         if (pos.repayUsdt <= 0) return null; // position flipped — skip stale repay
@@ -89,33 +88,64 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
       })
       .filter((s): s is { pos: RebalancePlan["positions"][number]; delta: number } => s !== null);
 
-    // pass 2: distribute available USDT (wallet + same-tx borrows) proportionally,
-    // capped per position at debt and freshRepay×1.001 — no dust left behind
-    // Jupiter Lend rounds each repay up by ~1 raw unit: repaying the exact wallet
-    // balance across two positions fails with "insufficient funds" → keep 2 raw/op
+    // pass 2: distribute available USDT (wallet + same-tx borrows) proportionally
+    // in exact raw units — sum equals the balance whenever caps allow it, so the
+    // fitted builder can drive the post-tx ATA balance to 0 (no dust)
+    const availableRaw = usdtBalRaw + borrowInRaw;
     const repayIdx = staged.map((s, i) => (s.delta < 0 ? i : -1)).filter(i => i >= 0);
-    const available = Math.max(0, usdtBal - REPAY_ROUNDING_RESERVE * repayIdx.length) + borrowIn;
-    const wants = distributeRepay(
-      available,
-      repayIdx.map(i => ({
-        planned: Math.abs(staged[i].delta),
-        debt: staged[i].pos.debt,
-        freshRepay: Math.max(staged[i].pos.repayUsdt, Math.abs(staged[i].delta)),
-      })),
+    const wantsRaw = distributeRepayRaw(
+      availableRaw,
+      repayIdx.map(i => {
+        const s = staged[i];
+        const capUsdt = Math.max(s.pos.repayUsdt, Math.abs(s.delta)) * 1.001;
+        return {
+          plannedRaw: Math.max(1, Math.round(Math.abs(s.delta) * 1e6)),
+          capRaw: Math.min(Math.round(s.pos.debt * 1e6), Math.floor(capUsdt * 1e6)),
+        };
+      }),
     );
 
-    const ops: LendOp[] = [];
+    const ops: (LendOp & { deltaRawUsdt: number })[] = [];
     let wi = 0;
     for (const s of staged) {
-      const deltaUsdt = s.delta >= 0 ? s.delta : -wants[wi++];
-      if (deltaUsdt === 0) continue;
-      ops.push({ key: s.pos.key, vaultId: s.pos.vaultId, positionId: s.pos.positionId, deltaUsdt });
+      if (s.delta >= 0) {
+        const deltaRawUsdt = Math.trunc(s.delta * 1e6);
+        if (deltaRawUsdt === 0) continue;
+        ops.push({
+          key: s.pos.key,
+          vaultId: s.pos.vaultId,
+          positionId: s.pos.positionId,
+          deltaUsdt: s.delta,
+          deltaRawUsdt,
+        });
+      } else {
+        const raw = wantsRaw[wi++];
+        if (raw === 0) continue;
+        ops.push({
+          key: s.pos.key,
+          vaultId: s.pos.vaultId,
+          positionId: s.pos.positionId,
+          deltaUsdt: -raw / 1e6,
+          deltaRawUsdt: -raw,
+        });
+      }
     }
     if (ops.length === 0) throw new HttpError(422, "nothing to do — positions already at target");
 
-    const results = await buildLendTx(
-      ops.map(o => ({ vaultId: o.vaultId, positionId: o.positionId, deltaUsdt: o.deltaUsdt })),
-    );
+    let results: Awaited<ReturnType<typeof buildLendTxFitted>>;
+    try {
+      results = await buildLendTxFitted(
+        ops.map(o => ({
+          vaultId: o.vaultId,
+          positionId: o.positionId,
+          deltaUsdt: o.deltaUsdt,
+          deltaRawUsdt: o.deltaRawUsdt,
+        })),
+        availableRaw,
+      );
+    } catch (e: any) {
+      throw new HttpError(422, String(e?.message ?? e));
+    }
     const out: BuiltTx[] = [];
     for (const r of results) {
       const simulation = await simulateOrFail(r.txB64);

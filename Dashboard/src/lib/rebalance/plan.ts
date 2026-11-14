@@ -113,24 +113,36 @@ function positionDelta(p: PlanPositionInput): PositionDelta {
   };
 }
 
-export interface RepayShare {
-  /** |client-sent delta| in USDT — proportional weight */
-  planned: number;
-  /** current debt — hard cap per position */
-  debt: number;
-  /** fresh plan repayUsdt — ×1.001 cap per position */
-  freshRepay: number;
+export interface RepayRawShare {
+  /** |client-sent delta| in raw USDT units (1e-6 USDT) — proportional weight */
+  plannedRaw: number;
+  /** min(debt, freshRepay×1.001) in raw units — hard cap per position */
+  capRaw: number;
 }
 
 /**
- * Distribute available USDT across repay ops proportionally to planned amounts.
- * want_i = min(debt_i, available × planned_i / Σplanned, freshRepay_i × 1.001)
- * — repays (almost) everything received, leaving only sub-dust rounding.
+ * Distribute available raw USDT across repay ops proportionally to planned
+ * amounts, in exact integer units: floor each share, give the remainder to the
+ * largest op, never exceed a cap. Sum equals `availableRaw` whenever the caps
+ * allow it — the caller detects "wallet-limited" by comparing the sum.
  */
-export function distributeRepay(available: number, ops: RepayShare[]): number[] {
-  const totalPlanned = ops.reduce((s, o) => s + o.planned, 0);
-  if (totalPlanned <= 0 || available <= 0) return ops.map(() => 0);
-  return ops.map(o => Math.max(0, Math.min(o.debt, (available * o.planned) / totalPlanned, o.freshRepay * 1.001)));
+export function distributeRepayRaw(availableRaw: number, ops: RepayRawShare[]): number[] {
+  const avail = Math.floor(availableRaw);
+  const totalPlanned = ops.reduce((s, o) => s + o.plannedRaw, 0);
+  if (!Number.isFinite(avail) || avail <= 0 || totalPlanned <= 0) return ops.map(() => 0);
+  const raws = ops.map(o =>
+    Math.max(0, Math.min(o.capRaw, Number((BigInt(avail) * BigInt(o.plannedRaw)) / BigInt(totalPlanned)))),
+  );
+  const rem = avail - raws.reduce((a, b) => a + b, 0);
+  if (rem > 0) {
+    // remainder → the largest op that still has headroom under its cap
+    let li = -1;
+    raws.forEach((r, i) => {
+      if (r < ops[i].capRaw && (li < 0 || r > raws[li])) li = i;
+    });
+    if (li >= 0) raws[li] = Math.min(ops[li].capRaw, raws[li] + rem);
+  }
+  return raws;
 }
 
 const lendOp = (d: PositionDelta, deltaUsdt: number): LendOp => ({

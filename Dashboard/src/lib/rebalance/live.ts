@@ -196,6 +196,17 @@ export async function walletTokenBalance(connection: Connection, mint: string): 
   return total;
 }
 
+/** Exact raw token balance (smallest units) — no float drift. */
+export async function walletTokenBalanceRaw(connection: Connection, mint: string): Promise<number> {
+  const res = await connection.getParsedTokenAccountsByOwner(WALLET_PUB, { mint: new PublicKey(mint) });
+  let total = 0;
+  for (const { account } of res.value) {
+    const amt = (account.data as any)?.parsed?.info?.tokenAmount?.amount;
+    if (amt != null && /^\d+$/.test(String(amt))) total += Number(amt);
+  }
+  return total;
+}
+
 // ---------- Jupiter Lend tx ----------
 
 export interface LendTxResult {
@@ -206,14 +217,24 @@ export interface LendTxResult {
   microLamports?: number;
 }
 
+export interface LendBuildOp {
+  vaultId: number;
+  positionId: number;
+  deltaUsdt: number;
+  /** exact raw delta (1e-6 USDT, signed) — takes precedence over deltaUsdt */
+  deltaRawUsdt?: number;
+}
+
+const opRaw = (op: LendBuildOp) => op.deltaRawUsdt ?? Math.trunc(op.deltaUsdt * 10 ** DECIMALS);
+
 async function lendTxForOps(
   connection: Connection,
-  ops: { vaultId: number; positionId: number; deltaUsdt: number }[],
+  ops: LendBuildOp[],
 ): Promise<{ ixs: TransactionInstruction[]; alts: AddressLookupTableAccount[] }> {
   const ixs: TransactionInstruction[] = [];
   const altMap = new Map<string, AddressLookupTableAccount>();
   for (const op of ops) {
-    const raw = Math.trunc(op.deltaUsdt * 10 ** DECIMALS);
+    const raw = opRaw(op);
     if (raw === 0) continue;
     const res = await getOperateIx({
       vaultId: op.vaultId,
@@ -277,9 +298,7 @@ async function finalizeTx(
   return { txB64: Buffer.from(raw).toString("base64"), size: raw.length, split: false, units, microLamports };
 }
 
-export async function buildLendTx(
-  ops: { vaultId: number; positionId: number; deltaUsdt: number }[],
-): Promise<LendTxResult[]> {
+export async function buildLendTx(ops: LendBuildOp[]): Promise<LendTxResult[]> {
   const connection = rpc();
   const { ixs, alts } = await lendTxForOps(connection, ops);
   if (!ixs.length) throw new Error("lend: no instructions");
@@ -288,13 +307,103 @@ export async function buildLendTx(
     return [{ ...combined, split: false }];
   }
   // too big — split per position
-  const activeOps = ops.filter(o => Math.trunc(o.deltaUsdt * 10 ** DECIMALS) !== 0);
+  const activeOps = ops.filter(o => opRaw(o) !== 0);
   const results: LendTxResult[] = [];
   for (const op of activeOps) {
     const one = await lendTxForOps(connection, [op]);
     results.push({ ...(await finalizeTx(connection, one.ixs, one.alts)), split: true });
   }
   return results;
+}
+
+// ---------- exact-fit repay ----------
+
+const USDT_MINT_PUB = new PublicKey(USDT_MINT);
+const USDT_ATA = getAssociatedTokenAddressSync(USDT_MINT_PUB, WALLET_PUB);
+
+interface UsdtPostSim {
+  ok: boolean;
+  err: unknown;
+  logs: string[];
+  /** wallet USDT ATA raw balance after the simulated tx (null = account gone) */
+  postRaw: number | null;
+}
+
+/** Simulate a tx and decode the wallet USDT ATA's post-execution raw balance. */
+async function simulateUsdtPost(txB64: string): Promise<UsdtPostSim> {
+  const connection = rpc();
+  const tx = deserializeTx(txB64);
+  const sim = await connection.simulateTransaction(tx, {
+    sigVerify: false,
+    replaceRecentBlockhash: true,
+    accounts: { encoding: "base64", addresses: [USDT_ATA.toBase58()] },
+  });
+  let postRaw: number | null = null;
+  const acc = sim.value.accounts?.[0] as any;
+  // RPC returns data as [payload, encoding] tuple or a raw buffer
+  let data: unknown = acc?.data;
+  if (Array.isArray(data)) data = data[0];
+  const buf =
+    typeof data === "string" ? Buffer.from(data, "base64") : data instanceof Uint8Array ? Buffer.from(data) : null;
+  if (buf && buf.length >= 72) postRaw = Number(buf.readBigUInt64LE(64)); // SPL amount @ offset 64
+  return { ok: sim.value.err === null, err: sim.value.err, logs: sim.value.logs ?? [], postRaw };
+}
+
+const isInsufficientFunds = (sim: UsdtPostSim): boolean => {
+  const errStr = JSON.stringify(sim.err ?? "");
+  const custom1 = /"Custom":\s*1\b/.test(errStr);
+  return custom1 || sim.logs.some(l => /insufficient funds/i.test(l));
+};
+
+/**
+ * buildLendTx + exact-balance fitting for the repay path. Jupiter Lend rounds
+ * each repay internally by ~1 raw unit, so the exact split that fits can't be
+ * derived analytically — instead we let the chain decide: simulate with the
+ * wallet USDT ATA post-state and nudge the largest repay op by ±raw units.
+ *
+ * Only runs when the distributed repay total equals `availableRaw` (wallet
+ * USDT is the limiting factor); capped repays keep the plain build.
+ */
+export async function buildLendTxFitted(ops: LendBuildOp[], availableRaw?: number): Promise<LendTxResult[]> {
+  const repayIdx = ops.map((o, i) => (opRaw(o) < 0 ? i : -1)).filter(i => i >= 0);
+  const repaySum = -repayIdx.reduce((s, i) => s + opRaw(ops[i]), 0);
+  if (availableRaw == null || !repayIdx.length || repaySum !== Math.floor(availableRaw)) {
+    return buildLendTx(ops);
+  }
+
+  const raws = ops.map(opRaw);
+  const largestRepay = () => {
+    let li = repayIdx[0];
+    for (const i of repayIdx) if (Math.abs(raws[i]) > Math.abs(raws[li])) li = i;
+    return li;
+  };
+  const opsWith = (r: number[]) => ops.map((o, i) => ({ ...o, deltaRawUsdt: r[i] }));
+
+  let best: { results: LendTxResult[]; postRaw: number } | null = null;
+  let addsLeft = 2;
+  // stay well inside the 60 s function limit (each rebuild hits the Jupiter API)
+  const deadline = Date.now() + 40_000;
+  for (let iter = 0; iter < 12 && Date.now() < deadline; iter++) {
+    const results = await buildLendTx(opsWith(raws));
+    const sim = await simulateUsdtPost(results[results.length - 1].txB64);
+    if (sim.ok) {
+      const post = sim.postRaw ?? 0;
+      if (!best || post < best.postRaw) best = { results, postRaw: post };
+      if (post === 0 || addsLeft <= 0) return best.results;
+      addsLeft--;
+      raws[largestRepay()] -= post; // repay raw is negative → repay `post` more
+      continue;
+    }
+    if (isInsufficientFunds(sim)) {
+      const li = largestRepay();
+      if (raws[li] >= 0) return results; // can't shrink further without flipping sign
+      raws[li] += 1; // repay 1 raw unit less and retry
+      continue;
+    }
+    return results; // non-funding failure — let simulateOrFail report it
+  }
+  if (best) return best.results;
+  throw new Error("lend repay fit failed: no passing variant in time — tap Resume to retry");
 }
 
 /**

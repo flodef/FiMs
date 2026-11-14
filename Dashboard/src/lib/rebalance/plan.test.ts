@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   buildPlan,
   buildTopupPlan,
-  distributeRepay,
+  distributeRepayRaw,
   priorityMicroLamports,
   TOPUP_MAX_USDT,
   type PlanPositionInput,
@@ -176,39 +176,40 @@ describe("rebalance plan", () => {
   });
 });
 
-describe("distributeRepay", () => {
-  const share = (planned: number, debt = 1e9, freshRepay = planned) => ({ planned, debt, freshRepay });
+describe("distributeRepayRaw", () => {
+  const share = (plannedRaw: number, capRaw = 1e12) => ({ plannedRaw, capRaw });
 
   test("exact cover: available == Σplanned repays everything", () => {
-    const w = distributeRepay(200, [share(120), share(80)]);
-    expect(w[0]).toBeCloseTo(120, 9);
-    expect(w[1]).toBeCloseTo(80, 9);
+    const w = distributeRepayRaw(200, [share(120), share(80)]);
+    expect(w).toEqual([120, 80]);
   });
 
-  test("surplus: capped at freshRepay × 1.001 per position", () => {
-    // available 250 > 200 planned → each capped at 100×1.001-style bound
-    const w = distributeRepay(250, [share(100), share(100)]);
-    expect(w[0]).toBeCloseTo(100 * 1.001, 9);
-    expect(w[1]).toBeCloseTo(100 * 1.001, 9);
-    expect(w[0]! + w[1]!).toBeCloseTo(200.2, 9);
+  test("floor shares + remainder goes to the largest op — sum is exact", () => {
+    // shares: floor(10×1/3)=3, floor(10×2/3)=6 → rem 1 → largest op (6→7)
+    const w = distributeRepayRaw(10, [share(1), share(2)]);
+    expect(w).toEqual([3, 7]);
+    expect(w[0]! + w[1]!).toBe(10);
   });
 
-  test("shortfall: split proportionally to planned amounts", () => {
-    const w = distributeRepay(150, [share(120), share(80)]);
-    expect(w[0]).toBeCloseTo(90, 9); // 150 × 120/200
-    expect(w[1]).toBeCloseTo(60, 9); // 150 × 80/200
+  test("caps respected; capped excess flows to ops with headroom", () => {
+    // op0 capped at 40, op1 takes its share + the remainder
+    const w = distributeRepayRaw(100, [share(50, 40), share(50)]);
+    expect(w[0]).toBe(40);
+    expect(w[1]).toBe(60); // 100 − 40, under its cap
+    expect(w[0]! + w[1]!).toBe(100);
   });
 
-  test("debt cap wins over proportional share", () => {
-    const w = distributeRepay(200, [share(100, 50), share(100)]);
-    expect(w[0]).toBe(50);
-    expect(w[1]).toBeCloseTo(100, 9); // share 100 < freshRepay×1.001
+  test("all capped → sum below available (caller detects not wallet-limited)", () => {
+    const w = distributeRepayRaw(300, [share(100, 60), share(200, 90)]);
+    expect(w).toEqual([60, 90]);
+    expect(w[0]! + w[1]!).toBe(150);
   });
 
   test("zero/negative available or empty ops → zeros", () => {
-    expect(distributeRepay(0, [share(100)])).toEqual([0]);
-    expect(distributeRepay(100, [])).toEqual([]);
-    expect(distributeRepay(-5, [share(100)])).toEqual([0]);
+    expect(distributeRepayRaw(0, [share(100)])).toEqual([0]);
+    expect(distributeRepayRaw(100, [])).toEqual([]);
+    expect(distributeRepayRaw(-5, [share(100)])).toEqual([0]);
+    expect(distributeRepayRaw(Number.NaN, [share(100)])).toEqual([0]);
   });
 });
 
