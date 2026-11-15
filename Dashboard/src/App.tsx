@@ -17,6 +17,7 @@ import pkg from "../package.json";
 import { SHEET_SYNC_TOLERANCE_EUR } from "./lib/config";
 import { computeDashboard, type DashboardResult, type ExtraComputation } from "./lib/compute";
 import { fmtNum, fmtSOL, timeAgo } from "./lib/format";
+import { RESTORE_TITLE, type RestoreTarget } from "./lib/rebalance/plan";
 import { checkForUpdate } from "./lib/pwa";
 import type { Inputs, SourceName } from "./lib/types";
 import { useDashboard } from "./hooks/useDashboard";
@@ -32,6 +33,7 @@ import { Drawer, StatusBadge, Toast } from "./components/ui";
 
 const Rebalance = lazy(() => import("./components/Rebalance"));
 const Topup = lazy(() => import("./components/Topup"));
+const Restore = lazy(() => import("./components/Restore"));
 
 type Tab = "overview" | "positions" | "multiply" | "prices" | "convert";
 
@@ -49,6 +51,16 @@ const TABS: { id: Tab; label: string; icon: typeof IconLayoutDashboard }[] = [
   { id: "prices", label: "Prices", icon: IconCoin },
   { id: "convert", label: "Convert", icon: IconArrowsExchange },
 ];
+
+/** FiMs Diff value for a restore target (negative = shortfall to restore). */
+const restoreDiff = (r: DashboardResult, t: RestoreTarget): number =>
+  t === "jupsol"
+    ? r.fims.fimsSolDiff
+    : t === "eurc"
+      ? r.fims.fimsEurcDiff
+      : t === "usd"
+        ? r.fims.usd.usdAmount
+        : (r.fims.fimsJlpDiff ?? 0);
 
 function InfoPopover({ r, sources, nowMs }: { r: DashboardResult; sources: Inputs["sources"]; nowMs: number }) {
   const [open, setOpen] = useState(false);
@@ -130,7 +142,8 @@ export default function App() {
     open: false,
     editing: null,
   });
-  const [drawer, setDrawer] = useState<"prices" | "convert" | "rebalance" | "topup" | null>(null);
+  const [drawer, setDrawer] = useState<"prices" | "convert" | "rebalance" | "topup" | "restore" | null>(null);
+  const [restoreTarget, setRestoreTarget] = useState<RestoreTarget | null>(null);
   const [toast, setToast] = useState<{ kind: "ok" | "error"; msg: string; duration?: number } | null>(null);
 
   useEffect(() => {
@@ -208,6 +221,10 @@ export default function App() {
     manageHint,
     onChanged: () => void refresh(),
     onEdit: (entry: ExtraComputation) => setPosSheet({ open: true, editing: entry }),
+    onRestore: (target: RestoreTarget) => {
+      setRestoreTarget(target);
+      setDrawer("restore");
+    },
   };
 
   const headerBtn = "flex items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2";
@@ -410,6 +427,28 @@ export default function App() {
                 setToast({
                   kind: "ok",
                   msg: lamports ? `Card topped up · fees ${fmtSOL(lamports)} SOL` : "Card topped up",
+                  duration: 6000,
+                });
+              }}
+            />
+          </Suspense>
+        </Drawer>
+      )}
+      {drawer === "restore" && restoreTarget && (
+        <Drawer title={`Restore ${RESTORE_TITLE[restoreTarget]}`} onClose={() => setDrawer(null)} wide>
+          <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
+            <Restore
+              key={restoreTarget}
+              target={restoreTarget}
+              diff={restoreDiff(result, restoreTarget)}
+              usdDiff={result.fims.usd.usdAmount}
+              onDone={lamports => {
+                const label = RESTORE_TITLE[restoreTarget];
+                setDrawer(null);
+                void refresh();
+                setToast({
+                  kind: "ok",
+                  msg: lamports ? `Restored ${label} · fees ${fmtSOL(lamports)} SOL` : `Restored ${label}`,
                   duration: 6000,
                 });
               }}

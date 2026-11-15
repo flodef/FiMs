@@ -1,8 +1,9 @@
-import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { IconArrowsExchange, IconPencil, IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import type { CollateralAlert, DashboardResult, ExtraComputation } from "../lib/compute";
 import { fixtureMode } from "../lib/fixture";
 import { fmtEUR, fmtNum, fmtPct } from "../lib/format";
+import type { RestoreTarget } from "../lib/rebalance/plan";
 import type { PositionRow as Row } from "../lib/types";
 import { Card, CardTitle, LtvGauge } from "./ui";
 
@@ -220,6 +221,7 @@ export function Positions({
   manageHint,
   onChanged,
   onEdit,
+  onRestore,
 }: {
   r: DashboardResult;
   positions: Row[];
@@ -227,6 +229,7 @@ export function Positions({
   manageHint: string | null;
   onChanged: () => void;
   onEdit: (entry: ExtraComputation) => void;
+  onRestore?: (target: RestoreTarget) => void;
 }) {
   const [confirm, setConfirm] = useState<{ id: number; title: string; summary: string } | null>(null);
 
@@ -380,15 +383,30 @@ export function Positions({
         <div className="-mx-1 divide-y divide-line/60">
           {(
             [
-              ["SOL", r.fims.fimsSolDiff],
-              ["EURC", r.fims.fimsEurcDiff],
-              ["USD", r.fims.usd.usdAmount],
+              ["JupSOL", r.fims.fimsSolDiff, "jupsol"],
+              ["EURC", r.fims.fimsEurcDiff, "eurc"],
+              ["USD", r.fims.usd.usdAmount, "usd"],
+              ...(r.fims.fimsJlpDiff != null ? ([["JLP", r.fims.fimsJlpDiff, "jlp"]] as const) : []),
             ] as const
-          ).map(([label, v]) => (
-            <div key={label} className="flex items-baseline justify-between px-1 py-2">
+          ).map(([label, v, target]) => (
+            <div key={label} className="flex items-center justify-between gap-2 px-1 py-2">
               <span className="text-sm">{label}</span>
-              <span className={`text-sm font-semibold tabular-nums ${v < 0 ? "text-danger" : v > 0 ? "text-ok" : ""}`}>
-                {fmtNum(v, 2)}
+              <span className="flex items-baseline gap-2">
+                <span
+                  className={`text-sm font-semibold tabular-nums ${v < 0 ? "text-danger" : v > 0 ? "text-ok" : ""}`}
+                >
+                  {fmtNum(v, 2)} <span className="text-[10px] font-normal text-muted">{label}</span>
+                </span>
+                {onRestore && (
+                  <button
+                    onClick={() => onRestore(target)}
+                    className="rounded p-0.5 text-muted hover:bg-card2 hover:text-accent"
+                    aria-label={`Restore ${label}`}
+                    title={`Restore ${label}`}
+                  >
+                    <IconArrowsExchange size={16} />
+                  </button>
+                )}
               </span>
             </div>
           ))}

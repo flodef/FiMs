@@ -4,6 +4,9 @@ export const STAGE_LABEL: Record<PlanStage["type"], string> = {
   lend: "Jupiter Lend",
   "kamino-withdraw": "Kamino withdraw",
   swap: "Swap",
+  "swap-any": "Swap",
+  "lend-collateral": "Lend collateral",
+  "earn-deposit": "Jupiter Earn",
   "kamino-deposit": "Kamino deposit",
   "spend-transfer": "Card transfer",
 };

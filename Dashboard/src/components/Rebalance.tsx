@@ -22,7 +22,8 @@ const stageDetail = (s: PlanStage) => {
     return s.estOut != null ? `≈ ${inAmt} ${inU} → ≈ ${s.estOut.toFixed(2)} ${outU}` : `${inAmt} ${inU} → ${outU}`;
   }
   if (s.type === "spend-transfer") return `send ≈ ${s.usdt.toFixed(2)} USDT`;
-  return `≈ ${(s.estUsdg ?? s.amountUsdg).toFixed(2)} USDG`;
+  if (s.type === "kamino-deposit") return `≈ ${(s.estUsdg ?? s.amountUsdg).toFixed(2)} USDG`;
+  return "";
 };
 
 function Inner({ onDone }: { onDone: (totalLamports: number | null) => void }) {

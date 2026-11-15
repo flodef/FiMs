@@ -113,6 +113,8 @@ export interface DashboardResult {
     /** EUR added to sheetTotal to correct stale IMPORTRANGE values (0 when in sync / no data) */
     totalCorrection: number;
     gainsPerSol: number;
+    /** JLP amount − FiMsData!B3 (FLiP); undefined when the sheet value is missing */
+    fimsJlpDiff?: number;
     eurc: { tokenAmount: number; eurAmount: number };
     usd: { usdAmount: number; eurAmount: number };
   };
@@ -614,6 +616,10 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
       sheetTotal,
       totalCorrection,
       gainsPerSol: G15,
+      fimsJlpDiff:
+        inputs.defi.fimsLp != null && Number.isFinite(inputs.defi.fimsLp)
+          ? stratAmount("JLP") - inputs.defi.fimsLp
+          : undefined,
       eurc: { tokenAmount: c15, eurAmount: B15 },
       usd: { usdAmount: B16, eurAmount: C16 },
     },

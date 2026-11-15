@@ -31,6 +31,8 @@ export interface DefiData {
   walletPrices?: { jupsol: number; eurc: number; jlp: number };
   /** PriceCache!B2 — sheet's EUR→USD rate */
   eurUsd?: number;
+  /** FiMsData!B3 — FLiP token count (1:1 JLP-priced) */
+  fimsLp?: number;
 }
 
 export interface SanctumData {

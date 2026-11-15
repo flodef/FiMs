@@ -337,3 +337,16 @@ describe("sheet sync correction", () => {
     expect(base.fims.totalCorrection).toBe(0);
   });
 });
+
+describe("fimsJlpDiff", () => {
+  const baseInputs = fixture as unknown as Inputs;
+  const jlpAmt = baseInputs.positions.find(p => p.token.toLowerCase() === "jlp")?.amount ?? 0;
+
+  test("undefined without fimsLp; JLP − fimsLp with it", () => {
+    const noLp = computeDashboard(baseInputs, now);
+    expect(noLp.fims.fimsJlpDiff).toBeUndefined();
+
+    const withLp = computeDashboard({ ...baseInputs, defi: { ...baseInputs.defi, fimsLp: 13305.86 } }, now);
+    expect(withLp.fims.fimsJlpDiff).toBeCloseTo(jlpAmt - 13305.86, 6);
+  });
+});

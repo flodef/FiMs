@@ -1,3 +1,4 @@
+import { getDepositIxs } from "@jup-ag/lend/earn";
 import { getOperateIx } from "@jup-ag/lend/borrow";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
@@ -19,10 +20,18 @@ import bs58 from "bs58";
 import { KAMINO_MARKET, LTV_TARGETS, SPEND_ADDRESS, WALLET } from "../config.js";
 import {
   buildPlan,
+  buildRestorePlan,
   buildTopupPlan,
   priorityMicroLamports,
+  RESTORE_COMBOS,
+  RESTORE_MAX_AMOUNT,
+  RESTORE_TOKENS,
   type PlanPositionInput,
   type RebalancePlan,
+  type RestoreSource,
+  type RestoreTarget,
+  type RestoreToken,
+  type RestoreVaultInput,
 } from "./plan.js";
 
 export const USDT_MINT = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
@@ -223,6 +232,8 @@ export interface LendBuildOp {
   deltaUsdt: number;
   /** exact raw delta (1e-6 USDT, signed) — takes precedence over deltaUsdt */
   deltaRawUsdt?: number;
+  /** collateral delta in raw supply-token units (>0 deposit, <0 withdraw); debt is 0 when set */
+  colRaw?: number;
 }
 
 const opRaw = (op: LendBuildOp) => op.deltaRawUsdt ?? Math.trunc(op.deltaUsdt * 10 ** DECIMALS);
@@ -234,16 +245,18 @@ async function lendTxForOps(
   const ixs: TransactionInstruction[] = [];
   const altMap = new Map<string, AddressLookupTableAccount>();
   for (const op of ops) {
-    const raw = opRaw(op);
-    if (raw === 0) continue;
+    const colRaw = op.colRaw ?? 0;
+    const debtRaw = op.colRaw != null ? 0 : opRaw(op);
+    if (colRaw === 0 && debtRaw === 0) continue;
     const res = await getOperateIx({
       vaultId: op.vaultId,
       positionId: op.positionId,
-      colAmount: new BN(0),
-      debtAmount: new BN(raw),
+      colAmount: new BN(colRaw),
+      debtAmount: new BN(debtRaw),
       connection,
       signer: WALLET_PUB,
       market: "main",
+      includeATASetup: op.colRaw != null ? true : undefined,
     });
     ixs.push(...res.ixs);
     for (const a of res.addressLookupTableAccounts) altMap.set(a.key.toBase58(), a);
@@ -449,13 +462,21 @@ export async function jupQuote(
     swapMode,
     slippageBps: "1",
   });
-  const res = await fetch(`${JUP_SWAP_API}/quote?${qs}`, {
-    headers: { "x-api-key": jupKey() },
-    signal: AbortSignal.timeout(FETCH_MS),
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`jup quote → HTTP ${res.status}: ${body.slice(0, 160)}`);
+  // Jupiter rate-limits bursts (restore sizing fires several quotes in a row)
+  let res: Response | null = null;
+  let lastErr = "";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise(r => setTimeout(r, 1200 * attempt));
+    res = await fetch(`${JUP_SWAP_API}/quote?${qs}`, {
+      headers: { "x-api-key": jupKey() },
+      signal: AbortSignal.timeout(FETCH_MS),
+    });
+    if (res.status !== 429) break;
+    lastErr = "HTTP 429";
+  }
+  if (!res || !res.ok) {
+    const body = res ? await res.text().catch(() => "") : "";
+    throw new Error(`jup quote → ${lastErr || `HTTP ${res?.status}`}: ${body.slice(0, 160)}`);
   }
   const raw = (await res.json()) as Record<string, unknown>;
   return {
@@ -731,4 +752,157 @@ export async function statusTxAndConfirm(txB64: string): Promise<TxOutcome> {
   const tx = deserializeTx(txB64);
   const signature = txSignature(txB64);
   return confirmLoop(connection, signature, tx.message.recentBlockhash);
+}
+
+// ---------- restore ----------
+
+export interface LendVaultPosition extends RestoreVaultInput {
+  /** collateral held, raw supply-token units */
+  supplyRaw: number;
+  supplyDecimals: number;
+}
+
+/** Like fetchLendPositions but keeps positions with any collateral (debt may be 0)
+ *  and exposes supply price/decimals + liquidation threshold for restore guards. */
+export async function fetchLendVaultPositions(): Promise<LendVaultPosition[]> {
+  let res: Response | null = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise(r => setTimeout(r, 1200 * attempt));
+    res = await fetch(`${JUP_LEND_API}/borrow/positions?users=${WALLET}`, {
+      headers: { "x-api-key": jupKey() },
+      signal: AbortSignal.timeout(FETCH_MS),
+    });
+    if (res.status !== 429) break;
+  }
+  if (!res || !res.ok) throw new Error(`jupiter lend positions → HTTP ${res?.status}`);
+  const data: any = await res.json();
+  const list: any[] = Array.isArray(data) ? data : (data?.positions ?? data?.data ?? []);
+  const out: LendVaultPosition[] = [];
+  for (const pos of list) {
+    const vault = pos.vault ?? {};
+    const supply = vault.supplyToken ?? {};
+    const borrow = vault.borrowToken ?? {};
+    const sym = String(supply.symbol ?? "");
+    if (sym !== "JLP" && sym !== "JupSOL") continue;
+    if (String(borrow.symbol ?? "") !== "USDT") continue;
+    const supplyRaw = Number(pos.supply ?? 0);
+    if (!(supplyRaw > 0)) continue;
+    const supplyDecimals = Number(supply.decimals ?? 6);
+    const supplyAmount = supplyRaw / 10 ** supplyDecimals;
+    const borrowDecimals = Number(borrow.decimals ?? 6);
+    const vaultId = Number(pos.vaultId ?? vault.id ?? vault.vaultId);
+    const positionId = Number(pos.id ?? pos.positionId);
+    if (!Number.isFinite(vaultId) || !Number.isFinite(positionId)) continue;
+    out.push({
+      key: sym,
+      vaultId,
+      positionId,
+      collateralUsd: supplyAmount * Number(supply.price ?? 0),
+      debt: Number(pos.borrow ?? 0) / 10 ** borrowDecimals,
+      debtPriceUsd: Number(borrow.price ?? 1),
+      supplyAmount,
+      supplyPriceUsd: Number(supply.price ?? 0),
+      supplyRaw,
+      supplyDecimals,
+      liqThreshold: Number(vault.liquidationThreshold ?? 0) / 1000,
+      collateralFactor: Number(vault.collateralFactor ?? 0) / 1000 || undefined,
+      target: LTV_TARGETS[sym] ?? 0,
+    });
+  }
+  return out;
+}
+
+/**
+ * Size the source amount for a desired target amount: ExactIn quote target→source
+ * of T gives an approximate input S0, then source→target of S0 gives the rate;
+ * required input = ceil(T / rate × 1.0001) raw.
+ */
+export async function sizeSourceForTarget(
+  targetToken: RestoreToken,
+  sourceToken: RestoreToken,
+  targetAmount: number,
+): Promise<{ sourceAmount: number; estTargetOut: number }> {
+  const t = RESTORE_TOKENS[targetToken];
+  const s = RESTORE_TOKENS[sourceToken];
+  const T_raw = Math.round(targetAmount * 10 ** t.decimals);
+  const q1 = await jupQuote(t.mint, s.mint, T_raw, "ExactIn");
+  const S0 = q1.outAmount;
+  if (!(S0 > 0)) throw new Error("restore quote: zero source output");
+  const q2 = await jupQuote(s.mint, t.mint, S0, "ExactIn");
+  const T0 = q2.outAmount;
+  if (!(T0 > 0)) throw new Error("restore quote: zero target output");
+  const rate = T0 / S0; // target raw per source raw
+  const sourceRaw = Math.ceil((T_raw / rate) * 1.0001);
+  return { sourceAmount: sourceRaw / 10 ** s.decimals, estTargetOut: T0 / 10 ** t.decimals };
+}
+
+export async function getRestorePlan(
+  target: RestoreTarget,
+  source: RestoreSource,
+  amount: number,
+): Promise<RebalancePlan> {
+  const [vaults, kamino] = await Promise.all([fetchLendVaultPositions(), fetchKaminoUsdg()]);
+  const empty = (error: string): RebalancePlan => ({ positions: [], stages: [], kaminoUsdg: kamino.amount, error });
+  if (!RESTORE_COMBOS[target]?.includes(source)) {
+    return empty(`Cannot restore ${target.toUpperCase()} from ${source === "kamino" ? "Kamino USDG" : "Lend JLP"}`);
+  }
+  if (!Number.isFinite(amount) || amount <= 0 || amount > RESTORE_MAX_AMOUNT)
+    return empty("Amount must be between 1 and 10,000");
+  const jlp = vaults.find(v => v.key === "JLP");
+  const jupsol = vaults.find(v => v.key === "JupSOL");
+  const targetToken: RestoreToken = target === "usd" ? "usdg" : target;
+  const sourceToken: RestoreToken = source === "kamino" ? "usdg" : "jlp";
+  const sized = await sizeSourceForTarget(targetToken, sourceToken, amount).catch(() => null);
+  if (!sized) return empty("No swap route for this pair");
+  const sourceUsd = source === "kamino" ? sized.sourceAmount : sized.sourceAmount * (jlp?.supplyPriceUsd ?? 0);
+  return buildRestorePlan({
+    target,
+    source,
+    amount,
+    sourceAmount: sized.sourceAmount,
+    sourceUsd,
+    jlp,
+    jupsol,
+    kaminoUsdg: kamino.amount,
+    estTargetOut: sized.estTargetOut,
+  });
+}
+
+/** Lend collateral deposit (colRaw > 0) / withdraw (colRaw < 0) — same finalize path as debt ops. */
+export async function buildLendCollateralTx(op: {
+  vaultId: number;
+  positionId: number;
+  colRaw: number;
+}): Promise<LendTxResult> {
+  const connection = rpc();
+  const { ixs, alts } = await lendTxForOps(connection, [
+    { vaultId: op.vaultId, positionId: op.positionId, deltaUsdt: 0, colRaw: op.colRaw },
+  ]);
+  if (!ixs.length) throw new Error("lend collateral: no instructions");
+  const tx = await finalizeTx(connection, ixs, alts);
+  if (tx.size > MAX_TX_BYTES) throw new Error(`lend collateral tx too large (${tx.size} B)`);
+  return tx;
+}
+
+/** Jupiter Earn deposit of `amountRaw` raw EURC units. */
+export async function buildEarnDepositTx(amountRaw: number): Promise<LendTxResult> {
+  const connection = rpc();
+  const eurcMint = new PublicKey(RESTORE_TOKENS.eurc.mint);
+  const { ixs } = await getDepositIxs({
+    amount: new BN(Math.round(amountRaw)),
+    asset: eurcMint,
+    signer: WALLET_PUB,
+    connection,
+    market: "main",
+    includeATASetup: true,
+  });
+  const ataIx = createAssociatedTokenAccountIdempotentInstruction(
+    WALLET_PUB,
+    getAssociatedTokenAddressSync(eurcMint, WALLET_PUB),
+    WALLET_PUB,
+    eurcMint,
+  );
+  const tx = await finalizeTx(connection, [ataIx, ...ixs]);
+  if (tx.size > MAX_TX_BYTES) throw new Error(`earn deposit tx too large (${tx.size} B)`);
+  return tx;
 }

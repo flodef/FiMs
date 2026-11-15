@@ -2,7 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { computeDashboard, type AlertLevel } from "../src/lib/compute.js";
 import { fetchInputs } from "../src/lib/server.js";
 import { getAlertState, setAlertState } from "../src/lib/storage.js";
-import { sendJson, sendPush, type VercelRequest, type VercelResponse } from "./_lib.js";
+import { sendJson, sendMail, sendPush, type VercelRequest, type VercelResponse } from "./_lib.js";
 
 export const maxDuration = 60;
 
@@ -35,6 +35,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET" && req.method !== "POST") return sendJson(res, 405, { error: "method not allowed" });
   if (!secretOk(req)) return sendJson(res, 401, { error: "unauthorized" });
 
+  // ?testMail=1 — send one test e-mail and return, no alert logic
+  const testMail = req.query?.testMail;
+  if (testMail === "1" || testMail === "true") {
+    const mail = await sendMail(
+      "FiMs Dashboard — test e-mail",
+      "Test e-mail from the FiMs Dashboard cron endpoint.\n\nhttps://dashboard.fims.fi",
+    );
+    return sendJson(res, 200, { mail });
+  }
+
   const inputs = await fetchInputs();
   const result = computeDashboard(inputs, new Date());
   const now = Date.now();
@@ -42,6 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const prev: AlertState = (await getAlertState<AlertState>()) ?? {};
   const next: AlertState = {};
   const lines: string[] = [];
+  const dangerLines: string[] = [];
   const pushes: { title: string; body: string; sent: number; removed: number }[] = [];
 
   const extraMeta = new Map((inputs.extraPositions ?? []).map(e => [`${e.id}:${e.token}`, e]));
@@ -61,7 +72,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         triggered === "danger"
           ? `Bail out quick before the boat sink. ${c.token}${who}: LTV ${pct(c.ltv)} / liq ${liq}`
           : `${c.token}${who}: LTV ${pct(c.ltv)} > target ${c.target != null ? pct(c.target) : "?"} (liq ${liq})`;
-      lines.push(`${triggered === "danger" ? "Loan is Under Water !" : "LTV above target"} — ${body}`);
+      const alertLine = `${triggered === "danger" ? "Loan is Under Water !" : "LTV above target"} — ${body}`;
+      lines.push(alertLine);
+      if (triggered === "danger") dangerLines.push(alertLine);
       next[key] = { level: c.level, lastSentAt: now };
     } else {
       next[key] = { level: c.level, lastSentAt: p.lastSentAt };
@@ -82,12 +95,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     pushes.push({ title: "FiMs Loans — back to OK", body: "All LTV back within targets.", ...r });
   }
 
+  // one danger e-mail per run — same trigger semantics as the danger push
+  const mail = dangerLines.length
+    ? await sendMail("FiMs Loans — DANGER", `${dangerLines.join("\n")}\n\nhttps://dashboard.fims.fi`)
+    : undefined;
+
   await setAlertState(next);
 
   sendJson(res, 200, {
     status: result.status,
     collaterals: result.collaterals,
     pushes,
+    mail,
     sources: inputs.sources,
   });
 }

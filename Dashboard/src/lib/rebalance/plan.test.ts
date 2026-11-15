@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   buildPlan,
+  buildRestorePlan,
   buildTopupPlan,
   distributeRepayRaw,
   priorityMicroLamports,
@@ -254,5 +255,149 @@ describe("priorityMicroLamports", () => {
     expect(priorityMicroLamports(0)).toBe(1);
     expect(priorityMicroLamports(Number.NaN)).toBe(1);
     expect(priorityMicroLamports(-5)).toBe(1);
+  });
+});
+
+describe("buildRestorePlan", () => {
+  const vault = (over: Partial<import("./plan").RestoreVaultInput> = {}) => ({
+    key: "JLP" as const,
+    vaultId: 50,
+    positionId: 161,
+    collateralUsd: 150000,
+    debt: 100000,
+    debtPriceUsd: 1,
+    supplyAmount: 40000,
+    supplyPriceUsd: 3.5,
+    liqThreshold: 0.9,
+    target: 0.82,
+    ...over,
+  });
+  const jlp = vault();
+  const jupsol = vault({
+    key: "JupSOL",
+    vaultId: 52,
+    positionId: 124,
+    supplyAmount: 1200,
+    supplyPriceUsd: 95,
+    target: 0.7,
+  });
+  const base = { jlp, jupsol, kaminoUsdg: 50000 };
+
+  test("jupsol from kamino → withdraw, swap-any, collateral deposit", () => {
+    const p = buildRestorePlan({
+      ...base,
+      target: "jupsol",
+      source: "kamino",
+      amount: 60,
+      sourceAmount: 61,
+      sourceUsd: 61,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["kamino-withdraw", "swap-any", "lend-collateral"]);
+    const dep = p.stages[2];
+    expect(dep.type === "lend-collateral" && dep.key === "JupSOL" && dep.amount).toBe(60);
+    const w = p.stages[0];
+    expect(w.type === "kamino-withdraw" && w.usdgOut).toBe(61);
+    expect(p.positions[0].key).toBe("JupSOL");
+    expect(p.positions[0].ltvAfter).toBeLessThan(p.positions[0].ltvBefore);
+  });
+
+  test("eurc from lend → collateral withdraw, swap-any, earn deposit", () => {
+    const p = buildRestorePlan({
+      ...base,
+      target: "eurc",
+      source: "lend",
+      amount: 500,
+      sourceAmount: 200,
+      sourceUsd: 700,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["lend-collateral", "swap-any", "earn-deposit"]);
+    const wd = p.stages[0];
+    expect(wd.type === "lend-collateral" && wd.amount).toBe(-200);
+    expect(p.stages[2].type === "earn-deposit" && (p.stages[2] as any).amount).toBe(500);
+  });
+
+  test("usd from lend → JLP withdraw, swap to USDG, kamino deposit", () => {
+    const p = buildRestorePlan({
+      ...base,
+      target: "usd",
+      source: "lend",
+      amount: 100,
+      sourceAmount: 30,
+      sourceUsd: 105,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["lend-collateral", "swap-any", "kamino-deposit"]);
+    const sw = p.stages[1];
+    expect(sw.type === "swap-any" && sw.inToken).toBe("jlp");
+    expect(sw.type === "swap-any" && sw.outToken).toBe("usdg");
+  });
+
+  test("jlp from kamino → withdraw, swap to JLP, collateral deposit", () => {
+    const p = buildRestorePlan({
+      ...base,
+      target: "jlp",
+      source: "kamino",
+      amount: 10,
+      sourceAmount: 35,
+      sourceUsd: 35,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["kamino-withdraw", "swap-any", "lend-collateral"]);
+    const dep = p.stages[2];
+    expect(dep.type === "lend-collateral" && dep.key === "JLP" && dep.amount).toBe(10);
+  });
+
+  test("invalid combos rejected", () => {
+    expect(
+      buildRestorePlan({ ...base, target: "usd", source: "kamino", amount: 10, sourceAmount: 10, sourceUsd: 10 }).error,
+    ).not.toBeNull();
+    expect(
+      buildRestorePlan({ ...base, target: "jlp", source: "lend", amount: 10, sourceAmount: 10, sourceUsd: 10 }).error,
+    ).not.toBeNull();
+    // jupsol/eurc accept both sources
+    for (const t of ["jupsol", "eurc"] as const) {
+      for (const s of ["kamino", "lend"] as const) {
+        const p = buildRestorePlan({ ...base, target: t, source: s, amount: 10, sourceAmount: 10, sourceUsd: 10 });
+        expect(p.error).toBeNull();
+      }
+    }
+  });
+
+  test("20k USD cap + insufficient kamino", () => {
+    expect(
+      buildRestorePlan({ ...base, target: "jlp", source: "kamino", amount: 10, sourceAmount: 6000, sourceUsd: 21000 })
+        .error,
+    ).toContain("20,000");
+    expect(
+      buildRestorePlan({
+        ...base,
+        target: "jlp",
+        source: "kamino",
+        amount: 10,
+        sourceAmount: 150,
+        sourceUsd: 150,
+        kaminoUsdg: 100,
+      }).error,
+    ).toContain("Insufficient Kamino USDG");
+    expect(
+      buildRestorePlan({ ...base, target: "usd", source: "lend", amount: 10_001, sourceAmount: 10, sourceUsd: 10 })
+        .error,
+    ).toContain("10,000");
+  });
+
+  test("JLP withdraw danger guard", () => {
+    const risky = vault({ collateralUsd: 120000, debt: 100000 }); // ltv ~0.833, liqT 0.9 → guard at 0.855
+    const p = buildRestorePlan({
+      ...base,
+      jlp: risky,
+      target: "usd",
+      source: "lend",
+      amount: 100,
+      sourceAmount: 900, // −3,150 USD collateral → LTV ≈ 0.86 > 0.855
+      sourceUsd: 3150,
+    });
+    expect(p.error).toContain("LTV");
   });
 });

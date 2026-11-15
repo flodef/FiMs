@@ -1,5 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import nodemailer from "nodemailer";
 import webpush from "web-push";
+import { ALERT_EMAIL } from "../src/lib/config.js";
 
 export interface VercelRequest {
   method?: string;
@@ -133,4 +135,23 @@ export async function sendPush(title: string, body: string, url = "/"): Promise<
     }),
   );
   return { sent, removed };
+}
+
+/** Danger-alert e-mail via SMTP. No-op (never throws) when SMTP env is missing. */
+export async function sendMail(subject: string, text: string): Promise<{ sent: boolean; reason?: string }> {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } = process.env;
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) return { sent: false, reason: "smtp not configured" };
+  try {
+    const port = Number(SMTP_PORT) || 465;
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port,
+      secure: port === 465,
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+    });
+    await transporter.sendMail({ from: SMTP_FROM || SMTP_USER, to: ALERT_EMAIL, subject, text });
+    return { sent: true };
+  } catch (e: any) {
+    return { sent: false, reason: String(e?.message ?? e) };
+  }
 }

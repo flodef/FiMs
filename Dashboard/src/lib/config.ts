@@ -20,3 +20,6 @@ export const FETCH_TIMEOUT_MS = 8000;
 export const DEFI_TIMEOUT_MS = 20000;
 /** |impact| per imported item / total correction below this is normal drift — corrected silently */
 export const SHEET_SYNC_TOLERANCE_EUR = 50;
+
+/** Danger-alert e-mail recipient (cron) */
+export const ALERT_EMAIL = "flodef@pm.me";

@@ -1,12 +1,16 @@
-import { WALLET } from "../config.js";
+import { DANGER_RATIO, WALLET } from "../config.js";
 import {
+  buildEarnDepositTx,
   buildKaminoTx,
+  buildLendCollateralTx,
   buildLendTxFitted,
   buildSpendTransferTx,
   buildSwapTx,
   deserializeTx,
   fetchKaminoUsdg,
+  fetchLendVaultPositions,
   getPlan,
+  getRestorePlan,
   getTopupPlan,
   rpc,
   sendTxAndConfirm,
@@ -19,11 +23,22 @@ import {
   USDT_MINT,
   type TxOutcome,
 } from "./live.js";
-import { distributeRepayRaw, TOPUP_MAX_USDT, type LendOp, type PlanStage, type RebalancePlan } from "./plan.js";
+import {
+  distributeRepayRaw,
+  RESTORE_MAX_USD,
+  RESTORE_TOKENS,
+  TOPUP_MAX_USDT,
+  type LendOp,
+  type PlanStage,
+  type RebalancePlan,
+  type RestoreSource,
+  type RestoreTarget,
+} from "./plan.js";
 
 const CAP = 1.01;
 const TOPUP_SWAP_CAP = 1.005;
 const TOPUP_TRANSFER_CAP = 1.005;
+const RESTORE_CAP = 1.005;
 
 class HttpError extends Error {
   status: number;
@@ -39,6 +54,14 @@ export async function planAction(): Promise<RebalancePlan> {
 
 export async function topupPlanAction(usdt: number): Promise<RebalancePlan> {
   return getTopupPlan(usdt);
+}
+
+export async function restorePlanAction(
+  target: RestoreTarget,
+  source: RestoreSource,
+  amount: number,
+): Promise<RebalancePlan> {
+  return getRestorePlan(target, source, amount);
 }
 
 interface BuiltTx {
@@ -63,8 +86,20 @@ async function simulateOrFail(tx: string) {
  * strand funds or repeat completed work.
  */
 export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]> {
-  if (stage.purpose === "topup" || stage.type === "spend-transfer") {
-    return buildTopupStage(stage);
+  if (
+    stage.purpose === "topup" ||
+    stage.purpose === "restore" ||
+    stage.type === "spend-transfer" ||
+    stage.type === "lend-collateral" ||
+    stage.type === "earn-deposit" ||
+    stage.type === "swap-any"
+  ) {
+    return stage.purpose === "restore" ||
+      stage.type === "lend-collateral" ||
+      stage.type === "earn-deposit" ||
+      stage.type === "swap-any"
+      ? buildRestoreStage(stage)
+      : buildTopupStage(stage);
   }
   const plan = await getPlan();
   const connection = rpc();
@@ -277,6 +312,111 @@ async function buildTopupStage(stage: PlanStage): Promise<BuiltTx> {
   }
 
   throw new HttpError(422, "unsupported top-up stage");
+}
+
+/**
+ * Restore stages (purpose "restore"): amounts re-clamped against fresh balances /
+ * positions at build time; the JLP collateral-withdraw danger guard is re-checked
+ * with fresh vault data. Kamino USDG is capped at 20k USD per restore.
+ */
+async function buildRestoreStage(stage: PlanStage): Promise<BuiltTx> {
+  const connection = rpc();
+
+  if (stage.type === "kamino-withdraw") {
+    const usdg = Math.min(stage.usdgOut ?? stage.amountUsdg, RESTORE_MAX_USD);
+    if (!(usdg > 0)) throw new HttpError(422, "restore amount must be > 0");
+    const kamino = await fetchKaminoUsdg();
+    if (!kamino.reserve) throw new HttpError(422, "no Kamino USDG deposit found");
+    const units = Math.min(usdg, kamino.amount);
+    if (units <= 0) throw new HttpError(422, "Kamino USDG balance is 0");
+    const built = await buildKaminoTx("withdraw", units, kamino.reserve);
+    const simulation = await simulateOrFail(built.txB64);
+    return { tx: built.txB64, size: built.size, quote: { usdgIn: units }, simulation };
+  }
+
+  if (stage.type === "swap-any") {
+    const tin = RESTORE_TOKENS[stage.inToken];
+    const tout = RESTORE_TOKENS[stage.outToken];
+    const balRaw = await walletTokenBalanceRaw(connection, tin.mint);
+    const amountRaw = Math.min(Math.round(stage.amount * RESTORE_CAP * 10 ** tin.decimals), balRaw);
+    if (amountRaw <= 0) throw new HttpError(422, `wallet ${tin.symbol} balance too low for swap`);
+    const built = await buildSwapTx(tin.mint, tout.mint, amountRaw, "ExactIn");
+    const simulation = await simulateOrFail(built.txB64);
+    return {
+      tx: built.txB64,
+      size: built.size,
+      quote: {
+        inAmount: built.quote.inAmount / 10 ** tin.decimals,
+        outAmount: built.quote.outAmount / 10 ** tout.decimals,
+      },
+      simulation,
+    };
+  }
+
+  if (stage.type === "lend-collateral") {
+    const vaults = await fetchLendVaultPositions();
+    const v = vaults.find(x => x.key === stage.key);
+    if (!v || v.vaultId !== stage.vaultId || v.positionId !== stage.positionId) {
+      throw new HttpError(422, `${stage.key} lend position not found`);
+    }
+    const dec = v.supplyDecimals;
+    if (stage.amount < 0) {
+      // withdraw — exact planned amount, clamped to what the position holds
+      const wRaw = Math.min(Math.round(Math.abs(stage.amount) * 10 ** dec), v.supplyRaw);
+      if (wRaw <= 0) throw new HttpError(422, "nothing to withdraw");
+      if ((wRaw / 10 ** dec) * v.supplyPriceUsd > RESTORE_MAX_USD * RESTORE_CAP) {
+        throw new HttpError(422, `restore exceeds the ${RESTORE_MAX_USD} USD limit`);
+      }
+      const afterUsd = v.collateralUsd - (wRaw / 10 ** dec) * v.supplyPriceUsd;
+      const ltvAfter = afterUsd > 0 ? (v.debt * v.debtPriceUsd) / afterUsd : Infinity;
+      const specCap = v.liqThreshold > 0 ? DANGER_RATIO * v.liqThreshold : Infinity;
+      const cfCap = v.collateralFactor != null && v.collateralFactor > 0 ? v.collateralFactor * 0.995 : Infinity;
+      if (!(afterUsd > 0) || ltvAfter >= Math.min(specCap, cfCap)) {
+        throw new HttpError(
+          422,
+          `Withdrawing ${stage.key} collateral would push LTV to ${(ltvAfter * 100).toFixed(1)}% — too close to liquidation`,
+        );
+      }
+      const built = await buildLendCollateralTx({ vaultId: v.vaultId, positionId: v.positionId, colRaw: -wRaw });
+      const simulation = await simulateOrFail(built.txB64);
+      return { tx: built.txB64, size: built.size, quote: { colRaw: -wRaw }, simulation };
+    }
+    // deposit — planned amount +0.5%, capped by the wallet balance of that mint
+    const mint = RESTORE_TOKENS[stage.key === "JLP" ? "jlp" : "jupsol"].mint;
+    const balRaw = await walletTokenBalanceRaw(connection, mint);
+    const dRaw = Math.min(Math.round(stage.amount * RESTORE_CAP * 10 ** dec), balRaw);
+    if (dRaw <= 0) throw new HttpError(422, `wallet ${stage.key} balance too low for deposit`);
+    const built = await buildLendCollateralTx({ vaultId: v.vaultId, positionId: v.positionId, colRaw: dRaw });
+    const simulation = await simulateOrFail(built.txB64);
+    return { tx: built.txB64, size: built.size, quote: { colRaw: dRaw }, simulation };
+  }
+
+  if (stage.type === "earn-deposit") {
+    const balRaw = await walletTokenBalanceRaw(connection, RESTORE_TOKENS.eurc.mint);
+    const amountRaw = Math.min(Math.round(stage.amount * RESTORE_CAP * 10 ** RESTORE_TOKENS.eurc.decimals), balRaw);
+    if (amountRaw <= 0) throw new HttpError(422, "wallet EURC balance too low for Earn deposit");
+    const built = await buildEarnDepositTx(amountRaw);
+    const simulation = await simulateOrFail(built.txB64);
+    return {
+      tx: built.txB64,
+      size: built.size,
+      quote: { eurc: amountRaw / 10 ** RESTORE_TOKENS.eurc.decimals },
+      simulation,
+    };
+  }
+
+  if (stage.type === "kamino-deposit") {
+    const usdgBal = await walletTokenBalance(connection, USDG_MINT);
+    const amount = Math.min(stage.amountUsdg * RESTORE_CAP, usdgBal);
+    if (amount <= 0) throw new HttpError(422, "wallet USDG balance too low for Kamino deposit");
+    const kamino = await fetchKaminoUsdg();
+    if (!kamino.reserve) throw new HttpError(422, "no Kamino USDG reserve found");
+    const built = await buildKaminoTx("deposit", amount, kamino.reserve);
+    const simulation = await simulateOrFail(built.txB64);
+    return { tx: built.txB64, size: built.size, simulation };
+  }
+
+  throw new HttpError(422, "unsupported restore stage");
 }
 
 function validatedSignedTx(txB64: unknown): string {

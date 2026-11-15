@@ -19,6 +19,7 @@ async function fetchDefiOnce(apiKey: string): Promise<DefiData> {
     "FiMsData!B14:B17",
     "Wallet!C3:C5",
     "PriceCache!B2",
+    "FiMsData!B3",
   ];
   const qs = ranges.map(r => `ranges=${encodeURIComponent(r)}`).join("&");
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${DEFI_SHEET_ID}/values:batchGet?${qs}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER&key=${apiKey}`;
@@ -61,6 +62,7 @@ async function fetchDefiOnce(apiKey: string): Promise<DefiData> {
   const importedCol = colNums(6); // FiMsData!B14:B17 = fimsUsd, jupsol, fimsEurc, jlp
   const walletCol = colNums(7); // Wallet!C3:C5 = jupsol, eurc, jlp prices
   const eurUsd = num(vr[8]?.values?.[0]?.[0]); // PriceCache!B2
+  const fimsLpRaw = vr[9]?.values?.[0]?.[0]; // FiMsData!B3 — FLiP token count (1:1 JLP)
 
   return {
     priceHeaders,
@@ -80,6 +82,7 @@ async function fetchDefiOnce(apiKey: string): Promise<DefiData> {
         ? { jupsol: walletCol[0], eurc: walletCol[1], jlp: walletCol[2] }
         : undefined,
     eurUsd: Number.isFinite(eurUsd) ? eurUsd : undefined,
+    fimsLp: typeof fimsLpRaw === "number" && Number.isFinite(fimsLpRaw) ? fimsLpRaw : undefined,
   };
 }
 

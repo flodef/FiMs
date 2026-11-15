@@ -1,14 +1,33 @@
 import { readBody, requireAuth, sendJson, type VercelRequest, type VercelResponse } from "./_lib.js";
-import { buildAction, planAction, sendAction, statusAction, topupPlanAction } from "../src/lib/rebalance/server.js";
-import type { PlanStage } from "../src/lib/rebalance/plan.js";
+import {
+  buildAction,
+  planAction,
+  restorePlanAction,
+  sendAction,
+  statusAction,
+  topupPlanAction,
+} from "../src/lib/rebalance/server.js";
+import type { PlanStage, RestoreSource, RestoreTarget } from "../src/lib/rebalance/plan.js";
 
 export const config = { maxDuration: 60 };
 
 const isStage = (s: unknown): s is PlanStage => {
   if (!s || typeof s !== "object") return false;
   const t = (s as { type?: string }).type;
-  return t === "lend" || t === "kamino-withdraw" || t === "swap" || t === "kamino-deposit" || t === "spend-transfer";
+  return (
+    t === "lend" ||
+    t === "kamino-withdraw" ||
+    t === "swap" ||
+    t === "kamino-deposit" ||
+    t === "spend-transfer" ||
+    t === "swap-any" ||
+    t === "lend-collateral" ||
+    t === "earn-deposit"
+  );
 };
+
+const RESTORE_TARGETS = new Set(["jupsol", "eurc", "usd", "jlp"]);
+const RESTORE_SOURCES = new Set(["kamino", "lend"]);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return sendJson(res, 405, { error: "POST only" });
@@ -23,6 +42,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const usdt = Number(body.usdt);
       if (!Number.isFinite(usdt)) return sendJson(res, 400, { error: "bad usdt" });
       return sendJson(res, 200, await topupPlanAction(usdt));
+    }
+    if (action === "restore-plan") {
+      const target = String(body.target ?? "") as RestoreTarget;
+      const source = String(body.source ?? "") as RestoreSource;
+      const amount = Number(body.amount);
+      if (!RESTORE_TARGETS.has(target) || !RESTORE_SOURCES.has(source)) {
+        return sendJson(res, 400, { error: "bad target/source" });
+      }
+      if (!Number.isFinite(amount)) return sendJson(res, 400, { error: "bad amount" });
+      return sendJson(res, 200, await restorePlanAction(target, source, amount));
     }
     if (action === "build") {
       if (!isStage(body.stage)) {
