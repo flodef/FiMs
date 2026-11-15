@@ -6,6 +6,8 @@ export interface PositionRow {
   amount: number;
   apy: number; // fraction, debt negative
   liqThreshold?: number; // fraction
+  /** collateral factor — Jupiter's hard on-chain LTV ceiling */
+  maxLtv?: number; // fraction
   ltv?: number; // fraction
 }
 

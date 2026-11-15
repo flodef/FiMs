@@ -1,3 +1,5 @@
+import { DANGER_RATIO } from "../config.js";
+
 export type RebalanceKey = "JLP" | "JupSOL";
 
 export interface PlanPositionInput {
@@ -337,12 +339,12 @@ export const RESTORE_COMBOS: Record<RestoreTarget, RestoreSource[]> = {
 const ltvOf = (v: RestoreVaultInput, collateralUsd: number) =>
   collateralUsd > 0 && v.debtPriceUsd > 0 ? (v.debt * v.debtPriceUsd) / collateralUsd : 0;
 
-/** Post-op LTV ceiling: spec guard (0.95 × liq threshold) AND the vault's own
- *  collateral factor (operate rejects above it on-chain) minus an oracle-drift margin. */
+/** Post-op LTV ceiling: the vault's collateral factor (Jupiter's hard on-chain
+ *  limit, operate rejects above it) minus an oracle-drift margin; falls back to
+ *  the spec danger rule when the vault doesn't expose a collateral factor. */
 const ltvCeiling = (v: RestoreVaultInput): number => {
-  const spec = v.liqThreshold > 0 ? 0.95 * v.liqThreshold : Infinity;
-  const cf = v.collateralFactor != null && v.collateralFactor > 0 ? v.collateralFactor * 0.995 : Infinity;
-  return Math.min(spec, cf);
+  if (v.collateralFactor != null && v.collateralFactor > 0) return v.collateralFactor * 0.995;
+  return v.liqThreshold > 0 ? DANGER_RATIO * v.liqThreshold : Infinity;
 };
 
 const vaultDelta = (v: RestoreVaultInput, collateralUsdAfter: number): PositionDelta => ({

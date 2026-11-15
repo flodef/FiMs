@@ -2,29 +2,73 @@ import {
   IconAlertTriangle,
   IconCircleCheck,
   IconClock,
+  IconInfoCircle,
   IconLink,
   IconLoader2,
   IconSignature,
+  IconWallet,
 } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { fmtSOL } from "../lib/format";
 import type { PlanStage } from "../lib/rebalance/plan";
 import { STAGE_LABEL, type SignReadyState, type StageState, type StageStatus } from "./wallet/shared";
+
+/** Tap-toggle info popover explaining the server-build/wallet-sign flow. */
+export function PlanInfo() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [open]);
+  return (
+    <span className="relative inline-flex">
+      <button
+        onClick={e => {
+          e.stopPropagation();
+          setOpen(o => !o);
+        }}
+        className="rounded p-0.5 text-muted hover:text-ink"
+        aria-label="How it works"
+      >
+        <IconInfoCircle size={14} />
+      </button>
+      {open && (
+        <span
+          className="absolute right-0 top-6 z-20 w-52 rounded-lg border border-line bg-card2 p-2.5 text-left text-[11px] leading-snug text-muted shadow-lg"
+          onClick={e => e.stopPropagation()}
+        >
+          Transactions are built and simulated server-side; your wallet signs each one. Nothing is sent without your
+          approval.
+        </span>
+      )}
+    </span>
+  );
+}
 
 export function RunActions({
   running,
   unfinished,
   walletReady,
+  walletMissing,
+  connecting,
   canExecute,
   signReady,
   onSign,
   onExecute,
   onResume,
   onDiscard,
+  onOpenSettings,
 }: {
   running: boolean;
   unfinished: boolean;
   /** connected + right wallet + can sign */
   walletReady: boolean;
+  /** not connected, or connected to a different wallet */
+  walletMissing: boolean;
+  /** wallet adapter is still auto-connecting */
+  connecting: boolean;
   canExecute: boolean;
   /** a built tx is waiting for a wallet signature tap */
   signReady: SignReadyState | null;
@@ -32,6 +76,7 @@ export function RunActions({
   onExecute: () => void;
   onResume: () => void;
   onDiscard: () => void;
+  onOpenSettings: () => void;
 }) {
   return (
     <>
@@ -61,21 +106,33 @@ export function RunActions({
               </button>
             </div>
           )}
-          {!unfinished && (
-            <button
-              onClick={onExecute}
-              disabled={!canExecute}
-              className="w-full rounded-xl bg-accent py-2.5 text-sm font-bold text-white disabled:opacity-40"
-            >
-              Execute
-            </button>
-          )}
+          {!unfinished &&
+            (running ? (
+              <button disabled className="w-full rounded-xl bg-accent py-2.5 text-sm font-bold text-white opacity-40">
+                Execute
+              </button>
+            ) : connecting && !walletReady ? (
+              <button disabled className="w-full rounded-xl bg-accent py-2.5 text-sm font-bold text-white opacity-60">
+                Connecting wallet…
+              </button>
+            ) : walletMissing ? (
+              <button
+                onClick={onOpenSettings}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-accent/50 py-2.5 text-sm font-bold text-accent"
+              >
+                <IconWallet size={15} /> Connect wallet in Settings
+              </button>
+            ) : (
+              <button
+                onClick={onExecute}
+                disabled={!canExecute}
+                className="w-full rounded-xl bg-accent py-2.5 text-sm font-bold text-white disabled:opacity-40"
+              >
+                Execute
+              </button>
+            ))}
         </>
       )}
-      <p className="text-center text-[10px] text-muted">
-        Transactions are built and simulated server-side; your wallet signs each one. Nothing is sent without your
-        approval.
-      </p>
     </>
   );
 }

@@ -190,6 +190,28 @@ describe("extra positions", () => {
     expect(r4.collaterals.find(x => x.token === "XYZ")!.level).toBe("ok");
   });
 
+  test("maxLtv (collateral factor) drives the danger rule", () => {
+    const mk = (ltv: number) =>
+      withExtras([
+        {
+          id: 9,
+          origin: "jupiter",
+          token: "JLP",
+          source: "Jupiter Borrow",
+          amount: 100,
+          apy: 0.1,
+          ltv,
+          liqThreshold: 1.0, // fallback cap would be 0.95 — maxLtv must win
+          maxLtv: 0.85,
+          unit: "JLP",
+        },
+      ]).collaterals.find(x => x.id === 9)!;
+    expect(mk(0.851).level).toBe("danger"); // >= maxLtv 0.85
+    const below = mk(0.84);
+    expect(below.level).toBe("warn"); // above the 0.82 target, below maxLtv
+    expect(below.maxLtv).toBe(0.85);
+  });
+
   test("extra collateral liqPriceEur comes from its own entry rows", () => {
     const r6 = withExtras([
       {

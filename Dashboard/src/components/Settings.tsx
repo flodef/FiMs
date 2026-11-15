@@ -6,11 +6,14 @@ import {
   IconMoon,
   IconRefresh,
   IconSun,
+  IconWallet,
 } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { currentSubscription, pushSupported, subscribePush, unsubscribePush } from "../lib/push";
 import { setTheme, themePref, type ThemePref } from "../lib/theme";
 import pkg from "../../package.json";
+
+const SettingsWallet = lazy(() => import("./wallet/SettingsWallet"));
 
 const THEMES: { id: ThemePref; label: string; icon: typeof IconSun }[] = [
   { id: "system", label: "System", icon: IconDeviceDesktop },
@@ -86,6 +89,16 @@ export function Settings({
           <span className="text-xs text-muted">{busy ? "…" : supported ? "" : "unsupported"}</span>
         </button>
         {msg && <p className="py-2 text-[11px] text-danger">{msg}</p>}
+
+        <Suspense
+          fallback={
+            <div className="flex items-center gap-3 py-3 text-sm">
+              <IconWallet size={18} className="text-muted" /> Wallet
+            </div>
+          }
+        >
+          <SettingsWallet />
+        </Suspense>
 
         <button
           onClick={() => {

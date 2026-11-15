@@ -10,9 +10,9 @@ import {
   type RestoreTarget,
 } from "../lib/rebalance/plan";
 import { Card, CardTitle } from "./ui";
-import { RunActions, StageList } from "./plan-ui";
+import { PlanInfo, RunActions, StageList } from "./plan-ui";
 import { api } from "./wallet/shared";
-import { WalletCard, WalletShell } from "./wallet/WalletShell";
+import { WalletShell } from "./wallet/WalletShell";
 import { useStageRunner } from "./wallet/useStageRunner";
 
 const LS_KEY = "fims-restore";
@@ -50,11 +50,13 @@ function Inner({
   diff,
   usdDiff,
   onDone,
+  onOpenSettings,
 }: {
   target: RestoreTarget;
   diff: number;
   usdDiff: number;
   onDone: (totalLamports: number | null) => void;
+  onOpenSettings: () => void;
 }) {
   const label = RESTORE_TITLE[target];
   const fixedSource: RestoreSource | null = target === "usd" ? "lend" : target === "jlp" ? "kamino" : null;
@@ -103,34 +105,15 @@ function Inner({
   }, [amtKey, source, unfinished, loadPlan]);
 
   const walletReady = r.connected && !r.wrongWallet && r.canSign;
+  const walletMissing = !r.connected || !!r.wrongWallet;
   const canExecute =
     !r.running && walletReady && !!plan && plan.stages.length > 0 && !plan.error && !unfinished && amountOk;
-
-  // estimate line: "≈ X <source> from <Kamino|Lend> → X <target>"
-  const est = (() => {
-    if (!plan || plan.stages.length === 0) return null;
-    const srcStage = plan.stages.find(
-      s => s.type === "kamino-withdraw" || (s.type === "lend-collateral" && s.amount < 0),
-    );
-    const swap = plan.stages.find(s => s.type === "swap-any");
-    if (!srcStage || !swap || swap.type !== "swap-any") return null;
-    const srcAmt =
-      srcStage.type === "kamino-withdraw"
-        ? (srcStage.usdgOut ?? srcStage.amountUsdg)
-        : Math.abs((srcStage as any).amount);
-    const srcSym = srcStage.type === "kamino-withdraw" ? "USDG" : "JLP";
-    const srcFrom = srcStage.type === "kamino-withdraw" ? "Kamino" : "Lend";
-    const out = swap.estOut ?? amt;
-    return `≈ ${fmtNum(srcAmt, 2)} ${srcSym} from ${srcFrom} → ${fmtNum(out, 2)} ${label}`;
-  })();
 
   const jlpPos = plan?.positions.find((p: PositionDelta) => p.key === "JLP");
   const ltvWarn = jlpPos != null && jlpPos.ltvAfter > jlpPos.target;
 
   return (
     <div className="space-y-3">
-      <WalletCard />
-
       {/* amount + source card */}
       <Card>
         <CardTitle>Amount ({label})</CardTitle>
@@ -193,15 +176,18 @@ function Inner({
       <Card>
         <CardTitle
           right={
-            <button
-              onClick={() => void loadPlan()}
-              disabled={r.loadingPlan || unfinished || !amountOk}
-              className="rounded-lg p-1 text-muted hover:bg-card2 disabled:opacity-50"
-              aria-label="Refresh plan"
-              title={unfinished ? "Discard the saved run to refresh the plan" : "Refresh plan"}
-            >
-              <IconRefresh size={14} className={r.loadingPlan ? "animate-spin" : ""} />
-            </button>
+            <span className="flex items-center gap-0.5">
+              <PlanInfo />
+              <button
+                onClick={() => void loadPlan()}
+                disabled={r.loadingPlan || unfinished || !amountOk}
+                className="rounded-lg p-1 text-muted hover:bg-card2 disabled:opacity-50"
+                aria-label="Refresh plan"
+                title={unfinished ? "Discard the saved run to refresh the plan" : "Refresh plan"}
+              >
+                <IconRefresh size={14} className={r.loadingPlan ? "animate-spin" : ""} />
+              </button>
+            </span>
           }
         >
           Plan
@@ -212,7 +198,6 @@ function Inner({
         {plan && plan.stages.length === 0 && !plan.error && amountOk && (
           <p className="mt-2 text-xs text-muted">Nothing to do</p>
         )}
-        {est && <p className="mb-2 text-xs text-muted">{est}</p>}
         {plan && plan.positions.length > 0 && (
           <div className="mb-2 space-y-1">
             {plan.positions.map(p => (
@@ -227,21 +212,21 @@ function Inner({
           </div>
         )}
         {plan && plan.stages.length > 0 && <StageList stages={plan.stages} states={states} detail={stageDetail} />}
-        <p className="mt-2 text-[11px] text-muted">
-          Server builds &amp; simulates each step — your wallet signs; nothing is sent without your approval.
-        </p>
       </Card>
 
       <RunActions
         running={r.running}
         unfinished={unfinished}
         walletReady={walletReady}
+        walletMissing={walletMissing}
+        connecting={r.connecting}
         canExecute={canExecute}
         signReady={r.signReady}
         onSign={r.signNow}
         onExecute={() => void r.execute()}
         onResume={() => void r.resume()}
         onDiscard={r.discard}
+        onOpenSettings={onOpenSettings}
       />
     </div>
   );
@@ -252,15 +237,17 @@ export default function Restore({
   diff,
   usdDiff,
   onDone,
+  onOpenSettings,
 }: {
   target: RestoreTarget;
   diff: number;
   usdDiff: number;
   onDone: (totalLamports: number | null) => void;
+  onOpenSettings: () => void;
 }) {
   return (
     <WalletShell>
-      <Inner target={target} diff={diff} usdDiff={usdDiff} onDone={onDone} />
+      <Inner target={target} diff={diff} usdDiff={usdDiff} onDone={onDone} onOpenSettings={onOpenSettings} />
     </WalletShell>
   );
 }

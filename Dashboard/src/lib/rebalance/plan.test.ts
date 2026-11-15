@@ -400,4 +400,19 @@ describe("buildRestorePlan", () => {
     });
     expect(p.error).toContain("LTV");
   });
+
+  test("JLP withdraw ceiling follows collateral factor over the spec guard", () => {
+    // CF 0.9 → ceiling 0.8955, above the old 0.95×liqT cap of 0.855
+    const highCf = vault({ collateralUsd: 120000, debt: 100000, collateralFactor: 0.9 });
+    const p = buildRestorePlan({
+      ...base,
+      jlp: highCf,
+      target: "usd",
+      source: "lend",
+      amount: 100,
+      sourceAmount: 1445, // −5,057.5 USD collateral → LTV ≈ 0.87: over 0.855, under 0.8955
+      sourceUsd: 5057.5,
+    });
+    expect(p.error).toBeNull();
+  });
 });

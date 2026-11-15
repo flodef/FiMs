@@ -395,7 +395,7 @@ export function Positions({
                 <span
                   className={`text-sm font-semibold tabular-nums ${v < 0 ? "text-danger" : v > 0 ? "text-ok" : ""}`}
                 >
-                  {fmtNum(v, 2)} <span className="text-[10px] font-normal text-muted">{label}</span>
+                  {fmtNum(v, 2)}
                 </span>
                 {onRestore && (
                   <button

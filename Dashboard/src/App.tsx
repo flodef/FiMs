@@ -228,6 +228,10 @@ export default function App() {
   };
 
   const headerBtn = "flex items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2";
+  const openSettings = () => {
+    setDrawer(null);
+    setSettingsOpen(true);
+  };
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-bg lg:max-w-[1400px]">
@@ -403,6 +407,7 @@ export default function App() {
         <Drawer title="Rebalance" onClose={() => setDrawer(null)} wide>
           <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
             <Rebalance
+              onOpenSettings={openSettings}
               onDone={lamports => {
                 setDrawer(null);
                 void refresh();
@@ -421,6 +426,7 @@ export default function App() {
           <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
             <Topup
               eurToUsd={result.cells["I13"] ?? 0}
+              onOpenSettings={openSettings}
               onDone={lamports => {
                 setDrawer(null);
                 void refresh();
@@ -442,6 +448,7 @@ export default function App() {
               target={restoreTarget}
               diff={restoreDiff(result, restoreTarget)}
               usdDiff={result.fims.usd.usdAmount}
+              onOpenSettings={openSettings}
               onDone={lamports => {
                 const label = RESTORE_TITLE[restoreTarget];
                 setDrawer(null);

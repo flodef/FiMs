@@ -1,12 +1,11 @@
 import { IconRefresh, IconX } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { SPEND_ADDRESS } from "../lib/config";
-import { fmtNum } from "../lib/format";
 import type { PlanStage } from "../lib/rebalance/plan";
 import { Card, CardTitle } from "./ui";
-import { RunActions, StageList } from "./plan-ui";
+import { PlanInfo, RunActions, StageList } from "./plan-ui";
 import { api, short } from "./wallet/shared";
-import { WalletCard, WalletShell } from "./wallet/WalletShell";
+import { WalletShell } from "./wallet/WalletShell";
 import { useStageRunner } from "./wallet/useStageRunner";
 
 const LS_KEY = "fims-topup";
@@ -30,7 +29,15 @@ const stageDetail = (s: PlanStage) => {
   return "";
 };
 
-function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: (totalLamports: number | null) => void }) {
+function Inner({
+  eurToUsd,
+  onDone,
+  onOpenSettings,
+}: {
+  eurToUsd: number;
+  onDone: (totalLamports: number | null) => void;
+  onOpenSettings: () => void;
+}) {
   const [amount, setAmount] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -70,14 +77,13 @@ function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: (totalLamports:
   }, [usdtKey, unfinished, loadPlan]);
 
   const walletReady = r.connected && !r.wrongWallet && r.canSign;
+  const walletMissing = !r.connected || !!r.wrongWallet;
   const amountOk = Number.isFinite(usdt) && usdt >= 1;
   const canExecute =
     !r.running && walletReady && !!plan && plan.stages.length > 0 && !plan.error && !unfinished && amountOk;
 
   return (
     <div className="space-y-3">
-      <WalletCard />
-
       {/* amount card */}
       <Card>
         <CardTitle>Amount (EUR)</CardTitle>
@@ -107,11 +113,6 @@ function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: (totalLamports:
             </button>
           )}
         </div>
-        {amountOk && (
-          <p className="mt-2 text-xs text-muted">
-            ≈ {fmtNum(usdt, 2)} USDT · ≈ {fmtNum(usdt, 2)} USDG from Kamino → {short(SPEND_ADDRESS)}
-          </p>
-        )}
         {Number.isFinite(usdt) && usdt >= 1 && usdt > 10_000 && (
           <p className="mt-1 text-[11px] text-danger">Max 10,000 USDT per top-up</p>
         )}
@@ -121,15 +122,18 @@ function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: (totalLamports:
       <Card>
         <CardTitle
           right={
-            <button
-              onClick={() => void loadPlan()}
-              disabled={r.loadingPlan || unfinished || !amountOk}
-              className="rounded-lg p-1 text-muted hover:bg-card2 disabled:opacity-50"
-              aria-label="Refresh plan"
-              title={unfinished ? "Discard the saved run to refresh the plan" : "Refresh plan"}
-            >
-              <IconRefresh size={14} className={r.loadingPlan ? "animate-spin" : ""} />
-            </button>
+            <span className="flex items-center gap-0.5">
+              <PlanInfo />
+              <button
+                onClick={() => void loadPlan()}
+                disabled={r.loadingPlan || unfinished || !amountOk}
+                className="rounded-lg p-1 text-muted hover:bg-card2 disabled:opacity-50"
+                aria-label="Refresh plan"
+                title={unfinished ? "Discard the saved run to refresh the plan" : "Refresh plan"}
+              >
+                <IconRefresh size={14} className={r.loadingPlan ? "animate-spin" : ""} />
+              </button>
+            </span>
           }
         >
           Plan
@@ -147,12 +151,15 @@ function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: (totalLamports:
         running={r.running}
         unfinished={unfinished}
         walletReady={walletReady}
+        walletMissing={walletMissing}
+        connecting={r.connecting}
         canExecute={canExecute}
         signReady={r.signReady}
         onSign={r.signNow}
         onExecute={() => void r.execute()}
         onResume={() => void r.resume()}
         onDiscard={r.discard}
+        onOpenSettings={onOpenSettings}
       />
     </div>
   );
@@ -161,13 +168,15 @@ function Inner({ eurToUsd, onDone }: { eurToUsd: number; onDone: (totalLamports:
 export default function Topup({
   eurToUsd,
   onDone,
+  onOpenSettings,
 }: {
   eurToUsd: number;
   onDone: (totalLamports: number | null) => void;
+  onOpenSettings: () => void;
 }) {
   return (
     <WalletShell>
-      <Inner eurToUsd={eurToUsd} onDone={onDone} />
+      <Inner eurToUsd={eurToUsd} onDone={onDone} onOpenSettings={onOpenSettings} />
     </WalletShell>
   );
 }

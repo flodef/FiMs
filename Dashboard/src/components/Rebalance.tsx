@@ -2,9 +2,9 @@ import { IconRefresh } from "@tabler/icons-react";
 import { fmtPct } from "../lib/format";
 import type { PlanStage } from "../lib/rebalance/plan";
 import { Card, CardTitle } from "./ui";
-import { RunActions, StageList } from "./plan-ui";
+import { PlanInfo, RunActions, StageList } from "./plan-ui";
 import { api } from "./wallet/shared";
-import { WalletCard, WalletShell } from "./wallet/WalletShell";
+import { WalletShell } from "./wallet/WalletShell";
 import { useStageRunner } from "./wallet/useStageRunner";
 
 const LS_KEY = "fims-rebalance";
@@ -26,30 +26,38 @@ const stageDetail = (s: PlanStage) => {
   return "";
 };
 
-function Inner({ onDone }: { onDone: (totalLamports: number | null) => void }) {
+function Inner({
+  onDone,
+  onOpenSettings,
+}: {
+  onDone: (totalLamports: number | null) => void;
+  onOpenSettings: () => void;
+}) {
   const r = useStageRunner({ lsKey: LS_KEY, fetchPlan: () => api({ action: "plan" }), onDone });
   const { plan, states, unfinished } = r;
 
   const walletReady = r.connected && !r.wrongWallet && r.canSign;
+  const walletMissing = !r.connected || !!r.wrongWallet;
   const canExecute = !r.running && walletReady && !!plan && plan.stages.length > 0 && !plan.error && !unfinished;
 
   return (
     <div className="space-y-3">
-      <WalletCard />
-
       {/* plan card */}
       <Card>
         <CardTitle
           right={
-            <button
-              onClick={() => void r.loadPlan()}
-              disabled={r.loadingPlan || unfinished}
-              className="rounded-lg p-1 text-muted hover:bg-card2 disabled:opacity-50"
-              aria-label="Refresh plan"
-              title={unfinished ? "Discard the saved run to refresh the plan" : "Refresh plan"}
-            >
-              <IconRefresh size={14} className={r.loadingPlan ? "animate-spin" : ""} />
-            </button>
+            <span className="flex items-center gap-0.5">
+              <PlanInfo />
+              <button
+                onClick={() => void r.loadPlan()}
+                disabled={r.loadingPlan || unfinished}
+                className="rounded-lg p-1 text-muted hover:bg-card2 disabled:opacity-50"
+                aria-label="Refresh plan"
+                title={unfinished ? "Discard the saved run to refresh the plan" : "Refresh plan"}
+              >
+                <IconRefresh size={14} className={r.loadingPlan ? "animate-spin" : ""} />
+              </button>
+            </span>
           }
         >
           Plan
@@ -98,21 +106,30 @@ function Inner({ onDone }: { onDone: (totalLamports: number | null) => void }) {
         running={r.running}
         unfinished={unfinished}
         walletReady={walletReady}
+        walletMissing={walletMissing}
+        connecting={r.connecting}
         canExecute={canExecute}
         signReady={r.signReady}
         onSign={r.signNow}
         onExecute={() => void r.execute()}
         onResume={() => void r.resume()}
         onDiscard={r.discard}
+        onOpenSettings={onOpenSettings}
       />
     </div>
   );
 }
 
-export default function Rebalance({ onDone }: { onDone: (totalLamports: number | null) => void }) {
+export default function Rebalance({
+  onDone,
+  onOpenSettings,
+}: {
+  onDone: (totalLamports: number | null) => void;
+  onOpenSettings: () => void;
+}) {
   return (
     <WalletShell>
-      <Inner onDone={onDone} />
+      <Inner onDone={onDone} onOpenSettings={onOpenSettings} />
     </WalletShell>
   );
 }

@@ -369,9 +369,13 @@ async function buildRestoreStage(stage: PlanStage): Promise<BuiltTx> {
       }
       const afterUsd = v.collateralUsd - (wRaw / 10 ** dec) * v.supplyPriceUsd;
       const ltvAfter = afterUsd > 0 ? (v.debt * v.debtPriceUsd) / afterUsd : Infinity;
-      const specCap = v.liqThreshold > 0 ? DANGER_RATIO * v.liqThreshold : Infinity;
-      const cfCap = v.collateralFactor != null && v.collateralFactor > 0 ? v.collateralFactor * 0.995 : Infinity;
-      if (!(afterUsd > 0) || ltvAfter >= Math.min(specCap, cfCap)) {
+      const cap =
+        v.collateralFactor != null && v.collateralFactor > 0
+          ? v.collateralFactor * 0.995
+          : v.liqThreshold > 0
+            ? DANGER_RATIO * v.liqThreshold
+            : Infinity;
+      if (!(afterUsd > 0) || ltvAfter >= cap) {
         throw new HttpError(
           422,
           `Withdrawing ${stage.key} collateral would push LTV to ${(ltvAfter * 100).toFixed(1)}% — too close to liquidation`,

@@ -21,6 +21,8 @@ export interface CollateralAlert {
   ltv: number;
   target: number | null;
   liqThreshold: number | null;
+  /** collateral factor (Jupiter's hard LTV ceiling); null when the source doesn't provide it */
+  maxLtv: number | null;
   level: AlertLevel;
   liqPriceEur: number | null;
   currentPriceEur: number | null;
@@ -486,7 +488,8 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
     const t = LTV_TARGETS[p.token];
     const target = t != null && t > 0 ? t : null;
     const liqT = p.liqThreshold != null && Number.isFinite(p.liqThreshold) ? p.liqThreshold : null;
-    const danger = liqT != null && p.ltv >= DANGER_RATIO * liqT;
+    const maxLtv = p.maxLtv != null && Number.isFinite(p.maxLtv) ? p.maxLtv : null;
+    const danger = maxLtv != null ? p.ltv >= maxLtv : liqT != null && p.ltv >= DANGER_RATIO * liqT;
     const level: AlertLevel = danger ? "danger" : target != null && p.ltv > target ? "warn" : "ok";
     const crow = strat.find(r => eq(r.label, p.token) || eq(r.label, `${p.token} Jupiter`));
     const sym = p.token.trim().split(/\s+/).pop() ?? p.token;
@@ -527,6 +530,7 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
       ltv: p.ltv,
       target,
       liqThreshold: liqT,
+      maxLtv,
       level,
       liqPriceEur: eid != null ? extraLiqPriceEur(p as ExtraPosition) : (crow?.liqPriceEur ?? null),
       currentPriceEur: priceEurOf(sym),

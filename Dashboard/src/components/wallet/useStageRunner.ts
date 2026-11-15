@@ -48,7 +48,7 @@ export function useStageRunner(opts: {
   /** total network fees paid by the run (lamports), or null if unknown */
   onDone: (totalLamports: number | null) => void;
 }) {
-  const { connected, publicKey, signTransaction } = useWallet();
+  const { connected, connecting, publicKey, signTransaction } = useWallet();
   const fetchRef = useRef(opts.fetchPlan);
   const doneRef = useRef(opts.onDone);
   const lsKeyRef = useRef(opts.lsKey);
@@ -370,6 +370,7 @@ export function useStageRunner(opts: {
     unfinished,
     wrongWallet,
     connected,
+    connecting,
     canSign: !!signTransaction,
     loadPlan,
     execute,

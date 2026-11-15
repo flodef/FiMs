@@ -61,6 +61,7 @@ export async function fetchJupiter(apiKey: string, wallet: string = WALLET): Pro
     const borrowUsd = borrowAmount * (Number(borrowToken.price) || 1);
     const ltv = supplyUsd > 0 ? borrowUsd / supplyUsd : 0;
     const liqThreshold = (Number(vault.liquidationThreshold) || 0) / 1000;
+    const collateralFactor = (Number(vault.collateralFactor) || 0) / 1000;
     const supplyApy = aprToApy(supplyToken.stakingApr);
     const borrowApy = aprToApy(vault.borrowRate);
     if (supplyAmount > 0.01) {
@@ -70,6 +71,7 @@ export async function fetchJupiter(apiKey: string, wallet: string = WALLET): Pro
         amount: supplyAmount,
         apy: supplyApy,
         liqThreshold,
+        maxLtv: collateralFactor > 0 ? collateralFactor : undefined,
         ltv,
       });
     }
