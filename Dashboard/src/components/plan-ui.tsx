@@ -55,7 +55,9 @@ export function RunActions({
   connecting,
   canExecute,
   signReady,
+  awaitingSignature,
   onSign,
+  onCancel,
   onExecute,
   onResume,
   onDiscard,
@@ -72,7 +74,10 @@ export function RunActions({
   canExecute: boolean;
   /** a built tx is waiting for a wallet signature tap */
   signReady: SignReadyState | null;
+  /** the wallet app is currently signing a tx */
+  awaitingSignature: boolean;
   onSign: () => void;
+  onCancel: () => void;
   onExecute: () => void;
   onResume: () => void;
   onDiscard: () => void;
@@ -89,6 +94,14 @@ export function RunActions({
         </button>
       ) : (
         <>
+          {awaitingSignature && (
+            <button
+              onClick={onCancel}
+              className="w-full rounded-xl border border-line py-2.5 text-sm font-semibold text-muted hover:bg-card2"
+            >
+              Cancel
+            </button>
+          )}
           {unfinished && !running && (
             <div className="flex gap-2">
               <button

@@ -26,6 +26,7 @@ import {
   RESTORE_COMBOS,
   RESTORE_MAX_AMOUNT,
   RESTORE_TOKENS,
+  slippageBpsFor,
   type PlanPositionInput,
   type RebalancePlan,
   type RestoreSource,
@@ -454,13 +455,14 @@ export async function jupQuote(
   outputMint: string,
   amount: number,
   swapMode: "ExactIn" | "ExactOut",
+  slippageBps = 1,
 ): Promise<SwapQuote> {
   const qs = new URLSearchParams({
     inputMint,
     outputMint,
     amount: String(Math.round(amount)),
     swapMode,
-    slippageBps: "1",
+    slippageBps: String(slippageBps),
   });
   // Jupiter rate-limits bursts (restore sizing fires several quotes in a row)
   let res: Response | null = null;
@@ -564,8 +566,9 @@ export async function buildSwapTx(
   outputMint: string,
   amountRaw: number,
   swapMode: "ExactIn" | "ExactOut" = "ExactIn",
+  slippageBps = 1,
 ): Promise<{ txB64: string; size: number; quote: SwapQuote }> {
-  const quote = await jupQuote(inputMint, outputMint, amountRaw, swapMode);
+  const quote = await jupQuote(inputMint, outputMint, amountRaw, swapMode, slippageBps);
   const post = (feeField: Record<string, unknown>) =>
     fetch(`${JUP_SWAP_API}/swap`, {
       method: "POST",
@@ -815,7 +818,8 @@ export async function fetchLendVaultPositions(): Promise<LendVaultPosition[]> {
 /**
  * Size the source amount for a desired target amount: ExactIn quote target→source
  * of T gives an approximate input S0, then source→target of S0 gives the rate;
- * required input = ceil(T / rate × 1.0001) raw.
+ * required input = ceil(T / rate × (1 + slippageBps/10_000)) raw — the swap still
+ * yields ≥ target at worst-case slippage (stable pairs: 0.01%, volatile: 0.05%).
  */
 export async function sizeSourceForTarget(
   targetToken: RestoreToken,
@@ -832,7 +836,8 @@ export async function sizeSourceForTarget(
   const T0 = q2.outAmount;
   if (!(T0 > 0)) throw new Error("restore quote: zero target output");
   const rate = T0 / S0; // target raw per source raw
-  const sourceRaw = Math.ceil((T_raw / rate) * 1.0001);
+  const buffer = 1 + slippageBpsFor(s.mint, t.mint) / 10_000;
+  const sourceRaw = Math.ceil((T_raw / rate) * buffer);
   return { sourceAmount: sourceRaw / 10 ** s.decimals, estTargetOut: T0 / 10 ** t.decimals };
 }
 

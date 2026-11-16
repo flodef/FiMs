@@ -4,7 +4,10 @@ import {
   buildRestorePlan,
   buildTopupPlan,
   distributeRepayRaw,
+  explainSimFailure,
   priorityMicroLamports,
+  RESTORE_TOKENS,
+  slippageBpsFor,
   TOPUP_MAX_USDT,
   type PlanPositionInput,
 } from "./plan";
@@ -414,5 +417,57 @@ describe("buildRestorePlan", () => {
       sourceUsd: 5057.5,
     });
     expect(p.error).toBeNull();
+  });
+});
+
+describe("slippageBpsFor", () => {
+  const USDT = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
+  const USDC = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+
+  test("stable↔stable stays at 1 bp", () => {
+    expect(slippageBpsFor(RESTORE_TOKENS.usdg.mint, USDT)).toBe(1);
+    expect(slippageBpsFor(USDC, USDT)).toBe(1);
+  });
+  test("volatile pairs get 5 bps", () => {
+    expect(slippageBpsFor(RESTORE_TOKENS.usdg.mint, RESTORE_TOKENS.jupsol.mint)).toBe(5);
+    expect(slippageBpsFor(RESTORE_TOKENS.jlp.mint, USDT)).toBe(5); // volatile side wins
+    expect(slippageBpsFor(RESTORE_TOKENS.jlp.mint, RESTORE_TOKENS.eurc.mint)).toBe(5);
+  });
+});
+
+describe("explainSimFailure", () => {
+  const JUP = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4";
+  const jupLogs = [
+    `Program ${JUP} invoke [1]`,
+    "Program log: Instruction: SharedAccountsRoute",
+    `Program ${JUP} consumed 42000 of 200000 compute units`,
+    `Program ${JUP} failed: custom program error: 0x1771`,
+  ];
+
+  test("Jupiter Custom 6001 → slippage message", () => {
+    const err = { InstructionError: [1, { Custom: 6001 }] };
+    const msg = explainSimFailure(err, jupLogs, 5)!;
+    expect(msg).toContain("0.05%");
+    expect(msg).toContain("nothing was sent");
+    expect(msg).toContain("Tap Resume");
+    // 1 bp → 0.01%
+    expect(explainSimFailure(err, jupLogs, 1)).toContain("0.01%");
+    // log-based detection (custom program error 0x1771 = 6001)
+    expect(explainSimFailure("Custom 6001", jupLogs)).toContain("the allowed slippage");
+  });
+
+  test("token insufficient funds → balance message", () => {
+    const logs = ["Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA failed: custom program error: 0x1"];
+    expect(explainSimFailure({ InstructionError: [0, { Custom: 1 }] }, logs)).toContain("Not enough balance");
+    expect(explainSimFailure("oops", ["Program log: Error: insufficient funds"])).toContain("Not enough balance");
+    // Jupiter InsufficientFunds (Custom 6024 / 0x1788)
+    const jupNoFunds = [`Program ${JUP} invoke [1]`, `Program ${JUP} failed: custom program error: 0x1788`];
+    expect(explainSimFailure({ InstructionError: [3, { Custom: 6024 }] }, jupNoFunds)).toContain("Not enough balance");
+  });
+
+  test("unrecognised error → null (raw output kept)", () => {
+    expect(explainSimFailure({ InstructionError: [0, { Custom: 9999 }] }, ["Program xyz failed"])).toBeNull();
+    // Custom 6001 without the Jupiter program id → not a slippage error
+    expect(explainSimFailure({ InstructionError: [0, { Custom: 6001 }] }, ["Program xyz failed"])).toBeNull();
   });
 });

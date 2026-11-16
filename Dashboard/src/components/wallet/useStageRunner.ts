@@ -29,9 +29,16 @@ const ACTIVATION_MS = 3_000;
 interface SignRequest {
   tx: VersionedTransaction;
   stageIndex: number;
-  resolve: (signed: VersionedTransaction | PromiseLike<VersionedTransaction>) => void;
+  resolve: (signPromise: Promise<VersionedTransaction>) => void;
   reject: (e: unknown) => void;
 }
+
+const CANCEL_MSG = "Signature cancelled — nothing was sent. Tap Resume to retry.";
+const signCancelError = () => {
+  const e = new Error(CANCEL_MSG);
+  (e as Error & { signCancelled?: boolean }).signCancelled = true;
+  return e;
+};
 
 /**
  * Shared stage runner for wallet-signed flows (rebalance, top-up): plan fetch,
@@ -66,6 +73,8 @@ export function useStageRunner(opts: {
   const [runStart, setRunStart] = useState<number | null>(null);
   const [signReady, setSignReady] = useState<SignReadyState | null>(null);
   const signReqRef = useRef<SignRequest | null>(null);
+  // armed while a tx waits on the wallet — rejects the pending sign await
+  const cancelSignRef = useRef<(() => void) | null>(null);
   const lastTapAt = useRef(0);
   // per-stage fee totals — ref mirror so the run total is readable synchronously
   const feesRef = useRef<number[]>([]);
@@ -212,20 +221,39 @@ export function useStageRunner(opts: {
     txB64: string,
   ): Promise<{ ok: true; sig: string } | { ok: false; error: string; sig?: string }> => {
     const tx = VersionedTransaction.deserialize(b64ToBytes(txB64));
+    // race the wallet promise against a user cancel — a late wallet result after
+    // cancel is dropped by the promise machinery (never sent)
+    const raceCancel = <T>(p: Promise<T>): Promise<T> =>
+      new Promise<T>((resolve, reject) => {
+        cancelSignRef.current = () => reject(signCancelError());
+        p.then(resolve, reject);
+      }).finally(() => {
+        cancelSignRef.current = null;
+      });
     let signed: VersionedTransaction;
     if (!signTransaction || Date.now() - lastTapAt.current < ACTIVATION_MS) {
       // fresh activation (or no signer → fails fast upstream) — sign right away
       setStage(i, { status: "awaiting signature", error: undefined });
-      signed = await signTransaction!(tx);
+      signed = await raceCancel(signTransaction!(tx));
     } else {
       setStage(i, { status: "ready to sign", error: undefined });
       setSignReady({ stageIndex: i, txIndex: j, txCount: count });
       try {
-        signed = await new Promise<VersionedTransaction>((resolve, reject) => {
-          signReqRef.current = { tx, stageIndex: i, resolve, reject };
+        // resolves to a boxed wallet promise once signNow taps (a bare
+        // Promise<Promise<T>> would flatten) — cancelled via cancelSignRef
+        const boxed = await new Promise<{ p: Promise<VersionedTransaction> }>((resolve, reject) => {
+          signReqRef.current = {
+            tx,
+            stageIndex: i,
+            resolve: p => resolve({ p }),
+            reject,
+          };
+          cancelSignRef.current = () => reject(signCancelError());
         });
+        signed = await raceCancel(boxed.p);
       } finally {
         signReqRef.current = null;
+        cancelSignRef.current = null;
         setSignReady(null);
       }
     }
@@ -301,7 +329,10 @@ export function useStageRunner(opts: {
             r = await signSendConfirm(i, j, txs.length, txs[j].tx);
           } catch (e: any) {
             // wallet signature rejected/cancelled
-            setStage(i, { status: "failed", error: `signature: ${String(e?.message ?? e)}` });
+            setStage(i, {
+              status: "failed",
+              error: e?.signCancelled ? String(e.message) : `signature: ${String(e?.message ?? e)}`,
+            });
             return;
           }
           if (!r.ok) {
@@ -337,6 +368,11 @@ export function useStageRunner(opts: {
     } catch (e) {
       req.reject(e);
     }
+  };
+
+  /** User cancelled while the wallet was signing — the pending await rejects. */
+  const cancelSign = () => {
+    cancelSignRef.current?.();
   };
 
   const execute = async () => {
@@ -378,5 +414,6 @@ export function useStageRunner(opts: {
     discard,
     signReady,
     signNow,
+    cancelSign,
   };
 }

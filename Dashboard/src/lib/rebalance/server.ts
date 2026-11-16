@@ -25,8 +25,10 @@ import {
 } from "./live.js";
 import {
   distributeRepayRaw,
+  explainSimFailure,
   RESTORE_MAX_USD,
   RESTORE_TOKENS,
+  slippageBpsFor,
   TOPUP_MAX_USDT,
   type LendOp,
   type PlanStage,
@@ -39,6 +41,8 @@ const CAP = 1.01;
 const TOPUP_SWAP_CAP = 1.005;
 const TOPUP_TRANSFER_CAP = 1.005;
 const RESTORE_CAP = 1.005;
+// deposits take the whole swap output (price moves between withdraw and swap) — 5% headroom, wallet-capped
+const RESTORE_DEPOSIT_CAP = 1.05;
 
 class HttpError extends Error {
   status: number;
@@ -72,10 +76,12 @@ interface BuiltTx {
   simulation: { ok: boolean; err: unknown; logsTail: string[]; unitsConsumed: number | null };
 }
 
-async function simulateOrFail(tx: string) {
+async function simulateOrFail(tx: string, slippageBps?: number) {
   const s = await simulateTx(tx);
   if (!s.ok) {
-    throw new HttpError(422, `simulation failed: ${JSON.stringify(s.err)}\n${s.logsTail.slice(-5).join("\n")}`);
+    const raw = `simulation failed: ${JSON.stringify(s.err)}\n${s.logsTail.slice(-5).join("\n")}`;
+    const nice = explainSimFailure(s.err, s.logsTail, slippageBps);
+    throw new HttpError(422, nice ? `${nice}\n${raw}` : raw);
   }
   return s;
 }
@@ -234,8 +240,9 @@ export async function buildAction(stage: PlanStage): Promise<BuiltTx | BuiltTx[]
       amountRaw = Math.min(Math.round(stage.amount * 1.001 * 1e6), Math.floor(usdtBal * 1e6));
     }
     if (amountRaw <= 0) throw new HttpError(422, "wallet balance too low for swap");
-    const built = await buildSwapTx(inputMint, outputMint, amountRaw, "ExactIn");
-    const simulation = await simulateOrFail(built.txB64);
+    const bps = slippageBpsFor(inputMint, outputMint);
+    const built = await buildSwapTx(inputMint, outputMint, amountRaw, "ExactIn", bps);
+    const simulation = await simulateOrFail(built.txB64, bps);
     return {
       tx: built.txB64,
       size: built.size,
@@ -292,8 +299,9 @@ async function buildTopupStage(stage: PlanStage): Promise<BuiltTx> {
     const usdgBal = await walletTokenBalance(connection, USDG_MINT);
     const amountRaw = Math.min(Math.round(stage.amount * TOPUP_SWAP_CAP * 1e6), Math.floor(usdgBal * 1e6));
     if (amountRaw <= 0) throw new HttpError(422, "wallet USDG balance too low for swap");
-    const built = await buildSwapTx(USDG_MINT, USDT_MINT, amountRaw, "ExactIn");
-    const simulation = await simulateOrFail(built.txB64);
+    const bps = slippageBpsFor(USDG_MINT, USDT_MINT);
+    const built = await buildSwapTx(USDG_MINT, USDT_MINT, amountRaw, "ExactIn", bps);
+    const simulation = await simulateOrFail(built.txB64, bps);
     return {
       tx: built.txB64,
       size: built.size,
@@ -340,8 +348,9 @@ async function buildRestoreStage(stage: PlanStage): Promise<BuiltTx> {
     const balRaw = await walletTokenBalanceRaw(connection, tin.mint);
     const amountRaw = Math.min(Math.round(stage.amount * RESTORE_CAP * 10 ** tin.decimals), balRaw);
     if (amountRaw <= 0) throw new HttpError(422, `wallet ${tin.symbol} balance too low for swap`);
-    const built = await buildSwapTx(tin.mint, tout.mint, amountRaw, "ExactIn");
-    const simulation = await simulateOrFail(built.txB64);
+    const bps = slippageBpsFor(tin.mint, tout.mint);
+    const built = await buildSwapTx(tin.mint, tout.mint, amountRaw, "ExactIn", bps);
+    const simulation = await simulateOrFail(built.txB64, bps);
     return {
       tx: built.txB64,
       size: built.size,
@@ -388,7 +397,7 @@ async function buildRestoreStage(stage: PlanStage): Promise<BuiltTx> {
     // deposit — planned amount +0.5%, capped by the wallet balance of that mint
     const mint = RESTORE_TOKENS[stage.key === "JLP" ? "jlp" : "jupsol"].mint;
     const balRaw = await walletTokenBalanceRaw(connection, mint);
-    const dRaw = Math.min(Math.round(stage.amount * RESTORE_CAP * 10 ** dec), balRaw);
+    const dRaw = Math.min(Math.round(stage.amount * RESTORE_DEPOSIT_CAP * 10 ** dec), balRaw);
     if (dRaw <= 0) throw new HttpError(422, `wallet ${stage.key} balance too low for deposit`);
     const built = await buildLendCollateralTx({ vaultId: v.vaultId, positionId: v.positionId, colRaw: dRaw });
     const simulation = await simulateOrFail(built.txB64);
@@ -397,7 +406,10 @@ async function buildRestoreStage(stage: PlanStage): Promise<BuiltTx> {
 
   if (stage.type === "earn-deposit") {
     const balRaw = await walletTokenBalanceRaw(connection, RESTORE_TOKENS.eurc.mint);
-    const amountRaw = Math.min(Math.round(stage.amount * RESTORE_CAP * 10 ** RESTORE_TOKENS.eurc.decimals), balRaw);
+    const amountRaw = Math.min(
+      Math.round(stage.amount * RESTORE_DEPOSIT_CAP * 10 ** RESTORE_TOKENS.eurc.decimals),
+      balRaw,
+    );
     if (amountRaw <= 0) throw new HttpError(422, "wallet EURC balance too low for Earn deposit");
     const built = await buildEarnDepositTx(amountRaw);
     const simulation = await simulateOrFail(built.txB64);
@@ -411,7 +423,7 @@ async function buildRestoreStage(stage: PlanStage): Promise<BuiltTx> {
 
   if (stage.type === "kamino-deposit") {
     const usdgBal = await walletTokenBalance(connection, USDG_MINT);
-    const amount = Math.min(stage.amountUsdg * RESTORE_CAP, usdgBal);
+    const amount = Math.min(stage.amountUsdg * RESTORE_DEPOSIT_CAP, usdgBal);
     if (amount <= 0) throw new HttpError(422, "wallet USDG balance too low for Kamino deposit");
     const kamino = await fetchKaminoUsdg();
     if (!kamino.reserve) throw new HttpError(422, "no Kamino USDG reserve found");

@@ -222,7 +222,9 @@ function Inner({
         connecting={r.connecting}
         canExecute={canExecute}
         signReady={r.signReady}
+        awaitingSignature={states.some(s => s.status === "awaiting signature")}
         onSign={r.signNow}
+        onCancel={r.cancelSign}
         onExecute={() => void r.execute()}
         onResume={() => void r.resume()}
         onDiscard={r.discard}

@@ -469,3 +469,41 @@ export function buildRestorePlan(opts: {
   }
   return plan;
 }
+
+/** USD-stable mints keep the tight 0.01% swap slippage; volatile pairs get 0.05%. */
+const STABLE_MINTS = new Set([
+  RESTORE_TOKENS.usdg.mint,
+  "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", // USDT
+  "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
+]);
+export const slippageBpsFor = (inMint: string, outMint: string): number =>
+  STABLE_MINTS.has(inMint) && STABLE_MINTS.has(outMint) ? 1 : 5;
+
+const JUP_PROGRAM = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4";
+
+/** Translate a known RPC simulation failure into an actionable English message;
+ *  returns null for unrecognised errors (raw output is kept as-is). */
+export function explainSimFailure(err: unknown, logsTail: string[], slippageBps?: number): string | null {
+  const errStr = typeof err === "string" ? err : JSON.stringify(err);
+  const logs = logsTail.join("\n");
+  // Jupiter aggregator: SlippageToleranceExceeded (Custom 6001 / 0x1771)
+  if (
+    (/"Custom"\s*:\s*6001\b/.test(errStr) || /custom program error: 0x1771/i.test(logs)) &&
+    (errStr.includes(JUP_PROGRAM) || logs.includes(JUP_PROGRAM))
+  ) {
+    const pct = slippageBps != null ? `${slippageBps / 100}%` : "the allowed slippage";
+    return `Swap price moved more than ${pct} while preparing it — nothing was sent, your funds are still in your wallet. Tap Resume to retry with a fresh quote.`;
+  }
+  // SPL Token / Token-2022 insufficient funds; Jupiter InsufficientFunds (Custom 6024 / 0x1788)
+  const jupInsufficient =
+    (/"Custom"\s*:\s*6024\b/.test(errStr) || /custom program error: 0x1788/i.test(logs)) &&
+    (errStr.includes(JUP_PROGRAM) || logs.includes(JUP_PROGRAM));
+  if (
+    jupInsufficient ||
+    /insufficient funds/i.test(logs) ||
+    (/"Custom"\s*:\s*1\b/.test(errStr) && /Tokenkeg|TokenzQdB/.test(logs))
+  ) {
+    return "Not enough balance in the wallet for this step — nothing was sent. Tap Resume to rebuild it with current balances.";
+  }
+  return null;
+}
