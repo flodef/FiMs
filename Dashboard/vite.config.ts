@@ -19,6 +19,9 @@ export default defineConfig({
         scope: "/",
         display: "standalone",
         orientation: "portrait",
+        launch_handler: {
+          client_mode: ["focus-existing", "auto"],
+        },
         background_color: "#0b0f17",
         theme_color: "#0b0f17",
         icons: [

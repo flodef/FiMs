@@ -12,7 +12,7 @@ import {
   IconWallet,
   IconX,
 } from "@tabler/icons-react";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import pkg from "../package.json";
 import { SHEET_SYNC_TOLERANCE_EUR } from "./lib/config";
 import { computeDashboard, type DashboardResult, type ExtraComputation } from "./lib/compute";
@@ -21,6 +21,8 @@ import { RESTORE_TITLE, type RestoreTarget } from "./lib/rebalance/plan";
 import { checkForUpdate } from "./lib/pwa";
 import type { Inputs, SourceName } from "./lib/types";
 import { useDashboard } from "./hooks/useDashboard";
+import { useSingleInstance } from "./hooks/useSingleInstance";
+import { fixtureMode } from "./lib/fixture";
 import { Overview } from "./components/Overview";
 import { Positions } from "./components/Positions";
 import { PositionSheet } from "./components/PositionSheet";
@@ -135,6 +137,12 @@ function SheetSyncNotice({ sync, correction }: { sync: DashboardResult["sheetSyn
 
 export default function App() {
   const { inputs, auth, offline, sessionExpired, loading, now, refresh, setAuth } = useDashboard();
+  // one active instance at a time (tabs + installed app) — a second window shows
+  // a lock screen; « Use here » steals the Web Lock. Skipped in fixture mode.
+  const { blocked, takeOver } = useSingleInstance(
+    useCallback(() => void refresh(), [refresh]),
+    !fixtureMode(),
+  );
   const [tab, setTab] = useState<Tab>("overview");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -465,6 +473,24 @@ export default function App() {
       )}
 
       {toast && <Toast kind={toast.kind} message={toast.msg} />}
+
+      {blocked && (
+        <div className="fixed inset-0 z-[100] flex min-h-dvh flex-col items-center justify-center gap-4 bg-bg px-6 text-center">
+          <span className="text-base font-bold">FiMs</span>
+          <p className="text-sm text-muted">
+            {blocked === "busy"
+              ? "FiMs Dashboard is already open in another window or tab."
+              : "FiMs Dashboard was taken over in another window."}
+          </p>
+          <button
+            autoFocus
+            onClick={takeOver}
+            className="rounded-xl bg-accent px-6 py-2.5 text-sm font-bold text-white"
+          >
+            Use here
+          </button>
+        </div>
+      )}
 
       {loginOpen && (
         <div
