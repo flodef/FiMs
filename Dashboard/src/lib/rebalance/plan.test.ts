@@ -3,6 +3,7 @@ import {
   buildPlan,
   buildRestorePlan,
   buildTopupPlan,
+  buildTopupPlanLend,
   distributeRepayRaw,
   explainSimFailure,
   priorityMicroLamports,
@@ -246,6 +247,63 @@ describe("top-up plan", () => {
   });
 });
 
+describe("top-up plan from Lend JLP", () => {
+  const jlpVault = (over: Partial<import("./plan").RestoreVaultInput> = {}) => ({
+    key: "JLP" as const,
+    vaultId: 50,
+    positionId: 161,
+    collateralUsd: 150000,
+    debt: 100000,
+    debtPriceUsd: 1,
+    supplyAmount: 40000,
+    supplyPriceUsd: 3.5,
+    liqThreshold: 0.9,
+    collateralFactor: 0.85,
+    target: 0.82,
+    ...over,
+  });
+
+  test("JLP top-up → lend-collateral, swap-any, spend-transfer, all purpose topup", () => {
+    const plan = buildTopupPlanLend({
+      usdt: 50,
+      jlpAmount: 14.4,
+      jlp: jlpVault(),
+      kaminoUsdg: 200_000,
+      estOut: 50.1,
+      slippageBps: 10,
+    });
+    expect(plan.error).toBeNull();
+    expect(plan.stages.map(s => s.type)).toEqual(["lend-collateral", "swap-any", "spend-transfer"]);
+    expect(plan.stages.every(s => s.purpose === "topup")).toBe(true);
+    const [wd, sw, tr] = plan.stages;
+    expect(wd).toMatchObject({ type: "lend-collateral", key: "JLP", amount: -14.4 });
+    expect(sw).toMatchObject({ type: "swap-any", inToken: "jlp", outToken: "usdt", amount: 14.4, slippageBps: 10 });
+    expect(tr).toMatchObject({ type: "spend-transfer", usdt: 50 });
+    // JLP LTV delta shown: collateral drops by 14.4 × 3.5 = 50.4 USD
+    expect(plan.positions).toHaveLength(1);
+    expect(plan.positions[0].key).toBe("JLP");
+    expect(plan.positions[0].ltvAfter).toBeCloseTo(100000 / (150000 - 50.4), 6);
+  });
+
+  test("cap: above 10k USDT → error, no stages", () => {
+    const plan = buildTopupPlanLend({ usdt: TOPUP_MAX_USDT + 1, jlpAmount: 3000, jlp: jlpVault(), kaminoUsdg: 0 });
+    expect(plan.error).not.toBeNull();
+    expect(plan.stages).toHaveLength(0);
+  });
+
+  test("LTV guard: withdraw pushing LTV over ceiling → error", () => {
+    const risky = jlpVault({ collateralUsd: 120000, debt: 100000 }); // ltv 0.833, CF 0.85 → ceiling 0.84575
+    const plan = buildTopupPlanLend({ usdt: 50, jlpAmount: 2000, jlp: risky, kaminoUsdg: 0 });
+    expect(plan.error).toContain("LTV");
+    expect(plan.stages).toHaveLength(0);
+    // withdraw exceeding collateral held → error
+    const tooBig = buildTopupPlanLend({ usdt: 50, jlpAmount: 50000, jlp: jlpVault(), kaminoUsdg: 0 });
+    expect(tooBig.error).not.toBeNull();
+    // missing vault → error
+    expect(buildTopupPlanLend({ usdt: 50, jlpAmount: 15, kaminoUsdg: 0 }).error).toContain("JLP");
+  });
+});
+
 describe("priorityMicroLamports", () => {
   test("fixed 1-lamport fee spread over the CU limit", () => {
     expect(priorityMicroLamports(100_000)).toBe(10); // 10 µL × 100k CU = 1 lamport
@@ -384,10 +442,38 @@ describe("buildRestorePlan", () => {
         kaminoUsdg: 100,
       }).error,
     ).toContain("Insufficient Kamino USDG");
+    // no per-token unit cap anymore — 15,000 USDG is fine, 25,000 USD is not
     expect(
-      buildRestorePlan({ ...base, target: "usd", source: "lend", amount: 10_001, sourceAmount: 10, sourceUsd: 10 })
-        .error,
-    ).toContain("10,000");
+      buildRestorePlan({
+        ...base,
+        target: "jlp",
+        source: "kamino",
+        amount: 15000,
+        sourceAmount: 15000,
+        sourceUsd: 15000,
+      }).error,
+    ).toBeNull();
+    expect(
+      buildRestorePlan({
+        ...base,
+        target: "jlp",
+        source: "kamino",
+        amount: 25000,
+        sourceAmount: 25000,
+        sourceUsd: 25000,
+      }).error,
+    ).toContain("20,000");
+    expect(
+      buildRestorePlan({
+        ...base,
+        direction: "sell",
+        target: "jlp",
+        source: "kamino",
+        amount: 25000,
+        sourceAmount: 25000,
+        sourceUsd: 25000,
+      }).error,
+    ).toContain("20,000");
   });
 
   test("JLP withdraw danger guard", () => {

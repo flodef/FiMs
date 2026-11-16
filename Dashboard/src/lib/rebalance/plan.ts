@@ -53,13 +53,12 @@ export const RESTORE_TOKENS = {
   jlp: { mint: "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4", decimals: 6, symbol: "JLP" },
   jupsol: { mint: "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v", decimals: 9, symbol: "JupSOL" },
   eurc: { mint: "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr", decimals: 6, symbol: "EURC" },
+  usdt: { mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", decimals: 6, symbol: "USDT" },
 } as const;
 export type RestoreToken = keyof typeof RESTORE_TOKENS;
 
 /** Hard cap: USD value of the restore source per run. */
 export const RESTORE_MAX_USD = 20_000;
-/** Target-token amount bounds per restore. */
-export const RESTORE_MAX_AMOUNT = 10_000;
 
 export type PlanStage =
   | { type: "lend"; ops: LendOp[]; purpose?: StagePurpose }
@@ -95,7 +94,7 @@ export type PlanStage =
       estOut?: number;
       /** slippage bps chosen at plan time — kept on the stage so Resume reuses it */
       slippageBps?: number;
-      purpose?: "restore";
+      purpose?: StagePurpose;
     }
   | {
       type: "earn-withdraw";
@@ -111,7 +110,7 @@ export type PlanStage =
       positionId: number;
       /** signed collateral units: >0 deposit, <0 withdraw (Jupiter Lend operate) */
       amount: number;
-      purpose?: "restore";
+      purpose?: StagePurpose;
     }
   | {
       type: "earn-deposit";
@@ -307,6 +306,69 @@ export function buildTopupPlan(usdt: number, kaminoUsdg: number): RebalancePlan 
 }
 
 /**
+ * Pure top-up plan from Lend JLP: withdraw JLP collateral → swap to USDT →
+ * send to the Jupiter Spend address. Same LTV guard as restore withdraws.
+ */
+export function buildTopupPlanLend(opts: {
+  usdt: number;
+  /** sized JLP collateral to withdraw */
+  jlpAmount: number;
+  jlp?: RestoreVaultInput;
+  kaminoUsdg: number;
+  /** quoted USDT the swap yields (display only) */
+  estOut?: number;
+  slippageBps?: number;
+}): RebalancePlan {
+  const { usdt, jlpAmount, jlp, kaminoUsdg } = opts;
+  const plan: RebalancePlan = { positions: [], stages: [], kaminoUsdg, error: null };
+  if (!Number.isFinite(usdt) || usdt < 1 || usdt > TOPUP_MAX_USDT) {
+    plan.error = `Amount must be between 1 and ${TOPUP_MAX_USDT.toLocaleString("en-US")} USDT`;
+    return plan;
+  }
+  if (!Number.isFinite(jlpAmount) || jlpAmount <= 0) {
+    plan.error = "Could not size the JLP amount";
+    return plan;
+  }
+  if (!jlp) {
+    plan.error = "No JLP lend position found";
+    return plan;
+  }
+  const afterUsd = jlp.collateralUsd - jlpAmount * jlp.supplyPriceUsd;
+  const ltvAfter = ltvOf(jlp, afterUsd);
+  if (!(afterUsd > 0) || ltvAfter >= ltvCeiling(jlp)) {
+    plan.error = `Withdrawing ${jlpAmount.toFixed(2)} JLP would push JLP LTV to ${(ltvAfter * 100).toFixed(1)}% — too close to liquidation`;
+    return plan;
+  }
+  if (jlpAmount > jlp.supplyAmount) {
+    plan.error = `Withdrawing ${jlpAmount.toFixed(2)} JLP exceeds the ${jlp.supplyAmount.toFixed(2)} held in the vault`;
+    return plan;
+  }
+  plan.positions.push(vaultDelta(jlp, afterUsd));
+  plan.stages = [
+    {
+      type: "lend-collateral",
+      key: "JLP",
+      vaultId: jlp.vaultId,
+      positionId: jlp.positionId,
+      amount: -jlpAmount,
+      purpose: "topup",
+    },
+    {
+      type: "swap-any",
+      inToken: "jlp",
+      outToken: "usdt",
+      amount: jlpAmount,
+      estIn: jlpAmount,
+      estOut: opts.estOut,
+      slippageBps: opts.slippageBps,
+      purpose: "topup",
+    },
+    { type: "spend-transfer", usdt, purpose: "topup" },
+  ];
+  return plan;
+}
+
+/**
  * Fixed priority fee = 1 lamport per tx (total 0.000005001 SOL with the base fee) —
  * the user's known-good setting. Priority fee = ceil(microLamports × cuLimit / 1e6)
  * → µL/CU = floor(1e6 / cuLimit), min 1, so the charged priority is 1 lamport.
@@ -392,7 +454,8 @@ const pushVaultWithdraw = (
   const afterUsd = v.collateralUsd - units * v.supplyPriceUsd;
   const ltvAfter = ltvOf(v, afterUsd);
   if (!(afterUsd > 0) || ltvAfter >= ltvCeiling(v)) {
-    return `Withdrawing ${units.toFixed(2)} ${v.key} would push ${v.key} LTV to ${(ltvAfter * 100).toFixed(1)}% — too close to liquidation`;
+    const maxUnits = Math.max(0, (v.collateralUsd - (v.debt * v.debtPriceUsd) / ltvCeiling(v)) / v.supplyPriceUsd);
+    return `Withdrawing ${units.toFixed(2)} ${v.key} would push ${v.key} LTV to ${(ltvAfter * 100).toFixed(1)}% — too close to liquidation (max ≈ ${Math.floor(maxUnits * 100) / 100} ${v.key} now)`;
   }
   if (units > v.supplyAmount)
     return `Withdrawing ${units.toFixed(2)} ${v.key} exceeds the ${v.supplyAmount.toFixed(2)} held in the vault`;
@@ -459,9 +522,6 @@ export function buildRestorePlan(opts: {
     );
   }
   if (!Number.isFinite(amount) || amount <= 0) return fail("Amount must be > 0");
-  if (amount > RESTORE_MAX_AMOUNT) {
-    return fail(`Amount exceeds the ${RESTORE_MAX_AMOUNT.toLocaleString("en-US")} per-restore limit`);
-  }
 
   if (direction === "sell") {
     if (!Number.isFinite(sourceAmount) || sourceAmount <= 0) return fail("Could not size the source amount");

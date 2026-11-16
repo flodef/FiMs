@@ -74,6 +74,14 @@ const restoreWalletPart = (r: DashboardResult, t: RestoreTarget): number =>
         ? (r.fims.diffWallet?.usdg ?? 0)
         : (r.fims.diffWallet?.jlp ?? 0);
 
+/** USD price of a restore target, for the client-side 20k-USD amount cap. */
+const restorePriceUsd = (r: DashboardResult, t: RestoreTarget): number | null => {
+  if (t === "usd") return 1;
+  if (t === "eurc") return r.cells["I13"] != null && r.cells["I13"] > 0 ? r.cells["I13"] : null;
+  const entry = r.prices.find(p => (t === "jupsol" ? p.label === "JUPSOL" : p.label === "JLP"));
+  return entry?.usd != null && entry.usd > 0 ? entry.usd : null;
+};
+
 function InfoPopover({ r, sources, nowMs }: { r: DashboardResult; sources: Inputs["sources"]; nowMs: number }) {
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -467,6 +475,7 @@ export default function App() {
               diff={restoreDiff(result, restoreTarget)}
               walletPart={restoreWalletPart(result, restoreTarget)}
               usdDiff={result.fims.usd.usdAmount}
+              priceUsd={restorePriceUsd(result, restoreTarget)}
               onOpenSettings={openSettings}
               onDone={(lamports, direction) => {
                 const label = RESTORE_TITLE[restoreTarget];

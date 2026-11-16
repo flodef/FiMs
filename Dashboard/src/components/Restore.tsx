@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { fmtNum, fmtPct } from "../lib/format";
 import { slippageBps } from "../lib/slippage";
 import {
+  RESTORE_MAX_USD,
   RESTORE_TITLE,
   RESTORE_TOKENS,
   type PlanStage,
@@ -55,6 +56,7 @@ function Inner({
   diff,
   walletPart,
   usdDiff,
+  priceUsd,
   onDone,
   onOpenSettings,
 }: {
@@ -62,6 +64,7 @@ function Inner({
   diff: number;
   walletPart: number;
   usdDiff: number;
+  priceUsd: number | null;
   onDone: (totalLamports: number | null, direction: RestoreDirection) => void;
   onOpenSettings: () => void;
 }) {
@@ -73,10 +76,19 @@ function Inner({
   const [source, setSource] = useState<RestoreSource>(
     () => fixedSource ?? (direction === "sell" ? "kamino" : usdDiff > 0 ? "kamino" : "lend"),
   );
+  // USD-value cap translated into token units (0.5% margin for price drift); no
+  // clamp when the price is unknown — the server-side 20k USD cap still applies.
+  const maxAmount =
+    priceUsd != null && priceUsd > 0 ? Math.floor((RESTORE_MAX_USD / priceUsd) * 0.995 * 100) / 100 : null;
   const [amount, setAmount] = useState(() => {
-    const pre = Math.max(0, Math.abs(diff));
+    const pre = Math.min(Math.max(0, Math.abs(diff)), maxAmount ?? Infinity);
     return pre > 0 ? sanitize(pre.toFixed(2)) : "";
   });
+  const clamp = (v: string) => {
+    if (v === "" || maxAmount == null) return v;
+    const n = Number(v);
+    return Number.isFinite(n) && n > maxAmount ? maxAmount.toFixed(2) : v;
+  };
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -142,7 +154,8 @@ function Inner({
               inputMode="decimal"
               pattern="[0-9.,]*"
               value={amount}
-              onChange={e => setAmount(sanitize(e.target.value))}
+              onChange={e => setAmount(clamp(sanitize(e.target.value)))}
+              onBlur={() => setAmount(clamp)}
               placeholder="0.00"
               aria-label={`Amount in ${label}`}
               className="w-full rounded-lg border border-line bg-card2 py-2.5 pl-3 pr-7 text-base font-semibold tabular-nums outline-none focus:border-accent"
@@ -194,7 +207,11 @@ function Inner({
             </>
           )}
         </p>
-        {Number.isFinite(amt) && amt > 10_000 && <p className="mt-1 text-[11px] text-danger">Max 10,000 per restore</p>}
+        {maxAmount != null && Math.abs(diff) > maxAmount + 1e-9 && (
+          <p className="mt-1 text-[11px] text-muted">
+            Max ≈ {fmtNum(maxAmount, 0)} {label} ({RESTORE_MAX_USD.toLocaleString("en-US")} USD) per operation
+          </p>
+        )}
       </Card>
 
       {/* plan card */}
@@ -266,6 +283,7 @@ export default function Restore({
   diff,
   walletPart,
   usdDiff,
+  priceUsd,
   onDone,
   onOpenSettings,
 }: {
@@ -273,6 +291,7 @@ export default function Restore({
   diff: number;
   walletPart: number;
   usdDiff: number;
+  priceUsd: number | null;
   onDone: (totalLamports: number | null, direction: RestoreDirection) => void;
   onOpenSettings: () => void;
 }) {
@@ -283,6 +302,7 @@ export default function Restore({
         diff={diff}
         walletPart={walletPart}
         usdDiff={usdDiff}
+        priceUsd={priceUsd}
         onDone={onDone}
         onOpenSettings={onOpenSettings}
       />

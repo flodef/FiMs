@@ -42,7 +42,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (action === "topup-plan") {
       const usdt = Number(body.usdt);
       if (!Number.isFinite(usdt)) return sendJson(res, 400, { error: "bad usdt" });
-      return sendJson(res, 200, await topupPlanAction(usdt));
+      const source = body.source === "lend" ? "lend" : "kamino";
+      const slippageBps = Number.isFinite(Number(body.slippageBps)) ? Number(body.slippageBps) : undefined;
+      return sendJson(res, 200, await topupPlanAction(usdt, source, slippageBps));
     }
     if (action === "restore-plan") {
       const target = String(body.target ?? "") as RestoreTarget;

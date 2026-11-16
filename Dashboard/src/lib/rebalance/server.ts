@@ -58,8 +58,12 @@ export async function planAction(): Promise<RebalancePlan> {
   return getPlan();
 }
 
-export async function topupPlanAction(usdt: number): Promise<RebalancePlan> {
-  return getTopupPlan(usdt);
+export async function topupPlanAction(
+  usdt: number,
+  source: "kamino" | "lend" = "kamino",
+  slippageBps?: number,
+): Promise<RebalancePlan> {
+  return getTopupPlan(usdt, source, slippageBps);
 }
 
 export async function restorePlanAction(

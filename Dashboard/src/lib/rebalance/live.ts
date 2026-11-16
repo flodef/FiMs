@@ -22,9 +22,9 @@ import {
   buildPlan,
   buildRestorePlan,
   buildTopupPlan,
+  buildTopupPlanLend,
   priorityMicroLamports,
   RESTORE_COMBOS,
-  RESTORE_MAX_AMOUNT,
   RESTORE_SELL_COMBOS,
   RESTORE_TOKENS,
   slippageBpsFor,
@@ -166,7 +166,27 @@ export async function getPlan(): Promise<RebalancePlan> {
   return plan;
 }
 
-export async function getTopupPlan(usdt: number): Promise<RebalancePlan> {
+export async function getTopupPlan(
+  usdt: number,
+  source: "kamino" | "lend" = "kamino",
+  slippageBps?: number,
+): Promise<RebalancePlan> {
+  if (source === "lend") {
+    const [vaults, kamino] = await Promise.all([fetchLendVaultPositions(), fetchKaminoUsdg()]);
+    const jlp = vaults.find(v => v.key === "JLP");
+    const bps = slippageBpsFor(RESTORE_TOKENS.jlp.mint, RESTORE_TOKENS.usdt.mint, slippageBps);
+    let jlpAmount = NaN;
+    let estOut: number | undefined;
+    if (Number.isFinite(usdt) && usdt > 0) {
+      const sized = await sizeSourceForTarget("usdt", "jlp", usdt, slippageBps).catch(() => null);
+      if (sized) {
+        jlpAmount = sized.sourceAmount;
+        estOut = sized.estTargetOut;
+      }
+    }
+    const plan = buildTopupPlanLend({ usdt, jlpAmount, jlp, kaminoUsdg: kamino.amount, estOut, slippageBps: bps });
+    return plan;
+  }
   const kamino = await fetchKaminoUsdg();
   const plan = buildTopupPlan(usdt, kamino.amount);
   await annotateWithQuotes(plan).catch(() => {});
@@ -879,8 +899,7 @@ export async function getRestorePlan(
         : `Cannot restore ${target.toUpperCase()} from ${side}`,
     );
   }
-  if (!Number.isFinite(amount) || amount <= 0 || amount > RESTORE_MAX_AMOUNT)
-    return empty("Amount must be between 1 and 10,000");
+  if (!Number.isFinite(amount) || amount <= 0) return empty("Amount must be > 0");
   const jlp = vaults.find(v => v.key === "JLP");
   const jupsol = vaults.find(v => v.key === "JupSOL");
 

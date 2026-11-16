@@ -1,6 +1,8 @@
 import { IconRefresh, IconX } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { SPEND_ADDRESS } from "../lib/config";
+import { fmtPct } from "../lib/format";
+import { slippageBps } from "../lib/slippage";
 import type { PlanStage } from "../lib/rebalance/plan";
 import { Card, CardTitle } from "./ui";
 import { PlanInfo, RunActions, StageList } from "./plan-ui";
@@ -26,7 +28,18 @@ const stageDetail = (s: PlanStage) => {
     return s.estOut != null ? `≈ ${inAmt} USDG → ≈ ${s.estOut.toFixed(2)} USDT` : `≈ ${inAmt} USDG → USDT`;
   }
   if (s.type === "spend-transfer") return `send ≈ ${s.usdt.toFixed(2)} USDT to ${short(SPEND_ADDRESS)}`;
+  if (s.type === "lend-collateral") return `−${Math.abs(s.amount).toFixed(2)} JLP collateral`;
+  if (s.type === "swap-any") {
+    const inAmt = (s.estIn ?? s.amount).toFixed(2);
+    return s.estOut != null ? `≈ ${inAmt} JLP → ≈ ${s.estOut.toFixed(2)} USDT` : `≈ ${inAmt} JLP → USDT`;
+  }
   return "";
+};
+
+type TopupSource = "kamino" | "lend";
+const TOPUP_SOURCE_LABEL: Record<TopupSource, string> = {
+  kamino: "from Kamino USD",
+  lend: "from Lend JLP",
 };
 
 function Inner({
@@ -39,6 +52,7 @@ function Inner({
   onOpenSettings: () => void;
 }) {
   const [amount, setAmount] = useState("");
+  const [source, setSource] = useState<TopupSource>("kamino");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -48,22 +62,24 @@ function Inner({
   const eur = amount === "" ? NaN : Number(amount);
   const usdt = Number.isFinite(eur) && eurToUsd > 0 ? eur * eurToUsd : NaN;
   const usdtRef = useRef(usdt);
+  const sourceRef = useRef(source);
   useEffect(() => {
     usdtRef.current = usdt;
-  }, [usdt]);
+    sourceRef.current = source;
+  }, [usdt, source]);
 
   const r = useStageRunner({
     lsKey: LS_KEY,
     fetchPlan: async () => {
       const u = usdtRef.current;
       if (!Number.isFinite(u) || u < 1) return null;
-      return api({ action: "topup-plan", usdt: u });
+      return api({ action: "topup-plan", usdt: u, source: sourceRef.current, slippageBps: slippageBps() });
     },
     onDone,
   });
   const { plan, states, unfinished, loadPlan } = r;
 
-  // re-plan (debounced) when the amount changes — skipped while a run is unfinished
+  // re-plan (debounced) when the amount/source changes — skipped while a run is unfinished
   const usdtKey = Number.isFinite(usdt) ? Math.round(usdt * 100) / 100 : usdt;
   const firstRun = useRef(true);
   useEffect(() => {
@@ -74,7 +90,7 @@ function Inner({
     if (unfinished) return;
     const t = setTimeout(() => void loadPlan(), 400);
     return () => clearTimeout(t);
-  }, [usdtKey, unfinished, loadPlan]);
+  }, [usdtKey, source, unfinished, loadPlan]);
 
   const walletReady = r.connected && !r.wrongWallet && r.canSign;
   const walletMissing = !r.connected || !!r.wrongWallet;
@@ -113,6 +129,19 @@ function Inner({
             </button>
           )}
         </div>
+        <div className="mt-2 flex rounded-lg border border-line p-0.5 w-fit" role="group" aria-label="Source">
+          {(["kamino", "lend"] as const).map(s => (
+            <button
+              key={s}
+              onClick={() => setSource(s)}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                source === s ? "bg-accent text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              {TOPUP_SOURCE_LABEL[s]}
+            </button>
+          ))}
+        </div>
         {Number.isFinite(usdt) && usdt >= 1 && usdt > 10_000 && (
           <p className="mt-1 text-[11px] text-danger">Max 10,000 USDT per top-up</p>
         )}
@@ -143,6 +172,23 @@ function Inner({
         {r.planErr && <p className="text-xs text-danger">{r.planErr}</p>}
         {plan && plan.stages.length === 0 && !plan.error && amountOk && (
           <p className="mt-2 text-xs text-muted">Nothing to do</p>
+        )}
+        {plan && plan.positions.length > 0 && (
+          <div className="mb-2 space-y-1">
+            {plan.positions.map((p, i) => (
+              <p key={`${p.key}-${i}`} className="text-xs text-muted">
+                {p.key} LTV {fmtPct(p.ltvBefore)} → {fmtPct(p.ltvAfter)}
+                {p.ltvAfter > p.target && <span className="text-warn"> (above target)</span>}
+              </p>
+            ))}
+            {plan.positions
+              .filter(p => p.ltvAfter > p.target)
+              .map(p => (
+                <p key={`warn-${p.key}`} className="text-[11px] text-warn">
+                  {p.key} LTV will be above target — run Rebalance afterwards
+                </p>
+              ))}
+          </div>
         )}
         {plan && plan.stages.length > 0 && <StageList stages={plan.stages} states={states} detail={stageDetail} />}
       </Card>
