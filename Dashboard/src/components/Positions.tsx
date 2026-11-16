@@ -383,10 +383,10 @@ export function Positions({
         <div className="-mx-1 divide-y divide-line/60">
           {(
             [
-              ["JupSOL", r.fims.fimsSolDiff, "jupsol"],
-              ["EURC", r.fims.fimsEurcDiff, "eurc"],
-              ["USD", r.fims.usd.usdAmount, "usd"],
-              ...(r.fims.fimsJlpDiff != null ? ([["JLP", r.fims.fimsJlpDiff, "jlp"]] as const) : []),
+              ["JupSOL", r.fims.diff.jupsol, "jupsol"],
+              ["EURC", r.fims.diff.eurc, "eurc"],
+              ["USD", r.fims.diff.usd, "usd"],
+              ...(r.fims.diff.jlp != null ? ([["JLP", r.fims.diff.jlp, "jlp"]] as const) : []),
             ] as const
           ).map(([label, v, target]) => (
             <div key={label} className="flex items-center justify-between gap-2 px-1 py-2">
@@ -400,7 +400,8 @@ export function Positions({
                 {onRestore && (
                   <button
                     onClick={() => onRestore(target)}
-                    className="rounded p-0.5 text-muted hover:bg-card2 hover:text-accent"
+                    disabled={Math.abs(v) < 1e-6}
+                    className="rounded p-0.5 text-muted hover:bg-card2 hover:text-accent disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-muted"
                     aria-label={`Restore ${label}`}
                     title={`Restore ${label}`}
                   >

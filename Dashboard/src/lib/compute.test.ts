@@ -372,3 +372,29 @@ describe("fimsJlpDiff", () => {
     expect(withLp.fims.fimsJlpDiff).toBeCloseTo(jlpAmt - 13305.86, 6);
   });
 });
+
+describe("fims.diff (wallet balances count toward the diff)", () => {
+  const baseInputs = fixture as unknown as Inputs;
+
+  test("no walletTokens → diff equals the sheet diffs, no diffWallet", () => {
+    const r = computeDashboard(baseInputs, now);
+    expect(r.fims.diff.jupsol).toBe(r.fims.fimsSolDiff);
+    expect(r.fims.diff.eurc).toBe(r.fims.fimsEurcDiff);
+    expect(r.fims.diff.usd).toBe(r.fims.usd.usdAmount);
+    expect(r.fims.diff.jlp).toBeUndefined(); // fixture lacks fimsLp
+    expect(r.fims.diffWallet).toBeUndefined();
+  });
+
+  test("walletTokens add to every diff", () => {
+    const walletTokens = { jupsol: 0.606, jlp: 0, eurc: 1.5, usdg: 12 };
+    const r = computeDashboard({ ...baseInputs, walletTokens, defi: { ...baseInputs.defi, fimsLp: 13305.86 } }, now);
+    expect(r.fims.diff.jupsol).toBeCloseTo(r.fims.fimsSolDiff + 0.606, 9);
+    expect(r.fims.diff.eurc).toBeCloseTo(r.fims.fimsEurcDiff + 1.5, 9);
+    expect(r.fims.diff.usd).toBeCloseTo(r.fims.usd.usdAmount + 12, 9);
+    expect(r.fims.diff.jlp).toBeCloseTo((r.fims.fimsJlpDiff ?? 0) + 0, 9);
+    expect(r.fims.diffWallet).toEqual(walletTokens);
+    // a wallet JLP balance only counts when the FLiP diff exists
+    const r2 = computeDashboard({ ...baseInputs, walletTokens: { ...walletTokens, jlp: 42 } }, now);
+    expect(r2.fims.diff.jlp).toBeUndefined();
+  });
+});

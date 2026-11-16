@@ -6,6 +6,9 @@ import { fetchJupiter } from "./sources/jupiter.js";
 import { fetchKamino } from "./sources/kamino.js";
 import { fetchSanctum, type SanctumRaw } from "./sources/sanctum.js";
 import { getLastGood, setLastGood, trackedList } from "./storage.js";
+import { WALLET } from "./config.js";
+import { RESTORE_TOKENS } from "./rebalance/plan.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import type {
   DefiData,
   ExtraPosition,
@@ -191,7 +194,41 @@ export async function fetchInputs(): Promise<Inputs> {
     defi: mk(def),
   };
 
-  return { fetchedAt: Date.now(), positions, sanctum, defi, sources, extraPositions: extras };
+  // loose wallet token balances — best-effort; failures must not flag a source
+  // nor break the dashboard (absent field → treated as 0 downstream)
+  let walletTokens: Inputs["walletTokens"];
+  if (env("HELIUS_API_KEY")) {
+    try {
+      const connection = new Connection(
+        `https://mainnet.helius-rpc.com/?api-key=${env("HELIUS_API_KEY")}`,
+        "confirmed",
+      );
+      const owner = new PublicKey(WALLET);
+      const bal = async (mint: string): Promise<number> => {
+        const res = await connection.getParsedTokenAccountsByOwner(owner, { mint: new PublicKey(mint) });
+        let total = 0;
+        for (const { account } of res.value) {
+          const amt = (account.data as any)?.parsed?.info?.tokenAmount?.uiAmount;
+          if (Number.isFinite(amt)) total += Number(amt);
+        }
+        return total;
+      };
+      const [jupsol, jlp, eurc, usdg] = await Promise.race([
+        Promise.all([
+          bal(RESTORE_TOKENS.jupsol.mint),
+          bal(RESTORE_TOKENS.jlp.mint),
+          bal(RESTORE_TOKENS.eurc.mint),
+          bal(RESTORE_TOKENS.usdg.mint),
+        ]),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("wallet balances timeout")), 5000)),
+      ]);
+      walletTokens = { jupsol, jlp, eurc, usdg };
+    } catch {
+      /* RPC hiccup — dashboard works without the wallet breakdown */
+    }
+  }
+
+  return { fetchedAt: Date.now(), positions, sanctum, defi, sources, extraPositions: extras, walletTokens };
 }
 
 export async function computeLive(): Promise<{ inputs: Inputs; result: DashboardResult }> {

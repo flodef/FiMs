@@ -53,27 +53,30 @@ const stageDetail = (s: PlanStage) => {
 function Inner({
   target,
   diff,
+  walletPart,
   usdDiff,
   onDone,
   onOpenSettings,
 }: {
   target: RestoreTarget;
   diff: number;
+  walletPart: number;
   usdDiff: number;
   onDone: (totalLamports: number | null, direction: RestoreDirection) => void;
   onOpenSettings: () => void;
 }) {
   const label = RESTORE_TITLE[target];
+  const homeLabel = target === "eurc" ? "earn" : target === "usd" ? "kamino" : "lend";
   const fixedSource: RestoreSource | null = target === "usd" ? "lend" : target === "jlp" ? "kamino" : null;
-  const [direction, setDirection] = useState<RestoreDirection>(() => (diff > 0 ? "sell" : "buy"));
+  // no choice: the sign of the diff decides — surplus sells, shortfall buys
+  const direction: RestoreDirection = diff > 0 ? "sell" : "buy";
   const [source, setSource] = useState<RestoreSource>(
     () => fixedSource ?? (direction === "sell" ? "kamino" : usdDiff > 0 ? "kamino" : "lend"),
   );
-  const prefill = () => {
+  const [amount, setAmount] = useState(() => {
     const pre = Math.max(0, Math.abs(diff));
     return pre > 0 ? sanitize(pre.toFixed(2)) : "";
-  };
-  const [amount, setAmount] = useState(prefill);
+  });
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -84,12 +87,10 @@ function Inner({
   const amountOk = Number.isFinite(amt) && amt > 0;
   const amountRef = useRef(amt);
   const sourceRef = useRef(source);
-  const directionRef = useRef(direction);
   useEffect(() => {
     amountRef.current = amt;
     sourceRef.current = source;
-    directionRef.current = direction;
-  }, [amt, source, direction]);
+  }, [amt, source]);
 
   const r = useStageRunner({
     lsKey: LS_KEY,
@@ -101,15 +102,15 @@ function Inner({
         target,
         source: sourceRef.current,
         amount: a,
-        direction: directionRef.current,
+        direction,
         slippageBps: slippageBps(),
       });
     },
-    onDone: l => onDone(l, directionRef.current),
+    onDone: l => onDone(l, direction),
   });
   const { plan, states, unfinished, loadPlan } = r;
 
-  // re-plan (debounced) when amount/source/direction changes — skipped while a run is unfinished
+  // re-plan (debounced) when amount/source changes — skipped while a run is unfinished
   const amtKey = Number.isFinite(amt) ? Math.round(amt * 10000) / 10000 : amt;
   const firstRun = useRef(true);
   useEffect(() => {
@@ -120,7 +121,7 @@ function Inner({
     if (unfinished) return;
     const t = setTimeout(() => void loadPlan(), 400);
     return () => clearTimeout(t);
-  }, [amtKey, source, direction, unfinished, loadPlan]);
+  }, [amtKey, source, unfinished, loadPlan]);
 
   const walletReady = r.connected && !r.wrongWallet && r.canSign;
   const walletMissing = !r.connected || !!r.wrongWallet;
@@ -131,26 +132,9 @@ function Inner({
 
   return (
     <div className="space-y-3">
-      {/* amount + direction + counter card */}
+      {/* amount + counter card */}
       <Card>
-        <CardTitle>Amount ({label})</CardTitle>
-        <div className="mb-2 flex rounded-lg border border-line p-0.5" role="group" aria-label="Direction">
-          {(["buy", "sell"] as const).map(d => (
-            <button
-              key={d}
-              onClick={() => {
-                setDirection(d);
-                setSource(fixedSource ?? (d === "sell" ? "kamino" : usdDiff > 0 ? "kamino" : "lend"));
-                setAmount(prefill());
-              }}
-              className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium ${
-                direction === d ? "bg-accent text-white" : "text-muted hover:text-ink"
-              }`}
-            >
-              {d === "buy" ? `Buy ${label}` : `Sell ${label}`}
-            </button>
-          ))}
-        </div>
+        <CardTitle>{direction === "sell" ? `Sell ${label}` : `Amount (${label})`}</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative w-[140px]">
             <input
@@ -199,8 +183,16 @@ function Inner({
           )}
         </div>
         <p className="mt-2 text-[11px] text-muted">
-          Current diff: {diff >= 0 ? "+" : ""}
-          {fmtNum(diff, 2)} {label}
+          {direction === "sell" ? "Surplus" : "Shortfall"}: {diff >= 0 ? "+" : "−"}
+          {fmtNum(Math.abs(diff), 2)} {label}
+          {Math.abs(walletPart) >= 1e-9 && (
+            <>
+              {" "}
+              ({homeLabel} {diff - walletPart >= 0 ? "+" : "−"}
+              {fmtNum(Math.abs(diff - walletPart), 2)} · wallet {walletPart >= 0 ? "+" : "−"}
+              {fmtNum(Math.abs(walletPart), 2)})
+            </>
+          )}
         </p>
         {Number.isFinite(amt) && amt > 10_000 && <p className="mt-1 text-[11px] text-danger">Max 10,000 per restore</p>}
       </Card>
@@ -272,19 +264,28 @@ function Inner({
 export default function Restore({
   target,
   diff,
+  walletPart,
   usdDiff,
   onDone,
   onOpenSettings,
 }: {
   target: RestoreTarget;
   diff: number;
+  walletPart: number;
   usdDiff: number;
   onDone: (totalLamports: number | null, direction: RestoreDirection) => void;
   onOpenSettings: () => void;
 }) {
   return (
     <WalletShell>
-      <Inner target={target} diff={diff} usdDiff={usdDiff} onDone={onDone} onOpenSettings={onOpenSettings} />
+      <Inner
+        target={target}
+        diff={diff}
+        walletPart={walletPart}
+        usdDiff={usdDiff}
+        onDone={onDone}
+        onOpenSettings={onOpenSettings}
+      />
     </WalletShell>
   );
 }

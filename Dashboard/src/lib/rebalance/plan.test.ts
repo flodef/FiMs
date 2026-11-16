@@ -613,6 +613,77 @@ describe("buildRestorePlan", () => {
     expect(sw.type === "swap-any" && sw.slippageBps).toBe(10);
   });
 
+  test("sell: wallet covers part → withdraw only the remainder", () => {
+    // lend surplus 0.3 + wallet 0.6 → sell 0.9, withdraw just 0.3
+    const p = buildRestorePlan({
+      ...base,
+      direction: "sell",
+      target: "jupsol",
+      source: "kamino",
+      amount: 0.9,
+      sourceAmount: 0.9,
+      sourceUsd: 80,
+      estTargetOut: 80,
+      walletBal: 0.6,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["lend-collateral", "swap-any", "kamino-deposit"]);
+    const wd = p.stages[0];
+    expect(wd.type === "lend-collateral" && wd.amount).toBeCloseTo(-0.3, 9);
+    const sw = p.stages[1];
+    expect(sw.type === "swap-any" && sw.amount).toBe(0.9);
+  });
+
+  test("sell: wallet covers all → no withdraw stage", () => {
+    const p = buildRestorePlan({
+      ...base,
+      direction: "sell",
+      target: "jupsol",
+      source: "lend",
+      amount: 0.5,
+      sourceAmount: 0.5,
+      sourceUsd: 14,
+      estTargetOut: 14,
+      walletBal: 0.6,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["swap-any", "lend-collateral"]);
+    expect(p.positions.map(x => x.key)).toEqual(["JLP"]); // only the deposit vault delta
+  });
+
+  test("buy: wallet covers part → sized for the remainder, deposit still full", () => {
+    const p = buildRestorePlan({
+      ...base,
+      target: "jupsol",
+      source: "kamino",
+      amount: 10,
+      sourceAmount: 9, // sized for B = 10 − 0.6
+      sourceUsd: 9,
+      estTargetOut: 9.39,
+      walletBal: 0.6,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["kamino-withdraw", "swap-any", "lend-collateral"]);
+    const dep = p.stages[2];
+    expect(dep.type === "lend-collateral" && dep.amount).toBe(10); // full amount deposited
+  });
+
+  test("buy: wallet covers all → deposit-only plan", () => {
+    const p = buildRestorePlan({
+      ...base,
+      target: "jupsol",
+      source: "kamino",
+      amount: 0.5,
+      sourceAmount: 0,
+      sourceUsd: 0,
+      estTargetOut: 0,
+      walletBal: 0.6,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["lend-collateral"]);
+    expect(p.stages[0].type === "lend-collateral" && p.stages[0].amount).toBe(0.5);
+  });
+
   test("default direction is buy (persisted/old runs unchanged)", () => {
     const a = buildRestorePlan({
       ...base,

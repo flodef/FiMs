@@ -54,15 +54,25 @@ const TABS: { id: Tab; label: string; icon: typeof IconLayoutDashboard }[] = [
   { id: "convert", label: "Convert", icon: IconArrowsExchange },
 ];
 
-/** FiMs Diff value for a restore target (negative = shortfall to restore). */
+/** FiMs Diff value for a restore target incl. the wallet part (positive = sell, negative = buy). */
 const restoreDiff = (r: DashboardResult, t: RestoreTarget): number =>
   t === "jupsol"
-    ? r.fims.fimsSolDiff
+    ? r.fims.diff.jupsol
     : t === "eurc"
-      ? r.fims.fimsEurcDiff
+      ? r.fims.diff.eurc
       : t === "usd"
-        ? r.fims.usd.usdAmount
-        : (r.fims.fimsJlpDiff ?? 0);
+        ? r.fims.diff.usd
+        : (r.fims.diff.jlp ?? 0);
+
+/** The loose-wallet part of a row's diff (for the Surplus/Shortfall breakdown). */
+const restoreWalletPart = (r: DashboardResult, t: RestoreTarget): number =>
+  t === "jupsol"
+    ? (r.fims.diffWallet?.jupsol ?? 0)
+    : t === "eurc"
+      ? (r.fims.diffWallet?.eurc ?? 0)
+      : t === "usd"
+        ? (r.fims.diffWallet?.usdg ?? 0)
+        : (r.fims.diffWallet?.jlp ?? 0);
 
 function InfoPopover({ r, sources, nowMs }: { r: DashboardResult; sources: Inputs["sources"]; nowMs: number }) {
   const [open, setOpen] = useState(false);
@@ -455,6 +465,7 @@ export default function App() {
               key={restoreTarget}
               target={restoreTarget}
               diff={restoreDiff(result, restoreTarget)}
+              walletPart={restoreWalletPart(result, restoreTarget)}
               usdDiff={result.fims.usd.usdAmount}
               onOpenSettings={openSettings}
               onDone={(lamports, direction) => {

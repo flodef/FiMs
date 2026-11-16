@@ -884,6 +884,11 @@ export async function getRestorePlan(
   const jlp = vaults.find(v => v.key === "JLP");
   const jupsol = vaults.find(v => v.key === "JupSOL");
 
+  // the row token's loose wallet balance counts toward the diff — the server
+  // re-reads it, the client's number is never trusted
+  const rowMint = RESTORE_TOKENS[target === "usd" ? "usdg" : target].mint;
+  const walletBal = await walletTokenBalance(rpc(), rowMint).catch(() => 0);
+
   if (direction === "sell") {
     const inToken: RestoreToken = target === "usd" ? "usdg" : target;
     const outToken: RestoreToken = source === "kamino" ? "usdg" : "jlp";
@@ -907,12 +912,19 @@ export async function getRestorePlan(
       estTargetOut: estOut,
       earnEurc,
       slippageBps: slippageBpsFor(tin.mint, tout.mint, slippageBps),
+      walletBal,
     });
   }
 
   const targetToken: RestoreToken = target === "usd" ? "usdg" : target;
   const sourceToken: RestoreToken = source === "kamino" ? "usdg" : "jlp";
-  const sized = await sizeSourceForTarget(targetToken, sourceToken, amount, slippageBps).catch(() => null);
+  // buy only the part the wallet doesn't already hold — the deposit still
+  // targets the full `amount` so the loose balance is swept in too
+  const needBuy = Math.max(0, amount - walletBal);
+  const sized =
+    needBuy > 1e-9
+      ? await sizeSourceForTarget(targetToken, sourceToken, needBuy, slippageBps).catch(() => null)
+      : { sourceAmount: 0, estTargetOut: 0 };
   if (!sized) return empty("No swap route for this pair");
   const sourceUsd = source === "kamino" ? sized.sourceAmount : sized.sourceAmount * (jlp?.supplyPriceUsd ?? 0);
   return buildRestorePlan({
@@ -926,6 +938,7 @@ export async function getRestorePlan(
     kaminoUsdg: kamino.amount,
     estTargetOut: sized.estTargetOut,
     slippageBps: slippageBpsFor(RESTORE_TOKENS[sourceToken].mint, RESTORE_TOKENS[targetToken].mint, slippageBps),
+    walletBal,
   });
 }
 

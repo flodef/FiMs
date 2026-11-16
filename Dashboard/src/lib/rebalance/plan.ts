@@ -435,9 +435,14 @@ export function buildRestorePlan(opts: {
   earnEurc?: number;
   /** slippage bps stamped on the swap-any stage (volatile pairs) */
   slippageBps?: number;
+  /** loose wallet balance of the row token — counts toward the diff:
+   *  sells withdraw only the part the wallet doesn't cover, buys only
+   *  buy the missing part but still deposit the full amount */
+  walletBal?: number;
 }): RebalancePlan {
   const { target, source, amount, sourceAmount, sourceUsd, jlp, jupsol, kaminoUsdg } = opts;
   const direction = opts.direction ?? "buy";
+  const wallet = Math.max(0, opts.walletBal ?? 0);
   const plan: RebalancePlan = { positions: [], stages: [], kaminoUsdg, error: null };
   const fail = (msg: string) => {
     plan.error = msg;
@@ -457,37 +462,38 @@ export function buildRestorePlan(opts: {
   if (amount > RESTORE_MAX_AMOUNT) {
     return fail(`Amount exceeds the ${RESTORE_MAX_AMOUNT.toLocaleString("en-US")} per-restore limit`);
   }
-  if (!Number.isFinite(sourceAmount) || sourceAmount <= 0) return fail("Could not size the source amount");
-  if (sourceUsd > RESTORE_MAX_USD) {
-    return fail(
-      `${direction === "sell" ? "Sell" : "Restore"} exceeds the ${RESTORE_MAX_USD.toLocaleString("en-US")} USD limit (~${sourceUsd.toFixed(0)} USD)`,
-    );
-  }
 
   if (direction === "sell") {
-    // home-withdraw leg
-    if (target === "usd") {
-      if (!Number.isFinite(kaminoUsdg) || kaminoUsdg + 1e-9 < amount) {
-        return fail(`Insufficient Kamino USDG: need ~${amount.toFixed(2)}, have ${(kaminoUsdg || 0).toFixed(2)}`);
+    if (!Number.isFinite(sourceAmount) || sourceAmount <= 0) return fail("Could not size the source amount");
+    if (sourceUsd > RESTORE_MAX_USD) {
+      return fail(
+        `Sell exceeds the ${RESTORE_MAX_USD.toLocaleString("en-US")} USD limit (~${sourceUsd.toFixed(0)} USD)`,
+      );
+    }
+    // home-withdraw leg — only what the loose wallet balance doesn't cover
+    const W = Math.max(0, amount - wallet);
+    if (W > 1e-9) {
+      if (target === "usd") {
+        if (!Number.isFinite(kaminoUsdg) || kaminoUsdg + 1e-9 < W) {
+          return fail(`Insufficient Kamino USDG: need ~${W.toFixed(2)}, have ${(kaminoUsdg || 0).toFixed(2)}`);
+        }
+        plan.stages.push({
+          type: "kamino-withdraw",
+          amountUsdg: W,
+          usdtOut: 0,
+          usdgOut: W,
+          purpose: "restore",
+        });
+      } else if (target === "eurc") {
+        if (!Number.isFinite(opts.earnEurc) || (opts.earnEurc ?? 0) + 1e-9 < W) {
+          return fail(`Insufficient Jupiter Earn EURC: need ~${W.toFixed(2)}, have ${(opts.earnEurc || 0).toFixed(2)}`);
+        }
+        plan.stages.push({ type: "earn-withdraw", token: "EURC", amount: W, purpose: "restore" });
+      } else {
+        const v = target === "jlp" ? jlp : jupsol;
+        const err = pushVaultWithdraw(plan, v, W, target.toUpperCase());
+        if (err) return fail(err);
       }
-      plan.stages.push({
-        type: "kamino-withdraw",
-        amountUsdg: amount,
-        usdtOut: 0,
-        usdgOut: amount,
-        purpose: "restore",
-      });
-    } else if (target === "eurc") {
-      if (!Number.isFinite(opts.earnEurc) || (opts.earnEurc ?? 0) + 1e-9 < amount) {
-        return fail(
-          `Insufficient Jupiter Earn EURC: need ~${amount.toFixed(2)}, have ${(opts.earnEurc || 0).toFixed(2)}`,
-        );
-      }
-      plan.stages.push({ type: "earn-withdraw", token: "EURC", amount, purpose: "restore" });
-    } else {
-      const v = target === "jlp" ? jlp : jupsol;
-      const err = pushVaultWithdraw(plan, v, amount, target.toUpperCase());
-      if (err) return fail(err);
     }
 
     // swap leg — the exact sold amount, ExactIn
@@ -529,38 +535,51 @@ export function buildRestorePlan(opts: {
     return plan;
   }
 
-  const outToken: RestoreToken = target === "usd" ? "usdg" : target;
-  const inToken: RestoreToken = source === "kamino" ? "usdg" : "jlp";
-  const T = opts.estTargetOut ?? amount;
-
-  // source leg
-  if (source === "kamino") {
-    if (!Number.isFinite(kaminoUsdg) || kaminoUsdg + 1e-9 < sourceAmount) {
-      return fail(`Insufficient Kamino USDG: need ~${sourceAmount.toFixed(2)}, have ${(kaminoUsdg || 0).toFixed(2)}`);
-    }
-    plan.stages.push({
-      type: "kamino-withdraw",
-      amountUsdg: sourceAmount,
-      usdtOut: 0,
-      usdgOut: sourceAmount,
-      purpose: "restore",
-    });
-  } else {
-    const err = pushVaultWithdraw(plan, jlp, sourceAmount, "JLP");
-    if (err) return fail(err);
+  if (sourceUsd > RESTORE_MAX_USD) {
+    return fail(
+      `Restore exceeds the ${RESTORE_MAX_USD.toLocaleString("en-US")} USD limit (~${sourceUsd.toFixed(0)} USD)`,
+    );
   }
 
-  // swap leg — all of the source amount, ExactIn
-  plan.stages.push({
-    type: "swap-any",
-    inToken,
-    outToken,
-    amount: sourceAmount,
-    estIn: sourceAmount,
-    estOut: T,
-    slippageBps: opts.slippageBps,
-    purpose: "restore",
-  });
+  const outToken: RestoreToken = target === "usd" ? "usdg" : target;
+  const inToken: RestoreToken = source === "kamino" ? "usdg" : "jlp";
+
+  // buy only what the loose wallet balance doesn't already cover — but the
+  // deposit below still places the full `amount` (wallet part included)
+  const B = Math.max(0, amount - wallet);
+  const T = opts.estTargetOut ?? B;
+  if (B > 1e-9) {
+    if (!Number.isFinite(sourceAmount) || sourceAmount <= 0) return fail("Could not size the source amount");
+
+    // source leg
+    if (source === "kamino") {
+      if (!Number.isFinite(kaminoUsdg) || kaminoUsdg + 1e-9 < sourceAmount) {
+        return fail(`Insufficient Kamino USDG: need ~${sourceAmount.toFixed(2)}, have ${(kaminoUsdg || 0).toFixed(2)}`);
+      }
+      plan.stages.push({
+        type: "kamino-withdraw",
+        amountUsdg: sourceAmount,
+        usdtOut: 0,
+        usdgOut: sourceAmount,
+        purpose: "restore",
+      });
+    } else {
+      const err = pushVaultWithdraw(plan, jlp, sourceAmount, "JLP");
+      if (err) return fail(err);
+    }
+
+    // swap leg — all of the source amount, ExactIn
+    plan.stages.push({
+      type: "swap-any",
+      inToken,
+      outToken,
+      amount: sourceAmount,
+      estIn: sourceAmount,
+      estOut: T,
+      slippageBps: opts.slippageBps,
+      purpose: "restore",
+    });
+  }
 
   // target leg
   if (target === "usd") {

@@ -79,4 +79,6 @@ export interface Inputs {
   defi: DefiData;
   sources: Record<SourceName, SourceStatus>;
   extraPositions?: ExtraPosition[];
+  /** loose token balances in the main wallet (absent when the fetch failed) */
+  walletTokens?: { jupsol: number; jlp: number; eurc: number; usdg: number };
 }

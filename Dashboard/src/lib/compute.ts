@@ -117,6 +117,10 @@ export interface DashboardResult {
     gainsPerSol: number;
     /** JLP amount − FiMsData!B3 (FLiP); undefined when the sheet value is missing */
     fimsJlpDiff?: number;
+    /** Diff incl. the wallet's loose tokens: positive = surplus (sell), negative = shortfall (buy) */
+    diff: { jupsol: number; eurc: number; usd: number; jlp?: number };
+    /** the wallet part of each diff (absent when wallet balances couldn't be fetched) */
+    diffWallet?: { jupsol: number; jlp: number; eurc: number; usdg: number };
     eurc: { tokenAmount: number; eurAmount: number };
     usd: { usdAmount: number; eurAmount: number };
   };
@@ -577,6 +581,15 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
     liqPriceEur: r.liqPriceEur ?? null,
   }));
 
+  const fimsJlpDiff =
+    inputs.defi.fimsLp != null && Number.isFinite(inputs.defi.fimsLp)
+      ? stratAmount("JLP") - inputs.defi.fimsLp
+      : undefined;
+  const wJupSol = inputs.walletTokens?.jupsol ?? 0;
+  const wJlp = inputs.walletTokens?.jlp ?? 0;
+  const wEurc = inputs.walletTokens?.eurc ?? 0;
+  const wUsdg = inputs.walletTokens?.usdg ?? 0;
+
   return {
     cells,
     status,
@@ -620,10 +633,16 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
       sheetTotal,
       totalCorrection,
       gainsPerSol: G15,
-      fimsJlpDiff:
-        inputs.defi.fimsLp != null && Number.isFinite(inputs.defi.fimsLp)
-          ? stratAmount("JLP") - inputs.defi.fimsLp
-          : undefined,
+      fimsJlpDiff: fimsJlpDiff,
+      // wallet loose tokens count toward the diff: a JupSOL surplus is the
+      // lend surplus PLUS whatever sits in the wallet (and vice-versa)
+      diff: {
+        jupsol: F9 + wJupSol,
+        eurc: F10 + wEurc,
+        usd: B16 + wUsdg,
+        jlp: fimsJlpDiff != null ? fimsJlpDiff + wJlp : undefined,
+      },
+      diffWallet: inputs.walletTokens ? { jupsol: wJupSol, jlp: wJlp, eurc: wEurc, usdg: wUsdg } : undefined,
       eurc: { tokenAmount: c15, eurAmount: B15 },
       usd: { usdAmount: B16, eurAmount: C16 },
     },
