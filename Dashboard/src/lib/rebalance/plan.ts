@@ -93,6 +93,15 @@ export type PlanStage =
       amount: number;
       estIn?: number;
       estOut?: number;
+      /** slippage bps chosen at plan time — kept on the stage so Resume reuses it */
+      slippageBps?: number;
+      purpose?: "restore";
+    }
+  | {
+      type: "earn-withdraw";
+      token: "EURC";
+      /** EURC units to withdraw from Jupiter Earn */
+      amount: number;
       purpose?: "restore";
     }
   | {
@@ -329,7 +338,17 @@ export interface RestoreVaultInput {
   target: number;
 }
 
+export type RestoreDirection = "buy" | "sell";
+
 export const RESTORE_COMBOS: Record<RestoreTarget, RestoreSource[]> = {
+  jupsol: ["kamino", "lend"],
+  eurc: ["kamino", "lend"],
+  usd: ["lend"],
+  jlp: ["kamino"],
+};
+
+/** Sell combos: counter-asset for the swap output — kamino = USDG, lend = JLP. */
+export const RESTORE_SELL_COMBOS: Record<RestoreTarget, RestoreSource[]> = {
   jupsol: ["kamino", "lend"],
   eurc: ["kamino", "lend"],
   usd: ["lend"],
@@ -360,34 +379,79 @@ const vaultDelta = (v: RestoreVaultInput, collateralUsdAfter: number): PositionD
 });
 
 /**
- * Pure restore plan: source-withdraw → swap-any → target-deposit.
- * `sourceAmount` is already sized (USDG units for kamino, JLP units for lend);
- * `sourceUsd` its USD value for the 20k cap. Vault LTVs are recomputed for display.
+ * Push a lend-collateral WITHDRAW stage for `units` of the vault's supply token,
+ * guarding post-op LTV against the vault ceiling (any vault, JLP or JupSOL).
+ */
+const pushVaultWithdraw = (
+  plan: RebalancePlan,
+  v: RestoreVaultInput | undefined,
+  units: number,
+  label: string,
+): string | null => {
+  if (!v) return `No ${label} lend position found`;
+  const afterUsd = v.collateralUsd - units * v.supplyPriceUsd;
+  const ltvAfter = ltvOf(v, afterUsd);
+  if (!(afterUsd > 0) || ltvAfter >= ltvCeiling(v)) {
+    return `Withdrawing ${units.toFixed(2)} ${v.key} would push ${v.key} LTV to ${(ltvAfter * 100).toFixed(1)}% — too close to liquidation`;
+  }
+  if (units > v.supplyAmount)
+    return `Withdrawing ${units.toFixed(2)} ${v.key} exceeds the ${v.supplyAmount.toFixed(2)} held in the vault`;
+  plan.positions.push(vaultDelta(v, afterUsd));
+  plan.stages.push({
+    type: "lend-collateral",
+    key: v.key,
+    vaultId: v.vaultId,
+    positionId: v.positionId,
+    amount: -units,
+    purpose: "restore",
+  });
+  return null;
+};
+
+/**
+ * Pure restore plan — buy: source-withdraw → swap-any → target-deposit;
+ * sell: home-withdraw → swap-any → counter-deposit.
+ * `sourceAmount` is already sized (buy: USDG units for kamino / JLP for lend;
+ * sell: the sold amount itself); `sourceUsd` its USD value for the 20k cap.
+ * Vault LTVs are recomputed for display.
  */
 export function buildRestorePlan(opts: {
   target: RestoreTarget;
   source: RestoreSource;
-  /** target token units to end up with */
+  /** default "buy" — persisted runs and old clients keep buying */
+  direction?: RestoreDirection;
+  /** target token units — buy: to end up with; sell: to sell */
   amount: number;
-  /** sized source units: USDG (kamino) or JLP (lend) */
+  /** buy: sized source units (USDG kamino / JLP lend); sell: the sold amount */
   sourceAmount: number;
-  /** USD value of sourceAmount — 20k cap */
+  /** USD value of the moved amount — 20k cap */
   sourceUsd: number;
   jlp?: RestoreVaultInput;
   jupsol?: RestoreVaultInput;
   kaminoUsdg: number;
-  /** quoted target units the swap yields (display only) */
+  /** buy: quoted target units; sell: quoted counter-asset units (display/deposit) */
   estTargetOut?: number;
+  /** sell only: user's Jupiter Earn EURC balance — required for eurc sells */
+  earnEurc?: number;
+  /** slippage bps stamped on the swap-any stage (volatile pairs) */
+  slippageBps?: number;
 }): RebalancePlan {
   const { target, source, amount, sourceAmount, sourceUsd, jlp, jupsol, kaminoUsdg } = opts;
+  const direction = opts.direction ?? "buy";
   const plan: RebalancePlan = { positions: [], stages: [], kaminoUsdg, error: null };
   const fail = (msg: string) => {
     plan.error = msg;
     return plan;
   };
 
-  if (!RESTORE_COMBOS[target]?.includes(source)) {
-    return fail(`Cannot restore ${target.toUpperCase()} from ${source === "kamino" ? "Kamino USDG" : "Lend JLP"}`);
+  const combos = direction === "sell" ? RESTORE_SELL_COMBOS : RESTORE_COMBOS;
+  if (!combos[target]?.includes(source)) {
+    const side = source === "kamino" ? "Kamino USDG" : "Lend JLP";
+    return fail(
+      direction === "sell"
+        ? `Cannot sell ${target.toUpperCase()} to ${side}`
+        : `Cannot restore ${target.toUpperCase()} from ${side}`,
+    );
   }
   if (!Number.isFinite(amount) || amount <= 0) return fail("Amount must be > 0");
   if (amount > RESTORE_MAX_AMOUNT) {
@@ -396,8 +460,73 @@ export function buildRestorePlan(opts: {
   if (!Number.isFinite(sourceAmount) || sourceAmount <= 0) return fail("Could not size the source amount");
   if (sourceUsd > RESTORE_MAX_USD) {
     return fail(
-      `Restore exceeds the ${RESTORE_MAX_USD.toLocaleString("en-US")} USD limit (~${sourceUsd.toFixed(0)} USD)`,
+      `${direction === "sell" ? "Sell" : "Restore"} exceeds the ${RESTORE_MAX_USD.toLocaleString("en-US")} USD limit (~${sourceUsd.toFixed(0)} USD)`,
     );
+  }
+
+  if (direction === "sell") {
+    // home-withdraw leg
+    if (target === "usd") {
+      if (!Number.isFinite(kaminoUsdg) || kaminoUsdg + 1e-9 < amount) {
+        return fail(`Insufficient Kamino USDG: need ~${amount.toFixed(2)}, have ${(kaminoUsdg || 0).toFixed(2)}`);
+      }
+      plan.stages.push({
+        type: "kamino-withdraw",
+        amountUsdg: amount,
+        usdtOut: 0,
+        usdgOut: amount,
+        purpose: "restore",
+      });
+    } else if (target === "eurc") {
+      if (!Number.isFinite(opts.earnEurc) || (opts.earnEurc ?? 0) + 1e-9 < amount) {
+        return fail(
+          `Insufficient Jupiter Earn EURC: need ~${amount.toFixed(2)}, have ${(opts.earnEurc || 0).toFixed(2)}`,
+        );
+      }
+      plan.stages.push({ type: "earn-withdraw", token: "EURC", amount, purpose: "restore" });
+    } else {
+      const v = target === "jlp" ? jlp : jupsol;
+      const err = pushVaultWithdraw(plan, v, amount, target.toUpperCase());
+      if (err) return fail(err);
+    }
+
+    // swap leg — the exact sold amount, ExactIn
+    const inToken: RestoreToken = target === "usd" ? "usdg" : target;
+    const outToken: RestoreToken = source === "kamino" ? "usdg" : "jlp";
+    const estOut = opts.estTargetOut;
+    plan.stages.push({
+      type: "swap-any",
+      inToken,
+      outToken,
+      amount,
+      estIn: amount,
+      estOut,
+      slippageBps: opts.slippageBps,
+      purpose: "restore",
+    });
+
+    // counter-deposit leg
+    if (source === "kamino") {
+      plan.stages.push({
+        type: "kamino-deposit",
+        amountUsdg: estOut ?? amount,
+        estUsdg: estOut,
+        purpose: "restore",
+      });
+    } else {
+      if (!jlp) return fail("No JLP lend position found");
+      const depUsd = (estOut ?? amount) * jlp.supplyPriceUsd;
+      plan.positions.push(vaultDelta(jlp, jlp.collateralUsd + depUsd));
+      plan.stages.push({
+        type: "lend-collateral",
+        key: "JLP",
+        vaultId: jlp.vaultId,
+        positionId: jlp.positionId,
+        amount: estOut ?? amount,
+        purpose: "restore",
+      });
+    }
+    return plan;
   }
 
   const outToken: RestoreToken = target === "usd" ? "usdg" : target;
@@ -417,24 +546,8 @@ export function buildRestorePlan(opts: {
       purpose: "restore",
     });
   } else {
-    if (!jlp) return fail("No JLP lend position found");
-    const afterUsd = jlp.collateralUsd - sourceAmount * jlp.supplyPriceUsd;
-    const ltvAfter = ltvOf(jlp, afterUsd);
-    const ceiling = ltvCeiling(jlp);
-    if (!(afterUsd > 0) || ltvAfter >= ceiling) {
-      return fail(
-        `Withdrawing ${sourceAmount.toFixed(2)} JLP would push JLP LTV to ${(ltvAfter * 100).toFixed(1)}% — too close to liquidation`,
-      );
-    }
-    plan.positions.push(vaultDelta(jlp, afterUsd));
-    plan.stages.push({
-      type: "lend-collateral",
-      key: "JLP",
-      vaultId: jlp.vaultId,
-      positionId: jlp.positionId,
-      amount: -sourceAmount,
-      purpose: "restore",
-    });
+    const err = pushVaultWithdraw(plan, jlp, sourceAmount, "JLP");
+    if (err) return fail(err);
   }
 
   // swap leg — all of the source amount, ExactIn
@@ -445,6 +558,7 @@ export function buildRestorePlan(opts: {
     amount: sourceAmount,
     estIn: sourceAmount,
     estOut: T,
+    slippageBps: opts.slippageBps,
     purpose: "restore",
   });
 
@@ -476,8 +590,15 @@ const STABLE_MINTS = new Set([
   "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", // USDT
   "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC
 ]);
-export const slippageBpsFor = (inMint: string, outMint: string): number =>
-  STABLE_MINTS.has(inMint) && STABLE_MINTS.has(outMint) ? 1 : 5;
+/** Volatile-pair slippage choices exposed in Settings (bps). */
+export const SLIPPAGE_BPS_OPTIONS = [1, 5, 10, 30, 50] as const;
+
+/** 1 bp for stablecoin-only pairs; for volatile pairs the requested bps when
+ *  it is in the allow-list, else the 5 bp default. */
+export const slippageBpsFor = (inMint: string, outMint: string, requested?: number): number => {
+  if (STABLE_MINTS.has(inMint) && STABLE_MINTS.has(outMint)) return 1;
+  return (SLIPPAGE_BPS_OPTIONS as readonly number[]).includes(requested ?? NaN) ? (requested as number) : 5;
+};
 
 const JUP_PROGRAM = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4";
 

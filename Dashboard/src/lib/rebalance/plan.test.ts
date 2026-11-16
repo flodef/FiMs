@@ -418,6 +418,221 @@ describe("buildRestorePlan", () => {
     });
     expect(p.error).toBeNull();
   });
+
+  // ---- sell direction ----
+
+  test("sell jupsol → kamino: vault withdraw, swap to USDG, kamino deposit", () => {
+    const p = buildRestorePlan({
+      ...base,
+      direction: "sell",
+      target: "jupsol",
+      source: "kamino",
+      amount: 10,
+      sourceAmount: 10,
+      sourceUsd: 900,
+      estTargetOut: 900,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["lend-collateral", "swap-any", "kamino-deposit"]);
+    const wd = p.stages[0];
+    expect(wd.type === "lend-collateral" && wd.key === "JupSOL" && wd.amount).toBe(-10);
+    const sw = p.stages[1];
+    expect(sw.type === "swap-any" && sw.inToken === "jupsol" && sw.outToken === "usdg" && sw.amount).toBe(10);
+    const dep = p.stages[2];
+    expect(dep.type === "kamino-deposit" && dep.amountUsdg).toBe(900);
+    // JupSOL vault LTV rises after the withdraw
+    expect(p.positions[0].key).toBe("JupSOL");
+    expect(p.positions[0].ltvAfter).toBeGreaterThan(p.positions[0].ltvBefore);
+  });
+
+  test("sell jupsol → lend: JupSOL withdraw, swap to JLP, JLP deposit", () => {
+    const p = buildRestorePlan({
+      ...base,
+      direction: "sell",
+      target: "jupsol",
+      source: "lend",
+      amount: 10,
+      sourceAmount: 10,
+      sourceUsd: 900,
+      estTargetOut: 260,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["lend-collateral", "swap-any", "lend-collateral"]);
+    const sw = p.stages[1];
+    expect(sw.type === "swap-any" && sw.outToken).toBe("jlp");
+    const dep = p.stages[2];
+    expect(dep.type === "lend-collateral" && dep.key === "JLP" && dep.amount).toBe(260);
+    // both vaults appear: JupSOL withdraw + JLP deposit
+    expect(p.positions.map(x => x.key)).toEqual(["JupSOL", "JLP"]);
+  });
+
+  test("sell eurc → earn-withdraw + balance check", () => {
+    const p = buildRestorePlan({
+      ...base,
+      direction: "sell",
+      target: "eurc",
+      source: "kamino",
+      amount: 5,
+      sourceAmount: 5,
+      sourceUsd: 5.5,
+      estTargetOut: 5.5,
+      earnEurc: 20,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["earn-withdraw", "swap-any", "kamino-deposit"]);
+    const p2 = buildRestorePlan({
+      ...base,
+      direction: "sell",
+      target: "eurc",
+      source: "lend",
+      amount: 5,
+      sourceAmount: 5,
+      sourceUsd: 1.6,
+      estTargetOut: 1.6,
+      earnEurc: 20,
+    });
+    expect(p2.error).toBeNull();
+    expect(p2.stages.map(s => s.type)).toEqual(["earn-withdraw", "swap-any", "lend-collateral"]);
+    // insufficient Earn balance rejected
+    expect(
+      buildRestorePlan({
+        ...base,
+        direction: "sell",
+        target: "eurc",
+        source: "kamino",
+        amount: 5,
+        sourceAmount: 5,
+        sourceUsd: 5.5,
+        earnEurc: 2,
+      }).error,
+    ).toContain("Earn EURC");
+  });
+
+  test("sell usd → lend only; sell jlp → kamino only", () => {
+    const p = buildRestorePlan({
+      ...base,
+      direction: "sell",
+      target: "usd",
+      source: "lend",
+      amount: 100,
+      sourceAmount: 100,
+      sourceUsd: 330,
+      estTargetOut: 30,
+    });
+    expect(p.error).toBeNull();
+    expect(p.stages.map(s => s.type)).toEqual(["kamino-withdraw", "swap-any", "lend-collateral"]);
+    const sw = p.stages[1];
+    expect(sw.type === "swap-any" && sw.inToken === "usdg" && sw.outToken === "jlp").toBe(true);
+    // rejected sell combos
+    expect(
+      buildRestorePlan({
+        ...base,
+        direction: "sell",
+        target: "usd",
+        source: "kamino",
+        amount: 10,
+        sourceAmount: 10,
+        sourceUsd: 10,
+      }).error,
+    ).not.toBeNull();
+    expect(
+      buildRestorePlan({
+        ...base,
+        direction: "sell",
+        target: "jlp",
+        source: "lend",
+        amount: 10,
+        sourceAmount: 10,
+        sourceUsd: 35,
+      }).error,
+    ).not.toBeNull();
+    const pj = buildRestorePlan({
+      ...base,
+      direction: "sell",
+      target: "jlp",
+      source: "kamino",
+      amount: 10,
+      sourceAmount: 10,
+      sourceUsd: 35,
+      estTargetOut: 35,
+    });
+    expect(pj.error).toBeNull();
+    expect(pj.stages.map(s => s.type)).toEqual(["lend-collateral", "swap-any", "kamino-deposit"]);
+  });
+
+  test("sell: JupSOL withdraw hits the same LTV guard as JLP", () => {
+    const riskyJupsol = vault({
+      key: "JupSOL",
+      vaultId: 52,
+      positionId: 124,
+      collateralUsd: 100000,
+      debt: 80000, // ltv 0.80 already above 0.95×liqT (0.76)
+      supplyAmount: 1200,
+      supplyPriceUsd: 95,
+      liqThreshold: 0.8,
+      target: 0.7,
+    });
+    const p = buildRestorePlan({
+      ...base,
+      jupsol: riskyJupsol,
+      direction: "sell",
+      target: "jupsol",
+      source: "kamino",
+      amount: 1,
+      sourceAmount: 1,
+      sourceUsd: 95,
+      estTargetOut: 95,
+    });
+    expect(p.error).toContain("JupSOL LTV");
+  });
+
+  test("sell: kamino balance check + slippage stamped on the swap stage", () => {
+    const p = buildRestorePlan({
+      ...base,
+      direction: "sell",
+      target: "usd",
+      source: "lend",
+      amount: 100,
+      sourceAmount: 100,
+      sourceUsd: 330,
+      kaminoUsdg: 50,
+    });
+    expect(p.error).toContain("Insufficient Kamino USDG");
+    const p2 = buildRestorePlan({
+      ...base,
+      direction: "sell",
+      target: "jupsol",
+      source: "kamino",
+      amount: 10,
+      sourceAmount: 10,
+      sourceUsd: 900,
+      estTargetOut: 900,
+      slippageBps: 10,
+    });
+    const sw = p2.stages[1];
+    expect(sw.type === "swap-any" && sw.slippageBps).toBe(10);
+  });
+
+  test("default direction is buy (persisted/old runs unchanged)", () => {
+    const a = buildRestorePlan({
+      ...base,
+      target: "jupsol",
+      source: "kamino",
+      amount: 10,
+      sourceAmount: 11,
+      sourceUsd: 11,
+    });
+    const b = buildRestorePlan({
+      ...base,
+      direction: "buy",
+      target: "jupsol",
+      source: "kamino",
+      amount: 10,
+      sourceAmount: 11,
+      sourceUsd: 11,
+    });
+    expect(JSON.stringify(a.stages)).toBe(JSON.stringify(b.stages));
+  });
 });
 
 describe("slippageBpsFor", () => {
@@ -432,6 +647,16 @@ describe("slippageBpsFor", () => {
     expect(slippageBpsFor(RESTORE_TOKENS.usdg.mint, RESTORE_TOKENS.jupsol.mint)).toBe(5);
     expect(slippageBpsFor(RESTORE_TOKENS.jlp.mint, USDT)).toBe(5); // volatile side wins
     expect(slippageBpsFor(RESTORE_TOKENS.jlp.mint, RESTORE_TOKENS.eurc.mint)).toBe(5);
+  });
+  test("requested bps honoured only within the allow-list", () => {
+    const usdg = RESTORE_TOKENS.usdg.mint;
+    const jupsol = RESTORE_TOKENS.jupsol.mint;
+    expect(slippageBpsFor(usdg, jupsol, 10)).toBe(10);
+    expect(slippageBpsFor(usdg, jupsol, 50)).toBe(50);
+    expect(slippageBpsFor(usdg, jupsol, 7)).toBe(5); // not allowed → default
+    expect(slippageBpsFor(usdg, jupsol, 0)).toBe(5);
+    // stable pairs stay at 1 bp regardless of the request
+    expect(slippageBpsFor(usdg, USDT, 50)).toBe(1);
   });
 });
 

@@ -22,7 +22,8 @@ const isStage = (s: unknown): s is PlanStage => {
     t === "spend-transfer" ||
     t === "swap-any" ||
     t === "lend-collateral" ||
-    t === "earn-deposit"
+    t === "earn-deposit" ||
+    t === "earn-withdraw"
   );
 };
 
@@ -51,7 +52,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return sendJson(res, 400, { error: "bad target/source" });
       }
       if (!Number.isFinite(amount)) return sendJson(res, 400, { error: "bad amount" });
-      return sendJson(res, 200, await restorePlanAction(target, source, amount));
+      const direction = body.direction === "sell" ? "sell" : "buy";
+      const slippageBps = Number.isFinite(Number(body.slippageBps)) ? Number(body.slippageBps) : undefined;
+      return sendJson(res, 200, await restorePlanAction(target, source, amount, direction, slippageBps));
     }
     if (action === "build") {
       if (!isStage(body.stage)) {

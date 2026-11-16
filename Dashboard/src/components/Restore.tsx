@@ -1,11 +1,12 @@
 import { IconRefresh, IconX } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { fmtNum, fmtPct } from "../lib/format";
+import { slippageBps } from "../lib/slippage";
 import {
   RESTORE_TITLE,
   RESTORE_TOKENS,
   type PlanStage,
-  type PositionDelta,
+  type RestoreDirection,
   type RestoreSource,
   type RestoreTarget,
 } from "../lib/rebalance/plan";
@@ -17,7 +18,10 @@ import { useStageRunner } from "./wallet/useStageRunner";
 
 const LS_KEY = "fims-restore";
 
-const SOURCE_LABEL: Record<RestoreSource, string> = { kamino: "Kamino", lend: "Lend" };
+const SOURCE_LABEL: Record<RestoreDirection, Record<RestoreSource, string>> = {
+  buy: { kamino: "from Kamino USDG", lend: "from Lend JLP" },
+  sell: { kamino: "to Kamino USD", lend: "to Lend JLP" },
+};
 
 const sanitize = (v: string) => {
   const cleaned = v.replace(/,/g, ".").replace(/[^0-9.]/g, "");
@@ -41,6 +45,7 @@ const stageDetail = (s: PlanStage) => {
     return `${s.amount > 0 ? "+" : "−"}${Math.abs(s.amount).toFixed(2)} ${sym} collateral`;
   }
   if (s.type === "earn-deposit") return `${s.amount.toFixed(2)} EURC → Jupiter Earn`;
+  if (s.type === "earn-withdraw") return `${s.amount.toFixed(2)} EURC ← Jupiter Earn`;
   if (s.type === "kamino-deposit") return `≈ ${(s.estUsdg ?? s.amountUsdg).toFixed(2)} USDG to Kamino`;
   return "";
 };
@@ -55,16 +60,20 @@ function Inner({
   target: RestoreTarget;
   diff: number;
   usdDiff: number;
-  onDone: (totalLamports: number | null) => void;
+  onDone: (totalLamports: number | null, direction: RestoreDirection) => void;
   onOpenSettings: () => void;
 }) {
   const label = RESTORE_TITLE[target];
   const fixedSource: RestoreSource | null = target === "usd" ? "lend" : target === "jlp" ? "kamino" : null;
-  const [source, setSource] = useState<RestoreSource>(() => fixedSource ?? (usdDiff > 0 ? "kamino" : "lend"));
-  const [amount, setAmount] = useState(() => {
-    const pre = Math.max(0, -diff);
+  const [direction, setDirection] = useState<RestoreDirection>(() => (diff > 0 ? "sell" : "buy"));
+  const [source, setSource] = useState<RestoreSource>(
+    () => fixedSource ?? (direction === "sell" ? "kamino" : usdDiff > 0 ? "kamino" : "lend"),
+  );
+  const prefill = () => {
+    const pre = Math.max(0, Math.abs(diff));
     return pre > 0 ? sanitize(pre.toFixed(2)) : "";
-  });
+  };
+  const [amount, setAmount] = useState(prefill);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -75,23 +84,32 @@ function Inner({
   const amountOk = Number.isFinite(amt) && amt > 0;
   const amountRef = useRef(amt);
   const sourceRef = useRef(source);
+  const directionRef = useRef(direction);
   useEffect(() => {
     amountRef.current = amt;
     sourceRef.current = source;
-  }, [amt, source]);
+    directionRef.current = direction;
+  }, [amt, source, direction]);
 
   const r = useStageRunner({
     lsKey: LS_KEY,
     fetchPlan: async () => {
       const a = amountRef.current;
       if (!Number.isFinite(a) || a <= 0) return null;
-      return api({ action: "restore-plan", target, source: sourceRef.current, amount: a });
+      return api({
+        action: "restore-plan",
+        target,
+        source: sourceRef.current,
+        amount: a,
+        direction: directionRef.current,
+        slippageBps: slippageBps(),
+      });
     },
-    onDone,
+    onDone: l => onDone(l, directionRef.current),
   });
   const { plan, states, unfinished, loadPlan } = r;
 
-  // re-plan (debounced) when amount/source changes — skipped while a run is unfinished
+  // re-plan (debounced) when amount/source/direction changes — skipped while a run is unfinished
   const amtKey = Number.isFinite(amt) ? Math.round(amt * 10000) / 10000 : amt;
   const firstRun = useRef(true);
   useEffect(() => {
@@ -102,21 +120,37 @@ function Inner({
     if (unfinished) return;
     const t = setTimeout(() => void loadPlan(), 400);
     return () => clearTimeout(t);
-  }, [amtKey, source, unfinished, loadPlan]);
+  }, [amtKey, source, direction, unfinished, loadPlan]);
 
   const walletReady = r.connected && !r.wrongWallet && r.canSign;
   const walletMissing = !r.connected || !!r.wrongWallet;
   const canExecute =
     !r.running && walletReady && !!plan && plan.stages.length > 0 && !plan.error && !unfinished && amountOk;
 
-  const jlpPos = plan?.positions.find((p: PositionDelta) => p.key === "JLP");
-  const ltvWarn = jlpPos != null && jlpPos.ltvAfter > jlpPos.target;
+  const overTarget = plan?.positions.filter(p => p.ltvAfter > p.target) ?? [];
 
   return (
     <div className="space-y-3">
-      {/* amount + source card */}
+      {/* amount + direction + counter card */}
       <Card>
         <CardTitle>Amount ({label})</CardTitle>
+        <div className="mb-2 flex rounded-lg border border-line p-0.5" role="group" aria-label="Direction">
+          {(["buy", "sell"] as const).map(d => (
+            <button
+              key={d}
+              onClick={() => {
+                setDirection(d);
+                setSource(fixedSource ?? (d === "sell" ? "kamino" : usdDiff > 0 ? "kamino" : "lend"));
+                setAmount(prefill());
+              }}
+              className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium ${
+                direction === d ? "bg-accent text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              {d === "buy" ? `Buy ${label}` : `Sell ${label}`}
+            </button>
+          ))}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative w-[140px]">
             <input
@@ -146,7 +180,7 @@ function Inner({
           </div>
           {fixedSource ? (
             <span className="rounded-lg bg-card2 px-3 py-2 text-xs font-medium text-muted">
-              from {SOURCE_LABEL[fixedSource]} {fixedSource === "lend" ? "JLP" : "USDG"}
+              {SOURCE_LABEL[direction][fixedSource]}
             </span>
           ) : (
             <div className="flex rounded-lg border border-line p-0.5" role="group" aria-label="Source">
@@ -158,17 +192,16 @@ function Inner({
                     source === s ? "bg-accent text-white" : "text-muted hover:text-ink"
                   }`}
                 >
-                  {s === "kamino" ? "Kamino USDG" : "Lend JLP"}
+                  {SOURCE_LABEL[direction][s]}
                 </button>
               ))}
             </div>
           )}
         </div>
-        {diff > 0 && (
-          <p className="mt-2 text-[11px] text-muted">
-            Current diff is +{fmtNum(diff, 2)} {label} — restore only makes sense for a shortfall.
-          </p>
-        )}
+        <p className="mt-2 text-[11px] text-muted">
+          Current diff: {diff >= 0 ? "+" : ""}
+          {fmtNum(diff, 2)} {label}
+        </p>
         {Number.isFinite(amt) && amt > 10_000 && <p className="mt-1 text-[11px] text-danger">Max 10,000 per restore</p>}
       </Card>
 
@@ -200,15 +233,17 @@ function Inner({
         )}
         {plan && plan.positions.length > 0 && (
           <div className="mb-2 space-y-1">
-            {plan.positions.map(p => (
-              <p key={p.key} className="text-xs text-muted">
+            {plan.positions.map((p, i) => (
+              <p key={`${p.key}-${i}`} className="text-xs text-muted">
                 {p.key} LTV {fmtPct(p.ltvBefore)} → {fmtPct(p.ltvAfter)}
                 {p.ltvAfter > p.target && <span className="text-warn"> (above target)</span>}
               </p>
             ))}
-            {ltvWarn && (
-              <p className="text-[11px] text-warn">JLP LTV will be above target — run Rebalance afterwards</p>
-            )}
+            {overTarget.map(p => (
+              <p key={`warn-${p.key}`} className="text-[11px] text-warn">
+                {p.key} LTV will be above target — run Rebalance afterwards
+              </p>
+            ))}
           </div>
         )}
         {plan && plan.stages.length > 0 && <StageList stages={plan.stages} states={states} detail={stageDetail} />}
@@ -244,7 +279,7 @@ export default function Restore({
   target: RestoreTarget;
   diff: number;
   usdDiff: number;
-  onDone: (totalLamports: number | null) => void;
+  onDone: (totalLamports: number | null, direction: RestoreDirection) => void;
   onOpenSettings: () => void;
 }) {
   return (

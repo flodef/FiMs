@@ -1,4 +1,4 @@
-import { getDepositIxs } from "@jup-ag/lend/earn";
+import { getDepositIxs, getWithdrawIxs } from "@jup-ag/lend/earn";
 import { getOperateIx } from "@jup-ag/lend/borrow";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
@@ -25,6 +25,7 @@ import {
   priorityMicroLamports,
   RESTORE_COMBOS,
   RESTORE_MAX_AMOUNT,
+  RESTORE_SELL_COMBOS,
   RESTORE_TOKENS,
   slippageBpsFor,
   type PlanPositionInput,
@@ -825,6 +826,7 @@ export async function sizeSourceForTarget(
   targetToken: RestoreToken,
   sourceToken: RestoreToken,
   targetAmount: number,
+  slippageBps?: number,
 ): Promise<{ sourceAmount: number; estTargetOut: number }> {
   const t = RESTORE_TOKENS[targetToken];
   const s = RESTORE_TOKENS[sourceToken];
@@ -836,28 +838,81 @@ export async function sizeSourceForTarget(
   const T0 = q2.outAmount;
   if (!(T0 > 0)) throw new Error("restore quote: zero target output");
   const rate = T0 / S0; // target raw per source raw
-  const buffer = 1 + slippageBpsFor(s.mint, t.mint) / 10_000;
+  const buffer = 1 + slippageBpsFor(s.mint, t.mint, slippageBps) / 10_000;
   const sourceRaw = Math.ceil((T_raw / rate) * buffer);
   return { sourceAmount: sourceRaw / 10 ** s.decimals, estTargetOut: T0 / 10 ** t.decimals };
+}
+
+/** User's Jupiter Earn EURC balance (units) — 0 when no position is found. */
+export async function fetchEarnEurc(): Promise<number> {
+  const res = await fetch(`${JUP_LEND_API}/earn/positions?users=${WALLET}`, {
+    headers: { "x-api-key": jupKey() },
+    signal: AbortSignal.timeout(FETCH_MS),
+  });
+  if (!res.ok) throw new Error(`jupiter earn positions → HTTP ${res.status}`);
+  const data: any = await res.json();
+  const list: any[] = Array.isArray(data) ? data : (data?.positions ?? data?.data ?? []);
+  for (const pos of list) {
+    const token = pos.token ?? {};
+    const symbol = String(token.asset?.symbol ?? token.symbol ?? "");
+    if (symbol !== "EURC") continue;
+    return Number(pos.underlyingAssets ?? 0) / 10 ** Number(token.decimals ?? 6);
+  }
+  return 0;
 }
 
 export async function getRestorePlan(
   target: RestoreTarget,
   source: RestoreSource,
   amount: number,
+  direction: "buy" | "sell" = "buy",
+  slippageBps?: number,
 ): Promise<RebalancePlan> {
   const [vaults, kamino] = await Promise.all([fetchLendVaultPositions(), fetchKaminoUsdg()]);
   const empty = (error: string): RebalancePlan => ({ positions: [], stages: [], kaminoUsdg: kamino.amount, error });
-  if (!RESTORE_COMBOS[target]?.includes(source)) {
-    return empty(`Cannot restore ${target.toUpperCase()} from ${source === "kamino" ? "Kamino USDG" : "Lend JLP"}`);
+  const combos = direction === "sell" ? RESTORE_SELL_COMBOS : RESTORE_COMBOS;
+  if (!combos[target]?.includes(source)) {
+    const side = source === "kamino" ? "Kamino USDG" : "Lend JLP";
+    return empty(
+      direction === "sell"
+        ? `Cannot sell ${target.toUpperCase()} to ${side}`
+        : `Cannot restore ${target.toUpperCase()} from ${side}`,
+    );
   }
   if (!Number.isFinite(amount) || amount <= 0 || amount > RESTORE_MAX_AMOUNT)
     return empty("Amount must be between 1 and 10,000");
   const jlp = vaults.find(v => v.key === "JLP");
   const jupsol = vaults.find(v => v.key === "JupSOL");
+
+  if (direction === "sell") {
+    const inToken: RestoreToken = target === "usd" ? "usdg" : target;
+    const outToken: RestoreToken = source === "kamino" ? "usdg" : "jlp";
+    const tin = RESTORE_TOKENS[inToken];
+    const tout = RESTORE_TOKENS[outToken];
+    const q = await jupQuote(tin.mint, tout.mint, Math.round(amount * 10 ** tin.decimals), "ExactIn").catch(() => null);
+    if (!q || !(q.outAmount > 0)) return empty("No swap route for this pair");
+    const estOut = q.outAmount / 10 ** tout.decimals;
+    const sourceUsd = outToken === "usdg" ? estOut : estOut * (jlp?.supplyPriceUsd ?? 0);
+    const earnEurc = target === "eurc" ? await fetchEarnEurc().catch(() => 0) : undefined;
+    return buildRestorePlan({
+      target,
+      source,
+      direction,
+      amount,
+      sourceAmount: amount,
+      sourceUsd,
+      jlp,
+      jupsol,
+      kaminoUsdg: kamino.amount,
+      estTargetOut: estOut,
+      earnEurc,
+      slippageBps: slippageBpsFor(tin.mint, tout.mint, slippageBps),
+    });
+  }
+
   const targetToken: RestoreToken = target === "usd" ? "usdg" : target;
   const sourceToken: RestoreToken = source === "kamino" ? "usdg" : "jlp";
-  const sized = await sizeSourceForTarget(targetToken, sourceToken, amount).catch(() => null);
+  const sized = await sizeSourceForTarget(targetToken, sourceToken, amount, slippageBps).catch(() => null);
   if (!sized) return empty("No swap route for this pair");
   const sourceUsd = source === "kamino" ? sized.sourceAmount : sized.sourceAmount * (jlp?.supplyPriceUsd ?? 0);
   return buildRestorePlan({
@@ -870,6 +925,7 @@ export async function getRestorePlan(
     jupsol,
     kaminoUsdg: kamino.amount,
     estTargetOut: sized.estTargetOut,
+    slippageBps: slippageBpsFor(RESTORE_TOKENS[sourceToken].mint, RESTORE_TOKENS[targetToken].mint, slippageBps),
   });
 }
 
@@ -909,5 +965,22 @@ export async function buildEarnDepositTx(amountRaw: number): Promise<LendTxResul
   );
   const tx = await finalizeTx(connection, [ataIx, ...ixs]);
   if (tx.size > MAX_TX_BYTES) throw new Error(`earn deposit tx too large (${tx.size} B)`);
+  return tx;
+}
+
+/** Jupiter Earn withdraw of `amountRaw` raw EURC units back to the wallet ATA. */
+export async function buildEarnWithdrawTx(amountRaw: number): Promise<LendTxResult> {
+  const connection = rpc();
+  const eurcMint = new PublicKey(RESTORE_TOKENS.eurc.mint);
+  const { ixs } = await getWithdrawIxs({
+    amount: new BN(Math.round(amountRaw)),
+    asset: eurcMint,
+    signer: WALLET_PUB,
+    connection,
+    market: "main",
+    includeATASetup: true,
+  });
+  const tx = await finalizeTx(connection, ixs);
+  if (tx.size > MAX_TX_BYTES) throw new Error(`earn withdraw tx too large (${tx.size} B)`);
   return tx;
 }

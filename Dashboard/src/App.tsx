@@ -457,13 +457,14 @@ export default function App() {
               diff={restoreDiff(result, restoreTarget)}
               usdDiff={result.fims.usd.usdAmount}
               onOpenSettings={openSettings}
-              onDone={lamports => {
+              onDone={(lamports, direction) => {
                 const label = RESTORE_TITLE[restoreTarget];
+                const verb = direction === "sell" ? "Sold" : "Restored";
                 setDrawer(null);
                 void refresh();
                 setToast({
                   kind: "ok",
-                  msg: lamports ? `Restored ${label} · fees ${fmtSOL(lamports)} SOL` : `Restored ${label}`,
+                  msg: lamports ? `${verb} ${label} · fees ${fmtSOL(lamports)} SOL` : `${verb} ${label}`,
                   duration: 6000,
                 });
               }}

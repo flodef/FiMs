@@ -1,12 +1,14 @@
 import { DANGER_RATIO, WALLET } from "../config.js";
 import {
   buildEarnDepositTx,
+  buildEarnWithdrawTx,
   buildKaminoTx,
   buildLendCollateralTx,
   buildLendTxFitted,
   buildSpendTransferTx,
   buildSwapTx,
   deserializeTx,
+  fetchEarnEurc,
   fetchKaminoUsdg,
   fetchLendVaultPositions,
   getPlan,
@@ -64,8 +66,10 @@ export async function restorePlanAction(
   target: RestoreTarget,
   source: RestoreSource,
   amount: number,
+  direction: "buy" | "sell" = "buy",
+  slippageBps?: number,
 ): Promise<RebalancePlan> {
-  return getRestorePlan(target, source, amount);
+  return getRestorePlan(target, source, amount, direction, slippageBps);
 }
 
 interface BuiltTx {
@@ -348,7 +352,7 @@ async function buildRestoreStage(stage: PlanStage): Promise<BuiltTx> {
     const balRaw = await walletTokenBalanceRaw(connection, tin.mint);
     const amountRaw = Math.min(Math.round(stage.amount * RESTORE_CAP * 10 ** tin.decimals), balRaw);
     if (amountRaw <= 0) throw new HttpError(422, `wallet ${tin.symbol} balance too low for swap`);
-    const bps = slippageBpsFor(tin.mint, tout.mint);
+    const bps = slippageBpsFor(tin.mint, tout.mint, stage.slippageBps);
     const built = await buildSwapTx(tin.mint, tout.mint, amountRaw, "ExactIn", bps);
     const simulation = await simulateOrFail(built.txB64, bps);
     return {
@@ -402,6 +406,22 @@ async function buildRestoreStage(stage: PlanStage): Promise<BuiltTx> {
     const built = await buildLendCollateralTx({ vaultId: v.vaultId, positionId: v.positionId, colRaw: dRaw });
     const simulation = await simulateOrFail(built.txB64);
     return { tx: built.txB64, size: built.size, quote: { colRaw: dRaw }, simulation };
+  }
+
+  if (stage.type === "earn-withdraw") {
+    const earnBal = await fetchEarnEurc();
+    const amountRaw = Math.round(stage.amount * 10 ** RESTORE_TOKENS.eurc.decimals);
+    if (amountRaw <= 0 || amountRaw > Math.floor(earnBal * 10 ** RESTORE_TOKENS.eurc.decimals)) {
+      throw new HttpError(422, "Jupiter Earn EURC balance too low for withdraw");
+    }
+    const built = await buildEarnWithdrawTx(amountRaw);
+    const simulation = await simulateOrFail(built.txB64);
+    return {
+      tx: built.txB64,
+      size: built.size,
+      quote: { eurc: amountRaw / 10 ** RESTORE_TOKENS.eurc.decimals },
+      simulation,
+    };
   }
 
   if (stage.type === "earn-deposit") {

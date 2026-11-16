@@ -1,4 +1,5 @@
 import {
+  IconArrowsExchange,
   IconBell,
   IconBellOff,
   IconDeviceDesktop,
@@ -10,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { currentSubscription, pushSupported, subscribePush, unsubscribePush } from "../lib/push";
+import { setSlippageBps, slippageBps, SLIPPAGE_CHOICES } from "../lib/slippage";
 import { setTheme, themePref, type ThemePref } from "../lib/theme";
 import pkg from "../../package.json";
 
@@ -35,6 +37,7 @@ export function Settings({
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [pref, setPref] = useState<ThemePref>(themePref());
+  const [slip, setSlip] = useState<number>(slippageBps());
   const supported = pushSupported();
 
   useEffect(() => {
@@ -89,6 +92,32 @@ export function Settings({
           <span className="text-xs text-muted">{busy ? "…" : supported ? "" : "unsupported"}</span>
         </button>
         {msg && <p className="py-2 text-[11px] text-danger">{msg}</p>}
+
+        <div className="py-3">
+          <div className="flex items-center gap-3 text-sm">
+            <IconArrowsExchange size={18} className="text-muted" />
+            <span className="flex-1">Swap slippage</span>
+            <select
+              value={slip}
+              onChange={e => {
+                const v = Number(e.target.value);
+                setSlippageBps(v);
+                setSlip(v);
+              }}
+              aria-label="Swap slippage"
+              className="rounded-lg border border-line bg-card2 px-2 py-1.5 text-xs font-medium text-ink outline-none focus:border-accent"
+            >
+              {SLIPPAGE_CHOICES.map(c => (
+                <option key={c.bps} value={c.bps}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <p className="mt-1 pl-8 text-[11px] text-muted">
+            Volatile pairs (JupSOL, JLP, EURC). Stablecoin swaps stay at 0.01%.
+          </p>
+        </div>
 
         <Suspense
           fallback={
