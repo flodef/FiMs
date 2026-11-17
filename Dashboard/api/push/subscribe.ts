@@ -1,5 +1,5 @@
 import { pushSubsAdd, pushSubsAll, pushSubsRemove } from "../../src/lib/storage.js";
-import { readBody, requireAuth, sendJson, type VercelRequest, type VercelResponse } from "../_lib.js";
+import { readBody, requireAuth, sendJson, sendTestPush, type VercelRequest, type VercelResponse } from "../_lib.js";
 
 export const maxDuration = 15;
 
@@ -14,6 +14,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     await pushSubsAdd(JSON.stringify(sub));
     return sendJson(res, 200, { ok: true });
+  }
+
+  // test notification to this device only (re-registers it in case the server lost it)
+  if (req.method === "PUT") {
+    const sub = body.subscription;
+    if (!sub || typeof sub !== "object" || typeof (sub as any).endpoint !== "string") {
+      return sendJson(res, 400, { error: "subscription.endpoint required" });
+    }
+    await pushSubsAdd(JSON.stringify(sub));
+    return sendJson(res, 200, await sendTestPush(sub as any));
   }
 
   if (req.method === "DELETE") {

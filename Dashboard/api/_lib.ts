@@ -114,27 +114,55 @@ export function vapidPublicKey(): string | null {
   return pub;
 }
 
-export async function sendPush(title: string, body: string, url = "/"): Promise<{ sent: number; removed: number }> {
+export interface PushResult {
+  sent: number;
+  removed: number;
+  /** non-expiry failures (status + message) — surfaced in the cron response */
+  errors: string[];
+}
+
+async function pushOne(sub: webpush.PushSubscription, payload: string): Promise<void> {
+  // TTL 1 h + high urgency: delivered promptly even when the app is closed / phone dozing
+  await webpush.sendNotification(sub, payload, { TTL: 3600, urgency: "high" });
+}
+
+export async function sendPush(title: string, body: string, url = "/"): Promise<PushResult> {
+  if (!vapidPublicKey()) return { sent: 0, removed: 0, errors: ["VAPID keys not configured"] };
   const { pushSubsAll, pushSubsRemove } = await import("../src/lib/storage.js");
   const subs = await pushSubsAll();
+  const payload = JSON.stringify({ title, body, url });
   let sent = 0;
   let removed = 0;
+  const errors: string[] = [];
   await Promise.all(
     subs.map(async raw => {
       try {
-        const sub = JSON.parse(raw);
-        await webpush.sendNotification(sub, JSON.stringify({ title, body, url }));
+        await pushOne(JSON.parse(raw), payload);
         sent++;
       } catch (e: any) {
         const code = e?.statusCode;
         if (code === 404 || code === 410) {
           await pushSubsRemove(raw);
           removed++;
-        }
+        } else errors.push(`${code ?? "?"} ${String(e?.body || e?.message || e).slice(0, 120)}`);
       }
     }),
   );
-  return { sent, removed };
+  return { sent, removed, errors };
+}
+
+/** Test push to a single subscription (Settings button). */
+export async function sendTestPush(sub: webpush.PushSubscription): Promise<{ ok: boolean; error?: string }> {
+  if (!vapidPublicKey()) return { ok: false, error: "VAPID keys not configured" };
+  try {
+    await pushOne(
+      sub,
+      JSON.stringify({ title: "FiMs Dashboard", body: "Test notification — alerts will look like this.", url: "/" }),
+    );
+    return { ok: true };
+  } catch (e: any) {
+    return { ok: false, error: `${e?.statusCode ?? "?"} ${String(e?.body || e?.message || e).slice(0, 160)}` };
+  }
 }
 
 /** Danger-alert e-mail via SMTP. No-op (never throws) when SMTP env is missing. */

@@ -61,3 +61,21 @@ export async function unsubscribePush(): Promise<void> {
     body: JSON.stringify({ endpoint }),
   }).catch(() => {});
 }
+
+/** Send a test notification to THIS device's subscription (server re-registers it). */
+export async function sendTestPush(): Promise<{ ok: boolean; error?: string }> {
+  const sub = await currentSubscription();
+  if (!sub) return { ok: false, error: "No subscription on this device" };
+  try {
+    const res = await fetch("/api/push/subscribe", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ subscription: sub.toJSON() }),
+    });
+    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+    if (!res.ok) return { ok: false, error: data.error ?? `failed (${res.status})` };
+    return { ok: data.ok !== false, error: data.error };
+  } catch {
+    return { ok: false, error: "request failed" };
+  }
+}

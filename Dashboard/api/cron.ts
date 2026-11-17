@@ -2,7 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { computeDashboard, type AlertLevel } from "../src/lib/compute.js";
 import { fetchInputs } from "../src/lib/server.js";
 import { getAlertState, setAlertState } from "../src/lib/storage.js";
-import { sendJson, sendMail, sendPush, type VercelRequest, type VercelResponse } from "./_lib.js";
+import { sendJson, sendMail, sendPush, type PushResult, type VercelRequest, type VercelResponse } from "./_lib.js";
 
 export const maxDuration = 60;
 
@@ -53,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const next: AlertState = {};
   const lines: string[] = [];
   const dangerLines: string[] = [];
-  const pushes: { title: string; body: string; sent: number; removed: number }[] = [];
+  const pushes: ({ title: string; body: string } & PushResult)[] = [];
 
   const extraMeta = new Map((inputs.extraPositions ?? []).map(e => [`${e.id}:${e.token}`, e]));
 

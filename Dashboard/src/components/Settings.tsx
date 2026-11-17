@@ -6,11 +6,12 @@ import {
   IconLogout,
   IconMoon,
   IconRefresh,
+  IconSend,
   IconSun,
   IconWallet,
 } from "@tabler/icons-react";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { currentSubscription, pushSupported, subscribePush, unsubscribePush } from "../lib/push";
+import { currentSubscription, pushSupported, sendTestPush, subscribePush, unsubscribePush } from "../lib/push";
 import { setSlippageBps, slippageBps, SLIPPAGE_CHOICES } from "../lib/slippage";
 import { setTheme, themePref, type ThemePref } from "../lib/theme";
 import pkg from "../../package.json";
@@ -92,6 +93,22 @@ export function Settings({
           <span className="text-xs text-muted">{busy ? "…" : supported ? "" : "unsupported"}</span>
         </button>
         {msg && <p className="py-2 text-[11px] text-danger">{msg}</p>}
+
+        {subscribed && (
+          <button
+            onClick={async () => {
+              setBusy(true);
+              setMsg(null);
+              const r = await sendTestPush();
+              setMsg(r.ok ? "Test sent — check your notifications" : (r.error ?? "failed"));
+              setBusy(false);
+            }}
+            disabled={busy}
+            className="flex w-full items-center gap-3 py-3 text-left text-sm disabled:opacity-50"
+          >
+            <IconSend size={18} className="text-muted" /> Send test notification
+          </button>
+        )}
 
         <div className="py-3">
           <div className="flex items-center gap-3 text-sm">
