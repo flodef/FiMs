@@ -36,7 +36,7 @@ export function Settings({
 }) {
   const [subscribed, setSubscribed] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pref, setPref] = useState<ThemePref>(themePref());
   const [slip, setSlip] = useState<number>(slippageBps());
   const supported = pushSupported();
@@ -55,7 +55,7 @@ export function Settings({
       } else {
         const r = await subscribePush();
         setSubscribed(r.ok);
-        if (!r.ok) setMsg(r.error ?? "failed");
+        if (!r.ok) setMsg({ ok: false, text: r.error ?? "failed" });
       }
     } finally {
       setBusy(false);
@@ -92,7 +92,7 @@ export function Settings({
           </span>
           <span className="text-xs text-muted">{busy ? "…" : supported ? "" : "unsupported"}</span>
         </button>
-        {msg && <p className="py-2 text-[11px] text-danger">{msg}</p>}
+        {msg && <p className={`py-2 text-[11px] ${msg.ok ? "text-ok" : "text-danger"}`}>{msg.text}</p>}
 
         {subscribed && (
           <button
@@ -100,7 +100,11 @@ export function Settings({
               setBusy(true);
               setMsg(null);
               const r = await sendTestPush();
-              setMsg(r.ok ? "Test sent — check your notifications" : (r.error ?? "failed"));
+              setMsg(
+                r.ok
+                  ? { ok: true, text: "Test sent — check your notifications" }
+                  : { ok: false, text: r.error ?? "failed" },
+              );
               setBusy(false);
             }}
             disabled={busy}

@@ -16,7 +16,13 @@ registerRoute(
 );
 
 self.addEventListener("push", event => {
-  const data = event.data?.json() ?? {};
+  let data: { title?: string; body?: string; url?: string };
+  try {
+    data = event.data?.json() ?? {};
+  } catch {
+    // non-JSON payload — still show a notification rather than dropping it
+    data = {};
+  }
   event.waitUntil(
     self.registration.showNotification(data.title ?? "FiMs Dashboard", {
       body: data.body ?? "",

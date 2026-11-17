@@ -86,12 +86,20 @@ export function RunActions({
   return (
     <>
       {signReady ? (
-        <button
-          onClick={onSign}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-sm font-bold text-white"
-        >
-          <IconSignature size={16} /> Sign step {signReady.stageIndex + 1} in wallet
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={onSign}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent py-2.5 text-sm font-bold text-white"
+          >
+            <IconSignature size={16} /> Sign step {signReady.stageIndex + 1} in wallet
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full rounded-xl border border-line py-2.5 text-sm font-semibold text-muted hover:bg-card2"
+          >
+            Cancel
+          </button>
+        </div>
       ) : (
         <>
           {awaitingSignature && (

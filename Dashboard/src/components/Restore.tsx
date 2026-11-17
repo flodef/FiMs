@@ -122,7 +122,7 @@ function Inner({
   });
   const { plan, states, unfinished, loadPlan } = r;
 
-  // re-plan (debounced) when amount/source changes — skipped while a run is unfinished
+  // re-plan (debounced) when amount/source/direction changes — skipped while a run is unfinished
   const amtKey = Number.isFinite(amt) ? Math.round(amt * 10000) / 10000 : amt;
   const firstRun = useRef(true);
   useEffect(() => {
@@ -133,7 +133,7 @@ function Inner({
     if (unfinished) return;
     const t = setTimeout(() => void loadPlan(), 400);
     return () => clearTimeout(t);
-  }, [amtKey, source, unfinished, loadPlan]);
+  }, [amtKey, source, direction, unfinished, loadPlan]);
 
   const walletReady = r.connected && !r.wrongWallet && r.canSign;
   const walletMissing = !r.connected || !!r.wrongWallet;
