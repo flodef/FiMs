@@ -937,13 +937,10 @@ export async function getRestorePlan(
 
   const targetToken: RestoreToken = target === "usd" ? "usdg" : target;
   const sourceToken: RestoreToken = source === "kamino" ? "usdg" : "jlp";
-  // buy only the part the wallet doesn't already hold — the deposit still
-  // targets the full `amount` so the loose balance is swept in too
-  const needBuy = Math.max(0, amount - walletBal);
-  const sized =
-    needBuy > 1e-9
-      ? await sizeSourceForTarget(targetToken, sourceToken, needBuy, slippageBps).catch(() => null)
-      : { sourceAmount: 0, estTargetOut: 0 };
+  // buy the FULL diff — the wallet balance is already counted in the diff, so
+  // sizing only the remainder would leave a residual shortfall; the deposit
+  // stage sweeps the wallet balance into the target as well
+  const sized = await sizeSourceForTarget(targetToken, sourceToken, amount, slippageBps).catch(() => null);
   if (!sized) return empty("No swap route for this pair");
   const sourceUsd = source === "kamino" ? sized.sourceAmount : sized.sourceAmount * (jlp?.supplyPriceUsd ?? 0);
   return buildRestorePlan({

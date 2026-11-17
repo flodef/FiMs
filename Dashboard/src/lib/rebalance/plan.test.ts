@@ -737,37 +737,41 @@ describe("buildRestorePlan", () => {
     expect(p.positions.map(x => x.key)).toEqual(["JLP"]); // only the deposit vault delta
   });
 
-  test("buy: wallet covers part → sized for the remainder, deposit still full", () => {
+  test("buy: wallet counts toward the diff → buy the full amount, deposit sweeps wallet", () => {
+    // diff −10 with 0.6 already in the wallet: buy all 10 (not 9.4) and deposit
+    // 10.6 — buying only the remainder would leave a −0.6 residual shortfall
     const p = buildRestorePlan({
       ...base,
       target: "jupsol",
       source: "kamino",
       amount: 10,
-      sourceAmount: 9, // sized for B = 10 − 0.6
-      sourceUsd: 9,
-      estTargetOut: 9.39,
+      sourceAmount: 10.5, // sized for the full amount
+      sourceUsd: 10.5,
+      estTargetOut: 10.4,
       walletBal: 0.6,
     });
     expect(p.error).toBeNull();
     expect(p.stages.map(s => s.type)).toEqual(["kamino-withdraw", "swap-any", "lend-collateral"]);
+    const w = p.stages[0];
+    expect(w.type === "kamino-withdraw" && w.usdgOut).toBe(10.5);
     const dep = p.stages[2];
-    expect(dep.type === "lend-collateral" && dep.amount).toBe(10); // full amount deposited
+    expect(dep.type === "lend-collateral" && dep.amount).toBeCloseTo(10.6, 9); // amount + wallet
   });
 
-  test("buy: wallet covers all → deposit-only plan", () => {
+  test("buy: wallet covers all → still buys the diff, deposits amount + wallet", () => {
     const p = buildRestorePlan({
       ...base,
       target: "jupsol",
       source: "kamino",
       amount: 0.5,
-      sourceAmount: 0,
-      sourceUsd: 0,
-      estTargetOut: 0,
+      sourceAmount: 0.52,
+      sourceUsd: 0.52,
+      estTargetOut: 0.51,
       walletBal: 0.6,
     });
     expect(p.error).toBeNull();
-    expect(p.stages.map(s => s.type)).toEqual(["lend-collateral"]);
-    expect(p.stages[0].type === "lend-collateral" && p.stages[0].amount).toBe(0.5);
+    expect(p.stages.map(s => s.type)).toEqual(["kamino-withdraw", "swap-any", "lend-collateral"]);
+    expect(p.stages[2].type === "lend-collateral" && p.stages[2].amount).toBeCloseTo(1.1, 9);
   });
 
   test("default direction is buy (persisted/old runs unchanged)", () => {

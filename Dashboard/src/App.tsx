@@ -260,240 +260,245 @@ export default function App() {
   };
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-bg lg:max-w-[1400px]">
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-bg/90 px-4 backdrop-blur lg:px-6">
-        <div className="flex items-center gap-2">
-          <span className="text-base font-bold">FiMs</span>
-          <button onClick={() => setTab("positions")} aria-label="Show positions" className="rounded-md">
-            <StatusBadge status={result.status} />
-          </button>
-          <InfoPopover r={result} sources={inputs.sources} nowMs={now.getTime()} />
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setDrawer("prices")}
-            className="hidden items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2 lg:flex"
-            aria-label="Prices"
-            title="Prices"
-          >
-            <IconCoin size={18} />
-          </button>
-          <button
-            onClick={() => setDrawer("convert")}
-            className="hidden items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2 lg:flex"
-            aria-label="Convert"
-            title="Convert"
-          >
-            <IconArrowsExchange size={18} />
-          </button>
-          <button
-            onClick={() => setPosSheet({ open: true, editing: null })}
-            disabled={!canEditPositions}
-            title={manageHint ?? "Add position"}
-            className={`${headerBtn} disabled:opacity-40`}
-            aria-label="Add position"
-          >
-            <IconPlus size={18} />
-          </button>
-          <button
-            onClick={() => setDrawer("rebalance")}
-            disabled={!canEditPositions}
-            title={manageHint ?? "Rebalance"}
-            className={`${headerBtn} disabled:opacity-40`}
-            aria-label="Rebalance"
-          >
-            <IconScale size={18} />
-          </button>
-          <button
-            onClick={() => setDrawer("topup")}
-            disabled={!canEditPositions}
-            title={manageHint ?? "Top up card"}
-            className={`${headerBtn} disabled:opacity-40`}
-            aria-label="Top up card"
-          >
-            <IconCreditCard size={18} />
-          </button>
-          <button onClick={() => setSettingsOpen(true)} className={headerBtn} aria-label="Settings">
-            <IconSettings size={18} />
-          </button>
-        </div>
-      </header>
-
-      {offline && (
-        <div className="bg-warn/15 px-4 py-2 text-center text-xs text-warn lg:px-6">
-          Offline — data from {timeAgo(inputs.fetchedAt, now.getTime())}
-        </div>
-      )}
-      {auth === "anon" && (
-        <div className="flex items-center justify-between gap-2 bg-accent/15 px-4 py-2 text-xs text-accent lg:px-6">
-          <span>{sessionExpired ? "Session expired" : "Login required"} — showing cached data</span>
-          <button onClick={() => setLoginOpen(true)} className="font-semibold underline">
-            Log in
-          </button>
-        </div>
-      )}
-      {result.stale && !offline && (
-        <div className="bg-warn/15 px-4 py-2 text-center text-xs text-warn lg:px-6">
-          Using cached data for{" "}
-          {result.staleSources
-            .map(s => {
-              const st = inputs.sources[s];
-              const ago = st?.at ? timeAgo(st.at, now.getTime()) : null;
-              return `${SOURCE_LABELS[s] ?? s}${ago ? ` (${ago})` : ""}`;
-            })
-            .join(", ")}
-        </div>
-      )}
-      {!result.sheetSync.inSync && <SheetSyncNotice sync={result.sheetSync} correction={result.fims.totalCorrection} />}
-
-      <main className="flex-1 px-4 pb-[calc(3.5rem+env(safe-area-inset-bottom)+0.75rem)] pt-3 lg:px-6 lg:pb-10">
-        <div className="lg:hidden">
-          {tab === "overview" && <Overview r={result} />}
-          {tab === "positions" && <Positions {...positionsProps} />}
-          {tab === "multiply" && <Multiply r={result} />}
-          {tab === "prices" && <Prices r={result} />}
-          {tab === "convert" && <ConvertTab r={result} />}
-        </div>
-
-        <div className="hidden lg:grid lg:grid-cols-3 lg:items-start lg:gap-4">
-          <div className="min-w-0 space-y-3">
-            <Overview r={result} />
-          </div>
-          <div className="min-w-0 space-y-3">
-            <Positions {...positionsProps} />
-          </div>
-          <div className="min-w-0 space-y-3">
-            <Multiply r={result} />
-          </div>
-        </div>
-      </main>
-
-      <nav className="fixed bottom-0 left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 border-t border-line bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-        {TABS.map(t => {
-          const Icon = t.icon;
-          const active = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium ${active ? "text-accent" : "text-muted"}`}
-            >
-              <Icon size={20} stroke={active ? 2.2 : 1.8} />
-              {t.label}
+    <>
+      {/* inert while another instance holds the lock — the overlay below stays interactive */}
+      <div className="mx-auto flex min-h-dvh max-w-md flex-col bg-bg lg:max-w-[1400px]" inert={!!blocked}>
+        <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-bg/90 px-4 backdrop-blur lg:px-6">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-bold">FiMs</span>
+            <button onClick={() => setTab("positions")} aria-label="Show positions" className="rounded-md">
+              <StatusBadge status={result.status} />
             </button>
-          );
-        })}
-      </nav>
+            <InfoPopover r={result} sources={inputs.sources} nowMs={now.getTime()} />
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setDrawer("prices")}
+              className="hidden items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2 lg:flex"
+              aria-label="Prices"
+              title="Prices"
+            >
+              <IconCoin size={18} />
+            </button>
+            <button
+              onClick={() => setDrawer("convert")}
+              className="hidden items-center gap-1 rounded-lg p-2 text-muted hover:bg-card2 lg:flex"
+              aria-label="Convert"
+              title="Convert"
+            >
+              <IconArrowsExchange size={18} />
+            </button>
+            <button
+              onClick={() => setPosSheet({ open: true, editing: null })}
+              disabled={!canEditPositions}
+              title={manageHint ?? "Add position"}
+              className={`${headerBtn} disabled:opacity-40`}
+              aria-label="Add position"
+            >
+              <IconPlus size={18} />
+            </button>
+            <button
+              onClick={() => setDrawer("rebalance")}
+              disabled={!canEditPositions}
+              title={manageHint ?? "Rebalance"}
+              className={`${headerBtn} disabled:opacity-40`}
+              aria-label="Rebalance"
+            >
+              <IconScale size={18} />
+            </button>
+            <button
+              onClick={() => setDrawer("topup")}
+              disabled={!canEditPositions}
+              title={manageHint ?? "Top up card"}
+              className={`${headerBtn} disabled:opacity-40`}
+              aria-label="Top up card"
+            >
+              <IconCreditCard size={18} />
+            </button>
+            <button onClick={() => setSettingsOpen(true)} className={headerBtn} aria-label="Settings">
+              <IconSettings size={18} />
+            </button>
+          </div>
+        </header>
 
-      {settingsOpen && (
-        <Drawer title="Settings" onClose={() => setSettingsOpen(false)}>
-          <Settings
-            onClose={() => setSettingsOpen(false)}
-            onRefresh={async () => {
-              checkForUpdate();
-              const r = await refresh();
-              setToast(
-                r === "ok"
-                  ? { kind: "ok", msg: "Data refreshed" }
-                  : r === "offline"
-                    ? { kind: "error", msg: "Refresh failed — offline" }
-                    : r === "expired"
-                      ? { kind: "error", msg: "Session expired — log in again" }
-                      : { kind: "error", msg: "Refresh already in progress" },
-              );
+        {offline && (
+          <div className="bg-warn/15 px-4 py-2 text-center text-xs text-warn lg:px-6">
+            Offline — data from {timeAgo(inputs.fetchedAt, now.getTime())}
+          </div>
+        )}
+        {auth === "anon" && (
+          <div className="flex items-center justify-between gap-2 bg-accent/15 px-4 py-2 text-xs text-accent lg:px-6">
+            <span>{sessionExpired ? "Session expired" : "Login required"} — showing cached data</span>
+            <button onClick={() => setLoginOpen(true)} className="font-semibold underline">
+              Log in
+            </button>
+          </div>
+        )}
+        {result.stale && !offline && (
+          <div className="bg-warn/15 px-4 py-2 text-center text-xs text-warn lg:px-6">
+            Using cached data for{" "}
+            {result.staleSources
+              .map(s => {
+                const st = inputs.sources[s];
+                const ago = st?.at ? timeAgo(st.at, now.getTime()) : null;
+                return `${SOURCE_LABELS[s] ?? s}${ago ? ` (${ago})` : ""}`;
+              })
+              .join(", ")}
+          </div>
+        )}
+        {!result.sheetSync.inSync && (
+          <SheetSyncNotice sync={result.sheetSync} correction={result.fims.totalCorrection} />
+        )}
+
+        <main className="flex-1 px-4 pb-[calc(3.5rem+env(safe-area-inset-bottom)+0.75rem)] pt-3 lg:px-6 lg:pb-10">
+          <div className="lg:hidden">
+            {tab === "overview" && <Overview r={result} />}
+            {tab === "positions" && <Positions {...positionsProps} />}
+            {tab === "multiply" && <Multiply r={result} />}
+            {tab === "prices" && <Prices r={result} />}
+            {tab === "convert" && <ConvertTab r={result} />}
+          </div>
+
+          <div className="hidden lg:grid lg:grid-cols-3 lg:items-start lg:gap-4">
+            <div className="min-w-0 space-y-3">
+              <Overview r={result} />
+            </div>
+            <div className="min-w-0 space-y-3">
+              <Positions {...positionsProps} />
+            </div>
+            <div className="min-w-0 space-y-3">
+              <Multiply r={result} />
+            </div>
+          </div>
+        </main>
+
+        <nav className="fixed bottom-0 left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 border-t border-line bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+          {TABS.map(t => {
+            const Icon = t.icon;
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[10px] font-medium ${active ? "text-accent" : "text-muted"}`}
+              >
+                <Icon size={20} stroke={active ? 2.2 : 1.8} />
+                {t.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {settingsOpen && (
+          <Drawer title="Settings" onClose={() => setSettingsOpen(false)}>
+            <Settings
+              onClose={() => setSettingsOpen(false)}
+              onRefresh={async () => {
+                checkForUpdate();
+                const r = await refresh();
+                setToast(
+                  r === "ok"
+                    ? { kind: "ok", msg: "Data refreshed" }
+                    : r === "offline"
+                      ? { kind: "error", msg: "Refresh failed — offline" }
+                      : r === "expired"
+                        ? { kind: "error", msg: "Session expired — log in again" }
+                        : { kind: "error", msg: "Refresh already in progress" },
+                );
+              }}
+              onLogout={() => void logout()}
+            />
+          </Drawer>
+        )}
+
+        {posSheet.open && (
+          <PositionSheet
+            editing={posSheet.editing}
+            unitOptions={unitOptions}
+            onClose={() => setPosSheet({ open: false, editing: null })}
+            onSaved={() => {
+              setPosSheet({ open: false, editing: null });
+              void refresh();
             }}
-            onLogout={() => void logout()}
           />
-        </Drawer>
-      )}
+        )}
 
-      {posSheet.open && (
-        <PositionSheet
-          editing={posSheet.editing}
-          unitOptions={unitOptions}
-          onClose={() => setPosSheet({ open: false, editing: null })}
-          onSaved={() => {
-            setPosSheet({ open: false, editing: null });
-            void refresh();
-          }}
-        />
-      )}
+        {drawer === "prices" && (
+          <Drawer title="Prices (EUR)" onClose={() => setDrawer(null)}>
+            <Prices r={result} hideTitle />
+          </Drawer>
+        )}
+        {drawer === "convert" && (
+          <Drawer title="Convert" onClose={() => setDrawer(null)} wide>
+            <ConvertTab r={result} />
+          </Drawer>
+        )}
+        {drawer === "rebalance" && (
+          <Drawer title="Rebalance" onClose={() => setDrawer(null)} wide>
+            <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
+              <Rebalance
+                onOpenSettings={openSettings}
+                onDone={lamports => {
+                  setDrawer(null);
+                  void refresh();
+                  setToast({
+                    kind: "ok",
+                    msg: lamports ? `Rebalance done · fees ${fmtSOL(lamports)} SOL` : "Rebalance done",
+                    duration: 6000,
+                  });
+                }}
+              />
+            </Suspense>
+          </Drawer>
+        )}
+        {drawer === "topup" && (
+          <Drawer title="Top up card" onClose={() => setDrawer(null)} wide>
+            <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
+              <Topup
+                eurToUsd={result.cells["I13"] ?? 0}
+                onOpenSettings={openSettings}
+                onDone={lamports => {
+                  setDrawer(null);
+                  void refresh();
+                  setToast({
+                    kind: "ok",
+                    msg: lamports ? `Card topped up · fees ${fmtSOL(lamports)} SOL` : "Card topped up",
+                    duration: 6000,
+                  });
+                }}
+              />
+            </Suspense>
+          </Drawer>
+        )}
+        {drawer === "restore" && restoreTarget && (
+          <Drawer title={`Restore ${RESTORE_TITLE[restoreTarget]}`} onClose={() => setDrawer(null)} wide>
+            <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
+              <Restore
+                key={restoreTarget}
+                target={restoreTarget}
+                diff={restoreDiff(result, restoreTarget)}
+                walletPart={restoreWalletPart(result, restoreTarget)}
+                usdDiff={result.fims.usd.usdAmount}
+                priceUsd={restorePriceUsd(result, restoreTarget)}
+                onOpenSettings={openSettings}
+                onDone={(lamports, direction) => {
+                  const label = RESTORE_TITLE[restoreTarget];
+                  const verb = direction === "sell" ? "Sold" : "Restored";
+                  setDrawer(null);
+                  void refresh();
+                  setToast({
+                    kind: "ok",
+                    msg: lamports ? `${verb} ${label} · fees ${fmtSOL(lamports)} SOL` : `${verb} ${label}`,
+                    duration: 6000,
+                  });
+                }}
+              />
+            </Suspense>
+          </Drawer>
+        )}
 
-      {drawer === "prices" && (
-        <Drawer title="Prices (EUR)" onClose={() => setDrawer(null)}>
-          <Prices r={result} hideTitle />
-        </Drawer>
-      )}
-      {drawer === "convert" && (
-        <Drawer title="Convert" onClose={() => setDrawer(null)} wide>
-          <ConvertTab r={result} />
-        </Drawer>
-      )}
-      {drawer === "rebalance" && (
-        <Drawer title="Rebalance" onClose={() => setDrawer(null)} wide>
-          <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
-            <Rebalance
-              onOpenSettings={openSettings}
-              onDone={lamports => {
-                setDrawer(null);
-                void refresh();
-                setToast({
-                  kind: "ok",
-                  msg: lamports ? `Rebalance done · fees ${fmtSOL(lamports)} SOL` : "Rebalance done",
-                  duration: 6000,
-                });
-              }}
-            />
-          </Suspense>
-        </Drawer>
-      )}
-      {drawer === "topup" && (
-        <Drawer title="Top up card" onClose={() => setDrawer(null)} wide>
-          <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
-            <Topup
-              eurToUsd={result.cells["I13"] ?? 0}
-              onOpenSettings={openSettings}
-              onDone={lamports => {
-                setDrawer(null);
-                void refresh();
-                setToast({
-                  kind: "ok",
-                  msg: lamports ? `Card topped up · fees ${fmtSOL(lamports)} SOL` : "Card topped up",
-                  duration: 6000,
-                });
-              }}
-            />
-          </Suspense>
-        </Drawer>
-      )}
-      {drawer === "restore" && restoreTarget && (
-        <Drawer title={`Restore ${RESTORE_TITLE[restoreTarget]}`} onClose={() => setDrawer(null)} wide>
-          <Suspense fallback={<p className="text-xs text-muted">Loading…</p>}>
-            <Restore
-              key={restoreTarget}
-              target={restoreTarget}
-              diff={restoreDiff(result, restoreTarget)}
-              walletPart={restoreWalletPart(result, restoreTarget)}
-              usdDiff={result.fims.usd.usdAmount}
-              priceUsd={restorePriceUsd(result, restoreTarget)}
-              onOpenSettings={openSettings}
-              onDone={(lamports, direction) => {
-                const label = RESTORE_TITLE[restoreTarget];
-                const verb = direction === "sell" ? "Sold" : "Restored";
-                setDrawer(null);
-                void refresh();
-                setToast({
-                  kind: "ok",
-                  msg: lamports ? `${verb} ${label} · fees ${fmtSOL(lamports)} SOL` : `${verb} ${label}`,
-                  duration: 6000,
-                });
-              }}
-            />
-          </Suspense>
-        </Drawer>
-      )}
-
-      {toast && <Toast kind={toast.kind} message={toast.msg} />}
+        {toast && <Toast kind={toast.kind} message={toast.msg} />}
+      </div>
 
       {blocked && (
         <div className="fixed inset-0 z-[100] flex min-h-dvh flex-col items-center justify-center gap-4 bg-bg px-6 text-center">
@@ -534,6 +539,6 @@ export default function App() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

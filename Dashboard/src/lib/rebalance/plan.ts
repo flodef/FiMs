@@ -499,8 +499,10 @@ export function buildRestorePlan(opts: {
   /** slippage bps stamped on the swap-any stage (volatile pairs) */
   slippageBps?: number;
   /** loose wallet balance of the row token — counts toward the diff:
-   *  sells withdraw only the part the wallet doesn't cover, buys only
-   *  buy the missing part but still deposit the full amount */
+   *  sells withdraw only the part the wallet doesn't cover; buys always buy
+   *  the full `amount` (the wallet part is already counted in the diff, so
+   *  buying less would leave a residual shortfall) and the deposit sweeps
+   *  the wallet balance into the target too */
   walletBal?: number;
 }): RebalancePlan {
   const { target, source, amount, sourceAmount, sourceUsd, jlp, jupsol, kaminoUsdg } = opts;
@@ -604,9 +606,9 @@ export function buildRestorePlan(opts: {
   const outToken: RestoreToken = target === "usd" ? "usdg" : target;
   const inToken: RestoreToken = source === "kamino" ? "usdg" : "jlp";
 
-  // buy only what the loose wallet balance doesn't already cover — but the
-  // deposit below still places the full `amount` (wallet part included)
-  const B = Math.max(0, amount - wallet);
+  // buy the FULL amount — the wallet balance already counts toward the diff,
+  // so sizing only the remainder would leave a residual shortfall equal to it
+  const B = amount;
   const T = opts.estTargetOut ?? B;
   if (B > 1e-9) {
     if (!Number.isFinite(sourceAmount) || sourceAmount <= 0) return fail("Could not size the source amount");
@@ -641,22 +643,24 @@ export function buildRestorePlan(opts: {
     });
   }
 
-  // target leg
+  // target leg — deposit the bought amount PLUS the loose wallet balance so
+  // the wallet is swept into lend/Earn/Kamino and the diff lands on 0
+  const depositAmt = amount + wallet;
   if (target === "usd") {
-    plan.stages.push({ type: "kamino-deposit", amountUsdg: amount, estUsdg: T, purpose: "restore" });
+    plan.stages.push({ type: "kamino-deposit", amountUsdg: depositAmt, estUsdg: T, purpose: "restore" });
   } else if (target === "eurc") {
-    plan.stages.push({ type: "earn-deposit", token: "EURC", amount, purpose: "restore" });
+    plan.stages.push({ type: "earn-deposit", token: "EURC", amount: depositAmt, purpose: "restore" });
   } else {
     const v = target === "jlp" ? jlp : jupsol;
     if (!v) return fail(`No ${target.toUpperCase()} lend position found`);
-    const depUsd = amount * v.supplyPriceUsd;
+    const depUsd = depositAmt * v.supplyPriceUsd;
     plan.positions.push(vaultDelta(v, v.collateralUsd + depUsd));
     plan.stages.push({
       type: "lend-collateral",
       key: v.key,
       vaultId: v.vaultId,
       positionId: v.positionId,
-      amount,
+      amount: depositAmt,
       purpose: "restore",
     });
   }
