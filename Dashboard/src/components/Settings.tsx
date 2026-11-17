@@ -3,6 +3,7 @@ import {
   IconBell,
   IconBellOff,
   IconDeviceDesktop,
+  IconInfoCircle,
   IconLogout,
   IconMoon,
   IconRefresh,
@@ -24,6 +25,36 @@ const THEMES: { id: ThemePref; label: string; icon: typeof IconSun }[] = [
   { id: "dark", label: "Dark", icon: IconMoon },
 ];
 const THEME_CYCLE: ThemePref[] = ["system", "light", "dark"];
+
+/** Tap-toggle tooltip for a settings row label (mobile-friendly alternative to title=). */
+function InfoTip({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [open]);
+  return (
+    <span className="relative inline-flex">
+      <button
+        onClick={e => {
+          e.stopPropagation();
+          setOpen(o => !o);
+        }}
+        className="rounded p-0.5 text-muted hover:text-ink"
+        aria-label="More info"
+      >
+        <IconInfoCircle size={13} />
+      </button>
+      {open && (
+        <span className="absolute left-5 top-5 z-20 w-48 rounded-lg border border-line bg-card2 p-2 text-[11px] leading-snug text-muted shadow-lg">
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
 
 export function Settings({
   onClose,
@@ -100,11 +131,8 @@ export function Settings({
               setBusy(true);
               setMsg(null);
               const r = await sendTestPush();
-              setMsg(
-                r.ok
-                  ? { ok: true, text: "Test sent — check your notifications" }
-                  : { ok: false, text: r.error ?? "failed" },
-              );
+              // the arriving notification is the feedback — only surface failures
+              setMsg(r.ok ? null : { ok: false, text: r.error ?? "failed" });
               setBusy(false);
             }}
             disabled={busy}
@@ -117,7 +145,11 @@ export function Settings({
         <div className="py-3">
           <div className="flex items-center gap-3 text-sm">
             <IconArrowsExchange size={18} className="text-muted" />
-            <span className="flex-1">Swap slippage</span>
+            <span className="flex items-center gap-1">
+              Swap slippage
+              <InfoTip text="Volatile pairs (JupSOL, JLP, EURC). Stablecoin swaps stay at 0.01%." />
+            </span>
+            <span className="flex-1" />
             <select
               value={slip}
               onChange={e => {
@@ -135,9 +167,6 @@ export function Settings({
               ))}
             </select>
           </div>
-          <p className="mt-1 pl-8 text-[11px] text-muted">
-            Volatile pairs (JupSOL, JLP, EURC). Stablecoin swaps stay at 0.01%.
-          </p>
         </div>
 
         <Suspense

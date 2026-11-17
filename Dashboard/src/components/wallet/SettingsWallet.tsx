@@ -5,14 +5,19 @@ import { short } from "./shared";
 import { WalletCard, WalletShell } from "./WalletShell";
 
 function WalletRow() {
-  const { connected, connecting, publicKey, wallet } = useWallet();
+  const { connected, connecting, publicKey, wallet, disconnect } = useWallet();
   const [open, setOpen] = useState(false);
   const addr = connected && publicKey ? publicKey.toBase58() : null;
   const label = connecting ? "connecting…" : addr ? short(addr) : "not connected";
   return (
     <div>
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => {
+          if (connecting) return;
+          // one tap toggles the wallet: connected → disconnect, else expand the picker
+          if (connected) void disconnect();
+          else setOpen(o => !o);
+        }}
         className="flex w-full items-center gap-3 py-3 text-left text-sm"
         aria-expanded={open}
       >
@@ -21,9 +26,14 @@ function WalletRow() {
           Wallet · {label}
           {addr && wallet?.adapter.name ? <span className="text-muted"> · {wallet.adapter.name}</span> : null}
         </span>
-        <IconChevronDown size={16} className={`shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""}`} />
+        {!connected && (
+          <IconChevronDown
+            size={16}
+            className={`shrink-0 text-muted transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        )}
       </button>
-      {open && (
+      {open && !connected && (
         <div className="pb-3">
           <WalletCard />
         </div>
