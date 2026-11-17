@@ -69,6 +69,14 @@ export function useStageRunner(opts: {
   const [planErr, setPlanErr] = useState<string | null>(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [states, setStates] = useState<StageState[]>([]);
+  // mirror of `states` readable synchronously — the run loop must see the
+  // freshest per-stage status, not the render-closure snapshot (execute()
+  // re-plans right before running, which can change the stage count)
+  const statesRef = useRef<StageState[]>([]);
+  const applyStates = (next: StageState[]) => {
+    statesRef.current = next;
+    setStates(next);
+  };
   const [running, setRunning] = useState(false);
   const [runStart, setRunStart] = useState<number | null>(null);
   const [signReady, setSignReady] = useState<SignReadyState | null>(null);
@@ -86,12 +94,12 @@ export function useStageRunner(opts: {
       const p = await fetchRef.current();
       if (!p) {
         setPlan(null);
-        setStates([]);
+        applyStates([]);
         feesRef.current = [];
         return null;
       }
       setPlan(p);
-      setStates(p.stages.map(() => ({ status: "pending" })));
+      applyStates(p.stages.map(() => ({ status: "pending" })));
       feesRef.current = [];
       if (p.error) setPlanErr(p.error);
       return p;
@@ -119,7 +127,7 @@ export function useStageRunner(opts: {
             setPlan(saved.plan);
             // confirmed stages stay confirmed; everything else retries fresh —
             // but keep pendingTx so Resume can check whether it already landed
-            setStates(
+            applyStates(
               saved.states.map(s =>
                 s.status === "confirmed"
                   ? s
@@ -146,14 +154,20 @@ export function useStageRunner(opts: {
     return () => clearTimeout(t);
   }, [loadPlan]);
 
-  const setStage = (i: number, s: Partial<StageState>) =>
-    setStates(prev => prev.map((x, j) => (j === i ? { ...x, ...s } : x)));
+  const setStage = (i: number, s: Partial<StageState>) => {
+    const next = statesRef.current.slice();
+    while (next.length <= i) next.push({ status: "pending" });
+    next[i] = { ...next[i], ...s };
+    applyStates(next);
+  };
 
   /** Accumulate a landed tx's network fee onto its stage (state + ref mirror). */
   const addStageFee = (i: number, fee?: number) => {
     if (typeof fee !== "number" || !Number.isFinite(fee) || fee <= 0) return;
     feesRef.current[i] = (feesRef.current[i] ?? 0) + fee;
-    setStates(prev => prev.map((x, j) => (j === i ? { ...x, feeLamports: (x.feeLamports ?? 0) + fee } : x)));
+    const next = statesRef.current.slice();
+    if (i < next.length) next[i] = { ...next[i], feeLamports: (next[i].feeLamports ?? 0) + fee };
+    applyStates(next);
   };
 
   // persist the run after each stage update; clear once everything is confirmed
@@ -190,7 +204,7 @@ export function useStageRunner(opts: {
    * Returns "confirmed" (stage done) or "rebuild" (safe to rebuild the stage).
    */
   const resolvePending = async (i: number): Promise<"confirmed" | "rebuild"> => {
-    const st = states[i];
+    const st = statesRef.current[i];
     if (!st?.pendingTx) return "rebuild";
     setStage(i, { status: "confirming", error: undefined });
     const res = await awaitTerminal(st.pendingTx);
@@ -293,10 +307,16 @@ export function useStageRunner(opts: {
     if (!connected || wrongWallet || running) return;
     setRunning(true);
     setRunStart(prev => prev ?? Date.now());
+    // align per-stage state with the plan actually being run — a re-plan can
+    // add/remove stages vs. the displayed plan; confirmed stages keep their
+    // state, missing ones start pending, extras are dropped
+    const aligned = p.stages.map((_, i) => statesRef.current[i] ?? { status: "pending" as StageStatus });
+    applyStates(aligned);
+    feesRef.current = p.stages.map((_, i) => feesRef.current[i] ?? 0);
     try {
       // continue from the first non-confirmed stage — each build is re-validated
       // against fresh server-side state, so resumed amounts are never stale
-      const indices = p.stages.map((_, i) => i).filter(i => states[i]?.status !== "confirmed");
+      const indices = p.stages.map((_, i) => i).filter(i => statesRef.current[i]?.status !== "confirmed");
       for (const i of indices) {
         const stage: PlanStage = p.stages[i];
         // a previously sent tx may have landed — check before rebuilding
@@ -393,7 +413,7 @@ export function useStageRunner(opts: {
   const discard = () => {
     localStorage.removeItem(lsKeyRef.current);
     setRunStart(null);
-    setStates([]);
+    applyStates([]);
     void loadPlan();
   };
 
