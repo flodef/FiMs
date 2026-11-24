@@ -41,6 +41,8 @@ export interface DefiData {
   walletRows?: { underlying: string; token: string; mint: string; amount: number; cache: number }[];
   /** "jupiter" when api.jup.ag prices overrode the sheet ones, else "sheet"/absent */
   priceSource?: "jupiter" | "sheet";
+  /** "ledger" when Wallet-V3 /fims/circulation supplied fimsSol/fimsToken/fimsLp, else "sheet" */
+  fimsSource?: "sheet" | "ledger";
   /** sheet EUR→USD (PriceCache!B2) preserved before live overrides */
   sheetEurUsd?: number;
   /** sheet today price row (Price!B:R values) preserved before live overrides */

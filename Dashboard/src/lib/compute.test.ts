@@ -572,4 +572,26 @@ describe("live wallet total (LIVE-SPEC)", () => {
     expect(SNAP_JLP_TOTAL).toBeGreaterThan(0);
     expect(res.multiply.jlpTotal).toBeCloseTo(SNAP_JLP_TOTAL, 4);
   });
+
+  test("ledger fims counts: fimsSol/fimsLp move the total, fimsToken cancels (F12 moves)", () => {
+    const base = computeDashboard(walletInputs(), now);
+    const fsolPrice = Math.max(...snapToday.filter((_, i) => snapHeaders[i].toLowerCase().includes("(fsol)")));
+    const flipPrice = Math.max(...snapToday.filter((_, i) => snapHeaders[i].toLowerCase().includes("(flip)")));
+    const d = 10;
+
+    // FSOL liability: −Δ·price(FSOL)
+    const upSol = computeDashboard(walletInputs({ fimsSol: snapFims[0] + d }), now).fims.total;
+    expect(upSol - base.fims.total).toBeCloseTo(-d * fsolPrice, 6);
+
+    // FLiP liability: −Δ·price(FLiP)
+    const upLp = computeDashboard(walletInputs({ fimsLp: (snapFims[2] ?? 0) + d }), now).fims.total;
+    expect(upLp - base.fims.total).toBeCloseTo(-d * flipPrice, 6);
+
+    // FiMs liability is priced liveB15·eurUsd/fimsToken × fimsToken → the count
+    // cancels out of the total; only the F12 display cell (= fimsToken·I14) moves
+    const upTok = computeDashboard(walletInputs({ fimsToken: snapFims[1] + d }), now);
+    expect(upTok.fims.total).toBeCloseTo(base.fims.total, 6);
+    const i14 = base.fims.fimsToken / snapFims[1]; // F12 = fimsToken·I14 → recover I14
+    expect(upTok.fims.fimsToken).toBeCloseTo(base.fims.fimsToken + d * i14, 6);
+  });
 });

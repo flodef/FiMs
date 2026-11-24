@@ -6,6 +6,8 @@ export const KAMINO_MARKET = "47tfyEG9SsdEnUm9cw5kY9BXngQGqu3LBoop9j5uTAv8";
 export const SPEND_ADDRESS = "9eu9NmhU3VRi57oGTyEp1zKZD8ecYrr3jSxA3VxZNvwT";
 export const DEFI_SHEET_ID = "1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI";
 export const SHEETS_REFERER = "https://www.fims.fi";
+/** Wallet-V3 ledger endpoint serving member token circulation (FSOL/FiMs/FLiP) */
+export const CIRCULATION_URL = "https://wallet-v3.fims.fi/api/fims/circulation";
 
 /** Tokens!A2:C — symbol → mint map for live Jupiter prices (stable sheet data). */
 export const TOKENS: { symbol: string; name: string; mint: string }[] = [

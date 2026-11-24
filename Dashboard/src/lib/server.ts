@@ -1,6 +1,15 @@
-import { DEFI_TIMEOUT_MS, FETCH_TIMEOUT_MS, JUP_STAKE_PROGRAM, TOKENS, WALLET2, WALLET_ROWS } from "./config.js";
+import {
+  CIRCULATION_URL,
+  DEFI_TIMEOUT_MS,
+  FETCH_TIMEOUT_MS,
+  JUP_STAKE_PROGRAM,
+  TOKENS,
+  WALLET2,
+  WALLET_ROWS,
+} from "./config.js";
 import { computeDashboard } from "./compute.js";
 import type { DashboardResult } from "./compute.js";
+import { fetchCirculation } from "./sources/circulation.js";
 import { fetchDefi } from "./sources/defi.js";
 import { fetchJupiter } from "./sources/jupiter.js";
 import { fetchKamino } from "./sources/kamino.js";
@@ -151,12 +160,16 @@ export async function fetchInputs(): Promise<Inputs> {
 
   const [tracked, offchain] = await Promise.all([trackedList(), offchainGet()]);
 
-  const [jup, kam, san, def, extras] = await Promise.all([
+  const [jup, kam, san, def, extras, circ] = await Promise.all([
     withLastGood<PositionRow[]>("jupiter", () => fetchJupiter(env("JUPITER_API_KEY")).then(sanitizeRows), validRows),
     withLastGood<PositionRow[]>("kamino", () => fetchKamino().then(sanitizeRows), validRows),
     withLastGood<SanctumRaw>("sanctum", () => fetchSanctum(), validSanctum),
     withLastGood<DefiData>("defi", () => fetchDefi(env("GOOGLE_API_KEY")), validDefi, DEFI_TIMEOUT_MS),
     fetchExtras(tracked),
+    // member token counts from the Wallet-V3 ledger — best-effort, no source
+    // flag and no last-good: the sheet FiMsData values stay the fallback.
+    // CIRCULATION_URL env override exists for local runs before deploy.
+    fetchCirculation(env("CIRCULATION_URL") || CIRCULATION_URL).catch(() => null),
   ]);
 
   const jupRows = sanitizeRows(jup.data ?? []);
@@ -343,6 +356,19 @@ export async function fetchInputs(): Promise<Inputs> {
     } catch {
       /* RPC hiccup — dashboard works without the wallet breakdown */
     }
+  }
+
+  // ---- member token counts: Wallet-V3 ledger over sheet FiMsData!B1:B3 ----
+  if (circ) {
+    defiOut = {
+      ...defiOut,
+      fimsSol: circ.FSOL.total,
+      fimsToken: circ.FiMs.total,
+      fimsLp: circ.FLiP.total,
+      fimsSource: "ledger",
+    };
+  } else {
+    defiOut = { ...defiOut, fimsSource: "sheet" };
   }
 
   return {
