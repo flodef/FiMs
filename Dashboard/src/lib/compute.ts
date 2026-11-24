@@ -427,13 +427,78 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
         { label: "FiMs USD", sheet: imp.fimsUsd, live: liveFimsUsd, impactEur: (liveFimsUsd - imp.fimsUsd) / eurUsd },
       ]
     : [];
-  const totalCorrection = syncItems.reduce((s, i) => s + i.impactEur, 0);
+  let totalCorrection = syncItems.reduce((s, i) => s + i.impactEur, 0);
   const inSync =
     !canSync ||
     (Math.abs(totalCorrection) <= SHEET_SYNC_TOLERANCE_EUR &&
       syncItems.every(i => Math.abs(i.impactEur) <= SHEET_SYNC_TOLERANCE_EUR));
   const sheetTotal = num(inputs.defi.total);
-  const F14 = sheetTotal + totalCorrection;
+
+  // ---- Live Wallet total (LIVE-SPEC) ----
+  // When the sheet's Wallet!A2:K rows + Tokens map are present, rebuild the
+  // sheet's own total with live wallet balances and live prices. Fed sheet
+  // values it reproduces Dashboard!B12 exactly (golden-tested).
+  const priceHeaderOf = (tok: string, row: number[]): number => {
+    const needle = `(${tok})`.toLowerCase();
+    let best = 0;
+    for (let i = 0; i < headers.length; i++) {
+      if (headers[i].toLowerCase().includes(needle)) best = Math.max(best, num(row[i]));
+    }
+    return best;
+  };
+  const wr = inputs.defi.walletRows;
+  const eurUsdLive = num(inputs.defi.eurUsd);
+  const eurUsdSheet = num(inputs.defi.sheetEurUsd ?? inputs.defi.eurUsd);
+  const canLiveTotal =
+    !!wr?.length &&
+    !!inputs.defi.tokens?.length &&
+    !!imp &&
+    Number.isFinite(eurUsdSheet) &&
+    eurUsdSheet > 0 &&
+    Number.isFinite(eurUsdLive) &&
+    eurUsdLive > 0;
+  let F14: number;
+  if (canLiveTotal) {
+    const sheetRow = inputs.defi.sheetPriceRow ?? today;
+    const wb = inputs.defi.walletBalances;
+    const pSheetJlp = priceHeaderOf("JLP", sheetRow);
+    const pLiveJlp = priceHeaderOf("JLP", today);
+    // imported part the SHEET used (imp.* / sheet prices) vs the LIVE one
+    const sheetImp = (token: string): number => {
+      if (token === "JUPSOL") return imp!.jupsol;
+      if (token === "EURC") return imp!.fimsEurc;
+      if (token === "JLP") return pSheetJlp > 0 ? imp!.jlp + imp!.fimsUsd / (eurUsdSheet * pSheetJlp) : imp!.jlp;
+      return 0;
+    };
+    const liveImp = (token: string): number => {
+      if (token === "JUPSOL") return liveJupsol;
+      if (token === "EURC") return liveFimsEurc;
+      if (token === "JLP") {
+        const jlpUsd = pLiveJlp * eurUsdLive;
+        return liveJlp + (jlpUsd > 0 ? liveFimsUsd / jlpUsd : 0);
+      }
+      return 0;
+    };
+    // amount_r = live wallet balance (cache fallback) + static "other" + live imported part
+    let sum = 0;
+    for (const r of wr!) {
+      // fetched balances: a mint with no account is really 0, not the stale cache
+      const amount = (wb ? (wb[r.mint] ?? 0) : r.cache) + (r.amount - r.cache - sheetImp(r.token)) + liveImp(r.token);
+      sum += amount * priceHeaderOf(r.token, today);
+    }
+    const fimsTokenN = num(inputs.defi.fimsToken);
+    // FiMs today price = liveB15·eurUsdLive/fimsToken (the sheet's D4 rule); I14 untouched
+    const priceFims = fimsTokenN > 0 ? (liveFimsEurc * eurUsdLive) / fimsTokenN : 0;
+    const liveTotal =
+      sum -
+      priceHeaderOf("FSOL", today) * num(inputs.defi.fimsSol) -
+      priceFims * fimsTokenN -
+      priceHeaderOf("FLIP", today) * num(inputs.defi.fimsLp);
+    totalCorrection = liveTotal - sheetTotal;
+    F14 = liveTotal;
+  } else {
+    F14 = sheetTotal + totalCorrection;
+  }
   const F11 = Math.max(0, (stratAmount("USDT JupSOL") - B15 - B16) / ((stratAmount("JupSOL") * I.I11) / I.I15));
   const F7 = F14 / I.I8 / 10000;
   const G15 = (F14 / F7) * MULTIPLY_G7;

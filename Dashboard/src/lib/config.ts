@@ -1,4 +1,6 @@
 export const WALLET = "58kZBjjtHShTtXFmygr3ZT8VSU4dH28PanRAdouHbToh";
+/** second FiMs wallet — its balances count toward the sheet Wallet!K cache */
+export const WALLET2 = "FiMsyZhiBnpEvucssiCDXgiiK3kwUSmRxmr8keV3nJJF";
 export const KAMINO_MARKET = "47tfyEG9SsdEnUm9cw5kY9BXngQGqu3LBoop9j5uTAv8";
 /** Jupiter Spend card address — server-side only, never client-supplied */
 export const SPEND_ADDRESS = "9eu9NmhU3VRi57oGTyEp1zKZD8ecYrr3jSxA3VxZNvwT";

@@ -20,6 +20,8 @@ async function fetchDefiOnce(apiKey: string): Promise<DefiData> {
     "Wallet!C3:C5",
     "PriceCache!B2",
     "FiMsData!B3",
+    "Tokens!A2:C",
+    "Wallet!A2:K",
   ];
   const qs = ranges.map(r => `ranges=${encodeURIComponent(r)}`).join("&");
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${DEFI_SHEET_ID}/values:batchGet?${qs}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER&key=${apiKey}`;
@@ -64,6 +66,31 @@ async function fetchDefiOnce(apiKey: string): Promise<DefiData> {
   const eurUsd = num(vr[8]?.values?.[0]?.[0]); // PriceCache!B2
   const fimsLpRaw = vr[9]?.values?.[0]?.[0]; // FiMsData!B3 — FLiP token count (1:1 JLP)
 
+  // Tokens!A2:C — symbol, name, mint (positional; header row excluded)
+  const tokensRaw = (vr[10]?.values ?? []) as unknown[][];
+  const tokens = tokensRaw
+    .map(r => ({
+      symbol: String(r?.[0] ?? "").trim(),
+      name: String(r?.[1] ?? "").trim(),
+      mint: String(r?.[2] ?? "").trim(),
+    }))
+    .filter(t => t.symbol && t.mint);
+
+  // Wallet!A2:K — A underlying, B token, G total amount, J mint, K wallet cache.
+  // Any non-numeric amount rejects the whole field (same rule as `imported`).
+  const walletRaw = (vr[11]?.values ?? []) as unknown[][];
+  const walletRowsParsed = walletRaw.map(r => ({
+    underlying: String(r?.[0] ?? "").trim(),
+    token: String(r?.[1] ?? "").trim(),
+    amount: typeof r?.[6] === "number" && Number.isFinite(r[6]) ? r[6] : NaN,
+    mint: String(r?.[9] ?? "").trim(),
+    cache: typeof r?.[10] === "number" && Number.isFinite(r[10]) ? r[10] : 0,
+  }));
+  const walletRows =
+    walletRowsParsed.length > 0 && walletRowsParsed.every(r => r.token && r.mint && Number.isFinite(r.amount))
+      ? walletRowsParsed
+      : undefined;
+
   return {
     priceHeaders,
     priceRows,
@@ -83,6 +110,8 @@ async function fetchDefiOnce(apiKey: string): Promise<DefiData> {
         : undefined,
     eurUsd: Number.isFinite(eurUsd) ? eurUsd : undefined,
     fimsLp: typeof fimsLpRaw === "number" && Number.isFinite(fimsLpRaw) ? fimsLpRaw : undefined,
+    tokens: tokens.length ? tokens : undefined,
+    walletRows,
   };
 }
 

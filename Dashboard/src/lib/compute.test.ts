@@ -398,3 +398,146 @@ describe("fims.diff (wallet balances count toward the diff)", () => {
     expect(r2.fims.diff.jlp).toBeUndefined();
   });
 });
+
+// ---- Live Wallet total (LIVE-SPEC) — golden reproduction of Dashboard!B12 ----
+import snap from "./__fixtures__/wallet-snap-2026-11-24.json";
+
+// Tokens!A2:C reference rows (symbol → mint) — stable sheet data
+const SNAP_TOKENS = [
+  ["FSOL", "FiMs SOL", "6hoGUYo5VengrsRtyyvs2y7KPf4mwWdv7V8C7GJg6Uy"],
+  ["FiMs", "FiMs Token", "D84wZMJRoievKkRaquXXrYSMuU5mA46RznCSrJ9HSK1u"],
+  ["FLiP", "FiMs Liquidity Provider", "FLiPpMfKenthVe7XHAE41msm5t63R5EwpUi5Swo5qjpN"],
+  ["ZEC", "Zcash", "A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS"],
+  ["xBTC", "OKX Wrapped BTC", "CtzPWv73Sn1dMGVU3ZtLv9yWSyUAanBni19YWDaznnkn"],
+  ["ETH", "Ether", "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs"],
+  ["SOL", "Solana", "So11111111111111111111111111111111111111112"],
+  ["JUP", "Jupiter", "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"],
+  ["JUPSOL", "Jupiter Staked SOL", "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v"],
+  ["JLP", "Jupiter Perps LP", "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4"],
+  ["DSOL", "Drift Staked SOL", "Dso1bDeDjCQxTrWHqUUi63oBvV7Mdm6WaobLbQ7gnPQ"],
+  ["PYUSD", "Paypal USD", "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"],
+  ["USDS", "USDS", "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA"],
+  ["USDT", "USD Tether", "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"],
+  ["USDC", "USD Circle", "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"],
+  ["EURC", "Euro Circle", "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr"],
+].map(([symbol, name, mint]) => ({ symbol, name, mint }));
+
+const snapVr = (snap as { valueRanges: { range: string; values?: unknown[][] }[] }).valueRanges;
+const snapVals = (range: string): unknown[][] => snapVr.find(v => v.range === range)?.values ?? [];
+const snapNum = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+
+// FiMsData!B1:B18 → fimsSol, fimsToken, fimsLp, …, B14 fimsUsd, B15 jupsol, B16 fimsEurc, B17 jlp
+const snapFims = snapVals("FiMsData!B1:B18").map(r => snapNum(r[0]));
+const snapImp = {
+  fimsUsd: snapFims[13],
+  jupsol: snapFims[14],
+  fimsEurc: snapFims[15],
+  jlp: snapFims[16],
+};
+// PriceCache!B2 = the "EUR to USD (EURC)" row's price (first row of A2:B18)
+const snapPriceCache = snapVals("PriceCache!A2:B18");
+const snapEurUsd = snapNum(snapPriceCache[0]?.[1]);
+// PriceCache!A2:B18 names == Price!B1:R1 headers (same "Name (SYM)" format, same order)
+const snapHeaders = ["Date", ...snapPriceCache.map(r => String(r[0] ?? ""))];
+const snapToday = [0, ...snapPriceCache.map(r => snapNum(r[1]))];
+// Wallet!C3:C5 = the JUPSOL/EURC/JLP rows' own Price column (snapshot rows 2-4)
+const snapWalletRowsRaw = snapVals("Wallet!A2:K8");
+const snapWalletPrices = {
+  jupsol: snapNum(snapWalletRowsRaw[1]?.[2]),
+  eurc: snapNum(snapWalletRowsRaw[2]?.[2]),
+  jlp: snapNum(snapWalletRowsRaw[3]?.[2]),
+};
+const snapWalletRows = snapWalletRowsRaw.map(r => ({
+  underlying: String(r[0] ?? ""),
+  token: String(r[1] ?? ""),
+  mint: String(r[9] ?? ""),
+  amount: snapNum(r[6]),
+  cache: snapNum(r[10]),
+}));
+const SNAP_TOTAL = snapNum(snapVals("Dashboard!B12")[0]?.[0]);
+
+/** Inputs reproducing the sheet: no live overrides, balances = cache, live positions = imported. */
+const walletInputs = (over: Partial<Inputs["defi"]> = {}, posOver: Record<string, number> = {}): Inputs => ({
+  fetchedAt: now.getTime(),
+  positions: [
+    { source: "Jupiter Borrow", token: "JupSOL", amount: snapImp.jupsol + (posOver.jupsol ?? 0), apy: 0 },
+    { source: "Jupiter Borrow", token: "JLP", amount: snapImp.jlp + (posOver.jlp ?? 0), apy: 0 },
+    // the Strategy sheet denominates EURC in USD → B15 = amount/eurUsd must equal fimsEurc
+    { source: "Jupiter Earn", token: "EURC", amount: snapImp.fimsEurc * snapEurUsd, apy: 0 },
+    // FiMs USD (B16) = USDG − USDT strategy sums → -fimsUsd via a USDT debt row
+    { source: "Kamino Borrow", token: "USDT JLP", amount: -snapImp.fimsUsd, apy: 0 },
+  ],
+  sanctum: { jupsolRatio: 1.18, jupsolApy: 0.07, jupsolApySource: "sanctum" },
+  defi: {
+    priceHeaders: snapHeaders,
+    priceRows: [snapToday, snapToday, snapToday],
+    jlpDayAverage: 0,
+    jlpTotal: 0,
+    fimsSol: snapFims[0],
+    fimsToken: snapFims[1],
+    total: SNAP_TOTAL,
+    priceLastUpdated: 0,
+    imported: { ...snapImp },
+    walletPrices: { ...snapWalletPrices },
+    eurUsd: snapEurUsd,
+    fimsLp: snapFims[2],
+    tokens: SNAP_TOKENS,
+    walletRows: snapWalletRows.map(r => ({ ...r })),
+    ...over,
+  },
+  sources: {
+    jupiter: { ok: true, stale: false, at: 0 },
+    kamino: { ok: true, stale: false, at: 0 },
+    sanctum: { ok: true, stale: false, at: 0 },
+    defi: { ok: true, stale: false, at: 0 },
+  },
+});
+
+describe("live wallet total (LIVE-SPEC)", () => {
+  test("golden: sheet values reproduce Dashboard!B12", () => {
+    const res = computeDashboard(walletInputs(), now);
+    expect(Math.abs(res.fims.total - SNAP_TOTAL)).toBeLessThan(1e-6);
+    expect(res.fims.sheetTotal).toBe(SNAP_TOTAL);
+    expect(res.fims.totalCorrection).toBeCloseTo(0, 6);
+  });
+
+  test("+1 JLP live position → total rises by exactly price(JLP)", () => {
+    const base = computeDashboard(walletInputs(), now).fims.total;
+    const up = computeDashboard(walletInputs({}, { jlp: 1 }), now).fims.total;
+    const jlpPrice = Math.max(...snapToday.filter((_, i) => snapHeaders[i].toLowerCase().includes("(jlp)")));
+    expect(up - base).toBeCloseTo(jlpPrice, 6);
+  });
+
+  test("wallet balance JUP +100 → total rises by 100·price(JUP)", () => {
+    const jupMint = "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN";
+    const jupCache = snapWalletRows.find(r => r.mint === jupMint)!.cache;
+    const base = computeDashboard(walletInputs(), now).fims.total;
+    const cacheMap = Object.fromEntries(snapWalletRows.map(r => [r.mint, r.cache]));
+    expect(computeDashboard(walletInputs({ walletBalances: cacheMap }), now).fims.total).toBeCloseTo(base, 6);
+    // a mint absent from fetched balances counts as 0 (closed account), not the stale cache
+    const { [jupMint]: _jup, ...withoutJup } = cacheMap;
+    const gone = computeDashboard(walletInputs({ walletBalances: withoutJup }), now).fims.total;
+    const up = computeDashboard(walletInputs({ walletBalances: { ...cacheMap, [jupMint]: jupCache + 100 } }), now).fims
+      .total;
+    const jupPrice = Math.max(...snapToday.filter((_, i) => snapHeaders[i].toLowerCase().includes("(jup)")));
+    expect(up - base).toBeCloseTo(100 * jupPrice, 6);
+    expect(base - gone).toBeCloseTo(jupCache * jupPrice, 6);
+  });
+
+  test("JUP live price ×2 → total moves by amount_JUP·ΔP", () => {
+    const base = computeDashboard(walletInputs(), now).fims.total;
+    const jupIdx = snapHeaders.findIndex(h => h.toLowerCase().includes("(jup)"));
+    const doubled = [...snapToday];
+    doubled[jupIdx] *= 2;
+    const up = computeDashboard(walletInputs({ priceRows: [doubled, snapToday, snapToday] }), now).fims.total;
+    const jupRow = snapWalletRows.find(r => r.token === "JUP")!;
+    const deltaP = snapToday[jupIdx]; // ×2 − ×1
+    expect(up - base).toBeCloseTo(jupRow.amount * deltaP, 4);
+  });
+
+  test("no walletRows → old sheetTotal+correction path", () => {
+    const res = computeDashboard(walletInputs({ walletRows: undefined }), now);
+    // imported values equal live → correction ≈ 0, total = sheetTotal
+    expect(res.fims.total).toBeCloseTo(SNAP_TOTAL, 4);
+  });
+});

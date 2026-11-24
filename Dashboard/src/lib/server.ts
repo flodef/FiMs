@@ -1,14 +1,16 @@
-import { DEFI_TIMEOUT_MS, FETCH_TIMEOUT_MS } from "./config.js";
+import { DEFI_TIMEOUT_MS, FETCH_TIMEOUT_MS, WALLET2 } from "./config.js";
 import { computeDashboard } from "./compute.js";
 import type { DashboardResult } from "./compute.js";
 import { fetchDefi } from "./sources/defi.js";
 import { fetchJupiter } from "./sources/jupiter.js";
 import { fetchKamino } from "./sources/kamino.js";
+import { fetchJupiterPrices, livePriceRow } from "./sources/prices.js";
 import { fetchSanctum, type SanctumRaw } from "./sources/sanctum.js";
 import { getLastGood, setLastGood, trackedList } from "./storage.js";
 import { WALLET } from "./config.js";
 import { RESTORE_TOKENS } from "./rebalance/plan.js";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
   DefiData,
   ExtraPosition,
@@ -194,6 +196,77 @@ export async function fetchInputs(): Promise<Inputs> {
     defi: mk(def),
   };
 
+  // ---- live Jupiter prices → override a copy of today's Price row (best-effort) ----
+  let defiOut: DefiData = defi;
+  if (defi.tokens?.length && defi.priceHeaders.length > 1 && defi.priceRows.length > 0) {
+    try {
+      const usd = await fetchJupiterPrices(
+        env("JUPITER_API_KEY"),
+        defi.tokens.map(t => t.mint),
+      );
+      const sheetRow = defi.priceRows[0] ?? [];
+      const live = livePriceRow(defi.priceHeaders, sheetRow, defi.tokens, usd);
+      if (live) {
+        defiOut = {
+          ...defi,
+          priceRows: [live.row, ...defi.priceRows.slice(1)],
+          sheetPriceRow: [...sheetRow],
+          sheetEurUsd: defi.eurUsd,
+          priceSource: live.allLive ? "jupiter" : "sheet",
+          priceLastUpdated: live.allLive ? Date.now() : defi.priceLastUpdated,
+          eurUsd: live.eurUsd,
+          walletPrices:
+            live.jupsolEur != null && live.jlpEur != null
+              ? { jupsol: live.jupsolEur, eurc: live.eurUsd, jlp: live.jlpEur }
+              : defi.walletPrices,
+        };
+      }
+    } catch {
+      /* price API hiccup — sheet prices stay */
+    }
+  }
+
+  // ---- live wallet balances for the sheet Wallet!K cache (best-effort) ----
+  const balanceMints = [...new Set((defiOut.walletRows ?? []).map(r => r.mint).filter(Boolean))];
+  if (env("HELIUS_API_KEY") && balanceMints.length > 0) {
+    try {
+      const connection = new Connection(
+        `https://mainnet.helius-rpc.com/?api-key=${env("HELIUS_API_KEY")}`,
+        "confirmed",
+      );
+      const SOL_MINT = "So11111111111111111111111111111111111111112";
+      const perWallet = await Promise.race([
+        Promise.all(
+          [WALLET, WALLET2].map(async w => {
+            const owner = new PublicKey(w);
+            const acc: Record<string, number> = {};
+            const add = (mint: string, amt: number) => {
+              if (Number.isFinite(amt)) acc[mint] = (acc[mint] ?? 0) + amt;
+            };
+            add(SOL_MINT, (await connection.getBalance(owner)) / 1e9);
+            for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
+              const res = await connection.getParsedTokenAccountsByOwner(owner, { programId });
+              for (const { account } of res.value) {
+                const info = (account.data as any)?.parsed?.info;
+                const amt = info?.tokenAmount?.uiAmount;
+                if (typeof info?.mint === "string" && Number.isFinite(amt)) add(info.mint, Number(amt));
+              }
+            }
+            return acc;
+          }),
+        ),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("wallet balances timeout")), 5000)),
+      ]);
+      const walletBalances: Record<string, number> = {};
+      for (const acc of perWallet) {
+        for (const [mint, amt] of Object.entries(acc)) walletBalances[mint] = (walletBalances[mint] ?? 0) + amt;
+      }
+      defiOut = { ...defiOut, walletBalances };
+    } catch {
+      /* RPC hiccup — the sheet cache values are used instead */
+    }
+  }
+
   // loose wallet token balances — best-effort; failures must not flag a source
   // nor break the dashboard (absent field → treated as 0 downstream)
   let walletTokens: Inputs["walletTokens"];
@@ -228,7 +301,7 @@ export async function fetchInputs(): Promise<Inputs> {
     }
   }
 
-  return { fetchedAt: Date.now(), positions, sanctum, defi, sources, extraPositions: extras, walletTokens };
+  return { fetchedAt: Date.now(), positions, sanctum, defi: defiOut, sources, extraPositions: extras, walletTokens };
 }
 
 export async function computeLive(): Promise<{ inputs: Inputs; result: DashboardResult }> {
