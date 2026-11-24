@@ -9,7 +9,6 @@ import {
   MULTIPLY_CHANGE_RATE,
   MULTIPLY_G7,
   MULTIPLY_INIT_L9,
-  SHEET_SYNC_TOLERANCE_EUR,
 } from "./config.js";
 import { daysInMonthParis, daysSinceStart } from "./time.js";
 import type { ExtraPosition, Inputs, SourceName } from "./types.js";
@@ -98,11 +97,6 @@ export interface DashboardResult {
   collaterals: CollateralAlert[];
   jupsol: { value: number; ratio: number; apy: number; apySource: "sanctum" | "jupiter" };
   forecasts: { jlpPerDay: number; jupPerDay: number };
-  /** sync state of the DeFi sheet's IMPORTRANGE'd Strategy values vs our live ones */
-  sheetSync: {
-    inSync: boolean;
-    items: { label: string; sheet: number; live: number; impactEur: number }[];
-  };
   fims: {
     totalSolRatio: number;
     jlpDayAverage: number;
@@ -112,10 +106,8 @@ export interface DashboardResult {
     fimsToken: number;
     duePerDay: number;
     total: number;
-    /** Dashboard!B12 as fetched — before the live-data correction */
+    /** Dashboard!B12 as fetched — the sheet's own claimed total */
     sheetTotal: number;
-    /** EUR added to sheetTotal to correct stale IMPORTRANGE values (0 when in sync / no data) */
-    totalCorrection: number;
     gainsPerSol: number;
     /** JLP amount − FiMsData!B3 (FLiP); undefined when the sheet value is missing */
     fimsJlpDiff?: number;
@@ -350,11 +342,10 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
   const B16 = usdG - usdT;
   const C16 = B16 * I.I15;
 
-  // ---- DeFi-sheet sync correction ----
-  // FiMsData!B14:B17 IMPORTRANGE Strategy values into the DeFi sheet; they can lag
-  // the live positions (e.g. a rebalance lands between refreshes) and the Wallet!
-  // F total is then computed from stale imports. Re-derive the same deltas the
-  // sheet would have used and add them to the total — silently when small.
+  // ---- Fallback total correction (live total unavailable) ----
+  // When the live Wallet total can't be rebuilt (missing live inputs), keep
+  // the sheet's Dashboard!B12 and add the position deltas its stale
+  // IMPORTRANGE'd FiMsData!B14:B17 values would have missed — internal only.
   const imp = inputs.defi.imported;
   const wp = inputs.defi.walletPrices;
   const eurUsd = num(inputs.defi.eurUsd);
@@ -363,24 +354,12 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
   const liveFimsEurc = B15; // Strategy B15
   const liveJlp = stratAmount("JLP"); // Strategy B10
   const liveFimsUsd = B16; // Strategy B16
-  const syncItems = canSync
-    ? [
-        { label: "JLP", sheet: imp.jlp, live: liveJlp, impactEur: (liveJlp - imp.jlp) * wp.jlp },
-        { label: "JupSOL", sheet: imp.jupsol, live: liveJupsol, impactEur: (liveJupsol - imp.jupsol) * wp.jupsol },
-        {
-          label: "FiMs EURC",
-          sheet: imp.fimsEurc,
-          live: liveFimsEurc,
-          impactEur: (liveFimsEurc - imp.fimsEurc) * wp.eurc,
-        },
-        { label: "FiMs USD", sheet: imp.fimsUsd, live: liveFimsUsd, impactEur: (liveFimsUsd - imp.fimsUsd) / eurUsd },
-      ]
-    : [];
-  let totalCorrection = syncItems.reduce((s, i) => s + i.impactEur, 0);
-  const inSync =
-    !canSync ||
-    (Math.abs(totalCorrection) <= SHEET_SYNC_TOLERANCE_EUR &&
-      syncItems.every(i => Math.abs(i.impactEur) <= SHEET_SYNC_TOLERANCE_EUR));
+  const fallbackCorrection = canSync
+    ? (liveJlp - imp.jlp) * wp.jlp +
+      (liveJupsol - imp.jupsol) * wp.jupsol +
+      (liveFimsEurc - imp.fimsEurc) * wp.eurc +
+      (liveFimsUsd - imp.fimsUsd) / eurUsd
+    : 0;
   const sheetTotal = num(inputs.defi.total);
 
   // ---- Live Wallet total (LIVE-SPEC) ----
@@ -456,14 +435,13 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
       priceHeaderOf("FSOL", today) * num(inputs.defi.fimsSol) -
       priceFims * fimsTokenN -
       priceHeaderOf("FLIP", today) * fimsLpN;
-    totalCorrection = liveTotal - sheetTotal;
     F14 = liveTotal;
     // L8 jlpTotal live — sheet Wallet!D5 = (I_JLP − price(FLIP)·fimsLp)/price(JLP)
     if (pLiveJlp > 0) {
       jlpTotalLive = (jlpRowAmount * pLiveJlp - priceHeaderOf("FLIP", today) * fimsLpN) / pLiveJlp;
     }
   } else {
-    F14 = sheetTotal + totalCorrection;
+    F14 = sheetTotal + fallbackCorrection;
   }
 
   // ---- Multiply L8:M9 partial + forecasts M4/M5 + totals B2/B3 ----
@@ -708,7 +686,6 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
       apySource: inputs.sanctum?.jupsolApySource ?? "sanctum",
     },
     forecasts: { jlpPerDay: M4, jupPerDay: M5 },
-    sheetSync: { inSync, items: syncItems },
     fims: {
       totalSolRatio: F7,
       jlpDayAverage: num(inputs.defi.jlpDayAverage),
@@ -719,7 +696,6 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
       duePerDay: F13,
       total: F14,
       sheetTotal,
-      totalCorrection,
       gainsPerSol: G15,
       fimsJlpDiff: fimsJlpDiff,
       // wallet loose tokens count toward the diff: a JupSOL surplus is the

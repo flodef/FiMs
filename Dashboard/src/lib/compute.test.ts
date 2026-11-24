@@ -313,7 +313,7 @@ describe("extra positions", () => {
   });
 });
 
-describe("sheet sync correction", () => {
+describe("fallback total correction", () => {
   const baseInputs = fixture as unknown as Inputs;
   const base = computeDashboard(baseInputs, now);
   const posAmt = (token: string) =>
@@ -329,34 +329,22 @@ describe("sheet sync correction", () => {
   const withSync = (imported: typeof live) =>
     computeDashboard({ ...baseInputs, defi: { ...baseInputs.defi, imported, walletPrices, eurUsd } }, now);
 
-  test("live == imported → zero correction, in sync", () => {
+  test("live == imported → total = sheet total", () => {
     const r2 = withSync({ ...live });
-    expect(r2.fims.totalCorrection).toBe(0);
-    expect(r2.sheetSync.inSync).toBe(true);
     expect(r2.fims.sheetTotal).toBe(base.fims.total); // fixture: no correction applied
     expect(r2.fims.total).toBe(base.fims.total);
     expect(r2.cells.F14).toBe(r2.fims.total);
   });
 
-  test("stale FiMs USD import → +9626/eurUsd correction, out of sync", () => {
+  test("stale FiMs USD import → total = sheetTotal + 9626/eurUsd", () => {
     const r3 = withSync({ ...live, fimsUsd: live.fimsUsd - 9626 });
     const expected = 9626 / eurUsd;
-    expect(r3.fims.totalCorrection).toBeCloseTo(expected, 6);
-    expect(r3.sheetSync.inSync).toBe(false);
     expect(r3.fims.total).toBeCloseTo((base.fims.sheetTotal as number) + expected, 6);
     expect(r3.cells.F14).toBeCloseTo(r3.fims.total, 6);
-    const usd = r3.sheetSync.items.find(i => i.label === "FiMs USD")!;
-    expect(usd.sheet).toBeCloseTo(live.fimsUsd - 9626, 6);
-    expect(usd.live).toBeCloseTo(live.fimsUsd, 6);
-    expect(usd.impactEur).toBeCloseTo(expected, 6);
-    // the other three items stayed in sync
-    expect(r3.sheetSync.items.filter(i => i.label !== "FiMs USD").every(i => i.impactEur === 0)).toBe(true);
   });
 
-  test("missing sync fields → no correction, in sync (old cache/fixtures)", () => {
-    expect(base.sheetSync.inSync).toBe(true);
-    expect(base.sheetSync.items).toEqual([]);
-    expect(base.fims.totalCorrection).toBe(0);
+  test("missing sync fields → total = sheet total (old cache/fixtures)", () => {
+    expect(base.fims.total).toBeCloseTo(base.fims.sheetTotal, 9);
   });
 });
 
@@ -401,26 +389,6 @@ describe("fims.diff (wallet balances count toward the diff)", () => {
 
 // ---- Live Wallet total (LIVE-SPEC) — golden reproduction of Dashboard!B12 ----
 import snap from "./__fixtures__/wallet-snap-2026-11-24.json";
-
-// Tokens!A2:C reference rows (symbol → mint) — stable sheet data
-const SNAP_TOKENS = [
-  ["FSOL", "FiMs SOL", "6hoGUYo5VengrsRtyyvs2y7KPf4mwWdv7V8C7GJg6Uy"],
-  ["FiMs", "FiMs Token", "D84wZMJRoievKkRaquXXrYSMuU5mA46RznCSrJ9HSK1u"],
-  ["FLiP", "FiMs Liquidity Provider", "FLiPpMfKenthVe7XHAE41msm5t63R5EwpUi5Swo5qjpN"],
-  ["ZEC", "Zcash", "A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS"],
-  ["xBTC", "OKX Wrapped BTC", "CtzPWv73Sn1dMGVU3ZtLv9yWSyUAanBni19YWDaznnkn"],
-  ["ETH", "Ether", "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs"],
-  ["SOL", "Solana", "So11111111111111111111111111111111111111112"],
-  ["JUP", "Jupiter", "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"],
-  ["JUPSOL", "Jupiter Staked SOL", "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v"],
-  ["JLP", "Jupiter Perps LP", "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4"],
-  ["DSOL", "Drift Staked SOL", "Dso1bDeDjCQxTrWHqUUi63oBvV7Mdm6WaobLbQ7gnPQ"],
-  ["PYUSD", "Paypal USD", "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"],
-  ["USDS", "USDS", "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA"],
-  ["USDT", "USD Tether", "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"],
-  ["USDC", "USD Circle", "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"],
-  ["EURC", "Euro Circle", "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr"],
-].map(([symbol, name, mint]) => ({ symbol, name, mint }));
 
 const snapVr = (snap as { valueRanges: { range: string; values?: unknown[][] }[] }).valueRanges;
 const snapVals = (range: string): unknown[][] => snapVr.find(v => v.range === range)?.values ?? [];
@@ -491,7 +459,6 @@ const walletInputs = (
     walletPrices: { ...snapWalletPrices },
     eurUsd: snapEurUsd,
     fimsLp: snapFims[2],
-    tokens: SNAP_TOKENS,
     walletRows: snapWalletRows.map(r => ({ ...r })),
     ...over,
   },
@@ -508,7 +475,6 @@ describe("live wallet total (LIVE-SPEC)", () => {
     const res = computeDashboard(walletInputs(), now);
     expect(Math.abs(res.fims.total - SNAP_TOTAL)).toBeLessThan(1e-6);
     expect(res.fims.sheetTotal).toBe(SNAP_TOTAL);
-    expect(res.fims.totalCorrection).toBeCloseTo(0, 6);
   });
 
   test("+1 JLP live position → total rises by exactly price(JLP)", () => {

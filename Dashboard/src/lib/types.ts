@@ -35,8 +35,6 @@ export interface DefiData {
   eurUsd?: number;
   /** FiMsData!B3 — FLiP token count (1:1 JLP-priced) */
   fimsLp?: number;
-  /** Tokens!A2:C — symbol → mint map for live Jupiter prices */
-  tokens?: { symbol: string; name: string; mint: string }[];
   /** Wallet!A2:K — the sheet's total rows (absent when any amount is non-numeric) */
   walletRows?: { underlying: string; token: string; mint: string; amount: number; cache: number }[];
   /** "jupiter" when api.jup.ag prices overrode the sheet ones, else "sheet"/absent */
@@ -45,8 +43,6 @@ export interface DefiData {
   fimsSource?: "sheet" | "ledger";
   /** sheet EUR→USD (PriceCache!B2) preserved before live overrides */
   sheetEurUsd?: number;
-  /** sheet today price row (Price!B:R values) preserved before live overrides */
-  sheetPriceRow?: number[];
   /** live on-chain balances per mint across both tracked wallets */
   walletBalances?: Record<string, number>;
 }

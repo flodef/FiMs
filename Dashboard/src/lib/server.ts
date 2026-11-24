@@ -224,7 +224,6 @@ export async function fetchInputs(): Promise<Inputs> {
         defiOut = {
           ...defi,
           priceRows: [live.row, ...defi.priceRows.slice(1)],
-          sheetPriceRow: [...sheetRow],
           sheetEurUsd: defi.eurUsd,
           priceSource: live.allLive ? "jupiter" : "sheet",
           priceLastUpdated: live.allLive ? Date.now() : defi.priceLastUpdated,
