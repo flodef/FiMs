@@ -2,6 +2,7 @@ import {
   IconArrowsExchange,
   IconBell,
   IconBellOff,
+  IconCurrencyBitcoin,
   IconDeviceDesktop,
   IconInfoCircle,
   IconLogout,
@@ -12,6 +13,7 @@ import {
   IconWallet,
 } from "@tabler/icons-react";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { DEFAULT_OFFCHAIN, type OffchainHoldings } from "../lib/offchain";
 import { currentSubscription, pushSupported, sendTestPush, subscribePush, unsubscribePush } from "../lib/push";
 import { setSlippageBps, slippageBps, SLIPPAGE_CHOICES } from "../lib/slippage";
 import { setTheme, themePref, type ThemePref } from "../lib/theme";
@@ -60,21 +62,68 @@ export function Settings({
   onClose,
   onRefresh,
   onLogout,
+  offchain,
+  readOnly,
 }: {
   onClose: () => void;
   onRefresh: () => void;
   onLogout: () => void;
+  /** current off-chain holdings (from /api/dashboard inputs); defaults when absent */
+  offchain?: OffchainHoldings;
+  /** fixture/demo mode — show defaults, no editing */
+  readOnly?: boolean;
 }) {
   const [subscribed, setSubscribed] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pref, setPref] = useState<ThemePref>(themePref());
   const [slip, setSlip] = useState<number>(slippageBps());
+  const [ocXbtc, setOcXbtc] = useState(String(offchain?.xBTC ?? DEFAULT_OFFCHAIN.xBTC));
+  const [ocZec, setOcZec] = useState(String(offchain?.ZEC ?? DEFAULT_OFFCHAIN.ZEC));
+  const [ocMsg, setOcMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [ocBusy, setOcBusy] = useState(false);
   const supported = pushSupported();
 
   useEffect(() => {
     void currentSubscription().then(s => setSubscribed(!!s));
   }, []);
+
+  // resync the inputs when fresh holdings arrive (adjust-state-on-prop-change)
+  const [ocSeen, setOcSeen] = useState(offchain);
+  if (ocSeen !== offchain) {
+    setOcSeen(offchain);
+    setOcXbtc(String(offchain?.xBTC ?? DEFAULT_OFFCHAIN.xBTC));
+    setOcZec(String(offchain?.ZEC ?? DEFAULT_OFFCHAIN.ZEC));
+  }
+
+  const saveOffchain = async () => {
+    const xBTC = Number(ocXbtc);
+    const ZEC = Number(ocZec);
+    if (!Number.isFinite(xBTC) || xBTC < 0 || xBTC > 1e9 || !Number.isFinite(ZEC) || ZEC < 0 || ZEC > 1e9) {
+      setOcMsg({ ok: false, text: "Enter amounts ≥ 0 (max 1e9)" });
+      return;
+    }
+    setOcBusy(true);
+    setOcMsg(null);
+    try {
+      const res = await fetch("/api/offchain", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ xBTC, ZEC }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setOcMsg({ ok: false, text: data.error ?? `HTTP ${res.status}` });
+        return;
+      }
+      setOcMsg({ ok: true, text: "Saved — total updated" });
+      onRefresh();
+    } catch {
+      setOcMsg({ ok: false, text: "Network error — try again." });
+    } finally {
+      setOcBusy(false);
+    }
+  };
 
   const toggle = async () => {
     setBusy(true);
@@ -166,6 +215,46 @@ export function Settings({
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        <div className="py-3">
+          <div className="flex items-center gap-3 text-sm">
+            <IconCurrencyBitcoin size={18} className="text-muted" />
+            <span className="flex items-center gap-1">
+              Off-chain holdings
+              <InfoTip text="Tokens held outside the tracked wallets — counted in the Total at live prices." />
+            </span>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 pl-8">
+            {(
+              [
+                ["xBTC", ocXbtc, setOcXbtc],
+                ["ZEC", ocZec, setOcZec],
+              ] as const
+            ).map(([label, val, set]) => (
+              <label key={label} className="flex items-center gap-1.5 text-xs text-muted">
+                {label}
+                <input
+                  inputMode="decimal"
+                  value={val}
+                  onChange={e => set(e.target.value)}
+                  disabled={readOnly}
+                  className="w-24 rounded-lg border border-line bg-card2 px-2 py-1.5 text-xs font-medium text-ink outline-none focus:border-accent disabled:opacity-60"
+                  aria-label={`${label} off-chain amount`}
+                />
+              </label>
+            ))}
+            {!readOnly && (
+              <button
+                onClick={() => void saveOffchain()}
+                disabled={ocBusy}
+                className="rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+              >
+                {ocBusy ? "…" : "Save"}
+              </button>
+            )}
+            {ocMsg && <span className={`text-[11px] ${ocMsg.ok ? "text-ok" : "text-danger"}`}>{ocMsg.text}</span>}
           </div>
         </div>
 

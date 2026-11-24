@@ -7,6 +7,40 @@ export const SPEND_ADDRESS = "9eu9NmhU3VRi57oGTyEp1zKZD8ecYrr3jSxA3VxZNvwT";
 export const DEFI_SHEET_ID = "1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI";
 export const SHEETS_REFERER = "https://www.fims.fi";
 
+/** Tokens!A2:C — symbol → mint map for live Jupiter prices (stable sheet data). */
+export const TOKENS: { symbol: string; name: string; mint: string }[] = [
+  { symbol: "FSOL", name: "FiMs SOL", mint: "6hoGUYo5VengrsRtyyvs2y7KPf4mwWdv7V8C7GJg6Uy" },
+  { symbol: "FiMs", name: "FiMs Token", mint: "D84wZMJRoievKkRaquXXrYSMuU5mA46RznCSrJ9HSK1u" },
+  { symbol: "FLiP", name: "FiMs Liquidity Provider", mint: "FLiPpMfKenthVe7XHAE41msm5t63R5EwpUi5Swo5qjpN" },
+  { symbol: "ZEC", name: "Zcash", mint: "A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS" },
+  { symbol: "xBTC", name: "OKX Wrapped BTC", mint: "CtzPWv73Sn1dMGVU3ZtLv9yWSyUAanBni19YWDaznnkn" },
+  { symbol: "ETH", name: "Ether", mint: "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs" },
+  { symbol: "SOL", name: "Solana", mint: "So11111111111111111111111111111111111111112" },
+  { symbol: "JUP", name: "Jupiter", mint: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN" },
+  { symbol: "JUPSOL", name: "Jupiter Staked SOL", mint: "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v" },
+  { symbol: "JLP", name: "Jupiter Perps LP", mint: "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4" },
+  { symbol: "DSOL", name: "Drift Staked SOL", mint: "Dso1bDeDjCQxTrWHqUUi63oBvV7Mdm6WaobLbQ7gnPQ" },
+  { symbol: "PYUSD", name: "Paypal USD", mint: "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo" },
+  { symbol: "USDS", name: "USDS", mint: "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA" },
+  { symbol: "USDT", name: "USD Tether", mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB" },
+  { symbol: "USDC", name: "USD Circle", mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" },
+  { symbol: "EURC", name: "Euro Circle", mint: "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr" },
+];
+
+/** Wallet!A2:B8 — the sheet's total rows (underlying, priced token, mint). */
+export const WALLET_ROWS: { underlying: string; token: string; mint: string }[] = [
+  { underlying: "FSOL", token: "SOL", mint: "So11111111111111111111111111111111111111112" },
+  { underlying: "FSOL", token: "JUPSOL", mint: "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v" },
+  { underlying: "FIMS", token: "EURC", mint: "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr" },
+  { underlying: "FLIP", token: "JLP", mint: "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4" },
+  { underlying: "FSOL", token: "JUP", mint: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN" },
+  { underlying: "FIMS", token: "xBTC", mint: "CtzPWv73Sn1dMGVU3ZtLv9yWSyUAanBni19YWDaznnkn" },
+  { underlying: "FIMS", token: "ZEC", mint: "A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS" },
+];
+
+/** Jupiter stake program — staked-JUP positions (getStakedJup equivalent). */
+export const JUP_STAKE_PROGRAM = "voTpe3tHQ7AjQHMapgSue2HJFAh2cGsdokqN3XqmVSj";
+
 export const LTV_TARGETS: Record<string, number> = { EURC: 0, JLP: 0.82, JupSOL: 0.7 };
 export const DANGER_RATIO = 0.95;
 

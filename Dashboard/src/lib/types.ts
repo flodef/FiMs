@@ -93,4 +93,8 @@ export interface Inputs {
   extraPositions?: ExtraPosition[];
   /** loose token balances in the main wallet (absent when the fetch failed) */
   walletTokens?: { jupsol: number; jlp: number; eurc: number; usdg: number };
+  /** staked JUP across both wallets (Jupiter stake program); absent on RPC failure */
+  stakedJup?: number;
+  /** off-chain holdings counted in the live Total (kv `offchain_holdings`, defaults when unset) */
+  offchain?: { xBTC: number; ZEC: number };
 }

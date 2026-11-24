@@ -456,9 +456,19 @@ const snapWalletRows = snapWalletRowsRaw.map(r => ({
 }));
 const SNAP_TOTAL = snapNum(snapVals("Dashboard!B12")[0]?.[0]);
 
+const SNAP_STAKED_JUP = 395650.136468; // sheet G6−K6 = getStakedJup(wallet1)
+const SNAP_JLP_TOTAL = snapNum(snapWalletRowsRaw[3]?.[3]); // Wallet!D5
+
 /** Inputs reproducing the sheet: no live overrides, balances = cache, live positions = imported. */
-const walletInputs = (over: Partial<Inputs["defi"]> = {}, posOver: Record<string, number> = {}): Inputs => ({
+const walletInputs = (
+  over: Partial<Inputs["defi"]> = {},
+  posOver: Record<string, number> = {},
+  top: Partial<Pick<Inputs, "stakedJup" | "offchain">> = {},
+): Inputs => ({
   fetchedAt: now.getTime(),
+  stakedJup: SNAP_STAKED_JUP,
+  offchain: { xBTC: 0.00044489, ZEC: 0.92 },
+  ...top,
   positions: [
     { source: "Jupiter Borrow", token: "JupSOL", amount: snapImp.jupsol + (posOver.jupsol ?? 0), apy: 0 },
     { source: "Jupiter Borrow", token: "JLP", amount: snapImp.jlp + (posOver.jlp ?? 0), apy: 0 },
@@ -539,5 +549,27 @@ describe("live wallet total (LIVE-SPEC)", () => {
     const res = computeDashboard(walletInputs({ walletRows: undefined }), now);
     // imported values equal live → correction ≈ 0, total = sheetTotal
     expect(res.fims.total).toBeCloseTo(SNAP_TOTAL, 4);
+    // and jlpTotal stays the sheet value (0 in this fixture)
+    expect(res.multiply.jlpTotal).toBe(0);
+  });
+
+  test("+1000 staked JUP → total rises by 1000·price(JUP)", () => {
+    const base = computeDashboard(walletInputs(), now).fims.total;
+    const up = computeDashboard(walletInputs({}, {}, { stakedJup: SNAP_STAKED_JUP + 1000 }), now).fims.total;
+    const jupPrice = Math.max(...snapToday.filter((_, i) => snapHeaders[i].toLowerCase().includes("(jup)")));
+    expect(up - base).toBeCloseTo(1000 * jupPrice, 6);
+  });
+
+  test("off-chain ZEC +1 → total rises by price(ZEC)", () => {
+    const base = computeDashboard(walletInputs(), now).fims.total;
+    const up = computeDashboard(walletInputs({}, {}, { offchain: { xBTC: 0.00044489, ZEC: 1.92 } }), now).fims.total;
+    const zecPrice = Math.max(...snapToday.filter((_, i) => snapHeaders[i].toLowerCase().includes("(zec)")));
+    expect(up - base).toBeCloseTo(zecPrice, 6);
+  });
+
+  test("jlpTotal live = sheet Wallet!D5 on snapshot values", () => {
+    const res = computeDashboard(walletInputs(), now);
+    expect(SNAP_JLP_TOTAL).toBeGreaterThan(0);
+    expect(res.multiply.jlpTotal).toBeCloseTo(SNAP_JLP_TOTAL, 4);
   });
 });

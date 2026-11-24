@@ -1,4 +1,4 @@
-import { DEFI_TIMEOUT_MS, FETCH_TIMEOUT_MS, WALLET2 } from "./config.js";
+import { DEFI_TIMEOUT_MS, FETCH_TIMEOUT_MS, JUP_STAKE_PROGRAM, TOKENS, WALLET2, WALLET_ROWS } from "./config.js";
 import { computeDashboard } from "./compute.js";
 import type { DashboardResult } from "./compute.js";
 import { fetchDefi } from "./sources/defi.js";
@@ -6,7 +6,7 @@ import { fetchJupiter } from "./sources/jupiter.js";
 import { fetchKamino } from "./sources/kamino.js";
 import { fetchJupiterPrices, livePriceRow } from "./sources/prices.js";
 import { fetchSanctum, type SanctumRaw } from "./sources/sanctum.js";
-import { getLastGood, setLastGood, trackedList } from "./storage.js";
+import { getLastGood, offchainGet, setLastGood, trackedList } from "./storage.js";
 import { WALLET } from "./config.js";
 import { RESTORE_TOKENS } from "./rebalance/plan.js";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -149,7 +149,7 @@ async function fetchExtras(tracked: TrackedPosition[]): Promise<ExtraPosition[]>
 export async function fetchInputs(): Promise<Inputs> {
   const env = (k: string) => process.env[k] ?? "";
 
-  const tracked = await trackedList();
+  const [tracked, offchain] = await Promise.all([trackedList(), offchainGet()]);
 
   const [jup, kam, san, def, extras] = await Promise.all([
     withLastGood<PositionRow[]>("jupiter", () => fetchJupiter(env("JUPITER_API_KEY")).then(sanitizeRows), validRows),
@@ -197,15 +197,16 @@ export async function fetchInputs(): Promise<Inputs> {
   };
 
   // ---- live Jupiter prices → override a copy of today's Price row (best-effort) ----
+  // mint map comes from the static TOKENS table (Tokens!A2:C), not the sheet fetch
   let defiOut: DefiData = defi;
-  if (defi.tokens?.length && defi.priceHeaders.length > 1 && defi.priceRows.length > 0) {
+  if (defi.priceHeaders.length > 1 && defi.priceRows.length > 0) {
     try {
       const usd = await fetchJupiterPrices(
         env("JUPITER_API_KEY"),
-        defi.tokens.map(t => t.mint),
+        TOKENS.map(t => t.mint),
       );
       const sheetRow = defi.priceRows[0] ?? [];
-      const live = livePriceRow(defi.priceHeaders, sheetRow, defi.tokens, usd);
+      const live = livePriceRow(defi.priceHeaders, sheetRow, TOKENS, usd);
       if (live) {
         defiOut = {
           ...defi,
@@ -227,7 +228,8 @@ export async function fetchInputs(): Promise<Inputs> {
   }
 
   // ---- live wallet balances for the sheet Wallet!K cache (best-effort) ----
-  const balanceMints = [...new Set((defiOut.walletRows ?? []).map(r => r.mint).filter(Boolean))];
+  // mints come from the static WALLET_ROWS table (Wallet!A2:B8), not the sheet fetch
+  const balanceMints = [...new Set(WALLET_ROWS.map(r => r.mint).filter(Boolean))];
   if (env("HELIUS_API_KEY") && balanceMints.length > 0) {
     try {
       const connection = new Connection(
@@ -267,6 +269,48 @@ export async function fetchInputs(): Promise<Inputs> {
     }
   }
 
+  // ---- staked JUP across both wallets (best-effort, same RPC/timeout pattern) ----
+  // getStakedJup equivalent: stake-program accounts owned by each wallet,
+  // staked amount = u64 LE at byte offset 105 (accounts < 113 bytes skipped)
+  let stakedJup: number | undefined;
+  if (env("HELIUS_API_KEY")) {
+    try {
+      const connection = new Connection(
+        `https://mainnet.helius-rpc.com/?api-key=${env("HELIUS_API_KEY")}`,
+        "confirmed",
+      );
+      const program = new PublicKey(JUP_STAKE_PROGRAM);
+      stakedJup = await Promise.race([
+        (async () => {
+          let lamports = 0n;
+          for (const w of [WALLET, WALLET2]) {
+            const res = await connection.getProgramAccounts(program, {
+              encoding: "base64",
+              filters: [{ memcmp: { offset: 40, bytes: w } }],
+            });
+            for (const { account } of res) {
+              // RPC returns data as [payload, encoding] tuple or a raw buffer
+              const raw: unknown = account.data;
+              const payload = Array.isArray(raw) ? raw[0] : raw;
+              const buf =
+                typeof payload === "string"
+                  ? Buffer.from(payload, "base64")
+                  : payload instanceof Uint8Array
+                    ? Buffer.from(payload)
+                    : null;
+              if (!buf || buf.length < 113) continue;
+              lamports += buf.readBigUInt64LE(105);
+            }
+          }
+          return Number(lamports) / 1e6;
+        })(),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("staked JUP timeout")), 5000)),
+      ]);
+    } catch {
+      /* RPC hiccup — the sheet's G−K term is used instead */
+    }
+  }
+
   // loose wallet token balances — best-effort; failures must not flag a source
   // nor break the dashboard (absent field → treated as 0 downstream)
   let walletTokens: Inputs["walletTokens"];
@@ -301,7 +345,17 @@ export async function fetchInputs(): Promise<Inputs> {
     }
   }
 
-  return { fetchedAt: Date.now(), positions, sanctum, defi: defiOut, sources, extraPositions: extras, walletTokens };
+  return {
+    fetchedAt: Date.now(),
+    positions,
+    sanctum,
+    defi: defiOut,
+    sources,
+    extraPositions: extras,
+    walletTokens,
+    stakedJup,
+    offchain,
+  };
 }
 
 export async function computeLive(): Promise<{ inputs: Inputs; result: DashboardResult }> {

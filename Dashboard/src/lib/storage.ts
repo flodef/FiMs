@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { offchainFromStored, type OffchainHoldings } from "./offchain.js";
 import type { TrackedKind, TrackedPosition } from "./types.js";
 
 const url = process.env.DATABASE_URL;
@@ -160,4 +161,18 @@ export async function trackedDelete(id: number): Promise<boolean> {
   if (!sql) return false;
   const rows = await sql`delete from tracked_positions where id = ${id} returning id`;
   return rows.length > 0;
+}
+
+const OFFCHAIN_KEY = "offchain_holdings";
+
+export async function offchainGet(): Promise<OffchainHoldings> {
+  try {
+    return offchainFromStored(await kvGet(OFFCHAIN_KEY));
+  } catch {
+    return offchainFromStored(null);
+  }
+}
+
+export async function offchainSet(v: OffchainHoldings): Promise<void> {
+  await kvSet(OFFCHAIN_KEY, v);
 }

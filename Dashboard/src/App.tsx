@@ -393,6 +393,8 @@ export default function App() {
           <Drawer title="Settings" onClose={() => setSettingsOpen(false)}>
             <Settings
               onClose={() => setSettingsOpen(false)}
+              offchain={inputs?.offchain}
+              readOnly={fixtureMode()}
               onRefresh={async () => {
                 checkForUpdate();
                 const r = await refresh();

@@ -1,3 +1,5 @@
+import { DEFAULT_OFFCHAIN } from "./offchain.js";
+import { WALLET_ROWS } from "./config.js";
 import {
   DANGER_RATIO,
   JUP_STAKED,
@@ -337,9 +339,136 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
   const M1 = M2 * I.I8;
   for (const [k, v] of Object.entries({ M1, M2, M3 })) set(k, v);
 
+  // FiMs EURC/USD strategy values — hoisted: the live-total + sync blocks below
+  // need them before the Multiply section consumes L8/M8/M4.
+  const c15 = strat
+    .filter(r => r.row >= 6 && r.row <= 14 && starts(r.label, "EURC"))
+    .reduce((s, r) => s + (r.amount ?? 0), 0);
+  const B15 = c15 * I.I15;
+  const usdG = positions.filter(p => starts(p.token, "USDG")).reduce((s, p) => s + p.amount, 0);
+  const usdT = positions.filter(p => starts(p.token, "USDT")).reduce((s, p) => s + p.amount, 0);
+  const B16 = usdG - usdT;
+  const C16 = B16 * I.I15;
+
+  // ---- DeFi-sheet sync correction ----
+  // FiMsData!B14:B17 IMPORTRANGE Strategy values into the DeFi sheet; they can lag
+  // the live positions (e.g. a rebalance lands between refreshes) and the Wallet!
+  // F total is then computed from stale imports. Re-derive the same deltas the
+  // sheet would have used and add them to the total — silently when small.
+  const imp = inputs.defi.imported;
+  const wp = inputs.defi.walletPrices;
+  const eurUsd = num(inputs.defi.eurUsd);
+  const canSync = !!(imp && wp && Number.isFinite(eurUsd) && eurUsd > 0);
+  const liveJupsol = stratAmount("JupSOL"); // Strategy B13
+  const liveFimsEurc = B15; // Strategy B15
+  const liveJlp = stratAmount("JLP"); // Strategy B10
+  const liveFimsUsd = B16; // Strategy B16
+  const syncItems = canSync
+    ? [
+        { label: "JLP", sheet: imp.jlp, live: liveJlp, impactEur: (liveJlp - imp.jlp) * wp.jlp },
+        { label: "JupSOL", sheet: imp.jupsol, live: liveJupsol, impactEur: (liveJupsol - imp.jupsol) * wp.jupsol },
+        {
+          label: "FiMs EURC",
+          sheet: imp.fimsEurc,
+          live: liveFimsEurc,
+          impactEur: (liveFimsEurc - imp.fimsEurc) * wp.eurc,
+        },
+        { label: "FiMs USD", sheet: imp.fimsUsd, live: liveFimsUsd, impactEur: (liveFimsUsd - imp.fimsUsd) / eurUsd },
+      ]
+    : [];
+  let totalCorrection = syncItems.reduce((s, i) => s + i.impactEur, 0);
+  const inSync =
+    !canSync ||
+    (Math.abs(totalCorrection) <= SHEET_SYNC_TOLERANCE_EUR &&
+      syncItems.every(i => Math.abs(i.impactEur) <= SHEET_SYNC_TOLERANCE_EUR));
+  const sheetTotal = num(inputs.defi.total);
+
+  // ---- Live Wallet total (LIVE-SPEC) ----
+  // Rebuild the sheet's Wallet!G total from live inputs only: the static
+  // WALLET_ROWS table (underlying/token/mint), live balances, live imported
+  // positions, staked JUP and the editable off-chain holdings — the sheet's
+  // opaque G−K−imported "other" term is replaced by real live values.
+  // Fed sheet values it reproduces Dashboard!B12 exactly (golden-tested).
+  const priceHeaderOf = (tok: string, row: number[]): number => {
+    const needle = `(${tok})`.toLowerCase();
+    let best = 0;
+    for (let i = 0; i < headers.length; i++) {
+      if (headers[i].toLowerCase().includes(needle)) best = Math.max(best, num(row[i]));
+    }
+    return best;
+  };
+  const wb = inputs.defi.walletBalances;
+  const wr = inputs.defi.walletRows;
+  const sheetByMint = new Map((wr ?? []).map(r => [r.mint, r]));
+  const pLiveJlp = priceHeaderOf("JLP", today);
+  const eurUsdLive = num(inputs.defi.eurUsd);
+  const eurUsdSheet = num(inputs.defi.sheetEurUsd ?? inputs.defi.eurUsd);
+  const liveImp = (token: string): number => {
+    if (token === "JUPSOL") return liveJupsol;
+    if (token === "EURC") return liveFimsEurc;
+    if (token === "JLP") {
+      const jlpUsd = pLiveJlp * eurUsdLive;
+      return liveJlp + (jlpUsd > 0 ? liveFimsUsd / jlpUsd : 0);
+    }
+    return 0;
+  };
+  const offchain = inputs.offchain ?? DEFAULT_OFFCHAIN;
+  const fimsLpN = num(inputs.defi.fimsLp);
+  const jupMint = WALLET_ROWS.find(r => r.token === "JUP")!.mint;
+  // every row must resolve: live balances cover all mints, else the sheet's K
+  // cache; the JUP row additionally needs stakedJup or the sheet's G−K term
+  const canLiveTotal =
+    !!imp &&
+    Number.isFinite(eurUsdSheet) &&
+    eurUsdSheet > 0 &&
+    Number.isFinite(eurUsdLive) &&
+    eurUsdLive > 0 &&
+    WALLET_ROWS.every(r => wb != null || sheetByMint.has(r.mint)) &&
+    (inputs.stakedJup != null || sheetByMint.has(jupMint));
+  let F14: number;
+  let jlpTotalLive: number | null = null;
+  if (canLiveTotal) {
+    // amount_r = live wallet balance (sheet K cache fallback) + live imported
+    // part + the row's "other" term: staked JUP, off-chain holdings, else 0
+    // (the BTC reserve FiMsData!B18 is empty → contributes 0).
+    let sum = 0;
+    let jlpRowAmount = 0;
+    for (const r of WALLET_ROWS) {
+      const s = sheetByMint.get(r.mint);
+      const balance = wb ? (wb[r.mint] ?? 0) : (s?.cache ?? 0);
+      const other =
+        r.token === "JUP"
+          ? (inputs.stakedJup ?? s!.amount - s!.cache)
+          : r.token === "xBTC"
+            ? offchain.xBTC
+            : r.token === "ZEC"
+              ? offchain.ZEC
+              : 0;
+      const amount = balance + liveImp(r.token) + other;
+      sum += amount * priceHeaderOf(r.token, today);
+      if (r.token === "JLP") jlpRowAmount = amount;
+    }
+    const fimsTokenN = num(inputs.defi.fimsToken);
+    // FiMs today price = liveB15·eurUsdLive/fimsToken (the sheet's D4 rule); I14 untouched
+    const priceFims = fimsTokenN > 0 ? (liveFimsEurc * eurUsdLive) / fimsTokenN : 0;
+    const liveTotal =
+      sum -
+      priceHeaderOf("FSOL", today) * num(inputs.defi.fimsSol) -
+      priceFims * fimsTokenN -
+      priceHeaderOf("FLIP", today) * fimsLpN;
+    totalCorrection = liveTotal - sheetTotal;
+    F14 = liveTotal;
+    // L8 jlpTotal live — sheet Wallet!D5 = (I_JLP − price(FLIP)·fimsLp)/price(JLP)
+    if (pLiveJlp > 0) {
+      jlpTotalLive = (jlpRowAmount * pLiveJlp - priceHeaderOf("FLIP", today) * fimsLpN) / pLiveJlp;
+    }
+  } else {
+    F14 = sheetTotal + totalCorrection;
+  }
+
   // ---- Multiply L8:M9 partial + forecasts M4/M5 + totals B2/B3 ----
   const jlpTotal = num(inputs.defi.jlpTotal);
-  const L8 = jlpTotal;
+  const L8 = jlpTotalLive ?? jlpTotal;
   const M8 = L8 * I.I11;
   set("L8", L8);
   set("M8", M8);
@@ -379,14 +508,6 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
   set("B3", perMonth);
 
   // ---- FiMs block F7:G15 + rows 15/16 ----
-  const c15 = strat
-    .filter(r => r.row >= 6 && r.row <= 14 && starts(r.label, "EURC"))
-    .reduce((s, r) => s + (r.amount ?? 0), 0);
-  const B15 = c15 * I.I15;
-  const usdG = positions.filter(p => starts(p.token, "USDG")).reduce((s, p) => s + p.amount, 0);
-  const usdT = positions.filter(p => starts(p.token, "USDT")).reduce((s, p) => s + p.amount, 0);
-  const B16 = usdG - usdT;
-  const C16 = B16 * I.I15;
   set("C15", c15);
   set("B15", B15);
   set("B16", B16);
@@ -401,104 +522,6 @@ export function computeDashboard(inputs: Inputs, now: Date): DashboardResult {
   const F9 = stratAmount("JupSOL") - num(inputs.defi.fimsSol);
   const F13 = (F12 * (lendRows[0].gainPct ?? 0)) / 365;
 
-  // ---- DeFi-sheet sync correction ----
-  // FiMsData!B14:B17 IMPORTRANGE Strategy values into the DeFi sheet; they can lag
-  // the live positions (e.g. a rebalance lands between refreshes) and the Wallet!
-  // F total is then computed from stale imports. Re-derive the same deltas the
-  // sheet would have used and add them to the total — silently when small.
-  const imp = inputs.defi.imported;
-  const wp = inputs.defi.walletPrices;
-  const eurUsd = num(inputs.defi.eurUsd);
-  const canSync = !!(imp && wp && Number.isFinite(eurUsd) && eurUsd > 0);
-  const liveJupsol = stratAmount("JupSOL"); // Strategy B13
-  const liveFimsEurc = B15; // Strategy B15
-  const liveJlp = stratAmount("JLP"); // Strategy B10
-  const liveFimsUsd = B16; // Strategy B16
-  const syncItems = canSync
-    ? [
-        { label: "JLP", sheet: imp.jlp, live: liveJlp, impactEur: (liveJlp - imp.jlp) * wp.jlp },
-        { label: "JupSOL", sheet: imp.jupsol, live: liveJupsol, impactEur: (liveJupsol - imp.jupsol) * wp.jupsol },
-        {
-          label: "FiMs EURC",
-          sheet: imp.fimsEurc,
-          live: liveFimsEurc,
-          impactEur: (liveFimsEurc - imp.fimsEurc) * wp.eurc,
-        },
-        { label: "FiMs USD", sheet: imp.fimsUsd, live: liveFimsUsd, impactEur: (liveFimsUsd - imp.fimsUsd) / eurUsd },
-      ]
-    : [];
-  let totalCorrection = syncItems.reduce((s, i) => s + i.impactEur, 0);
-  const inSync =
-    !canSync ||
-    (Math.abs(totalCorrection) <= SHEET_SYNC_TOLERANCE_EUR &&
-      syncItems.every(i => Math.abs(i.impactEur) <= SHEET_SYNC_TOLERANCE_EUR));
-  const sheetTotal = num(inputs.defi.total);
-
-  // ---- Live Wallet total (LIVE-SPEC) ----
-  // When the sheet's Wallet!A2:K rows + Tokens map are present, rebuild the
-  // sheet's own total with live wallet balances and live prices. Fed sheet
-  // values it reproduces Dashboard!B12 exactly (golden-tested).
-  const priceHeaderOf = (tok: string, row: number[]): number => {
-    const needle = `(${tok})`.toLowerCase();
-    let best = 0;
-    for (let i = 0; i < headers.length; i++) {
-      if (headers[i].toLowerCase().includes(needle)) best = Math.max(best, num(row[i]));
-    }
-    return best;
-  };
-  const wr = inputs.defi.walletRows;
-  const eurUsdLive = num(inputs.defi.eurUsd);
-  const eurUsdSheet = num(inputs.defi.sheetEurUsd ?? inputs.defi.eurUsd);
-  const canLiveTotal =
-    !!wr?.length &&
-    !!inputs.defi.tokens?.length &&
-    !!imp &&
-    Number.isFinite(eurUsdSheet) &&
-    eurUsdSheet > 0 &&
-    Number.isFinite(eurUsdLive) &&
-    eurUsdLive > 0;
-  let F14: number;
-  if (canLiveTotal) {
-    const sheetRow = inputs.defi.sheetPriceRow ?? today;
-    const wb = inputs.defi.walletBalances;
-    const pSheetJlp = priceHeaderOf("JLP", sheetRow);
-    const pLiveJlp = priceHeaderOf("JLP", today);
-    // imported part the SHEET used (imp.* / sheet prices) vs the LIVE one
-    const sheetImp = (token: string): number => {
-      if (token === "JUPSOL") return imp!.jupsol;
-      if (token === "EURC") return imp!.fimsEurc;
-      if (token === "JLP") return pSheetJlp > 0 ? imp!.jlp + imp!.fimsUsd / (eurUsdSheet * pSheetJlp) : imp!.jlp;
-      return 0;
-    };
-    const liveImp = (token: string): number => {
-      if (token === "JUPSOL") return liveJupsol;
-      if (token === "EURC") return liveFimsEurc;
-      if (token === "JLP") {
-        const jlpUsd = pLiveJlp * eurUsdLive;
-        return liveJlp + (jlpUsd > 0 ? liveFimsUsd / jlpUsd : 0);
-      }
-      return 0;
-    };
-    // amount_r = live wallet balance (cache fallback) + static "other" + live imported part
-    let sum = 0;
-    for (const r of wr!) {
-      // fetched balances: a mint with no account is really 0, not the stale cache
-      const amount = (wb ? (wb[r.mint] ?? 0) : r.cache) + (r.amount - r.cache - sheetImp(r.token)) + liveImp(r.token);
-      sum += amount * priceHeaderOf(r.token, today);
-    }
-    const fimsTokenN = num(inputs.defi.fimsToken);
-    // FiMs today price = liveB15·eurUsdLive/fimsToken (the sheet's D4 rule); I14 untouched
-    const priceFims = fimsTokenN > 0 ? (liveFimsEurc * eurUsdLive) / fimsTokenN : 0;
-    const liveTotal =
-      sum -
-      priceHeaderOf("FSOL", today) * num(inputs.defi.fimsSol) -
-      priceFims * fimsTokenN -
-      priceHeaderOf("FLIP", today) * num(inputs.defi.fimsLp);
-    totalCorrection = liveTotal - sheetTotal;
-    F14 = liveTotal;
-  } else {
-    F14 = sheetTotal + totalCorrection;
-  }
   const F11 = Math.max(0, (stratAmount("USDT JupSOL") - B15 - B16) / ((stratAmount("JupSOL") * I.I11) / I.I15));
   const F7 = F14 / I.I8 / 10000;
   const G15 = (F14 / F7) * MULTIPLY_G7;
