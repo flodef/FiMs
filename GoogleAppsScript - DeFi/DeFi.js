@@ -14,11 +14,8 @@ const WALLET = "Wallet"; // The "Wallet" sheet name
 // PRICECACHE COLS
 const PRICE_COL = 2; // Should be the "Price" column
 
-// TOKEN COLS
-const AVAILABLE_COL = 5; // Should be the "Available" column
-
 // WALLET COLS
-const CACHE_COL = 8; // Should be the "Cache" column
+const CACHE_COL = 11; // Should be the "Cache" column
 
 // MISC
 const PRICE_UPDATE = 10; // Number of minutes between price updates
@@ -35,6 +32,7 @@ function monthlyUpdate() {
 
 // SHOULD RUN ONCE AN HOUR
 function updatePrice() {
+  migrateJupiterPrice(); // one-shot: rewrite lite-api formulas → JUPPRICE
   if (_isSubHour(PRICE_UPDATE, 0)) {
     // Remove the offset to avoid caching if it failed until there
     const cache = CacheService.getScriptCache();
@@ -53,7 +51,6 @@ function cachePrice() {
   const cv = cache.get("offset");
   const offset = cv ? Number(cv) : 1;
   if (_isSubHour(PRICE_UPDATE, offset)) {
-    _doCache(_getSheet(TOKEN), AVAILABLE_COL);
     _doCache(_getSheet(WALLET), CACHE_COL);
 
     const sheet = _getSheet(PRICECACHE);
@@ -99,7 +96,7 @@ function _updateEvolution() {
   let array = sheet.getSheetValues(FR, FC, 2, -1);
 
   // Delete last price if older than one year
-  _deleteOlderThanAYear(sheet);
+  //_deleteOlderThanAYear(sheet);
 
   // Check for difference
   if (_AreRowsDifferent(array)) {
@@ -128,3 +125,70 @@ function _updateHistoric() {
   }
 }
 
+/**
+ * Retourne le JUP staké (gouvernance) pour une adresse wallet.
+ * Source: programme Jupiter DAO Locker Vote (on-chain)
+ *
+ * @param {string} wallet - adresse Solana
+ * @return {number} montant en JUP (UI), ou 0 si aucun stake
+ */
+function getStakedJup(wallet) {
+  const PROGRAM_ID = "voTpe3tHQ7AjQHMapgSue2HJFAh2cGsdokqN3XqmVSj";
+  // RPC public (peut rate-limit). Alternatives: Helius, Triton, etc.
+  const RPC_URL = "https://api.mainnet-beta.solana.com";
+
+  const payload = {
+    jsonrpc: "2.0",
+    id: 1,
+    method: "getProgramAccounts",
+    params: [
+      PROGRAM_ID,
+      {
+        encoding: "base64",
+        filters: [
+          // Escrow.owner est à l'offset 40 (après disc 8 + locker 32)
+          { memcmp: { offset: 40, bytes: wallet.trim() } }
+        ]
+      }
+    ]
+  };
+
+  const resp = UrlFetchApp.fetch(RPC_URL, {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+
+  if (resp.getResponseCode() !== 200) {
+    throw new Error("RPC error " + resp.getResponseCode() + ": " + resp.getContentText());
+  }
+
+  const json = JSON.parse(resp.getContentText());
+  if (json.error) {
+    throw new Error("RPC error: " + JSON.stringify(json.error));
+  }
+
+  const accounts = json.result || [];
+  if (!accounts.length) return 0;
+
+  let totalRaw = 0; // en unités de base (6 decimals)
+
+  accounts.forEach(function (item) {
+    const b64 = item.account && item.account.data && item.account.data[0];
+    if (!b64) return;
+
+    const bytes = Utilities.base64Decode(b64);
+    // amount: u64 little-endian à l'offset 105
+    if (bytes.length < 113) return;
+
+    let amount = 0;
+    for (let i = 0; i < 8; i++) {
+      amount += bytes[105 + i] * Math.pow(2, 8 * i);
+    }
+    totalRaw += amount;
+  });
+
+  // JUP a 6 decimals
+  return totalRaw / 1e6;
+}
