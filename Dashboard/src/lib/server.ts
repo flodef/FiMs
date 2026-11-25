@@ -1,12 +1,4 @@
-import {
-  CIRCULATION_URL,
-  DEFI_TIMEOUT_MS,
-  FETCH_TIMEOUT_MS,
-  JUP_STAKE_PROGRAM,
-  TOKENS,
-  WALLET2,
-  WALLET_ROWS,
-} from "./config.js";
+import { CIRCULATION_URL, DEFI_TIMEOUT_MS, FETCH_TIMEOUT_MS, JUP_STAKE_PROGRAM, TOKENS, WALLET2 } from "./config.js";
 import { computeDashboard } from "./compute.js";
 import type { DashboardResult } from "./compute.js";
 import { fetchCirculation } from "./sources/circulation.js";
@@ -18,8 +10,6 @@ import { fetchSanctum, type SanctumRaw } from "./sources/sanctum.js";
 import { getLastGood, offchainGet, setLastGood, trackedList } from "./storage.js";
 import { WALLET } from "./config.js";
 import { RESTORE_TOKENS } from "./rebalance/plan.js";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import type {
   DefiData,
   ExtraPosition,
@@ -51,6 +41,14 @@ const validDefi = (d: DefiData) =>
   d.priceRows.length >= 3 &&
   d.priceHeaders.length > 0;
 
+/**
+ * Freshness window for cached sources: a last-good entry younger than this is
+ * served without refetching, so bursts (multi-user polls, cron overlap,
+ * visibility-change refreshes) collapse into one upstream fetch cycle. Live
+ * Jupiter prices are fetched outside this cache and stay fresh every call.
+ */
+const SOURCE_TTL_MS = 6 * 60_000;
+
 async function timed<T>(p: Promise<T>, timeoutMs: number): Promise<T> {
   return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), timeoutMs + 2000))]);
 }
@@ -68,8 +66,13 @@ async function withLastGood<T>(
   fetcher: () => Promise<T>,
   validate: (d: T) => boolean,
   timeoutMs = FETCH_TIMEOUT_MS,
+  ttlMs = 0,
 ): Promise<SourceOutcome<T>> {
   const now = Date.now();
+  if (ttlMs > 0) {
+    const lg = await getLastGood<T>(source);
+    if (lg && now - lg.at < ttlMs) return { data: lg.data, ok: true, stale: false, at: lg.at };
+  }
   try {
     const data = await timed(fetcher(), timeoutMs);
     if (!validate(data)) throw new Error("validation failed");
@@ -126,7 +129,13 @@ async function fetchExtras(tracked: TrackedPosition[]): Promise<ExtraPosition[]>
           },
         ];
       }
-      const outcome = await withLastGood<PositionRow[]>(`tracked:${t.id}`, () => fetchTrackedEntry(t, jupKey), rowsOk);
+      const outcome = await withLastGood<PositionRow[]>(
+        `tracked:${t.id}`,
+        () => fetchTrackedEntry(t, jupKey),
+        rowsOk,
+        FETCH_TIMEOUT_MS,
+        SOURCE_TTL_MS,
+      );
       const rows = outcome.data ?? [];
       if (!rows.length) {
         // placeholder so empty tracked wallets stay visible/removable in the UI
@@ -155,21 +164,136 @@ async function fetchExtras(tracked: TrackedPosition[]): Promise<ExtraPosition[]>
   return groups.flat();
 }
 
+interface ChainData {
+  walletBalances?: Record<string, number>;
+  stakedJup?: number;
+  walletTokens?: { jupsol: number; jlp: number; eurc: number; usdg: number };
+}
+
+const CHAIN_RPC_TIMEOUT_MS = 5000;
+const chainTimeout = <T>(p: Promise<T>) =>
+  Promise.race([
+    p,
+    new Promise<never>((_, rej) => setTimeout(() => rej(new Error("chain rpc timeout")), CHAIN_RPC_TIMEOUT_MS)),
+  ]);
+
+/**
+ * All Helius-derived inputs in one pass: loose wallet balances (both wallets),
+ * staked JUP, and the restore-relevant wallet token amounts — the latter are
+ * read off the same token-account sweep instead of four extra per-mint calls.
+ * @solana/web3.js is imported lazily so cache-hit invocations never pay its
+ * module-init cost at cold start.
+ */
+async function fetchChain(): Promise<ChainData> {
+  const key = process.env.HELIUS_API_KEY ?? "";
+  if (!key) return {};
+  const [{ Connection, PublicKey }, { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID }] = await Promise.all([
+    import("@solana/web3.js"),
+    import("@solana/spl-token"),
+  ]);
+  const connection = new Connection(`https://mainnet.helius-rpc.com/?api-key=${key}`, "confirmed");
+  const SOL_MINT = "So11111111111111111111111111111111111111112";
+
+  const balancesP = (async () => {
+    const perWallet = await Promise.all(
+      [WALLET, WALLET2].map(async w => {
+        const owner = new PublicKey(w);
+        const acc: Record<string, number> = {};
+        const add = (mint: string, amt: number) => {
+          if (Number.isFinite(amt)) acc[mint] = (acc[mint] ?? 0) + amt;
+        };
+        add(SOL_MINT, (await connection.getBalance(owner)) / 1e9);
+        for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
+          const res = await connection.getParsedTokenAccountsByOwner(owner, { programId });
+          for (const { account } of res.value) {
+            const info = (account.data as any)?.parsed?.info;
+            const amt = info?.tokenAmount?.uiAmount;
+            if (typeof info?.mint === "string" && Number.isFinite(amt)) add(info.mint, Number(amt));
+          }
+        }
+        return acc;
+      }),
+    );
+    const walletBalances: Record<string, number> = {};
+    for (const acc of perWallet) {
+      for (const [mint, amt] of Object.entries(acc)) walletBalances[mint] = (walletBalances[mint] ?? 0) + amt;
+    }
+    const w0 = perWallet[0] ?? {};
+    const pick = (k: keyof typeof RESTORE_TOKENS) => w0[RESTORE_TOKENS[k].mint] ?? 0;
+    return {
+      walletBalances,
+      walletTokens: { jupsol: pick("jupsol"), jlp: pick("jlp"), eurc: pick("eurc"), usdg: pick("usdg") },
+    };
+  })();
+
+  // getStakedJup equivalent: stake-program accounts owned by each wallet,
+  // staked amount = u64 LE at byte offset 105 (accounts < 113 bytes skipped)
+  const stakeP = (async () => {
+    const program = new PublicKey(JUP_STAKE_PROGRAM);
+    let lamports = 0n;
+    for (const w of [WALLET, WALLET2]) {
+      const res = await connection.getProgramAccounts(program, {
+        encoding: "base64",
+        filters: [{ memcmp: { offset: 40, bytes: w } }],
+      });
+      for (const { account } of res) {
+        // RPC returns data as [payload, encoding] tuple or a raw buffer
+        const raw: unknown = account.data;
+        const payload = Array.isArray(raw) ? raw[0] : raw;
+        const buf =
+          typeof payload === "string"
+            ? Buffer.from(payload, "base64")
+            : payload instanceof Uint8Array
+              ? Buffer.from(payload)
+              : null;
+        if (!buf || buf.length < 113) continue;
+        lamports += buf.readBigUInt64LE(105);
+      }
+    }
+    return Number(lamports) / 1e6;
+  })();
+
+  const [balances, stakedJup] = await Promise.all([
+    chainTimeout(balancesP).catch(() => null),
+    chainTimeout(stakeP).catch(() => null),
+  ]);
+  return {
+    walletBalances: balances?.walletBalances,
+    walletTokens: balances?.walletTokens,
+    stakedJup: stakedJup ?? undefined,
+  };
+}
+
+const chainDataOk = (d: ChainData) => d != null && typeof d === "object";
+
 export async function fetchInputs(): Promise<Inputs> {
   const env = (k: string) => process.env[k] ?? "";
 
   const [tracked, offchain] = await Promise.all([trackedList(), offchainGet()]);
 
-  const [jup, kam, san, def, extras, circ] = await Promise.all([
-    withLastGood<PositionRow[]>("jupiter", () => fetchJupiter(env("JUPITER_API_KEY")).then(sanitizeRows), validRows),
-    withLastGood<PositionRow[]>("kamino", () => fetchKamino().then(sanitizeRows), validRows),
-    withLastGood<SanctumRaw>("sanctum", () => fetchSanctum(), validSanctum),
-    withLastGood<DefiData>("defi", () => fetchDefi(env("GOOGLE_API_KEY")), validDefi, DEFI_TIMEOUT_MS),
+  const [jup, kam, san, def, extras, circ, chain] = await Promise.all([
+    withLastGood<PositionRow[]>(
+      "jupiter",
+      () => fetchJupiter(env("JUPITER_API_KEY")).then(sanitizeRows),
+      validRows,
+      FETCH_TIMEOUT_MS,
+      SOURCE_TTL_MS,
+    ),
+    withLastGood<PositionRow[]>(
+      "kamino",
+      () => fetchKamino().then(sanitizeRows),
+      validRows,
+      FETCH_TIMEOUT_MS,
+      SOURCE_TTL_MS,
+    ),
+    withLastGood<SanctumRaw>("sanctum", () => fetchSanctum(), validSanctum, FETCH_TIMEOUT_MS, SOURCE_TTL_MS),
+    withLastGood<DefiData>("defi", () => fetchDefi(env("GOOGLE_API_KEY")), validDefi, DEFI_TIMEOUT_MS, SOURCE_TTL_MS),
     fetchExtras(tracked),
     // member token counts from the Wallet-V3 ledger — best-effort, no source
     // flag and no last-good: the sheet FiMsData values stay the fallback.
     // CIRCULATION_URL env override exists for local runs before deploy.
     fetchCirculation(env("CIRCULATION_URL") || CIRCULATION_URL).catch(() => null),
+    withLastGood<ChainData>("chain", fetchChain, chainDataOk, FETCH_TIMEOUT_MS, SOURCE_TTL_MS),
   ]);
 
   const jupRows = sanitizeRows(jup.data ?? []);
@@ -239,123 +363,13 @@ export async function fetchInputs(): Promise<Inputs> {
     }
   }
 
-  // ---- live wallet balances for the sheet Wallet!K cache (best-effort) ----
-  // mints come from the static WALLET_ROWS table (Wallet!A2:B8), not the sheet fetch
-  const balanceMints = [...new Set(WALLET_ROWS.map(r => r.mint).filter(Boolean))];
-  if (env("HELIUS_API_KEY") && balanceMints.length > 0) {
-    try {
-      const connection = new Connection(
-        `https://mainnet.helius-rpc.com/?api-key=${env("HELIUS_API_KEY")}`,
-        "confirmed",
-      );
-      const SOL_MINT = "So11111111111111111111111111111111111111112";
-      const perWallet = await Promise.race([
-        Promise.all(
-          [WALLET, WALLET2].map(async w => {
-            const owner = new PublicKey(w);
-            const acc: Record<string, number> = {};
-            const add = (mint: string, amt: number) => {
-              if (Number.isFinite(amt)) acc[mint] = (acc[mint] ?? 0) + amt;
-            };
-            add(SOL_MINT, (await connection.getBalance(owner)) / 1e9);
-            for (const programId of [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID]) {
-              const res = await connection.getParsedTokenAccountsByOwner(owner, { programId });
-              for (const { account } of res.value) {
-                const info = (account.data as any)?.parsed?.info;
-                const amt = info?.tokenAmount?.uiAmount;
-                if (typeof info?.mint === "string" && Number.isFinite(amt)) add(info.mint, Number(amt));
-              }
-            }
-            return acc;
-          }),
-        ),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("wallet balances timeout")), 5000)),
-      ]);
-      const walletBalances: Record<string, number> = {};
-      for (const acc of perWallet) {
-        for (const [mint, amt] of Object.entries(acc)) walletBalances[mint] = (walletBalances[mint] ?? 0) + amt;
-      }
-      defiOut = { ...defiOut, walletBalances };
-    } catch {
-      /* RPC hiccup — the sheet cache values are used instead */
-    }
-  }
-
-  // ---- staked JUP across both wallets (best-effort, same RPC/timeout pattern) ----
-  // getStakedJup equivalent: stake-program accounts owned by each wallet,
-  // staked amount = u64 LE at byte offset 105 (accounts < 113 bytes skipped)
-  let stakedJup: number | undefined;
-  if (env("HELIUS_API_KEY")) {
-    try {
-      const connection = new Connection(
-        `https://mainnet.helius-rpc.com/?api-key=${env("HELIUS_API_KEY")}`,
-        "confirmed",
-      );
-      const program = new PublicKey(JUP_STAKE_PROGRAM);
-      stakedJup = await Promise.race([
-        (async () => {
-          let lamports = 0n;
-          for (const w of [WALLET, WALLET2]) {
-            const res = await connection.getProgramAccounts(program, {
-              encoding: "base64",
-              filters: [{ memcmp: { offset: 40, bytes: w } }],
-            });
-            for (const { account } of res) {
-              // RPC returns data as [payload, encoding] tuple or a raw buffer
-              const raw: unknown = account.data;
-              const payload = Array.isArray(raw) ? raw[0] : raw;
-              const buf =
-                typeof payload === "string"
-                  ? Buffer.from(payload, "base64")
-                  : payload instanceof Uint8Array
-                    ? Buffer.from(payload)
-                    : null;
-              if (!buf || buf.length < 113) continue;
-              lamports += buf.readBigUInt64LE(105);
-            }
-          }
-          return Number(lamports) / 1e6;
-        })(),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("staked JUP timeout")), 5000)),
-      ]);
-    } catch {
-      /* RPC hiccup — the sheet's G−K term is used instead */
-    }
-  }
-
-  // loose wallet token balances — best-effort; failures must not flag a source
-  // nor break the dashboard (absent field → treated as 0 downstream)
-  let walletTokens: Inputs["walletTokens"];
-  if (env("HELIUS_API_KEY")) {
-    try {
-      const connection = new Connection(
-        `https://mainnet.helius-rpc.com/?api-key=${env("HELIUS_API_KEY")}`,
-        "confirmed",
-      );
-      const owner = new PublicKey(WALLET);
-      const bal = async (mint: string): Promise<number> => {
-        const res = await connection.getParsedTokenAccountsByOwner(owner, { mint: new PublicKey(mint) });
-        let total = 0;
-        for (const { account } of res.value) {
-          const amt = (account.data as any)?.parsed?.info?.tokenAmount?.uiAmount;
-          if (Number.isFinite(amt)) total += Number(amt);
-        }
-        return total;
-      };
-      const [jupsol, jlp, eurc, usdg] = await Promise.race([
-        Promise.all([
-          bal(RESTORE_TOKENS.jupsol.mint),
-          bal(RESTORE_TOKENS.jlp.mint),
-          bal(RESTORE_TOKENS.eurc.mint),
-          bal(RESTORE_TOKENS.usdg.mint),
-        ]),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("wallet balances timeout")), 5000)),
-      ]);
-      walletTokens = { jupsol, jlp, eurc, usdg };
-    } catch {
-      /* RPC hiccup — dashboard works without the wallet breakdown */
-    }
-  }
+  // ---- chain-derived inputs (wallet balances, staked JUP, wallet tokens) ----
+  // served from the shared "chain" cache when fresh; failures stay best-effort
+  // and never flag a source (absent fields → treated as 0 / sheet fallback)
+  const chainData = chain.data;
+  if (chainData?.walletBalances) defiOut = { ...defiOut, walletBalances: chainData.walletBalances };
+  const stakedJup = chainData?.stakedJup;
+  const walletTokens = chainData?.walletTokens;
 
   // ---- member token counts: Wallet-V3 ledger over sheet FiMsData!B1:B3 ----
   if (circ) {

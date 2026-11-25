@@ -32,7 +32,10 @@ export async function getLastGood<T>(source: string): Promise<{ data: T; at: num
     const parsed = (await kvGet(`${LASTGOOD_PREFIX}${source}`)) as { data?: T; at?: number } | T | null;
     if (parsed == null) return null;
     if (typeof parsed === "object" && "data" in parsed) return parsed as { data: T; at: number };
-    return { data: parsed as T, at: Date.now() };
+    // legacy bare-data entries get at=0: usable as a failure fallback but never
+    // fresh enough for the TTL cache (the next successful fetch rewrites the
+    // {data, at} shape anyway)
+    return { data: parsed as T, at: 0 };
   } catch {
     return null;
   }
