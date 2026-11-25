@@ -1,11 +1,16 @@
 {
   "name": "fims-dashboard",
   "private": true,
-  "version": "1.0.33",
+  "version": "1.0.34",
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:server": "esbuild server.ts --bundle --platform=node --format=esm --outfile=server.mjs --banner:js=\"import { createRequire as __bcr } from 'node:module'; import { fileURLToPath as __bf2p } from 'node:url'; import { dirname as __bdn } from 'node:path'; const require = __bcr(import.meta.url); const __filename = __bf2p(import.meta.url); const __dirname = __bdn(__filename);\"",
+    "start": "node server.mjs",
     "preview": "vite preview",
     "test": "bun test",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.sw.json",
@@ -26,6 +31,7 @@
     "nodemailer": "10.3.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "undici": "8.13.1",
     "web-push": "3.6.7",
     "workbox-precaching": "7.4.1",
     "workbox-routing": "7.4.1"
@@ -42,6 +48,7 @@
     "@vitejs/plugin-react": "6.1.2",
     "autoprefixer": "10.6.2",
     "bun-types": "1.4.4",
+    "esbuild": "0.28.2",
     "eslint": "10.13.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "0.5.7",

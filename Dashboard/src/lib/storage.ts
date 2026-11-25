@@ -1,9 +1,22 @@
-import { neon } from "@neondatabase/serverless";
+import { neon, neonConfig } from "@neondatabase/serverless";
+import { Agent, fetch as undiciFetch } from "undici";
 import { offchainFromStored, type OffchainHoldings } from "./offchain.js";
 import type { TrackedKind, TrackedPosition } from "./types.js";
 
 const url = process.env.DATABASE_URL;
 const sql = url ? neon(url) : null;
+
+if (url) {
+  // Dedicated dispatcher with keep-alive effectively disabled: pooled sockets
+  // to the Neon proxy die silently during idle gaps (no RST), and undici then
+  // hands the half-open socket to the next query — which hangs forever.
+  // Fresh TCP+TLS per query costs ~100 ms, far cheaper than a hung request.
+  const agent = new Agent({ keepAliveTimeout: 1, keepAliveMaxTimeout: 1 });
+  neonConfig.fetchFunction = (u: string | URL | Request, init?: RequestInit) =>
+    // the driver always passes a plain URL string; the cast bridges undici's
+    // stricter Request typing (duplex) — no Request objects are ever sent
+    undiciFetch(u as string, { ...init, dispatcher: agent, signal: AbortSignal.timeout(20_000) } as never);
+}
 
 export function dbReady(): boolean {
   return sql != null;

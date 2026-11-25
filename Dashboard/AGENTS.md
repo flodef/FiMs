@@ -1,6 +1,8 @@
 # FiMs Dashboard — agent notes
 
-Mobile PWA replacing the Google Sheet "Strategy" dashboard. Bun + Vite + React 19 + TypeScript + TailwindCSS v3 (`tailwind.config.ts`). All icons from `@tabler/icons-react`. Serverless API routes live in `api/` (Vercel functions convention).
+Mobile PWA replacing the Google Sheet "Strategy" dashboard. Bun + Vite + React 19 + TypeScript + TailwindCSS v3 (`tailwind.config.ts`). All icons from `@tabler/icons-react`. Serverless API routes live in `api/` (Vercel functions convention) and are adapted to plain node:http by `server.ts` for the Railway deployment (`railway.json`: `bun run build && bun run build:server` → `node server.mjs`, serves `dist/` + `/api/*`).
+
+**Node version matters: run `server.mjs` on Node 24 (`engines`/`/.nvmrc` pin it) — Node 26's undici hangs outbound fetches in long-running processes.** Neon queries go through a dedicated undici `Agent` with keep-alive disabled (`src/lib/storage.ts`) so idle-killed pooled sockets can't hang requests.
 
 ## Commands
 
