@@ -1,7 +1,7 @@
 {
   "name": "fims-dashboard",
   "private": true,
-  "version": "1.0.34",
+  "version": "1.0.35",
   "type": "module",
   "engines": {
     "node": "24.x"

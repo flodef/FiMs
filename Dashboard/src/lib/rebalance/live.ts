@@ -17,7 +17,7 @@ import {
   type TransactionInstruction,
 } from "@solana/web3.js";
 import bs58 from "bs58";
-import { KAMINO_MARKET, LTV_TARGETS, SPEND_ADDRESS, WALLET } from "../config.js";
+import { KAMINO_MARKET, LTV_TARGETS, SPEND_CARDS, type SpendCard, WALLET } from "../config.js";
 import {
   buildPlan,
   buildRestorePlan,
@@ -42,7 +42,6 @@ export const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 export const DECIMALS = 6;
 
 export const WALLET_PUB = new PublicKey(WALLET);
-export const SPEND_PUB = new PublicKey(SPEND_ADDRESS);
 
 const JUP_LEND_API = "https://api.jup.ag/lend/v1";
 const JUP_SWAP_API = "https://api.jup.ag/swap/v1";
@@ -170,6 +169,7 @@ export async function getTopupPlan(
   usdt: number,
   source: "kamino" | "lend" = "kamino",
   slippageBps?: number,
+  card: SpendCard = "jupiter",
 ): Promise<RebalancePlan> {
   if (source === "lend") {
     const [vaults, kamino] = await Promise.all([fetchLendVaultPositions(), fetchKaminoUsdg()]);
@@ -184,11 +184,19 @@ export async function getTopupPlan(
         estOut = sized.estTargetOut;
       }
     }
-    const plan = buildTopupPlanLend({ usdt, jlpAmount, jlp, kaminoUsdg: kamino.amount, estOut, slippageBps: bps });
+    const plan = buildTopupPlanLend({
+      usdt,
+      jlpAmount,
+      jlp,
+      kaminoUsdg: kamino.amount,
+      estOut,
+      slippageBps: bps,
+      card,
+    });
     return plan;
   }
   const kamino = await fetchKaminoUsdg();
-  const plan = buildTopupPlan(usdt, kamino.amount);
+  const plan = buildTopupPlan(usdt, kamino.amount, card);
   await annotateWithQuotes(plan).catch(() => {});
   return plan;
 }
@@ -442,19 +450,22 @@ export async function buildLendTxFitted(ops: LendBuildOp[], availableRaw?: numbe
 }
 
 /**
- * USDT transfer to the Jupiter Spend address: idempotent dest ATA create +
+ * USDT transfer to the card deposit address: idempotent dest ATA create +
  * transferChecked from the wallet's USDT ATA. Same probe-sim → tight CU budget.
  */
-export async function buildSpendTransferTx(amountUsdt: number): Promise<LendTxResult> {
+export async function buildSpendTransferTx(amountUsdt: number, card: SpendCard = "jupiter"): Promise<LendTxResult> {
   const connection = rpc();
   const raw = Math.round(amountUsdt * 10 ** DECIMALS);
   if (!(raw > 0)) throw new Error("spend-transfer: amount must be > 0");
+  const dest = SPEND_CARDS[card] ?? SPEND_CARDS.jupiter;
   const usdtMint = new PublicKey(USDT_MINT);
   const walletAta = getAssociatedTokenAddressSync(usdtMint, WALLET_PUB);
-  // SPEND_ADDRESS is off-curve (Jupiter Spend PDA) → allowOwnerOffCurve required
-  const destAta = getAssociatedTokenAddressSync(usdtMint, SPEND_PUB, true);
+  const destPub = new PublicKey(dest.address);
+  // Jupiter's spend address is off-curve (PDA) → allowOwnerOffCurve required;
+  // Nexo's deposit address is a regular on-curve wallet.
+  const destAta = getAssociatedTokenAddressSync(usdtMint, destPub, dest.offCurve);
   const ixs = [
-    createAssociatedTokenAccountIdempotentInstruction(WALLET_PUB, destAta, SPEND_PUB, usdtMint),
+    createAssociatedTokenAccountIdempotentInstruction(WALLET_PUB, destAta, destPub, usdtMint),
     createTransferCheckedInstruction(walletAta, usdtMint, destAta, WALLET_PUB, raw, DECIMALS),
   ];
   return finalizeTx(connection, ixs);

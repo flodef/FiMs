@@ -1,4 +1,4 @@
-import { DANGER_RATIO, WALLET } from "../config.js";
+import { DANGER_RATIO, type SpendCard, WALLET } from "../config.js";
 import {
   buildEarnDepositTx,
   buildEarnWithdrawTx,
@@ -62,8 +62,9 @@ export async function topupPlanAction(
   usdt: number,
   source: "kamino" | "lend" = "kamino",
   slippageBps?: number,
+  card?: SpendCard,
 ): Promise<RebalancePlan> {
-  return getTopupPlan(usdt, source, slippageBps);
+  return getTopupPlan(usdt, source, slippageBps, card);
 }
 
 export async function restorePlanAction(
@@ -322,7 +323,7 @@ async function buildTopupStage(stage: PlanStage): Promise<BuiltTx> {
     const usdtBal = await walletTokenBalance(connection, USDT_MINT);
     const amount = Math.min(Math.min(stage.usdt, TOPUP_MAX_USDT) * TOPUP_TRANSFER_CAP, usdtBal);
     if (amount <= 0) throw new HttpError(422, "wallet USDT balance too low for transfer");
-    const built = await buildSpendTransferTx(amount);
+    const built = await buildSpendTransferTx(amount, stage.card === "nexo" ? "nexo" : "jupiter");
     const simulation = await simulateOrFail(built.txB64);
     return { tx: built.txB64, size: built.size, quote: { usdt: amount }, simulation };
   }

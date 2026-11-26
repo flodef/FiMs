@@ -1,4 +1,4 @@
-import { DANGER_RATIO } from "../config.js";
+import { DANGER_RATIO, type SpendCard } from "../config.js";
 
 export type RebalanceKey = "JLP" | "JupSOL";
 
@@ -128,8 +128,10 @@ export type PlanStage =
     }
   | {
       type: "spend-transfer";
-      /** USDT to send to the Jupiter Spend address */
+      /** USDT to send to the card deposit address */
       usdt: number;
+      /** destination card — absent on runs saved before the selector existed (jupiter) */
+      card?: SpendCard;
       purpose?: StagePurpose;
     };
 
@@ -287,7 +289,7 @@ export const TOPUP_MAX_USDT = 10_000;
  * Pure top-up plan: withdraw USDG from Kamino → swap all to USDT → send to the
  * Jupiter Spend address. USDG≈USDT≈USD so the requested USDT amount sizes all stages.
  */
-export function buildTopupPlan(usdt: number, kaminoUsdg: number): RebalancePlan {
+export function buildTopupPlan(usdt: number, kaminoUsdg: number, card: SpendCard = "jupiter"): RebalancePlan {
   const plan: RebalancePlan = { positions: [], stages: [], kaminoUsdg, error: null };
   if (!Number.isFinite(usdt) || usdt < 1 || usdt > TOPUP_MAX_USDT) {
     plan.error = `Amount must be between 1 and ${TOPUP_MAX_USDT.toLocaleString("en-US")} USDT`;
@@ -300,14 +302,14 @@ export function buildTopupPlan(usdt: number, kaminoUsdg: number): RebalancePlan 
   plan.stages = [
     { type: "kamino-withdraw", amountUsdg: usdt, usdtOut: usdt, purpose: "topup" },
     { type: "swap", pair: "usdg-usdt", mode: "ExactIn", amount: usdt, purpose: "topup" },
-    { type: "spend-transfer", usdt, purpose: "topup" },
+    { type: "spend-transfer", usdt, card, purpose: "topup" },
   ];
   return plan;
 }
 
 /**
  * Pure top-up plan from Lend JLP: withdraw JLP collateral → swap to USDT →
- * send to the Jupiter Spend address. Same LTV guard as restore withdraws.
+ * send to the card deposit address. Same LTV guard as restore withdraws.
  */
 export function buildTopupPlanLend(opts: {
   usdt: number;
@@ -318,6 +320,7 @@ export function buildTopupPlanLend(opts: {
   /** quoted USDT the swap yields (display only) */
   estOut?: number;
   slippageBps?: number;
+  card?: SpendCard;
 }): RebalancePlan {
   const { usdt, jlpAmount, jlp, kaminoUsdg } = opts;
   const plan: RebalancePlan = { positions: [], stages: [], kaminoUsdg, error: null };
@@ -363,7 +366,7 @@ export function buildTopupPlanLend(opts: {
       slippageBps: opts.slippageBps,
       purpose: "topup",
     },
-    { type: "spend-transfer", usdt, purpose: "topup" },
+    { type: "spend-transfer", usdt, card: opts.card ?? "jupiter", purpose: "topup" },
   ];
   return plan;
 }

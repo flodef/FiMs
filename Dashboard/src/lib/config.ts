@@ -2,8 +2,14 @@ export const WALLET = "58kZBjjtHShTtXFmygr3ZT8VSU4dH28PanRAdouHbToh";
 /** second FiMs wallet — its balances count toward the sheet Wallet!K cache */
 export const WALLET2 = "FiMsyZhiBnpEvucssiCDXgiiK3kwUSmRxmr8keV3nJJF";
 export const KAMINO_MARKET = "47tfyEG9SsdEnUm9cw5kY9BXngQGqu3LBoop9j5uTAv8";
-/** Jupiter Spend card address — server-side only, never client-supplied */
-export const SPEND_ADDRESS = "9eu9NmhU3VRi57oGTyEp1zKZD8ecYrr3jSxA3VxZNvwT";
+/** Card deposit addresses — server-side only, never client-supplied. */
+export type SpendCard = "jupiter" | "nexo";
+export const SPEND_CARDS: Record<SpendCard, { label: string; address: string; offCurve: boolean }> = {
+  jupiter: { label: "Jupiter", address: "9eu9NmhU3VRi57oGTyEp1zKZD8ecYrr3jSxA3VxZNvwT", offCurve: true },
+  nexo: { label: "Nexo", address: "5Sq3pLnuEShCCqCvdU2wVEUkUaa3xBhcApzVQmqVyHYG", offCurve: false },
+};
+/** Jupiter Spend card address — default card */
+export const SPEND_ADDRESS = SPEND_CARDS.jupiter.address;
 export const DEFI_SHEET_ID = "1enXnuwZExO92B5FxPB8s2Rhqlxl1p9nUY9tRaHtV1kI";
 export const SHEETS_REFERER = "https://www.fims.fi";
 /** Wallet-V3 ledger endpoint serving member token circulation (FSOL/FiMs/FLiP) */

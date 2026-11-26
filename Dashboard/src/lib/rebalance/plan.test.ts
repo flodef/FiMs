@@ -228,6 +228,13 @@ describe("top-up plan", () => {
     expect(wd).toMatchObject({ type: "kamino-withdraw", usdtOut: 50, amountUsdg: 50 });
     expect(sw).toMatchObject({ type: "swap", pair: "usdg-usdt", amount: 50 });
     expect(tr).toMatchObject({ type: "spend-transfer", usdt: 50 });
+    expect(tr).toMatchObject({ card: "jupiter" });
+  });
+
+  test("card selector → spend-transfer carries the chosen card", () => {
+    const plan = buildTopupPlan(50, 200_000, "nexo");
+    const tr = plan.stages.find(s => s.type === "spend-transfer");
+    expect(tr).toMatchObject({ type: "spend-transfer", usdt: 50, card: "nexo" });
   });
 
   test("bounds: below 1, above 10k, NaN → error, no stages", () => {
@@ -271,6 +278,7 @@ describe("top-up plan from Lend JLP", () => {
       kaminoUsdg: 200_000,
       estOut: 50.1,
       slippageBps: 10,
+      card: "nexo",
     });
     expect(plan.error).toBeNull();
     expect(plan.stages.map(s => s.type)).toEqual(["lend-collateral", "swap-any", "spend-transfer"]);
@@ -278,7 +286,7 @@ describe("top-up plan from Lend JLP", () => {
     const [wd, sw, tr] = plan.stages;
     expect(wd).toMatchObject({ type: "lend-collateral", key: "JLP", amount: -14.4 });
     expect(sw).toMatchObject({ type: "swap-any", inToken: "jlp", outToken: "usdt", amount: 14.4, slippageBps: 10 });
-    expect(tr).toMatchObject({ type: "spend-transfer", usdt: 50 });
+    expect(tr).toMatchObject({ type: "spend-transfer", usdt: 50, card: "nexo" });
     // JLP LTV delta shown: collateral drops by 14.4 × 3.5 = 50.4 USD
     expect(plan.positions).toHaveLength(1);
     expect(plan.positions[0].key).toBe("JLP");

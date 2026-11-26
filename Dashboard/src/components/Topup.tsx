@@ -1,6 +1,6 @@
 import { IconRefresh, IconX } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
-import { SPEND_ADDRESS } from "../lib/config";
+import { SPEND_CARDS, type SpendCard } from "../lib/config";
 import { fmtPct } from "../lib/format";
 import { slippageBps } from "../lib/slippage";
 import type { PlanStage } from "../lib/rebalance/plan";
@@ -27,7 +27,10 @@ const stageDetail = (s: PlanStage) => {
     const inAmt = (s.estIn ?? s.amount).toFixed(2);
     return s.estOut != null ? `≈ ${inAmt} USDG → ≈ ${s.estOut.toFixed(2)} USDT` : `≈ ${inAmt} USDG → USDT`;
   }
-  if (s.type === "spend-transfer") return `send ≈ ${s.usdt.toFixed(2)} USDT to ${short(SPEND_ADDRESS)}`;
+  if (s.type === "spend-transfer") {
+    const card = SPEND_CARDS[s.card ?? "jupiter"];
+    return `send ≈ ${s.usdt.toFixed(2)} USDT to ${card.label} ${short(card.address)}`;
+  }
   if (s.type === "lend-collateral") return `−${Math.abs(s.amount).toFixed(2)} JLP collateral`;
   if (s.type === "swap-any") {
     const inAmt = (s.estIn ?? s.amount).toFixed(2);
@@ -41,6 +44,7 @@ const TOPUP_SOURCE_LABEL: Record<TopupSource, string> = {
   kamino: "from Kamino USD",
   lend: "from Lend JLP",
 };
+const SPEND_CARD_IDS = Object.keys(SPEND_CARDS) as SpendCard[];
 
 function Inner({
   eurToUsd,
@@ -53,6 +57,7 @@ function Inner({
 }) {
   const [amount, setAmount] = useState("");
   const [source, setSource] = useState<TopupSource>("kamino");
+  const [card, setCard] = useState<SpendCard>("jupiter");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -63,17 +68,25 @@ function Inner({
   const usdt = Number.isFinite(eur) && eurToUsd > 0 ? eur * eurToUsd : NaN;
   const usdtRef = useRef(usdt);
   const sourceRef = useRef(source);
+  const cardRef = useRef(card);
   useEffect(() => {
     usdtRef.current = usdt;
     sourceRef.current = source;
-  }, [usdt, source]);
+    cardRef.current = card;
+  }, [usdt, source, card]);
 
   const r = useStageRunner({
     lsKey: LS_KEY,
     fetchPlan: async () => {
       const u = usdtRef.current;
       if (!Number.isFinite(u) || u < 1) return null;
-      return api({ action: "topup-plan", usdt: u, source: sourceRef.current, slippageBps: slippageBps() });
+      return api({
+        action: "topup-plan",
+        usdt: u,
+        source: sourceRef.current,
+        card: cardRef.current,
+        slippageBps: slippageBps(),
+      });
     },
     onDone,
   });
@@ -90,7 +103,7 @@ function Inner({
     if (unfinished) return;
     const t = setTimeout(() => void loadPlan(), 400);
     return () => clearTimeout(t);
-  }, [usdtKey, source, unfinished, loadPlan]);
+  }, [usdtKey, source, card, unfinished, loadPlan]);
 
   const walletReady = r.connected && !r.wrongWallet && r.canSign;
   const walletMissing = !r.connected || !!r.wrongWallet;
@@ -139,6 +152,19 @@ function Inner({
               }`}
             >
               {TOPUP_SOURCE_LABEL[s]}
+            </button>
+          ))}
+        </div>
+        <div className="mt-2 flex rounded-lg border border-line p-0.5 w-fit" role="group" aria-label="Card">
+          {SPEND_CARD_IDS.map(c => (
+            <button
+              key={c}
+              onClick={() => setCard(c)}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                card === c ? "bg-accent text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              {SPEND_CARDS[c].label}
             </button>
           ))}
         </div>
