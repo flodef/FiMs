@@ -11,6 +11,7 @@ import {
   fetchEarnEurc,
   fetchKaminoUsdg,
   fetchLendVaultPositions,
+  fetchCardBalances,
   getPlan,
   getRestorePlan,
   getTopupPlan,
@@ -65,6 +66,10 @@ export async function topupPlanAction(
   card?: SpendCard,
 ): Promise<RebalancePlan> {
   return getTopupPlan(usdt, source, slippageBps, card);
+}
+
+export async function cardBalancesAction(): Promise<{ jupiter: number | null; nexo: number | null }> {
+  return fetchCardBalances();
 }
 
 export async function restorePlanAction(

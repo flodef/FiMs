@@ -1,6 +1,7 @@
 import { readBody, requireAuth, sendJson, type VercelRequest, type VercelResponse } from "./_lib.js";
 import {
   buildAction,
+  cardBalancesAction,
   planAction,
   restorePlanAction,
   sendAction,
@@ -46,6 +47,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const slippageBps = Number.isFinite(Number(body.slippageBps)) ? Number(body.slippageBps) : undefined;
       const card = body.card === "nexo" ? "nexo" : "jupiter";
       return sendJson(res, 200, await topupPlanAction(usdt, source, slippageBps, card));
+    }
+    if (action === "card-balances") {
+      return sendJson(res, 200, await cardBalancesAction());
     }
     if (action === "restore-plan") {
       const target = String(body.target ?? "") as RestoreTarget;

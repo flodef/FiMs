@@ -4,7 +4,7 @@ import { fmtPct } from "../lib/format";
 import type { StatusLevel } from "../lib/compute";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`rounded-xl border border-line bg-card p-4 ${className}`}>{children}</div>;
+  return <div className={`rounded-xl border border-line bg-card px-4 pt-4 pb-3 ${className}`}>{children}</div>;
 }
 
 export function CardTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {

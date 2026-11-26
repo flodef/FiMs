@@ -58,10 +58,14 @@ function Inner({
   const [amount, setAmount] = useState("");
   const [source, setSource] = useState<TopupSource>("kamino");
   const [card, setCard] = useState<SpendCard>("jupiter");
+  const [cardBalances, setCardBalances] = useState<{ jupiter: number | null; nexo: number | null } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+    api({ action: "card-balances" })
+      .then(setCardBalances)
+      .catch(() => {});
   }, []);
 
   const eur = amount === "" ? NaN : Number(amount);
@@ -168,6 +172,9 @@ function Inner({
             </button>
           ))}
         </div>
+        {cardBalances?.jupiter != null && (
+          <p className="mt-1 text-[11px] text-muted">Jupiter card balance ≈ {cardBalances.jupiter.toFixed(2)} USDC</p>
+        )}
         {Number.isFinite(usdt) && usdt >= 1 && usdt > 10_000 && (
           <p className="mt-1 text-[11px] text-danger">Max 10,000 USDT per top-up</p>
         )}

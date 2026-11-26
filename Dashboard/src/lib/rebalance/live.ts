@@ -471,6 +471,30 @@ export async function buildSpendTransferTx(amountUsdt: number, card: SpendCard =
   return finalizeTx(connection, ixs);
 }
 
+/** SPL balance of `mint` held by an arbitrary owner (parsed token accounts). */
+async function tokenBalanceOf(connection: Connection, owner: PublicKey, mint: string): Promise<number> {
+  const res = await connection.getParsedTokenAccountsByOwner(owner, { mint: new PublicKey(mint) });
+  let total = 0;
+  for (const { account } of res.value) {
+    const amt = (account.data as any)?.parsed?.info?.tokenAmount?.uiAmount;
+    if (Number.isFinite(amt)) total += Number(amt);
+  }
+  return total;
+}
+
+/**
+ * Card balances readable on-chain. Jupiter's spend address holds the card
+ * float as USDC — Nexo sweeps deposits into its omnibus wallets, so its
+ * balance only exists inside the Nexo account (no on-chain read).
+ */
+export async function fetchCardBalances(): Promise<{ jupiter: number | null; nexo: number | null }> {
+  const connection = rpc();
+  const jupiter = await tokenBalanceOf(connection, new PublicKey(SPEND_CARDS.jupiter.address), USDC_MINT).catch(
+    () => null,
+  );
+  return { jupiter, nexo: null };
+}
+
 // ---------- Jupiter swap ----------
 
 export interface SwapQuote {
